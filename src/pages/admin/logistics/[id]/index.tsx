@@ -144,7 +144,7 @@ const PackageDetailPage: React.FC = () => {
                             <p className="text-[10px] font-black text-neutral-400 uppercase mb-2 flex items-center gap-2">
                                 <Info size={12} /> Observaciones del Operador
                             </p>
-                            <p className="text-sm text-neutral-600 italic">"{data.observaciones}"</p>
+                            <p className="text-sm text-neutral-600 italic">{data.observaciones}</p>
                         </div>
                     </div>
 
