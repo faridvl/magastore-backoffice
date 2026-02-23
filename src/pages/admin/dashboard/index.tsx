@@ -2,15 +2,13 @@ import React from 'react';
 import Head from 'next/head';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, Cell, PieChart, Pie
+    BarChart, Bar, Cell
 } from 'recharts';
 import { DashboardLayout } from '@/components/common/layout/dashboard-layout';
 import { BoxedLayoutStyle } from '@/components/common/layout/boxed-container/boxed-container';
-import { TrendingUp, Package, Clock, DollarSign, AlertCircle, Users } from 'lucide-react';
+import { TrendingUp, Package, Clock, Users, Eye, ArrowRight } from 'lucide-react';
 
 // --- MOCKS DE ESTADÍSTICAS ---
-
-// 1. Ganancias Mensuales (Últimos 6 meses)
 const MONTHLY_REVENUE_DATA = [
     { name: 'Sep', revenue: 180000, cost: 120000 },
     { name: 'Oct', revenue: 220000, cost: 140000 },
@@ -20,7 +18,6 @@ const MONTHLY_REVENUE_DATA = [
     { name: 'Feb', revenue: 310000, cost: 190000 },
 ];
 
-// 2. Top Clientes por Ganancia (CRC)
 const TOP_CLIENTS_DATA = [
     { name: 'S. Jimenez', total: 85000 },
     { name: 'E. Guzman', total: 62000 },
@@ -47,6 +44,31 @@ const DashboardPage: React.FC = () => {
             <Head><title>Panel de Control | Magastore</title></Head>
             <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Inicio">
 
+                {/* --- NOTA PARA TU AMIGO --- */}
+                <div className="relative mb-8 group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                    <div className="relative bg-white border border-blue-100 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="flex items-center gap-5">
+                            <div className="h-14 w-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 animate-bounce">
+                                <Eye size={28} />
+                            </div>
+                            <div>
+                                <h4 className="text-neutral-900 font-black text-lg tracking-tight">¡Hey! Echa un vistazo a la vista del cliente</h4>
+                                <p className="text-neutral-500 text-sm font-medium">He preparado una demo para que veas cómo tus clientes rastrean sus paquetes.</p>
+                            </div>
+                        </div>
+                        <a
+                            href="https://magastore-backoffice.vercel.app/tracking"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-neutral-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-neutral-200 hover:shadow-blue-100 group"
+                        >
+                            Ir al Rastreo de Clientes
+                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                        </a>
+                    </div>
+                </div>
+
                 {/* 1. Grid de Estadísticas Rápidas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {DASHBOARD_STATS.map((stat, index) => (
@@ -62,7 +84,6 @@ const DashboardPage: React.FC = () => {
 
                 {/* 2. Sección de Gráficos Principales */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    {/* Gráfico de Ganancia Mensual */}
                     <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm">
                         <div className="flex justify-between items-center mb-6">
                             <div>
@@ -86,9 +107,7 @@ const DashboardPage: React.FC = () => {
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 700, fill: '#a3a3a3' }} dy={10} />
                                     <YAxis hide />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                    />
+                                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                                     <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                                     <Area type="monotone" dataKey="cost" stroke="#d4d4d4" strokeWidth={2} fill="transparent" />
                                 </AreaChart>
@@ -96,7 +115,6 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Gráfico de Top Clientes */}
                     <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm">
                         <div className="mb-6">
                             <h3 className="font-black text-neutral-800 tracking-tight">Top Clientes</h3>
@@ -121,7 +139,6 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Tabla de Actividad Reciente */}
                     <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
                         <div className="p-6 border-b border-neutral-50 flex justify-between items-center">
                             <h3 className="font-black text-neutral-800 tracking-tight">Actividad de Paquetes</h3>
@@ -155,12 +172,10 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Widget de Configuración de Tarifas Rápidas */}
                     <div className="bg-neutral-900 rounded-3xl p-8 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden">
                         <div className="relative z-10">
                             <h3 className="text-xl font-black mb-2">Calculadora Rápida</h3>
                             <p className="text-neutral-500 text-sm mb-6 font-medium">Cotización inmediata al cliente</p>
-
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-neutral-500 mb-2 block tracking-widest">Peso en Libras (LB)</label>
@@ -181,7 +196,6 @@ const DashboardPage: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-                        {/* Decoración de fondo */}
                         <div className="absolute -right-4 -bottom-4 opacity-5 text-white">
                             <Package size={180} />
                         </div>
