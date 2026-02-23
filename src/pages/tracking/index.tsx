@@ -10,7 +10,7 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 
 // MOCK: Datos de un paquete buscado (Basado en BD PAQUETES.csv)
 const MOCK_PACKAGE_RESULT = {
-    tracking: '1ZF4W4400346171903',
+    tracking: '1ZF4',
     cliente: 'Sebastian Jimenez (C-26)',
     status: 'EN ADUANA',
     fechaLlegada: '2026-02-20',
@@ -37,7 +37,7 @@ const TrackingPage: React.FC = () => {
     return (
         <>
             <Head><title>Tracking de Paquetes | Magastore</title></Head>
-            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Rastreo de Carga">
+            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Rastreo de Carga" hideSidebar={true}>
 
                 {/* Buscador Principal */}
                 <div className="max-w-3xl mx-auto mb-12">
@@ -48,7 +48,7 @@ const TrackingPage: React.FC = () => {
                         <form onSubmit={handleSearch} className="flex-1 flex">
                             <input
                                 type="text"
-                                placeholder="Introduce el número de tracking (Ej: 1ZF4W...)"
+                                placeholder="Introduce el número de tracking (Ej: 1ZF4)"
                                 className="w-full py-4 bg-transparent border-none focus:ring-0 font-bold text-neutral-700 placeholder:text-neutral-300"
                                 onChange={(e) => setSearch(e.target.value)}
                             />

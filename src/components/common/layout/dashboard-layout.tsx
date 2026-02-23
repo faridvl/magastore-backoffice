@@ -93,15 +93,16 @@ export function DashboardLayout({
         "flex flex-col flex-1 h-full min-w-0 transition-all",
         !hideSidebar && "border-l border-neutral-200 dark:border-neutral-800"
       )}>
-
-        <Header
+        {!hideSidebar && <Header
           title={pageTitle}
           hasBackButton={hasBackButton}
           onBack={backNavigationHandler}
         // Si tu Header no acepta estas props aún, puedes comentarlas
         // menuActions={headerMenu}
         // primaryAction={actionsButton}
-        />
+        />}
+
+
 
         <DashboardLayoutContent
           contentClassNames={tailwind(contentClassNames, bottomPadding)}
