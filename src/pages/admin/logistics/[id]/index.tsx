@@ -162,7 +162,7 @@ const PackageDetailPage: React.FC = () => {
                                     <div className="p-5 border border-neutral-100 rounded-2xl italic">
                                         <span className="text-[9px] font-black text-neutral-400 uppercase block mb-2 tracking-widest">Nota de este movimiento</span>
                                         <p className="text-sm font-medium text-neutral-600 leading-relaxed">
-                                            "{data.observaciones}"
+                                            {data.observaciones}
                                         </p>
                                     </div>
                                 </div>

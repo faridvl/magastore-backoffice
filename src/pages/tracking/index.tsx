@@ -66,7 +66,7 @@ const TrackingPage: React.FC = () => {
                             </div>
                             <div>
                                 <p className="text-amber-900 font-black text-sm uppercase tracking-tight">Prueba de flujo</p>
-                                <p className="text-amber-700 text-xs font-medium">Dale al botón <span className="font-black">"Rastrear"</span> para cargar la info simulada.</p>
+                                <p className="text-amber-700 text-xs font-medium">Dale al botón <span className="font-black">Rastrear</span> para cargar la info simulada.</p>
                             </div>
                         </div>
                     </div>
