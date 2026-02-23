@@ -1,0 +1,67 @@
+{
+  "languages": {
+    "es": "Español",
+    "en": "Inglés"
+  },
+  "common": {
+    "navigation": {
+      "backToList": "Volver a la lista",
+      "back": "Atrás"
+    },
+    "buttons": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "loading": "Cargando..."
+    }
+  },
+  "menu": {
+    "sidebar": {
+      "business": {
+        "name": "Zynka"
+      },
+      "files": "Expedientes",
+      "patients": "Pacientes",
+      "dashboard": "Dashboard",
+      "customers": "Clientes",
+      "about": "Nosotros",
+      "settings": "Ajustes"
+    }
+  },
+  "users": {
+    "list": {
+      "title": "Gestión de Usuarios",
+      "search_placeholder": "Buscar por nombre o correo...",
+      "security_title": "Seguridad de Acceso",
+      "security_description": "Los usuarios creados recibirán un correo electrónico para activar su cuenta y configurar su contraseña de forma segura.",
+      "roles": {
+        "all": "Todos",
+        "admin": "Administrador",
+        "doctor": "Doctor",
+        "staff": "Staff"
+      },
+      "create": {
+        "layoutTitle": "Nuevo Miembro",
+        "title": "Información del Usuario",
+        "description": "Completa los datos para dar de alta un nuevo acceso.",
+        "form": {
+          "fullName": "Nombre Completo",
+          "fullNamePlaceholder": "Ej. Roberto Gómez",
+          "email": "Correo Electrónico",
+          "emailPlaceholder": "nombre@clinica.com",
+          "password": "Contraseña Temporal",
+          "passwordPlaceholder": "••••••••",
+          "role": "Rol de Sistema",
+          "specialty": "Especialidad / Área",
+          "specialtyPlaceholder": "Ej. Audiología Clínica",
+          "submit": "Guardar Usuario"
+        },
+        "roles": {
+          "OWNER": "Dueño",
+          "ADMIN": "Administrador",
+          "DOCTOR": "Médico",
+          "STAFF": "Recepcionista / Staff"
+        }
+      }
+    }
+  }
+}

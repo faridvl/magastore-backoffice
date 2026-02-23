@@ -1,0 +1,19 @@
+{
+    "name": "Farid Villacis",
+    "short_name": "Farid Villacis",
+    "icons": [
+        {
+            "src": "/next.svg",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/next.svg",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#253237",
+    "background_color": "#253237",
+    "display": "standalone"
+}
