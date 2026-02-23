@@ -65,7 +65,7 @@ export function unauthorizeServerSidePage(): GetServerSideProps {
     if (token) {
       const destination = userRole === 'ADMIN'
         ? routesPrivate.admin.dashboard
-        : routesPrivate.myPackages;
+        : routesPrivate.packages;
 
       return {
         redirect: {

@@ -8,12 +8,14 @@ export const routesPublic = {
 export const routesPrivate = {
   // Sección Cliente (Magastore App)
   profile: '/profile',
-  myPackages: '/packages',
+  packages: '/packages',
   packageDetail: (id: string | number) => `/packages/${id}`,
 
   // Sección Admin (Gestión Logística)
   admin: {
     dashboard: '/admin/dashboard',
+    packages: '/admin/packages',
+
     // Gestión de lo que traes del exterior
     logistics: {
       index: '/admin/logistics',
@@ -30,6 +32,7 @@ export const routesPrivate = {
     },
     customers: {
       index: '/admin/customers',
+      create: '/admin/customers/create',
       detail: (id: string | number) => `/admin/customers/${id}`,
     },
     settings: '/admin/settings',

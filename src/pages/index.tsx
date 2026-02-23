@@ -19,7 +19,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // 2. Si está logueado, redirigimos según su rol
     const destination = role === 'ADMIN'
         ? routesPrivate.admin.dashboard
-        : routesPrivate.myPackages;
+        : routesPrivate.packages;
 
     return {
         redirect: {

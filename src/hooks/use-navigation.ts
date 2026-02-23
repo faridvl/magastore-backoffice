@@ -16,6 +16,7 @@ export const useNavigation = () => {
     // Navegación para el Administrador (Dueño de Magastore)
     admin: {
       dashboard: () => router.push(routesPrivate.admin.dashboard),
+      packages: () => router.push(routesPrivate.admin.packages),
 
       // Control de paquetes y pesos
       logistics: {
@@ -34,12 +35,13 @@ export const useNavigation = () => {
 
       customers: {
         list: () => router.push(routesPrivate.admin.customers.index),
+        create: () => router.push(routesPrivate.admin.customers.create),
         detail: (id: string | number) => router.push(routesPrivate.admin.customers.detail(id)),
       },
     },
     // Navegación para el Cliente final
     client: {
-      myPackages: () => router.push(routesPrivate.myPackages),
+      myPackages: () => router.push(routesPrivate.packages),
       track: (id: string | number) => router.push(routesPrivate.packageDetail(id)),
     },
     back: () => router.back(),
