@@ -57,7 +57,8 @@ export const CreateCustomerContainer: React.FC = () => {
                             <div
                                 key={tier.id}
                                 onClick={() => handleInputChange({ target: { name: 'tier', value: tier.id } } as any)}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-blue-600 bg-blue-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
+                                // className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-blue-600 bg-blue-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
+                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 border-blue-600 bg-blue-50/30 shadow-md scale-[1.02] `}
                             >
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${tier.color}`}>{tier.label}</span>
                                 <p className="text-xs font-medium text-neutral-400 mt-2">{tier.desc}</p>
