@@ -13,7 +13,7 @@ export const NAVIGATION_PATHS: any[] = [
   {
     menuKey: 'dashboard',
     icon: LayoutDashboard,
-    labelKey: 'Panel General',
+    labelKey: 'Dashboard',
     route: routesPrivate.admin.dashboard,
   },
   {

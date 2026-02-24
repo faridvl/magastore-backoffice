@@ -17,7 +17,7 @@ export function authorizeServerSidePage(
 ): GetServerSideProps {
   return async (context: GetServerSidePropsContext) => {
     const token = CookiesManager.getAccessToken(context);
-    const userRole = CookiesManager.getUserRole(context); // Asumiendo que guardas el rol en cookies
+    const userRole = CookiesManager.getUserRole(context);
 
     // 1. Si no hay token, al login
     if (!token) {
@@ -33,14 +33,24 @@ export function authorizeServerSidePage(
     if (options.adminOnly && userRole !== 'ADMIN') {
       return {
         redirect: {
-          destination: routesPrivate.profile, // Mandarlo a su perfil de cliente
+          destination: routesPrivate.profile,
           permanent: false,
         },
       };
     }
 
-    const additionalProps = callback ? await callback(context, token) : { props: {} };
+    // 3. Ejecutar callback si existe
+    let additionalProps: any = { props: {} };
+    if (callback) {
+      additionalProps = await callback(context, token);
+    }
 
+    // Si el callback retornó una redirección o un notFound, devolverlo inmediatamente
+    if ('redirect' in additionalProps || 'notFound' in additionalProps) {
+      return additionalProps;
+    }
+
+    // 4. Retornar props combinados
     return {
       ...additionalProps,
       props: {
@@ -52,7 +62,6 @@ export function authorizeServerSidePage(
     };
   };
 }
-
 /**
  * INVERSO: Para Login/Register. 
  * Si ya está logueado, redirige según su rol.
