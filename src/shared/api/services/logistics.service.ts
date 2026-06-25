@@ -8,6 +8,7 @@ import {
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
+import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
 
 /**
  * Servicio encargado de la lógica de negocio para el sistema de couriers.
@@ -141,7 +142,21 @@ export const LogisticsService = {
     deliveryMethod: DeliveryMethod,
   ): Promise<Partial<Billing>> => {
     try {
-      return await LogisticsRepository.generateBilling(consolidationUuid, deliveryMethod);
+      const billing = await LogisticsRepository.generateBilling(consolidationUuid, deliveryMethod);
+
+      const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
+      if (customerInfo && billing.uuid && billing.total_amount_crc) {
+        sendInvoiceNotification({
+          to: customerInfo.email,
+          firstName: customerInfo.first_name,
+          totalAmountCRC: Number(billing.total_amount_crc),
+          billingUuid: billing.uuid as string,
+        }).catch((err) =>
+          console.error('[Email] Error enviando notificación de factura:', err),
+        );
+      }
+
+      return billing;
     } catch (error: any) {
       console.error('[LogisticsService.createInvoice]:', error);
       throw new Error(error.message || 'Error al generar la facturación.');
@@ -165,9 +180,17 @@ export const LogisticsService = {
         evidenceUrl,
       );
 
-      // Webhook o Notificación ficticia
       if (status === PackageStatus.ENTREGADO) {
-        console.log(`[Email Notification]: El paquete ${uuid} ha sido entregado.`);
+        const customerInfo = await LogisticsRepository.getPackageCustomerInfo(uuid);
+        if (customerInfo) {
+          sendDeliveryNotification({
+            to: customerInfo.email,
+            firstName: customerInfo.first_name,
+            trackingNumber: customerInfo.tracking_number,
+          }).catch((err) =>
+            console.error('[Email] Error enviando notificación de entrega:', err),
+          );
+        }
       }
 
       return updatedPackage;

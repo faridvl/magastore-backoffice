@@ -219,18 +219,25 @@ Un usuario con rol OPERADOR puede registrar paquetes y cambiar estados, pero no 
 ---
 
 ## Etapa 13 — Notificaciones por email
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `PENDIENTE`
 
-### Dependencia
-Configurar servicio de email (Resend, SendGrid o similar). Agregar `EMAIL_API_KEY` a `.env.local`.
+### Proveedor: Resend
+Variables en `.env.local`: `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_LOGO_URL` (opcional).
+Documentacion completa: `.claude/docs/email-setup.md`
 
 ### Cambios
-- Reemplazar `console.log` en `logistics.service.ts:152-154` con llamada real al servicio de email
-- Template de email: "Tu paquete [tracking] fue entregado"
-- Considerar notificar tambien al generar factura
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `src/lib/email-templates.ts` | Nuevo | Templates HTML con estilos inline: `renderDeliveryEmail` + `renderInvoiceEmail` |
+| `src/lib/email.ts` | Nuevo | Cliente Resend: `sendDeliveryNotification` + `sendInvoiceNotification` |
+| `src/shared/api/repositories/logistics.repo.ts` | Modificar | Agregar `getPackageCustomerInfo` y `getConsolidationCustomerInfo` |
+| `src/shared/api/services/logistics.service.ts` | Modificar | Reemplazar `console.log`; agregar notif en `createInvoice` |
+| `src/pages/api/email/test.ts` | Nuevo | POST auth-protegido para enviar email de prueba |
 
 ### Criterio de exito
-Cuando un paquete llega a status `ENTREGADO`, el cliente recibe un email automatico.
+- Cuando un paquete llega a `ENTREGADO`, el cliente recibe email con tracking number.
+- Cuando se genera una factura, el cliente recibe email con total en CRC.
+- Endpoint `POST /api/email/test` permite previsualizar el template.
 
 ---
 
@@ -256,3 +263,4 @@ Cuando un paquete llega a status `ENTREGADO`, el cliente recibe un email automat
 | 2026-06-25 | — | Etapas 6-13 detalladas con criterios de exito |
 | 2026-06-25 | Etapa 9 | Normalizar package_type: enum + script SQL 003 ejecutado |
 | 2026-06-25 | Etapa 10 | Edicion de cliente: PUT endpoint + mutation + formulario inline |
+| 2026-06-25 | Etapa 13 | Notificaciones Resend: delivery + invoice + test endpoint |

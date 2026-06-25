@@ -28,6 +28,7 @@ Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
 | Detalle de factura | Desglose: flete + envio local + total, boton Marcar pagado |
 | Marcar pago | PATCH /api/billing?uuid=, actualiza is_paid + paid_at |
 | Eventos de paquete | Trigger DB trg_package_status_history escribe en package_events automaticamente |
+| Notificaciones por email | Resend: email al cliente al entregar paquete y al generar factura. Template HTML con logo placeholder. |
 | Historial de tarifas | settings_history campo por campo, con nombre de operador |
 | Gestion de consolidaciones | Listar, crear, detalle con paquetes, asignar paquetes, avanzar estado (state machine) |
 
@@ -105,7 +106,7 @@ Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> f
 | Configuracion | 100% | Scripts ejecutados - correos_fee_crc y tracopa_fee_crc en DB |
 | Dashboard | 90% | KPIs y graficas con datos reales; falta datos de costos/ganancias netas |
 | Tracking publico | 90% | Conectado a DB real; falta test con paquetes con events reales |
-| Notificaciones | 0% | Solo console.log |
+| Notificaciones | 90% | Resend: email al entregar y al facturar. Falta: verificar dominio en produccion |
 
 ### Resumen Global
 
