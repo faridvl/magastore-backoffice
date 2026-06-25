@@ -61,23 +61,19 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 4 | Billing UI: container + page | `17ae1ba` |
 | Etapa 5 | Delivery fees (Correos CR / Tracopa) + package detail con datos reales | `168517f` |
 | Etapa 6 | Dashboard con KPIs y graficas reales | `6e44051` |
+| Etapa 7 | Tracking publico conectado a API real | `pending-commit` |
 | Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
 | DB | Scripts SQL 001 y 002 ejecutados en Neon | 2026-06-25 |
 
-**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales.
+**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
 
-### Pendiente — MVP (Etapa 7)
-
-El MVP esta completo cuando el cliente puede consultar su paquete desde la web.
-
-| Etapa | Descripcion | Estado |
-|---|---|---|
-| Etapa 7 | Tracking publico conectado a API real | Pendiente |
+### Pendiente — Producto Completo (Etapas 9-13)
 
 ### Pendiente — Producto Completo (Etapas 9-13)
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
+
 | Etapa 9 | Normalizar package_type en DB | Pendiente |
 | Etapa 10 | Edicion de cliente | Pendiente |
 | Etapa 11 | PDF de factura descargable | Pendiente |
@@ -88,9 +84,9 @@ El MVP esta completo cuando el cliente puede consultar su paquete desde la web.
 
 | Escenario | % |
 |---|---|
-| Uso interno (operadores con guia) | ~78% |
-| MVP completo (Etapas 6-7 pendientes) | ~62% |
-| Producto completo (Etapas 9-13 pendientes) | ~38% |
+| Uso interno (operadores con guia) | ~85% |
+| MVP completo (tracking en vivo) | ~82% |
+| Producto completo (Etapas 9-13 pendientes) | ~40% |
 
 ---
 

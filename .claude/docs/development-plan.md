@@ -76,7 +76,7 @@ Dashboard muestra numeros reales. Las graficas tienen datos de los ultimos 6 mes
 ---
 
 ## Etapa 7 — Tracking publico: conectar API real
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `pending`
 
 ### Objetivo
 La pagina `/tracking` usa `MOCK_PACKAGE_RESULT`. Conectar al endpoint real para que el cliente pueda consultar su paquete.

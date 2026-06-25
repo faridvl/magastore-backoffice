@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `6e44051` (Etapa 6 - Dashboard datos reales)
+Last updated: 2026-06-25 | Last commit: `pending` (Etapa 7 - Tracking público + fix build dashboard)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -48,7 +48,7 @@ Last updated: 2026-06-25 | Last commit: `6e44051` (Etapa 6 - Dashboard datos rea
 | Pagina / Feature | Realidad |
 |---|---|
 | Dashboard (/admin/dashboard) | Implementado con datos reales — KPIs + graficas desde /api/dashboard/stats |
-| Tracking publico (/tracking) | Retorna MOCK_PACKAGE_RESULT - no toca la DB |
+| Tracking publico (/tracking) | GET /api/tracking?q= conectado a DB real; timeline con lifecycle steps |
 | Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
 | PDF de factura | No existe ninguna generacion de PDF |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
@@ -107,7 +107,7 @@ DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpiez
 | Facturacion | 80% | Generar + listar + marcar pagado; falta PDF, address, bulk |
 | Configuracion | 100% | Scripts ejecutados - correos_fee_crc y tracopa_fee_crc en DB |
 | Dashboard | 90% | KPIs y graficas con datos reales; falta datos de costos/ganancias netas |
-| Tracking publico | 10% | UI existe; backend retorna mock |
+| Tracking publico | 90% | Conectado a DB real; falta test con paquetes con events reales |
 | Notificaciones | 0% | Solo console.log |
 
 ### Resumen Global

@@ -99,6 +99,22 @@ export const LogisticsService = {
   },
 
   /**
+   * Búsqueda pública por tracking_number. Usada en /tracking sin autenticación.
+   */
+  getPackageByTrackingNumber: async (trackingNumber: string): Promise<any> => {
+    const clean = trackingNumber?.trim();
+    if (!clean) throw new Error('El número de tracking es requerido.');
+
+    const packageData = await LogisticsRepository.getTrackingByNumber(clean);
+
+    if (!packageData) {
+      throw new Error('No se encontró ningún paquete con ese número de tracking.');
+    }
+
+    return packageData;
+  },
+
+  /**
    * Agrupa varios paquetes en un solo consolidado y recalcula pesos.
    */
   processConsolidation: async (

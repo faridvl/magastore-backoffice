@@ -155,7 +155,7 @@ export const DashboardContainer: React.FC = () => {
                   />
                   <YAxis hide />
                   <Tooltip
-                    formatter={(value: number) => [formatCRC(value), 'Ingresos']}
+                    formatter={(value) => [formatCRC((value as number) ?? 0), 'Ingresos']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
                   <Area
@@ -202,7 +202,7 @@ export const DashboardContainer: React.FC = () => {
                   />
                   <Tooltip
                     cursor={{ fill: '#f8fafc' }}
-                    formatter={(value: number) => [formatCRC(value), 'Total']}
+                    formatter={(value) => [formatCRC((value as number) ?? 0), 'Total']}
                     contentStyle={{ borderRadius: '12px' }}
                   />
                   <Bar dataKey="total" radius={[0, 10, 10, 0]} barSize={30}>
