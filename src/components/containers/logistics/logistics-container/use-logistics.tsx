@@ -1,27 +1,21 @@
 import { useLogisticsQuery } from '@/shared/api/querys/logistics/use-logistics-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export const usePackages = (pageSize = 7) => { // Ahora acepta el tamaño por parámetro
+export const usePackages = (pageSize = 7) => {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [debouncedSearch, setDebouncedSearch] = useState(search);
 
-    // Usamos pageSize para la petición al API
-    const { data, isLoading } = useLogisticsQuery(page, pageSize, search, statusFilter);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 400);
+        return () => clearTimeout(handler);
+    }, [search]);
 
-    const handlePageChange = (newPage: number) => {
-        setPage(newPage);
-    };
-
-    const handleSearch = (value: string) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-    const handleStatusChange = (newStatus: string) => {
-        setStatusFilter(newStatus);
-        setPage(1);
-    };
+    const { data, isLoading } = useLogisticsQuery(page, pageSize, debouncedSearch, statusFilter);
 
     return {
         packages: data?.data || [],
@@ -33,8 +27,8 @@ export const usePackages = (pageSize = 7) => { // Ahora acepta el tamaño por pa
             totalPages: data?.meta.totalPages || 1
         },
         statusFilter,
-        setStatusFilter: handleStatusChange,
-        handlePageChange,
-        handleSearch
+        setStatusFilter: (s: string) => { setStatusFilter(s); setPage(1); },
+        handlePageChange: setPage,
+        handleSearch: setSearch
     };
 };

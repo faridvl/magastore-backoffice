@@ -1,63 +1,86 @@
 import { useState, useMemo } from 'react';
-
-// Interfaces para mantener el orden
-interface PackageFormData {
-  tracking: string;
-  codigoCliente: string;
-  pesoLb: number;
-  tipoPaquete: string;
-  costoPTY: number;
-  observaciones: string;
-}
+import { PackageStatus } from '@/types/logistics/logistics.types';
+import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
+import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
+import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 
 export const usePackageCalculator = () => {
-  // Configuración (Luego podrá venir de una API/Contexto)
-  const PRECIO_LB_USD = 6;
-  const TIPO_CAMBIO = 520;
+  const { data: customersRes, isLoading: loadingCustomers } = useCustomersQuery();
+  const { data: settingsRes, isLoading: loadingSettings } = useSettingsQuery();
+  const { executeCreate, isPending: isSaving } = useCreatePackageMutation();
 
-  const [formData, setFormData] = useState<PackageFormData>({
-    tracking: '',
-    codigoCliente: '',
-    pesoLb: 0,
-    tipoPaquete: 'Aéreo',
-    costoPTY: 0,
-    observaciones: '',
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    tracking_number: '',
+    customer_id: '',
+    weight_lb: 0,
+    package_type: 'Aereo' as 'Aereo' | 'Maritimo',
+    status: PackageStatus.MIAMI,
+    costoOperativoCRC: 0,
   });
 
-  // Cálculos derivados usando useMemo para eficiencia
-  const calculations = useMemo(() => {
-    const cobroUSD = formData.pesoLb * PRECIO_LB_USD;
-    const cobroCRC = cobroUSD * TIPO_CAMBIO;
+  const settings = settingsRes?.current;
 
-    // La ganancia es lo que cobras menos lo que te cuesta (flete/aduana)
-    const gananciaEstimada = cobroCRC - formData.costoPTY;
+  // Filtrado de clientes para el dropdown
+  const filteredCustomers = useMemo(() => {
+    const data = customersRes?.data || [];
+    if (!searchTerm) return data;
+    const s = searchTerm.toLowerCase();
+    return data.filter(
+      (c) =>
+        c.first_name.toLowerCase().includes(s) ||
+        c.last_name.toLowerCase().includes(s) ||
+        c.customer_code.toLowerCase().includes(s),
+    );
+  }, [customersRes, searchTerm]);
+
+  const selectedCustomer = customersRes?.data.find((c) => c.id === formData.customer_id);
+
+  // Cálculos dinámicos
+  const calculations = useMemo(() => {
+    const price = Number(settings?.price_per_lb || 0);
+    const rate = Number(settings?.exchange_rate || 0);
+    const minW = Number(settings?.min_weight || 0);
+
+    const weight = formData.weight_lb > 0 ? Math.max(formData.weight_lb, minW) : 0;
+    const cobroTotalUSD = weight * price;
+    const cobroTotalCRC = cobroTotalUSD * rate;
+    const ganancia = cobroTotalCRC > 0 ? cobroTotalCRC - formData.costoOperativoCRC : 0;
 
     return {
-      precioPorLibra: PRECIO_LB_USD,
-      tipoCambio: TIPO_CAMBIO,
-      cobroTotalUSD: cobroUSD,
-      cobroTotalCRC: cobroCRC,
-      gananciaEstimada,
+      cobroTotalUSD,
+      cobroTotalCRC,
+      ganancia,
+      appliedMin: formData.weight_lb > 0 && formData.weight_lb < minW,
     };
-  }, [formData.pesoLb, formData.costoPTY]);
-
-  const updateField = (field: keyof PackageFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, [formData, settings]);
 
   const handleSave = async () => {
-    console.log('Datos listos para el CSV Maestro:', {
+    if (!formData.customer_id || !formData.tracking_number)
+      return alert('Completa los campos obligatorios');
+    await executeCreate({
       ...formData,
-      ...calculations,
-      fechaRegistro: new Date().toISOString(),
+      package_type: formData.package_type.toUpperCase() as any,
     });
-    // Aquí se conectará con el backend/google sheets
+    setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
+    setSearchTerm('');
+    alert('✅ Registrado');
   };
 
   return {
     formData,
+    setFormData,
     calculations,
-    updateField,
+    settings,
+    customers: filteredCustomers,
+    selectedCustomer,
+    searchTerm,
+    setSearchTerm,
+    isOpen,
+    setIsOpen,
     handleSave,
+    isSaving,
+    isLoading: loadingCustomers || loadingSettings,
   };
 };

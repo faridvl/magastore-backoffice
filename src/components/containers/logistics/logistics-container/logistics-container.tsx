@@ -1,14 +1,35 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Search, Package, Anchor, CheckCircle2, User, Calendar } from 'lucide-react';
+import { Search, Package, Anchor, CheckCircle2, User, Calendar, Plus, Truck, Box } from 'lucide-react';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
+
+// --- Sub-componente interno para las métricas rápidas ---
+const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
+    const textColors: Record<string, string> = {
+        blue: 'text-blue-600 border-blue-100 bg-blue-50/50',
+        amber: 'text-amber-600 border-amber-100 bg-amber-50/50',
+        emerald: 'text-emerald-600 border-emerald-100 bg-emerald-50/50'
+    };
+
+    return (
+        <div className="flex items-center gap-3 group cursor-default">
+            <div className={`p-2.5 rounded-xl border transition-transform group-hover:scale-110 ${textColors[color]}`}>
+                {icon}
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[14px] font-black text-slate-800 leading-none">{value}</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-1">{label}</span>
+            </div>
+        </div>
+    );
+};
 
 export const LogisticsContainer: React.FC = () => {
     const router = useRouter();
     const PAGE_SIZE = 7;
-    // Ajustamos a 5 rows para que la vista sea compacta
+
     const {
         packages, isLoading, meta,
         handlePageChange, handleSearch,
@@ -21,12 +42,8 @@ export const LogisticsContainer: React.FC = () => {
             accessor: 'tracking_number',
             render: (row) => (
                 <div className="flex flex-col">
-                    <Typography variant={TypographyVariant.BODY_SEMIBOLD} className="text-primary italic leading-none">
-                        #{row.id_paquete || row.id}
-                    </Typography>
-                    <Typography variant={TypographyVariant.CAPTION} className="font-mono text-slate-400 mt-1 uppercase tracking-tighter">
-                        {row.tracking_number || row.tracking}
-                    </Typography>
+                    <span className="text-blue-600 italic font-black text-[10px]">#{row.id_paquete || row.id?.substring(0, 8)}</span>
+                    <span className="font-mono text-slate-600 text-[11px] uppercase font-bold tracking-tight">{row.tracking_number}</span>
                 </div>
             )
         },
@@ -34,34 +51,30 @@ export const LogisticsContainer: React.FC = () => {
             header: 'Cliente',
             accessor: 'customer',
             render: (row) => (
-                <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                        <User size={14} />
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                        <User size={12} />
                     </div>
                     <div className="flex flex-col">
-                        <Typography variant={TypographyVariant.BODY_SEMIBOLD} className="text-slate-700 text-xs">
-                            {row.customer_name || 'Consumidor Final'}
-                        </Typography>
-                        <Typography variant={TypographyVariant.OVERLINE} className="text-[9px] opacity-60">
-                            {row.customer_code || row.codigo_cliente}
-                        </Typography>
+                        <span className="text-slate-700 font-bold text-[11px] leading-none">
+                            {row.customer?.first_name} {row.customer?.last_name}
+                        </span>
+                        <span className="text-[9px] font-black text-blue-400 mt-1 uppercase tracking-widest">
+                            {row.customer?.customer_code}
+                        </span>
                     </div>
                 </div>
             )
         },
         {
-            header: 'Info. Paquete',
-            accessor: 'type',
+            header: 'Info. Envío',
+            accessor: 'package_type',
             render: (row) => (
                 <div className="flex flex-col">
-                    <Typography variant={TypographyVariant.CAPTION} className="font-bold text-slate-600 uppercase">
-                        {row.tipo_paquete || 'General'}
-                    </Typography>
-                    <div className="flex items-center gap-1 text-slate-400">
+                    <span className="text-[9px] font-black text-slate-400 uppercase">{row.package_type || 'AÉREO'}</span>
+                    <div className="flex items-center gap-1 text-slate-400 mt-0.5">
                         <Calendar size={10} />
-                        <Typography variant={TypographyVariant.OVERLINE} className="text-[9px]">
-                            {row.fecha_llegada_pty || 'Sin fecha'}
-                        </Typography>
+                        <span className="text-[10px] font-medium">{new Date(row.created_at).toLocaleDateString()}</span>
                     </div>
                 </div>
             )
@@ -70,67 +83,102 @@ export const LogisticsContainer: React.FC = () => {
             header: 'Peso',
             accessor: 'weight_lb',
             render: (row) => (
-                <div className="bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 inline-flex items-baseline gap-1">
-                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-700">
-                        {row.weight_lb || row.peso_lb}
-                    </Typography>
-                    <Typography variant={TypographyVariant.OVERLINE} className="text-[9px] font-black text-slate-400">LBS</Typography>
+                <div className="flex items-baseline gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 inline-flex">
+                    <span className="text-slate-900 font-black text-xs">{row.weight_lb}</span>
+                    <span className="text-[8px] font-bold text-slate-400">LBS</span>
                 </div>
             )
         },
         {
             header: 'Estado',
             accessor: 'status',
-            render: (row) => (
-                <span className={`px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${row.status === 'MIAMI' || row.status === 'RECIBIDO' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                    row.status === 'ENTREGADO' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                        'bg-slate-100 text-slate-500 border-slate-200'
-                    }`}>
-                    {row.status}
-                </span>
-            )
+            render: (row) => {
+                const statusStyles: Record<string, string> = {
+                    'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
+                    'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                    'TRANSITO': 'bg-blue-50 text-blue-600 border-blue-100',
+                };
+                return (
+                    <span className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[row.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                        {row.status}
+                    </span>
+                );
+            }
         }
     ];
 
     return (
-        <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-            {/* Cards de Resumen con diseño más "Dashboard" */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <SummaryCard icon={<Package size={22} />} label="Total Registros" value={meta.total} color="blue" />
-                <SummaryCard icon={<Anchor size={22} />} label="En Bodega Miami" value={packages.filter((p: any) => p.status === 'MIAMI').length} color="amber" />
-                <SummaryCard icon={<CheckCircle2 size={22} />} label="Páginas Disponibles" value={meta.totalPages} color="emerald" />
-            </div>
+        <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
-            {/* Toolbar: Búsqueda y Filtros Segmentados */}
-            <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-                <div className="relative flex-1 w-full">
-                    <input
-                        type="text"
-                        placeholder="Buscar por tracking, ID o cliente..."
-                        className="w-full bg-slate-50 border-none pl-12 pr-4 py-3.5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
-                        onChange={(e) => handleSearch(e.target.value)}
+            {/* ACTION BAR: MÉTRICAS + BOTÓN CREATE */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-sm">
+
+                {/* Métricas Compactas */}
+                <div className="flex flex-1 items-center justify-around md:justify-start md:gap-16 px-4">
+                    <MetricItem
+                        label="Total Paquetes"
+                        value={meta.total || 0}
+                        color="blue"
+                        icon={<Box size={14} />}
                     />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <div className="w-px h-8 bg-slate-100 hidden md:block" />
+                    {/* <MetricItem
+                        label="En Miami"
+                        value={meta.totalMiami || 0}
+                        color="amber"
+                        icon={<Anchor size={14} />}
+                    />
+                    <div className="w-px h-8 bg-slate-100 hidden md:block" />
+                    <MetricItem
+                        label="Entregados"
+                        value={meta.totalDelivered || 0}
+                        color="emerald"
+                        icon={<CheckCircle2 size={14} />}
+                    /> */}
                 </div>
 
-                <div className="flex gap-1 bg-slate-100 p-1.5 rounded-2xl w-full md:w-auto">
-                    {['ALL', 'MIAMI', 'ENTREGADO'].map((s) => (
+                {/* Botón Primary - Nuevo Registro */}
+                <button
+                    onClick={() => router.push('/admin/logistics/create')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg shadow-blue-100 active:scale-95"
+                >
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em]">Nuevo Registro</span>
+                    <div className="bg-white/20 p-2 rounded-full group-hover:bg-white/30 transition-colors">
+                        <Plus size={16} strokeWidth={3} />
+                    </div>
+                </button>
+            </div>
+
+            {/* TOOLBAR: BÚSQUEDA Y FILTROS */}
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+                <div className="relative flex-[1.5] w-full">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Buscar por tracking, código o nombre..."
+                        className="w-full bg-white border border-slate-100 pl-14 pr-6 py-4 rounded-3xl outline-none focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium shadow-sm"
+                        onChange={(e) => handleSearch(e.target.value)}
+                    />
+                </div>
+
+                <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-full lg:w-auto overflow-x-auto whitespace-nowrap">
+                    {['ALL', 'MIAMI', 'TRANSITO', 'ENTREGADO'].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s)}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${statusFilter === s
-                                ? 'bg-white text-primary shadow-md'
-                                : 'text-slate-500 hover:bg-slate-200/50'
+                            className={`px-5 py-2.5 rounded-[1.5rem] text-[9px] font-black transition-all ${statusFilter === s
+                                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50'
+                                : 'text-slate-400 hover:text-slate-600'
                                 }`}
                         >
-                            {s === 'ALL' ? 'TODOS' : s}
+                            {s === 'ALL' ? 'VER TODOS' : s}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Tabla con Densidad Ajustada */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+            {/* TABLA PRINCIPAL */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
                 <NewTable
                     data={packages}
                     columns={columns}
@@ -147,16 +195,4 @@ export const LogisticsContainer: React.FC = () => {
     );
 };
 
-const SummaryCard = ({ icon, label, value, color }: any) => (
-    <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center gap-5">
-        <div className={`h-14 w-14 rounded-2xl bg-${color}-50 text-${color}-600 flex items-center justify-center`}>
-            {icon}
-        </div>
-        <div>
-            <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-black tracking-widest">{label}</Typography>
-            <Typography variant={TypographyVariant.HEADER} className="text-slate-900 leading-none mt-1" as="h3">
-                {value}
-            </Typography>
-        </div>
-    </div>
-);
+export default LogisticsContainer;

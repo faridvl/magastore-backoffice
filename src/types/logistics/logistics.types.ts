@@ -103,3 +103,23 @@ export interface LogisticsPackage {
   last_name: string | null;
   customer_code: string | null;
 }
+
+// export type PackageEvent = {
+//   id: number;
+//   package_id: number;
+//   status: string;
+//   event_type: 'INFO' | 'WARNING' | 'ALERT';
+//   description: string;
+//   location: string;
+//   created_at: string;
+// };
+
+export type PackageDetail = {
+  uuid: string;
+  tracking_number: string;
+  status: string;
+  weight_lb: string;
+  internal_notes: string | null;
+  evidence_url: string | null;
+  events: PackageEvent[];
+};
