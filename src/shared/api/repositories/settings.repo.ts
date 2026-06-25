@@ -21,13 +21,15 @@ export const getSettingsWithHistory = async () => {
 
 export const updateSettings = async (data: any) => {
   return await sql`
-    UPDATE system_settings 
-    SET 
-      price_per_lb = ${data.price_per_lb},
-      exchange_rate = ${data.exchange_rate},
-      profit_per_lb = ${data.profit_per_lb},
-      min_weight = ${data.min_weight},
-      updated_at = NOW()
+    UPDATE system_settings
+    SET
+      price_per_lb    = ${data.price_per_lb},
+      exchange_rate   = ${data.exchange_rate},
+      profit_per_lb   = ${data.profit_per_lb},
+      min_weight      = ${data.min_weight},
+      correos_fee_crc = ${data.correos_fee_crc},
+      tracopa_fee_crc = ${data.tracopa_fee_crc},
+      updated_at      = NOW()
     WHERE id = ${SETTINGS_ID}
     RETURNING *
   `;

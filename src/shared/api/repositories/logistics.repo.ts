@@ -7,6 +7,7 @@ import {
   Billing,
 } from '@/types/logistics/logistics.types';
 import { getSettings } from './settings.repo';
+import { DeliveryMethod } from '@/types/logistics/logistics.types';
 
 /**
  * Repository para el sistema de logística de couriers.
@@ -128,15 +129,23 @@ export const LogisticsRepository = {
   /**
    * 5. GENERATE BILLING: Crea el snapshot financiero de una consolidación.
    * Lee tarifas vigentes de system_settings. Valida estado y duplicados.
+   * El costo de envío local (delivery_fee_crc) se elige en el momento de facturar.
+   * profit_per_lb es solo una métrica de reporting y NO se incluye en la factura.
    */
-  generateBilling: async (consolidationUuid: string): Promise<Partial<Billing>> => {
+  generateBilling: async (
+    consolidationUuid: string,
+    deliveryMethod: DeliveryMethod,
+  ): Promise<Partial<Billing>> => {
     const settings = await getSettings();
     if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
 
-    const price_lb = Number(settings.price_per_lb);
-    const exchange = Number(settings.exchange_rate);
-    const fee = Number(settings.profit_per_lb);
-    const min_lb = Number(settings.min_weight);
+    const price_lb  = Number(settings.price_per_lb);
+    const exchange  = Number(settings.exchange_rate);
+    const min_lb    = Number(settings.min_weight);
+    const deliveryFee =
+      deliveryMethod === 'CORREOS_CR' ? Number(settings.correos_fee_crc ?? 4500) :
+      deliveryMethod === 'TRACOPA'    ? Number(settings.tracopa_fee_crc  ?? 3000) :
+      0; // RETIRO — sin costo de envío
 
     try {
       await sql`BEGIN`;
@@ -158,9 +167,10 @@ export const LogisticsRepository = {
       `;
       if (existing) throw new Error('Esta consolidación ya tiene una factura generada.');
 
-      const actualWeight = Number(c.total_weight_lb);
+      const actualWeight  = Number(c.total_weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
-      const totalCrc = chargedWeight * price_lb * exchange + fee;
+      const flete         = chargedWeight * price_lb * exchange;
+      const totalCrc      = flete + deliveryFee;
 
       const [bill] = await sql`
         INSERT INTO billing (
@@ -169,16 +179,20 @@ export const LogisticsRepository = {
           applied_exchange,
           applied_fee_crc,
           total_weight_charged,
-          total_amount_crc
+          total_amount_crc,
+          delivery_method,
+          delivery_fee_crc
         ) VALUES (
           ${c.id},
           ${price_lb},
           ${exchange},
-          ${fee},
+          ${0},
           ${chargedWeight},
-          ${totalCrc}
+          ${totalCrc},
+          ${deliveryMethod},
+          ${deliveryFee}
         )
-        RETURNING uuid, total_amount_crc, created_at;
+        RETURNING uuid, total_amount_crc, delivery_method, delivery_fee_crc, created_at;
       `;
 
       await sql`COMMIT`;

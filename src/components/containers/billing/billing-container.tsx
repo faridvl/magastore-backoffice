@@ -1,11 +1,23 @@
 import React from 'react';
-import { Search, FileText, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Search, CheckCircle2, Clock, XCircle, Truck, Package } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useBilling, PaidFilterValue, ActiveBillingTab } from './use-billing';
-import { BillingListItem, PendingConsolidation } from '@/types/logistics/logistics.types';
+import { BillingListItem, PendingConsolidation, DeliveryMethod } from '@/types/logistics/logistics.types';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
+
+const DELIVERY_OPTIONS: { value: DeliveryMethod; label: string; description: string }[] = [
+  { value: 'CORREOS_CR', label: 'Correos de Costa Rica', description: 'Envío por correo postal nacional' },
+  { value: 'TRACOPA',    label: 'Tracopa / Encomienda',  description: 'Encomienda por bus interurbano' },
+  { value: 'RETIRO',     label: 'Retiro en Oficina',     description: 'El cliente retira sin costo adicional' },
+];
+
+const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
+  CORREOS_CR: 'Correos CR',
+  TRACOPA:    'Tracopa',
+  RETIRO:     'Retiro',
+};
 
 export const BillingContainer: React.FC = () => {
   const {
@@ -14,10 +26,14 @@ export const BillingContainer: React.FC = () => {
     search, setSearch,
     paidFilter, handlePaidFilterChange,
     selectedBillingUuid, setSelectedBillingUuid,
+    invoiceTarget, setInvoiceTarget,
+    selectedDeliveryMethod, setSelectedDeliveryMethod,
+    handleOpenInvoiceModal,
+    handleConfirmInvoice,
     billingList, listMeta, isLoadingList,
     pendingConsolidations, isLoadingPending,
     billingDetail, isLoadingDetail,
-    handleGenerateInvoice, isGenerating,
+    isGenerating,
     handleMarkAsPaid, isMarkingPaid,
   } = useBilling();
 
@@ -33,15 +49,33 @@ export const BillingContainer: React.FC = () => {
       ),
     },
     {
-      header: 'Peso Cobrado',
+      header: 'Peso',
       accessor: 'total_weight_charged',
       align: 'center',
       render: (row) => (
-        <span className="font-black text-slate-700 text-sm">{row.total_weight_charged} <span className="text-[10px] text-slate-400">lb</span></span>
+        <span className="font-black text-slate-700 text-sm">
+          {row.total_weight_charged} <span className="text-[10px] text-slate-400">lb</span>
+        </span>
       ),
     },
     {
-      header: 'Total CRC',
+      header: 'Entrega',
+      accessor: 'delivery_method',
+      render: (row) => row.delivery_method ? (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+            {DELIVERY_LABELS[row.delivery_method]}
+          </span>
+          {row.delivery_fee_crc > 0 && (
+            <span className="text-[10px] text-slate-400">{formatCRC(row.delivery_fee_crc)}</span>
+          )}
+        </div>
+      ) : (
+        <span className="text-[10px] text-slate-300 italic">—</span>
+      ),
+    },
+    {
+      header: 'Total',
       accessor: 'total_amount_crc',
       render: (row) => (
         <span className="text-lg font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>
@@ -88,7 +122,9 @@ export const BillingContainer: React.FC = () => {
       accessor: 'total_weight_lb',
       align: 'center',
       render: (row) => (
-        <span className="font-black text-slate-700 text-sm">{row.total_weight_lb} <span className="text-[10px] text-slate-400">lb</span></span>
+        <span className="font-black text-slate-700 text-sm">
+          {row.total_weight_lb} <span className="text-[10px] text-slate-400">lb</span>
+        </span>
       ),
     },
     {
@@ -96,7 +132,9 @@ export const BillingContainer: React.FC = () => {
       accessor: 'package_count',
       align: 'center',
       render: (row) => (
-        <span className="bg-slate-100 text-slate-600 font-black text-xs px-3 py-1 rounded-full">{row.package_count}</span>
+        <span className="bg-slate-100 text-slate-600 font-black text-xs px-3 py-1 rounded-full">
+          {row.package_count}
+        </span>
       ),
     },
     {
@@ -109,11 +147,11 @@ export const BillingContainer: React.FC = () => {
       ),
     },
     {
-      header: 'Preview Cobro',
+      header: 'Flete estimado',
       accessor: 'total_weight_lb',
       render: (row) => {
-        const preview = Math.max(Number(row.total_weight_lb), 1) * 6 * 480 + 2900;
-        return <span className="text-sm font-bold text-slate-500 italic">{formatCRC(preview)}</span>;
+        const flete = Math.max(Number(row.total_weight_lb), 1) * 6 * 480;
+        return <span className="text-sm font-bold text-slate-500 italic">{formatCRC(flete)}</span>;
       },
     },
     {
@@ -122,11 +160,10 @@ export const BillingContainer: React.FC = () => {
       align: 'right',
       render: (row) => (
         <button
-          onClick={(e) => { e.stopPropagation(); handleGenerateInvoice(row.uuid); }}
-          disabled={isGenerating}
-          className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-slate-700 transition-all disabled:opacity-50"
+          onClick={(e) => { e.stopPropagation(); handleOpenInvoiceModal(row); }}
+          className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-blue-600 transition-all"
         >
-          {isGenerating ? 'Generando...' : 'Generar Factura'}
+          Facturar
         </button>
       ),
     },
@@ -157,9 +194,9 @@ export const BillingContainer: React.FC = () => {
         ))}
       </div>
 
+      {/* TAB: REGISTROS */}
       {activeTab === 'registros' && (
         <>
-          {/* FILTROS */}
           <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -188,7 +225,6 @@ export const BillingContainer: React.FC = () => {
             </div>
           </div>
 
-          {/* TABLA REGISTROS */}
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
             <NewTable
               data={billingList}
@@ -205,6 +241,7 @@ export const BillingContainer: React.FC = () => {
         </>
       )}
 
+      {/* TAB: POR FACTURAR */}
       {activeTab === 'por-facturar' && (
         <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
           <NewTable
@@ -220,7 +257,82 @@ export const BillingContainer: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL DETALLE */}
+      {/* MODAL: SELECCIONAR MÉTODO DE ENTREGA */}
+      {invoiceTarget && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setInvoiceTarget(null)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Truck size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Método de Entrega
+              </Typography>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-slate-500 text-sm font-medium">
+                {invoiceTarget.customer_name} · {invoiceTarget.customer_code}
+              </p>
+              <p className="text-slate-400 text-xs mt-0.5">
+                {invoiceTarget.total_weight_lb} lb · {invoiceTarget.package_count} paquete(s)
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              {DELIVERY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSelectedDeliveryMethod(opt.value)}
+                  className={`w-full flex items-start gap-4 p-4 rounded-2xl border-2 text-left transition-all ${
+                    selectedDeliveryMethod === opt.value
+                      ? 'border-slate-900 bg-slate-50'
+                      : 'border-slate-100 hover:border-slate-200'
+                  }`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                    selectedDeliveryMethod === opt.value
+                      ? 'border-slate-900 bg-slate-900'
+                      : 'border-slate-300'
+                  }`}>
+                    {selectedDeliveryMethod === opt.value && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-800 text-sm">{opt.label}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{opt.description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setInvoiceTarget(null)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmInvoice}
+                disabled={isGenerating}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg disabled:opacity-50"
+              >
+                {isGenerating ? 'Generando...' : 'Confirmar y Facturar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DETALLE DE FACTURA */}
       {selectedBillingUuid && (
         <div
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -245,42 +357,60 @@ export const BillingContainer: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <BillingRow label="Consolidación" value={billingDetail.consolidation_uuid.slice(0, 8).toUpperCase()} />
-                  <BillingRow label="Peso consolidación" value={`${billingDetail.total_weight_lb} lb`} />
-                  <BillingRow label="Peso cobrado" value={`${billingDetail.total_weight_charged} lb`} />
-                  <div className="h-px bg-slate-100 my-2" />
-                  <BillingRow label="Tarifa por libra" value={`$${billingDetail.applied_rate_usd.toFixed(2)}`} />
-                  <BillingRow label="Tipo de cambio" value={`₡${billingDetail.applied_exchange.toLocaleString()}`} />
-                  <BillingRow label="Cargo fijo" value={formatCRC(billingDetail.applied_fee_crc)} />
-                  <div className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-center">
-                    <span className="font-bold text-slate-800">Total a Cancelar</span>
-                    <span className="text-3xl font-black text-slate-900">{formatCRC(billingDetail.total_amount_crc)}</span>
+                {/* Desglose de cobro */}
+                <div className="bg-slate-50 rounded-2xl p-5 mb-5 space-y-3">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Desglose</p>
+                  <BillingRow
+                    label="Peso cobrado"
+                    value={`${billingDetail.total_weight_charged} lb`}
+                  />
+                  <BillingRow
+                    label={`Flete internacional ($${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`}
+                    value={formatCRC(billingDetail.total_weight_charged * billingDetail.applied_rate_usd * billingDetail.applied_exchange)}
+                  />
+                  {billingDetail.delivery_method && (
+                    <BillingRow
+                      label={`Envío local — ${DELIVERY_LABELS[billingDetail.delivery_method]}`}
+                      value={billingDetail.delivery_fee_crc > 0 ? formatCRC(billingDetail.delivery_fee_crc) : 'Sin cargo'}
+                    />
+                  )}
+                  <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                    <span className="font-black text-slate-800 text-sm">Total a Cancelar</span>
+                    <span className="text-2xl font-black text-slate-900">{formatCRC(billingDetail.total_amount_crc)}</span>
                   </div>
                 </div>
 
+                {/* Trackings */}
                 {billingDetail.package_trackings?.length > 0 && (
-                  <div className="mb-6 p-4 bg-slate-50 rounded-2xl">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Trackings incluidos</p>
+                  <div className="mb-5 p-4 bg-slate-50 rounded-2xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                      <Package size={10} className="inline mr-1" />
+                      Paquetes incluidos
+                    </p>
                     <div className="flex flex-wrap gap-1">
                       {billingDetail.package_trackings.map((t, i) => (
-                        <span key={i} className="font-mono text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-lg text-slate-600">{t}</span>
+                        <span key={i} className="font-mono text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-lg text-slate-600">
+                          {t}
+                        </span>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 mb-6">
+                {/* Estado de pago */}
+                <div className="mb-6">
                   {billingDetail.is_paid ? (
-                    <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl w-full justify-center">
+                    <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl w-full justify-center">
                       <CheckCircle2 size={16} />
                       <span className="font-black text-xs uppercase tracking-wider">Pagado</span>
                       {billingDetail.paid_at && (
-                        <span className="text-[10px] text-emerald-500">· {new Date(billingDetail.paid_at).toLocaleDateString('es-CR')}</span>
+                        <span className="text-[10px] text-emerald-500">
+                          · {new Date(billingDetail.paid_at).toLocaleDateString('es-CR')}
+                        </span>
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-orange-600 bg-orange-50 border border-orange-100 px-4 py-2 rounded-xl w-full justify-center animate-pulse">
+                    <div className="flex items-center gap-2 text-orange-600 bg-orange-50 border border-orange-100 px-4 py-2.5 rounded-xl w-full justify-center animate-pulse">
                       <Clock size={16} />
                       <span className="font-black text-xs uppercase tracking-wider">Pago Pendiente</span>
                     </div>
@@ -308,7 +438,7 @@ export const BillingContainer: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center py-8 gap-3">
                 <XCircle className="text-red-400" size={32} />
-                <p className="text-slate-500 text-sm">No se pudo cargar el detalle de la factura.</p>
+                <p className="text-slate-500 text-sm">No se pudo cargar el detalle.</p>
                 <button
                   onClick={() => setSelectedBillingUuid(null)}
                   className="mt-2 px-6 py-2 bg-slate-100 rounded-xl text-sm font-bold"
@@ -326,7 +456,7 @@ export const BillingContainer: React.FC = () => {
 
 const BillingRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center text-sm">
-    <span className="text-slate-400 font-medium">{label}</span>
+    <span className="text-slate-500 font-medium">{label}</span>
     <span className="text-slate-800 font-bold">{value}</span>
   </div>
 );

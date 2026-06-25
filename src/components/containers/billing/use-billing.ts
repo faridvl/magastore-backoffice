@@ -4,6 +4,7 @@ import { usePendingConsolidationsQuery } from '@/shared/api/querys/billing/use-p
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
 import { useGenerateInvoiceMutation } from '@/shared/api/mutations/billing/use-generate-invoice-mutation';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
+import { DeliveryMethod, PendingConsolidation } from '@/types/logistics/logistics.types';
 
 export type PaidFilterValue = 'all' | 'paid' | 'pending';
 export type ActiveBillingTab = 'registros' | 'por-facturar';
@@ -17,6 +18,10 @@ export const useBilling = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [paidFilter, setPaidFilter] = useState<PaidFilterValue>('all');
   const [selectedBillingUuid, setSelectedBillingUuid] = useState<string | null>(null);
+
+  // Estado para el modal de generación de factura
+  const [invoiceTarget, setInvoiceTarget] = useState<PendingConsolidation | null>(null);
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod>('CORREOS_CR');
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -50,8 +55,18 @@ export const useBilling = () => {
     setPage(1);
   };
 
-  const handleGenerateInvoice = async (consolidationUuid: string) => {
-    await generateInvoice({ consolidationUuid });
+  const handleOpenInvoiceModal = (consolidation: PendingConsolidation) => {
+    setInvoiceTarget(consolidation);
+    setSelectedDeliveryMethod('CORREOS_CR');
+  };
+
+  const handleConfirmInvoice = async () => {
+    if (!invoiceTarget) return;
+    await generateInvoice({
+      consolidationUuid: invoiceTarget.uuid,
+      deliveryMethod: selectedDeliveryMethod,
+    });
+    setInvoiceTarget(null);
     setActiveTab('registros');
   };
 
@@ -64,24 +79,27 @@ export const useBilling = () => {
   };
 
   return {
-    activeTab,
-    setActiveTab,
-    page,
-    setPage,
-    search,
-    setSearch,
-    paidFilter,
-    handlePaidFilterChange,
-    selectedBillingUuid,
-    setSelectedBillingUuid,
+    activeTab, setActiveTab,
+    page, setPage,
+    search, setSearch,
+    paidFilter, handlePaidFilterChange,
+    selectedBillingUuid, setSelectedBillingUuid,
+    // Invoice modal
+    invoiceTarget, setInvoiceTarget,
+    selectedDeliveryMethod, setSelectedDeliveryMethod,
+    handleOpenInvoiceModal,
+    handleConfirmInvoice,
+    // List
     billingList: listData?.data ?? [],
     listMeta: listData?.meta ?? { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 },
     isLoadingList,
+    // Pending
     pendingConsolidations: pendingData?.data ?? [],
     isLoadingPending,
+    // Detail
     billingDetail: detailResponse?.data ?? null,
     isLoadingDetail,
-    handleGenerateInvoice,
+    // Mutations
     isGenerating,
     handleMarkAsPaid,
     isMarkingPaid,

@@ -15,8 +15,11 @@ export function useGenerateInvoiceMutation() {
     Error
   >({
     mutationKey: ['generateInvoice'],
-    mutationFn: (input: GenerateInvoiceInput) =>
-      ApiServiceClient(env.API.BASE_URL).post('/logistics?action=invoice', input),
+    mutationFn: ({ consolidationUuid, deliveryMethod }: GenerateInvoiceInput) =>
+      ApiServiceClient(env.API.BASE_URL).post('/logistics?action=invoice', {
+        consolidationUuid,
+        deliveryMethod,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BILLING_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: [PENDING_CONSOLIDATIONS_KEY] });

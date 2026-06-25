@@ -12,6 +12,8 @@ export const useSettings = () => {
     exchange_rate: 0,
     profit_per_lb: 0,
     min_weight: 0,
+    correos_fee_crc: 0,
+    tracopa_fee_crc: 0,
     updated_at: new Date().toISOString(),
   });
 
@@ -19,10 +21,12 @@ export const useSettings = () => {
     if (data?.current) {
       setSettings({
         ...data.current,
-        price_per_lb: Number(data.current.price_per_lb),
-        exchange_rate: Number(data.current.exchange_rate),
-        profit_per_lb: Number(data.current.profit_per_lb),
-        min_weight: Number(data.current.min_weight),
+        price_per_lb:    Number(data.current.price_per_lb),
+        exchange_rate:   Number(data.current.exchange_rate),
+        profit_per_lb:   Number(data.current.profit_per_lb),
+        min_weight:      Number(data.current.min_weight),
+        correos_fee_crc: Number(data.current.correos_fee_crc ?? 4500),
+        tracopa_fee_crc: Number(data.current.tracopa_fee_crc ?? 3000),
       });
     }
   }, [data]);
@@ -49,10 +53,11 @@ export const useSettings = () => {
     };
   });
 
-  const priceInCRC = settings.price_per_lb * settings.exchange_rate;
+  const priceInCRC  = settings.price_per_lb  * settings.exchange_rate;
+  const profitInCRC = settings.profit_per_lb * settings.exchange_rate;
 
-  const profitMargin =
-    priceInCRC > 0 ? ((settings.profit_per_lb / priceInCRC) * 100).toFixed(1) : '0.0';
+  // Porcentaje de ganancia sobre el cobro al cliente por libra
+  const profitMargin = priceInCRC > 0 ? ((profitInCRC / priceInCRC) * 100).toFixed(1) : '0.0';
 
   const handleUpdateSetting = (key: keyof SystemSettings, value: number) => {
     setSettings((prev) => ({

@@ -50,7 +50,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return res.status(200).json(consolidated);
 
                 case 'invoice':
-                    const invoice = await LogisticsService.createInvoice(req.body.consolidationUuid as string);
+                    const { consolidationUuid: invUuid, deliveryMethod } = req.body;
+                    if (!invUuid || !deliveryMethod) {
+                        return res.status(400).json({ message: 'consolidationUuid y deliveryMethod son requeridos.' });
+                    }
+                    const invoice = await LogisticsService.createInvoice(invUuid, deliveryMethod);
                     return res.status(201).json(invoice);
 
                 default:

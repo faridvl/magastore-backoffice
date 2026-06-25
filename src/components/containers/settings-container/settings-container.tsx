@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Calculator, History, TrendingUp, Loader2, ArrowRight, ShieldCheck, Info } from 'lucide-react';
+import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { Table } from '@/components/common/table/table';
 import { useSettings } from './use-settings';
@@ -73,15 +73,19 @@ export const SettingsContainer: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Tarifas internacionales */}
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Flete internacional</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         {[
-                            { label: 'Precio Lb (USD)', key: 'price_per_lb', icon: '$' },
-                            { label: 'Cambio (CRC)', key: 'exchange_rate', icon: '₡' },
-                            { label: 'Fee Lb (CRC)', key: 'profit_per_lb', icon: '₡' },
-                            { label: 'Min. Lbs', key: 'min_weight', icon: 'Lb' }
+                            { label: 'Precio / Lb',    key: 'price_per_lb',  icon: '$',  hint: 'USD por libra cobrado al cliente' },
+                            { label: 'Tipo de Cambio', key: 'exchange_rate',  icon: '₡',  hint: 'Colones por dólar' },
+                            { label: 'Ganancia / Lb',  key: 'profit_per_lb', icon: '$',  hint: 'USD de margen por libra (solo reporting)' },
+                            { label: 'Peso Mínimo',    key: 'min_weight',    icon: 'Lb', hint: 'Libras mínimas a cobrar' },
                         ].map((input) => (
                             <div key={input.key} className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{input.label}</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1" title={input.hint}>
+                                    {input.label}
+                                </label>
                                 <div className="relative group">
                                     <input
                                         type="number"
@@ -93,6 +97,35 @@ export const SettingsContainer: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Tarifas de entrega local */}
+                    <div className="border-t border-slate-100 pt-5">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Truck size={14} className="text-slate-400" />
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Entrega local en Costa Rica</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                                { label: 'Correos de Costa Rica', key: 'correos_fee_crc', icon: '₡', hint: 'Tarifa fija de envío por Correos CR' },
+                                { label: 'Tracopa / Encomienda',  key: 'tracopa_fee_crc', icon: '₡', hint: 'Tarifa fija de envío por Tracopa' },
+                            ].map((input) => (
+                                <div key={input.key} className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1" title={input.hint}>
+                                        {input.label}
+                                    </label>
+                                    <div className="relative group">
+                                        <input
+                                            type="number"
+                                            value={settings[input.key as keyof typeof settings]}
+                                            onChange={(e) => handleUpdateSetting(input.key as any, Number(e.target.value))}
+                                            className="w-full pl-3 pr-8 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 group-focus-within:text-blue-500">{input.icon}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -133,12 +166,26 @@ export const SettingsContainer: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col pt-3 border-t border-blue-200/50">
-                            <span className="text-[10px] font-bold text-emerald-900/40 uppercase mb-1">Margen Operativo</span>
+                            <span className="text-[10px] font-bold text-emerald-900/40 uppercase mb-1">Ganancia estimada / lb</span>
                             <div className="flex items-center justify-between">
-                                <span className="text-xl font-black text-emerald-600">₡{Number(settings.profit_per_lb).toLocaleString()}</span>
+                                <span className="text-xl font-black text-emerald-600">
+                                    ₡{Math.round(settings.profit_per_lb * settings.exchange_rate).toLocaleString()}
+                                </span>
                                 <div className="px-2 py-0.5 bg-emerald-500/10 rounded text-[11px] font-black text-emerald-600 border border-emerald-500/10">
                                     {profitMargin}%
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-blue-200/50 space-y-1.5">
+                            <span className="text-[10px] font-bold text-blue-900/40 uppercase block">Envío local</span>
+                            <div className="flex justify-between text-[11px]">
+                                <span className="text-blue-900/50">Correos CR</span>
+                                <span className="font-black text-blue-900">₡{Number(settings.correos_fee_crc).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-[11px]">
+                                <span className="text-blue-900/50">Tracopa</span>
+                                <span className="font-black text-blue-900">₡{Number(settings.tracopa_fee_crc).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>

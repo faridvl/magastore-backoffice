@@ -22,11 +22,12 @@ export const BillingRepository = {
           b.total_weight_charged,
           b.applied_rate_usd,
           b.applied_exchange,
-          b.applied_fee_crc,
           b.total_amount_crc,
           b.is_paid,
           b.paid_at,
-          b.created_at
+          b.created_at,
+          b.delivery_method,
+          COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc
         FROM billing b
         JOIN consolidations con ON b.consolidation_id = con.id
         JOIN customers c ON con.customer_id = c.id
@@ -74,11 +75,12 @@ export const BillingRepository = {
         b.total_weight_charged,
         b.applied_rate_usd,
         b.applied_exchange,
-        b.applied_fee_crc,
         b.total_amount_crc,
         b.is_paid,
         b.paid_at,
         b.created_at,
+        b.delivery_method,
+        COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc,
         COALESCE(
           (SELECT json_agg(p.tracking_number ORDER BY p.created_at)
            FROM packages p WHERE p.consolidation_id = con.id),

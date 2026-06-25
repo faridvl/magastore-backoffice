@@ -55,6 +55,8 @@ export interface Consolidation {
   updated_at: Date;
 }
 
+export type DeliveryMethod = 'CORREOS_CR' | 'TRACOPA' | 'RETIRO';
+
 export interface Billing {
   id: number;
   uuid: string;
@@ -68,6 +70,8 @@ export interface Billing {
   is_paid: boolean;
   paid_at: Date | null;
   created_at: Date;
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number;
 }
 
 // --- Inputs para Mutaciones ---
@@ -124,11 +128,12 @@ export interface BillingListItem {
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
-  applied_fee_crc: number;
   total_amount_crc: number;
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number;
 }
 
 export interface BillingDetail {
@@ -142,12 +147,13 @@ export interface BillingDetail {
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
-  applied_fee_crc: number;
   total_amount_crc: number;
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
   package_trackings: string[];
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number;
 }
 
 export interface PendingConsolidation {
@@ -163,6 +169,7 @@ export interface PendingConsolidation {
 
 export interface GenerateInvoiceInput {
   consolidationUuid: string;
+  deliveryMethod: DeliveryMethod;
 }
 
 export interface MarkPaidInput {

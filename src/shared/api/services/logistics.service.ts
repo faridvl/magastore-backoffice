@@ -5,6 +5,7 @@ import {
   Package,
   Consolidation,
   Billing,
+  DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -117,11 +118,14 @@ export const LogisticsService = {
   },
 
   /**
-   * Genera la factura para una consolidación (Snapshot de tarifas desde system_settings).
+   * Genera la factura para una consolidación (snapshot de tarifas + envío local).
    */
-  createInvoice: async (consolidationUuid: string): Promise<Partial<Billing>> => {
+  createInvoice: async (
+    consolidationUuid: string,
+    deliveryMethod: DeliveryMethod,
+  ): Promise<Partial<Billing>> => {
     try {
-      return await LogisticsRepository.generateBilling(consolidationUuid);
+      return await LogisticsRepository.generateBilling(consolidationUuid, deliveryMethod);
     } catch (error: any) {
       console.error('[LogisticsService.createInvoice]:', error);
       throw new Error(error.message || 'Error al generar la facturación.');
