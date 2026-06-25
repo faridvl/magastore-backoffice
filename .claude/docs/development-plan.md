@@ -27,7 +27,7 @@ Archivos con cambios sin commitear que pertenecen a la feature de detalle de paq
 ---
 
 ## Etapa 1 — Billing: Capa de datos (Backend core)
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completada — 2026-06-24 — commit `6782647`
 
 ### Archivos a modificar
 | Archivo | Tipo | Cambio |
@@ -43,7 +43,7 @@ Archivos con cambios sin commitear que pertenecen a la feature de detalle de paq
 ---
 
 ## Etapa 2 — Billing: Capa API
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completada — 2026-06-24 — commit `2ec6aca`
 
 ### Archivos a modificar
 | Archivo | Tipo | Cambio |
@@ -56,7 +56,7 @@ Archivos con cambios sin commitear que pertenecen a la feature de detalle de paq
 ---
 
 ## Etapa 3 — Billing: React Query Hooks
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completada — 2026-06-24 — commit `93c3d32`
 
 ### Archivos a crear
 | Archivo | Tipo |
@@ -72,7 +72,7 @@ Archivos con cambios sin commitear que pertenecen a la feature de detalle de paq
 ---
 
 ## Etapa 4 — Billing: UI (Container + Page)
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completada — 2026-06-24 — commit `17ae1ba`
 
 ### Archivos a modificar/crear
 | Archivo | Tipo | Cambio |
@@ -155,3 +155,4 @@ La página `/admin/packages` usa `setTimeout` + resultados mock. Conectar al end
 | Fecha | Etapa | Acción |
 |---|---|---|
 | 2026-06-24 | — | Plan creado |
+| 2026-06-24 | Etapas 0-4 | Billing completo: tipos, repo, service, API, hooks, UI |
