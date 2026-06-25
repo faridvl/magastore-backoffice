@@ -1,8 +1,12 @@
 {
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Read",
+      "Edit(*.md)",
+      "Edit(**/*.md)"
     ]
   },
   "hooks": {

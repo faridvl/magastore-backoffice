@@ -124,6 +124,8 @@ export type PackageDetail = {
   first_name: string | null;
   last_name: string | null;
   customer_code: string | null;
+  is_paid: boolean | null;
+  paid_at: string | null;
 };
 
 // --- Tipos para Billing ---

@@ -67,14 +67,20 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | `ae16355` |
 | Etapa 11 | PDF de factura descargable (react-pdf + endpoint GET /api/billing/pdf) | `a931fc8` |
 | Etapa 12 | Multi-rol: OPERADOR no accede a billing, settings ni dashboard | `411ec6c` |
-| Etapa 13 | Notificaciones por email (Resend): entrega de paquete + factura generada | `PENDIENTE` |
+| Etapa 13 | Notificaciones por email (Resend): entrega de paquete + factura generada | `6ce7077` |
 | DB | Scripts SQL 001-004 ejecutados en Neon | 2026-06-25 |
 
 **Funciona con datos reales:** auth, clientes (CRUD completo incluyendo edicion), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado, descargar PDF), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico, notificaciones por email al cliente.
 
 ### Pendiente
 
-Ningun pendiente bloqueante. El sistema esta listo para uso interno completo.
+| Etapa | Descripcion | Prioridad |
+|---|---|---|
+| Etapa 14 | Toast notifications (reemplazar alert() del navegador) | Alta |
+| Etapa 15 | Seguridad: JWT sin fallback + validacion consolidacion por cliente | Alta |
+| Etapa 16 | Billing: direccion entrega en factura + pagina de reportes | Media |
+| Etapa 17 | State machine en status de paquetes | Baja |
+| Etapa 18 | Rate limiting en POST /api/auth/login | Antes de produccion publica |
 
 ### Porcentaje actual
 
@@ -82,7 +88,7 @@ Ningun pendiente bloqueante. El sistema esta listo para uso interno completo.
 |---|---|
 | Uso interno (operadores con guia) | ~97% |
 | MVP completo | ~95% |
-| Producto completo | ~90% |
+| Producto listo para produccion publica | ~85% |
 
 ---
 

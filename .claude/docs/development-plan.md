@@ -241,14 +241,127 @@ Documentacion completa: `.claude/docs/email-setup.md`
 
 ---
 
+## Etapa 14 — Toast notifications (reemplazar alert() del navegador)
+**Estado:** Pendiente
+
+### Objetivo
+Reemplazar todos los `alert()` del navegador con un componente de toast elegante que se descarte solo. Mejora UX significativamente.
+
+### Libreria propuesta: `sonner`
+Compatible con Next.js 14 + Tailwind. Instalar: `npm install sonner`.
+
+### Archivos a crear/modificar
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `src/pages/_app.tsx` | Modificar | Agregar `<Toaster richColors position="top-right" />` |
+| `src/components/containers/logistics/use-package-calculator.ts` | Modificar | Reemplazar `alert('Completa los campos...')` y `alert('✅ Registrado')` con `toast.error()` / `toast.success()` |
+| `src/shared/api/mutations/` | Revisar todos | Agregar `toast.error(error.message)` en los `onError` de mutaciones que aun no muestren feedback |
+
+### Criterio de exito
+Ningun `alert()` o `window.alert()` en el codebase. Errores y confirmaciones aparecen como toasts que se descartan solos.
+
+---
+
+## Etapa 15 — Seguridad: JWT sin fallback + validacion de consolidacion por cliente
+**Estado:** Pendiente
+
+### Objetivo
+Dos mejoras de seguridad/correctitud que no requieren UI.
+
+### Cambio 1: JWT_SECRET obligatorio
+**Archivo:** `src/shared/api/services/auth.service.ts`
+
+Cambiar la linea que usa `|| 'clave_secreta_por_defecto'` por:
+```typescript
+const secret = process.env.JWT_SECRET;
+if (!secret) throw new Error('JWT_SECRET is not configured');
+```
+Si la variable no esta, el login falla con 500 (correcto) en lugar de firmar tokens con un secret conocido publicamente.
+
+### Cambio 2: Validar mismo cliente al asignar paquetes a consolidacion
+**Archivo:** `src/shared/api/services/consolidations.service.ts`
+
+Antes de llamar al repo para asignar paquetes, verificar que todos los packageUuids pertenezcan al mismo customer_id que la consolidacion. Si no, retornar error 400. Previene mezclar paquetes de distintos clientes en una misma consolidacion.
+
+### Criterio de exito
+- `POST /api/auth/login` retorna 500 claro si `JWT_SECRET` no esta en `.env.local`.
+- Asignar paquetes de otro cliente a una consolidacion retorna 400 con mensaje explicativo.
+
+---
+
+## Etapa 16 — Mejoras de facturacion: direccion de entrega + reportes
+**Estado:** Pendiente
+
+### Objetivo
+Dos features de billing que estan en las rutas pero sin implementar.
+
+### Feature 1: Direccion de entrega en factura
+Actualmente `billing` no guarda la direccion del cliente. Al generar la factura, hacer snapshot de `customer_addresses.exact_address` (la `is_default`) en un nuevo campo `billing.delivery_address_snapshot TEXT`.
+
+**Archivos:**
+- Script SQL nuevo: `scripts/005-billing-address-snapshot.sql` — ADD COLUMN
+- `logistics.repo.ts:generateBilling` — leer direccion default del cliente y guardarla
+- `src/components/pdf/billing-invoice.tsx` — mostrar la direccion en el PDF
+
+### Feature 2: Pagina de reportes `/admin/billing/reports`
+La ruta esta definida en `routes.ts` pero la pagina no existe. Implementar vista con:
+- Total facturado por mes (tabla + grafica de barras simple)
+- Total pagado vs pendiente
+- Filtro por rango de fechas
+
+**Archivos:** repo query, API handler GET `/api/billing/reports`, query hook, container, pagina.
+
+### Criterio de exito
+- El PDF de factura incluye la direccion de entrega del cliente.
+- `/admin/billing/reports` muestra datos reales de facturacion por mes.
+
+---
+
+## Etapa 17 — State machine en status de paquetes
+**Estado:** Pendiente (baja prioridad — no bloquea operaciones)
+
+### Objetivo
+Actualmente `updatePackageStatus` permite pasar de cualquier estado a cualquier otro. Un operador puede poner `ENTREGADO` sin pasar por `BODEGA_CR`. Agregar validacion en el service.
+
+### Transiciones validas
+```
+MIAMI -> TRANSITO -> ADUANA -> BODEGA_CR -> ENTREGADO
+```
+Solo avanzar (no retroceder). Si el status actual no permite la transicion al nuevo, retornar 400.
+
+**Archivo:** `src/shared/api/services/logistics.service.ts:updateStatus`
+
+### Criterio de exito
+Intentar poner `ENTREGADO` a un paquete en `MIAMI` retorna 400 con mensaje claro.
+
+---
+
+## Etapa 18 — Rate limiting en login
+**Estado:** Pendiente (requerido antes de produccion publica)
+
+### Objetivo
+`POST /api/auth/login` no tiene rate limiting. Un atacante puede hacer fuerza bruta sin limite.
+
+### Opcion recomendada: `upstash/ratelimit` + Redis (ya disponible en Vercel/Upstash gratis)
+Alternativa simple sin infra extra: contador en memoria con `Map<ip, {count, resetAt}>` — funciona para un solo servidor, no para deployments distribuidos.
+
+**Archivo:** `src/pages/api/auth/login.ts`
+
+### Criterio de exito
+Mas de 5 intentos fallidos desde la misma IP en 1 minuto retorna 429 con mensaje claro.
+
+---
+
 ## Limites del Plan
 
 | Hasta | Resultado |
 |---|---|
 | Etapa 5 | Sistema usable internamente por operadores con guia |
-| Etapa 8 (actual) | MVP completo: el operador puede operar el flujo entero sin acceso a DB |
+| Etapa 8 | MVP completo: el operador puede operar el flujo entero sin acceso a DB |
 | Etapa 11 | Producto completo sin notificaciones |
 | Etapa 13 | Producto completo |
+| Etapa 15 | Producto completo con seguridad basica |
+| Etapa 18 | Listo para exposicion publica |
 
 ---
 
@@ -264,3 +377,4 @@ Documentacion completa: `.claude/docs/email-setup.md`
 | 2026-06-25 | Etapa 9 | Normalizar package_type: enum + script SQL 003 ejecutado |
 | 2026-06-25 | Etapa 10 | Edicion de cliente: PUT endpoint + mutation + formulario inline |
 | 2026-06-25 | Etapa 13 | Notificaciones Resend: delivery + invoice + test endpoint |
+| 2026-06-25 | — | Etapas 14-18 agregadas: toast, seguridad, billing mejoras, state machine, rate limiting |

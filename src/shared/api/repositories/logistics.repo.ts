@@ -42,6 +42,8 @@ export const LogisticsRepository = {
         c.first_name,
         c.last_name,
         c.customer_code,
+        b.is_paid,
+        b.paid_at,
         COALESCE(
           (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
            FROM package_events ev WHERE ev.package_id = p.id),
@@ -49,6 +51,8 @@ export const LogisticsRepository = {
         ) AS events
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN consolidations con ON p.consolidation_id = con.id
+      LEFT JOIN billing b ON b.consolidation_id = con.id
       WHERE p.uuid = ${packageUuid}
     `;
     return rows[0] || null;
@@ -219,7 +223,7 @@ export const LogisticsRepository = {
           ${c.id},
           ${price_lb},
           ${exchange},
-          ${0},
+          ${deliveryFee},
           ${chargedWeight},
           ${totalCrc},
           ${deliveryMethod},

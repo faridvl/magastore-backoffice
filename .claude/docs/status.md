@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
+Last updated: 2026-06-25 | Last commit: `2af4c68` (fix PDF + rediseño)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -40,7 +40,7 @@ Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
 |---|---|---|
 | Preview de creacion de paquetes | No incluye costo de envio local (metodo no conocido aun) | Cliente ve monto diferente al de la factura final. Bajo riesgo. |
 | Panel financiero en detalle | Calculo estimado con tarifas vigentes, no billing.total_amount_crc si ya existe factura | Puede mostrar monto distinto si las tarifas cambiaron. |
-| Estado de pago en detalle | estadoPago hardcodeado como PENDIENTE en use-logistics-detail.ts:25 | No refleja el estado real del billing. |
+| Preview de creacion de paquetes | No incluye costo de envio local (metodo no conocido aun) | Cliente ve monto diferente al de la factura final. Bajo riesgo. |
 | Notificacion al entregar | logistics.service.ts:152-154 es solo console.log | Cuando status llega a ENTREGADO, el cliente no es notificado |
 
 ---
@@ -54,7 +54,7 @@ Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
 | Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
 | PDF de factura | Implementado — ver fila en Implementado |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
-| Multiples roles | Implementado: ADMIN / OPERADOR. Script SQL 004 pendiente de ejecutar en Neon |
+| Multi-rol | Implementado: ADMIN / OPERADOR. Script SQL 004 ejecutado en Neon 2026-06-25 |
 | Direccion de entrega en factura | billing no guarda la direccion del cliente |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
 | /admin/billing/reports | Ruta definida, pagina no existe |
@@ -62,19 +62,15 @@ Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
 
 ---
 
-## Bloqueadores para MVP (No Negociables)
+## Pendientes (Etapas 14-18)
 
-### 1. Pagina publica de tracking
-
-/tracking es lo que ve el cliente final. Actualmente retorna mock data. Sin esto los clientes no pueden auto-consultar.
-
-### 2. Dashboard con datos reales
-
-KPIs de paquetes hoy, ingresos del mes, consolidaciones pendientes. Con mock data no tiene valor operativo.
-
-### 3. UI de gestion de consolidaciones
-
-Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> facturarla. La API existe pero no hay UI.
+| Etapa | Descripcion | Prioridad |
+|---|---|---|
+| Etapa 14 | Toast notifications: reemplazar alert() con sonner | Alta — UX |
+| Etapa 15 | Seguridad: JWT sin fallback + validacion consolidacion mismo cliente | Alta — seguridad |
+| Etapa 16 | Billing: direccion de entrega en factura + pagina /admin/billing/reports | Media |
+| Etapa 17 | State machine en status de paquetes (solo avanzar, no retroceder) | Baja |
+| Etapa 18 | Rate limiting en POST /api/auth/login | Requerido antes de produccion publica |
 
 ---
 
@@ -133,18 +129,19 @@ Fortalezas: billing con snapshot de tarifas (facturas historicas estables), audi
 
 ---
 
-## Proximas Etapas Propuestas
+## Historial de Etapas
 
-| Etapa | Descripcion | Prioridad |
+| Etapa | Descripcion | Estado |
 |---|---|---|
-| Etapa 6 | Dashboard con datos reales (GET /api/dashboard/stats) | Alta |
-| Etapa 7 | Conectar tracking publico a API real | Alta |
-| Etapa 8 | UI de gestion de consolidaciones (listar, crear, cambiar estado) | Alta |
-| Etapa 9 | Normalizacion de package_type (script SQL + fix en INSERT) | Media |
-| Etapa 10 | Edicion de cliente | Media |
-| Etapa 11 | PDF de factura (react-pdf o similar) | Media |
-| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Completada |
-| Etapa 13 | Notificaciones reales (email) | Baja |
+| Etapas 0-5 | Billing completo, delivery fees, package detail | Completadas |
+| Etapa 6 | Dashboard con datos reales | Completada |
+| Etapa 7 | Tracking publico conectado a API real | Completada |
+| Etapa 8 | UI consolidaciones: listar, crear, asignar, avanzar estado | Completada |
+| Etapa 9 | Normalizacion package_type enum | Completada |
+| Etapa 10 | Edicion de cliente | Completada |
+| Etapa 11 | PDF de factura descargable | Completada |
+| Etapa 12 | Multi-rol ADMIN / OPERADOR | Completada |
+| Etapa 13 | Notificaciones por email (Resend) | Completada |
 
 ---
 
@@ -155,4 +152,4 @@ Fortalezas: billing con snapshot de tarifas (facturas historicas estables), audi
 | 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings; SET profit_per_lb = 2.00 | Ejecutado 2026-06-25 |
 | 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | Ejecutado 2026-06-25 |
 | 003-normalize-package-type.sql | Normalizar package_type a AEREO / MARITIMO + enum PackageType en tipos | Ejecutado 2026-06-25 |
-| 004-users-role-column.sql | ADD COLUMN role VARCHAR(20) DEFAULT 'ADMIN' en users | Pendiente de ejecutar |
+| 004-users-role-column.sql | ADD COLUMN role VARCHAR(20) DEFAULT 'ADMIN' en users | Ejecutado 2026-06-25 |

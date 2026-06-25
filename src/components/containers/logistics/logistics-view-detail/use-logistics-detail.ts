@@ -38,6 +38,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
                           ? `${apiData.first_name} ${apiData.last_name}`
                           : prev.cliente,
         casillero:      apiData.customer_code || prev.casillero,
+        estadoPago:     apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
       }));
     }
   }, [apiData]);
