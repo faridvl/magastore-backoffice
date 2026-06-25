@@ -306,3 +306,484 @@ c1952f7 docs: mark Etapas 0-4 as complete in development plan
 ?? src/shared/api/querys/consolidations/
 ?? src/shared/api/repositories/consolidations.repo.ts
 ?? src/shared/api/services/consolidations.service.ts
+
+=== 2026-06-25 10:11 ===
+--- recent commits ---
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+cff40b8 feat: delivery method + fees ÔÇö entrega local Correos CR / Tracopa
+c1952f7 docs: mark Etapas 0-4 as complete in development plan
+17ae1ba Etapa 4: billing UI ÔÇö container, hook y page refactor
+--- status ---
+
+=== 2026-06-25 10:12 ===
+--- recent commits ---
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+cff40b8 feat: delivery method + fees ÔÇö entrega local Correos CR / Tracopa
+c1952f7 docs: mark Etapas 0-4 as complete in development plan
+17ae1ba Etapa 4: billing UI ÔÇö container, hook y page refactor
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:13 ===
+--- recent commits ---
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+cff40b8 feat: delivery method + fees ÔÇö entrega local Correos CR / Tracopa
+c1952f7 docs: mark Etapas 0-4 as complete in development plan
+17ae1ba Etapa 4: billing UI ÔÇö container, hook y page refactor
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:15 ===
+--- recent commits ---
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+cff40b8 feat: delivery method + fees ÔÇö entrega local Correos CR / Tracopa
+c1952f7 docs: mark Etapas 0-4 as complete in development plan
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:25 ===
+--- recent commits ---
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:25 ===
+--- recent commits ---
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:30 ===
+--- recent commits ---
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:37 ===
+--- recent commits ---
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+168517f Etapa 5: package detail con datos reales ÔÇö cliente + tarifas desde settings
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/logistics.service.ts
+?? src/pages/api/tracking/
+
+=== 2026-06-25 10:39 ===
+--- recent commits ---
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:42 ===
+--- recent commits ---
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-25 10:44 ===
+--- recent commits ---
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+831afe4 docs: actualizar estado post-Etapa 8 con commit hash real
+4edb5b3 Etapa 8: UI gesti├│n de consolidaciones ÔÇö flujo completo
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-25 10:46 ===
+--- recent commits ---
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 10:55 ===
+--- recent commits ---
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+6e44051 Etapa 6: Dashboard con KPIs y graficas reales
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/pages/api/customers/[id]/index.tsx
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/services/customers.service.ts
+ M src/types/customer/customer.types.ts
+?? src/components/containers/customers/customer-detail/customer-edit-form.tsx
+?? src/shared/api/mutations/customers/use-update-customer-mutation.ts
+
+=== 2026-06-25 10:56 ===
+--- recent commits ---
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 11:02 ===
+--- recent commits ---
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+
+=== 2026-06-25 15:49 ===
+--- recent commits ---
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+8f451ef Etapa 7: Tracking publico con API real + fix build dashboard
+b0b472a docs: actualizar estado post-Etapa 6 con commit hash real
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M package-lock.json
+ M package.json
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M yarn.lock
+?? src/components/pdf/
+?? src/pages/api/billing/pdf.ts
+
+=== 2026-06-25 15:52 ===
+--- recent commits ---
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 15:53 ===
+--- recent commits ---
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 15:54 ===
+--- recent commits ---
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:00 ===
+--- recent commits ---
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+7de8c21 docs: corregir encoding y hash de Etapa 7 en README
+23f7665 Etapa 9: Normalizar package_type ÔÇö enum PackageType + script SQL 003
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/common/sidebar/desktop-sidebar/use-sidebar.ts
+ M src/pages/admin/billing/index.tsx
+ M src/pages/admin/dashboard/index.tsx
+ M src/pages/admin/settings/index.tsx
+ M src/shared/api/repositories/user.repo.ts
+ M src/shared/api/services/auth.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/auth/auth.ts
+ M yarn.lock
+?? scripts/004-users-role-column.sql
+
+=== 2026-06-25 16:02 ===
+--- recent commits ---
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+ae16355 Etapa 10: Edicion de cliente ÔÇö PUT endpoint + formulario inline
+--- status ---
+ M .claude/settings.json
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:02 ===
+--- recent commits ---
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:03 ===
+--- recent commits ---
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:05 ===
+--- recent commits ---
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:07 ===
+--- recent commits ---
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+8541f9c docs: actualizar estado post-Etapa 11 con commit hash real
+a931fc8 Etapa 11: PDF de factura ÔÇö react-pdf + endpoint GET /api/billing/pdf
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:18 ===
+--- recent commits ---
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+--- status ---
+ M .claude/settings.json
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:18 ===
+--- recent commits ---
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+--- status ---
+ M .claude/settings.json
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:19 ===
+--- recent commits ---
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+--- status ---
+ M .claude/settings.json
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:30 ===
+--- recent commits ---
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/settings.json
+ M .claude/work-log.md
+ M README.md
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+
+=== 2026-06-25 16:32 ===
+--- recent commits ---
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+411ec6c Etapa 12: Multi-rol ÔÇö ADMIN / OPERADOR
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/settings.json
+ M .claude/work-log.md
+ M README.md
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+
+=== 2026-06-25 16:33 ===
+--- recent commits ---
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:34 ===
+--- recent commits ---
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+6a95036 docs: actualizar hashes reales post-Etapa 12
+--- status ---
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:39 ===
+--- recent commits ---
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+e0b0652 config: permitir git commit y push sin confirmacion
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:42 ===
+--- recent commits ---
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:43 ===
+--- recent commits ---
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:44 ===
+--- recent commits ---
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:46 ===
+--- recent commits ---
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
+
+=== 2026-06-25 16:50 ===
+--- recent commits ---
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+6ce7077 Etapa 13: Notificaciones por email con Resend
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/work-log.md
+ M yarn.lock
