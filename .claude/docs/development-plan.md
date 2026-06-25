@@ -76,7 +76,7 @@ Dashboard muestra numeros reales. Las graficas tienen datos de los ultimos 6 mes
 ---
 
 ## Etapa 7 — Tracking publico: conectar API real
-**Estado:** Completada — 2026-06-25 — commit `pending`
+**Estado:** Completada — 2026-06-25 — commit `411ec6c`
 
 ### Objetivo
 La pagina `/tracking` usa `MOCK_PACKAGE_RESULT`. Conectar al endpoint real para que el cliente pueda consultar su paquete.
@@ -150,7 +150,7 @@ El operador puede: crear una consolidacion, asignarle paquetes (ya existe en log
 ---
 
 ## Etapa 9 — Normalizacion de package_type
-**Estado:** Completada — 2026-06-25 — commit `pending`
+**Estado:** Completada — 2026-06-25 — commit `411ec6c`
 
 Incluye:
 - `PackageType` enum (`AEREO` / `MARITIMO`) en `logistics.types.ts`; todos los campos `package_type: string` migrados al enum
@@ -197,7 +197,7 @@ Desde el detalle de una factura se puede descargar un PDF con: datos del cliente
 ---
 
 ## Etapa 12 — Multi-rol (ADMIN / OPERADOR)
-**Estado:** Completada — 2026-06-25 — commit `pending`
+**Estado:** Completada — 2026-06-25 — commit `411ec6c`
 
 ### Cambios
 | Archivo | Tipo | Cambio |

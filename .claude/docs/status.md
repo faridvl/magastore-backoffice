@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending` (Etapa 12 - Multi-rol)
+Last updated: 2026-06-25 | Last commit: `411ec6c` (Etapa 12 - Multi-rol)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
