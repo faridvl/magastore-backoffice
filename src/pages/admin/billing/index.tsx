@@ -18,6 +18,6 @@ const BillingPage: React.FC = () => {
   );
 };
 
-export const getServerSideProps = authorizeServerSidePage();
+export const getServerSideProps = authorizeServerSidePage(undefined, { adminOnly: true });
 
 export default BillingPage;

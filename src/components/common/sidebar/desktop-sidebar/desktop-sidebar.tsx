@@ -8,7 +8,7 @@ import { useSidebar } from './use-sidebar';
 
 export default function DesktopSidebar() {
   const router = useRouter();
-  const { userRole, businessName, initials, isLoading } = useSidebar();
+  const { isAdmin } = useSidebar();
 
   return (
     <div className="flex h-full w-64 max-h-screen flex-col bg-white border-r border-neutral-100 dark:bg-background dark:border-neutral-800">
@@ -37,7 +37,7 @@ export default function DesktopSidebar() {
       {/* Navigation */}
       <div className="flex-1 overflow-auto px-4 py-4">
         <nav className="space-y-1.5">
-          {NAVIGATION_PATHS.map((item) => {
+          {NAVIGATION_PATHS.filter((item) => !item.adminOnly || isAdmin).map((item) => {
             // Verificamos si la ruta actual coincide o es sub-ruta
             const isActive = router.pathname.startsWith(item.route);
             const Icon = item.icon;

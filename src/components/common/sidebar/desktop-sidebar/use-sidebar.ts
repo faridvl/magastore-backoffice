@@ -1,31 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useSession } from '@/hooks/use-session';
+import { useState, useEffect } from 'react';
+import { CookiesManager } from '@/shared/utils/cookies-manager';
+import { UserRole } from '@/types/auth/auth';
 
 export function useSidebar() {
-  const { user, tenant, isLoading: sessionLoading } = useSession();
   const [isMounted, setIsMounted] = useState(false);
+  const [userName, setUserName] = useState('Usuario');
+  const [userRole, setUserRole] = useState<string>(UserRole.ADMIN);
 
   useEffect(() => {
     setIsMounted(true);
+    setUserName(CookiesManager.getUserName() || 'Usuario');
+    setUserRole(CookiesManager.getUserRole() || UserRole.ADMIN);
   }, []);
 
-  const userName = useMemo(() => user?.fullName || 'Usuario', [user]);
-  const userRole = useMemo(() => user?.role || 'Personal', [user]);
-  const businessName = useMemo(() => tenant?.businessName || 'Zynka', [tenant]);
-
-  const initials = useMemo(() => {
-    if (!user?.fullName) return '??';
-    const names = user.fullName.trim().split(/\s+/);
-    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    return names[0][0]?.toUpperCase() || '?';
-  }, [user?.fullName]);
+  const isAdmin = userRole === UserRole.ADMIN;
 
   return {
     userName,
     userRole,
-    businessName,
-    initials,
-    // Hydration guard + loading state
-    isLoading: !isMounted || sessionLoading,
+    isAdmin,
+    isLoading: !isMounted,
   };
 }

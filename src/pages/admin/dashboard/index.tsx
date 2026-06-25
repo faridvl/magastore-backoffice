@@ -5,7 +5,7 @@ import { BoxedLayoutStyle } from '@/components/common/layout/boxed-container/box
 import { DashboardContainer } from '@/components/containers/dashboard/dashboard-container';
 import { authorizeServerSidePage } from '@/hocs/auth';
 
-export const getServerSideProps = authorizeServerSidePage();
+export const getServerSideProps = authorizeServerSidePage(undefined, { adminOnly: true });
 
 const DashboardPage: React.FC = () => {
   return (

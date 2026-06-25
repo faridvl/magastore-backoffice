@@ -197,15 +197,24 @@ Desde el detalle de una factura se puede descargar un PDF con: datos del cliente
 ---
 
 ## Etapa 12 — Multi-rol (ADMIN / OPERADOR)
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `pending`
 
 ### Cambios
-- Agregar `OPERADOR` a `UserRole` enum
-- `authorizeServerSidePage` debe distinguir roles
-- Operadores: acceso a logistics y consolidaciones. Sin acceso a settings, billing, ni dashboard financiero.
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `scripts/004-users-role-column.sql` | Nuevo | ADD COLUMN role en users, DEFAULT 'ADMIN' |
+| `src/types/auth/auth.ts` | Modificar | Agregar OPERADOR a UserRole enum |
+| `src/shared/api/repositories/user.repo.ts` | Modificar | SELECT role explicitamente (no SELECT *) |
+| `src/shared/api/services/auth.service.ts` | Modificar | Leer user.role de DB en lugar de hardcodear 'ADMIN' |
+| `src/shared/constants/sidebar.ts` | Modificar | Agregar adminOnly: true a dashboard, billing, settings |
+| `src/components/common/sidebar/desktop-sidebar/use-sidebar.ts` | Modificar | Leer role desde cookie (eliminar dependencia de /api/auth/me) |
+| `src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx` | Modificar | Filtrar NAVIGATION_PATHS por isAdmin |
+| `src/pages/admin/dashboard/index.tsx` | Modificar | authorizeServerSidePage con adminOnly: true |
+| `src/pages/admin/billing/index.tsx` | Modificar | authorizeServerSidePage con adminOnly: true |
+| `src/pages/admin/settings/index.tsx` | Modificar | authorizeServerSidePage con adminOnly: true |
 
 ### Criterio de exito
-Un usuario con rol OPERADOR puede registrar paquetes y cambiar estados, pero no puede ver tarifas ni facturas.
+Un usuario con rol OPERADOR puede registrar paquetes y cambiar estados, pero no puede ver tarifas ni facturas. El sidebar se adapta al rol automaticamente.
 
 ---
 

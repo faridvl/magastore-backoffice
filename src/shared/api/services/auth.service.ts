@@ -22,6 +22,6 @@ export const login = async (email: string, pass: string) => {
 
   return {
     token,
-    user: { id: user.id, name: user.name, email: user.email, role: 'ADMIN' },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role ?? 'ADMIN' },
   };
 };

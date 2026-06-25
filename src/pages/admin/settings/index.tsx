@@ -19,6 +19,6 @@ const SettingsPage: React.FC = () => {
     );
 };
 
-export const getServerSideProps = authorizeServerSidePage();
+export const getServerSideProps = authorizeServerSidePage(undefined, { adminOnly: true });
 
 export default SettingsPage;

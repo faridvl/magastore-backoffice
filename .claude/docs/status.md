@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `a931fc8` (Etapa 11 - PDF de factura)
+Last updated: 2026-06-25 | Last commit: `pending` (Etapa 12 - Multi-rol)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -11,7 +11,7 @@ Last updated: 2026-06-25 | Last commit: `a931fc8` (Etapa 11 - PDF de factura)
 
 | Area | Notas |
 |---|---|
-| Autenticacion | JWT 12h, bcrypt, HOC SSR en todas las paginas admin. Un solo rol: ADMIN |
+| Autenticacion | JWT 12h, bcrypt, HOC SSR. Roles: ADMIN (acceso total) / OPERADOR (solo logistics, consolidaciones, clientes) |
 | Listado de clientes | Paginado, busqueda con debounce 400ms |
 | Creacion de cliente | INSERT atomico con CTE (cliente + direcciones) |
 | Edicion de cliente | PUT /api/customers/[id] — nombre, apellidos, email, telefono, is_active, direcciones |
@@ -53,7 +53,7 @@ Last updated: 2026-06-25 | Last commit: `a931fc8` (Etapa 11 - PDF de factura)
 | Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
 | PDF de factura | Implementado — ver fila en Implementado |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
-| Multiples roles | UserRole solo tiene ADMIN. Sin operadores ni supervisores |
+| Multiples roles | Implementado: ADMIN / OPERADOR. Script SQL 004 pendiente de ejecutar en Neon |
 | Direccion de entrega en factura | billing no guarda la direccion del cliente |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
 | /admin/billing/reports | Ruta definida, pagina no existe |
@@ -97,7 +97,7 @@ Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> f
 |---|---|---|
 | Base de datos / esquema | 100% | Scripts 001-003 ejecutados; esquema completo |
 | API Routes | 88% | Falta /api/dashboard, /api/tracking real |
-| Autenticacion | 95% | Funciona; falta rate limiting y roles multiples |
+| Autenticacion | 98% | Funciona; falta rate limiting. Multi-rol implementado |
 | Clientes | 98% | CRUD completo incluyendo edicion; sin eliminacion (no requerida) |
 | Logistica (paquetes) | 85% | CRUD + status + UI consolidaciones; falta notificaciones, PDF |
 | Consolidaciones | 90% | Listar, crear, detalle, asignar paquetes, avanzar estado |
@@ -114,7 +114,7 @@ Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> f
 | Para uso interno minimo (operadores con guia) | ~87% |
 | Para demo (datos reales, sin algunos flujos) | ~85% |
 | MVP completo (tracking + dashboard) | ~70% |
-| Producto completo (PDF, notificaciones, multi-rol) | ~42% |
+| Producto completo (notificaciones pendientes) | ~72% |
 
 ---
 
@@ -142,7 +142,7 @@ Fortalezas: billing con snapshot de tarifas (facturas historicas estables), audi
 | Etapa 9 | Normalizacion de package_type (script SQL + fix en INSERT) | Media |
 | Etapa 10 | Edicion de cliente | Media |
 | Etapa 11 | PDF de factura (react-pdf o similar) | Media |
-| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Baja |
+| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Completada |
 | Etapa 13 | Notificaciones reales (email) | Baja |
 
 ---
@@ -154,3 +154,4 @@ Fortalezas: billing con snapshot de tarifas (facturas historicas estables), audi
 | 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings; SET profit_per_lb = 2.00 | Ejecutado 2026-06-25 |
 | 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | Ejecutado 2026-06-25 |
 | 003-normalize-package-type.sql | Normalizar package_type a AEREO / MARITIMO + enum PackageType en tipos | Ejecutado 2026-06-25 |
+| 004-users-role-column.sql | ADD COLUMN role VARCHAR(20) DEFAULT 'ADMIN' en users | Pendiente de ejecutar |

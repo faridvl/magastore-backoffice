@@ -1,21 +1,28 @@
 import { routesPrivate } from '../navigation/routes';
 import {
   LayoutDashboard,
-  Box,
   BadgeDollarSign,
   Users,
   Settings,
   Truck,
-  History,
   Boxes,
 } from 'lucide-react';
 
-export const NAVIGATION_PATHS: any[] = [
+export interface NavItem {
+  menuKey: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  labelKey: string;
+  route: string;
+  adminOnly?: boolean;
+}
+
+export const NAVIGATION_PATHS: NavItem[] = [
   {
     menuKey: 'dashboard',
     icon: LayoutDashboard,
     labelKey: 'Dashboard',
     route: routesPrivate.admin.dashboard,
+    adminOnly: true,
   },
   {
     menuKey: 'logistics',
@@ -34,6 +41,7 @@ export const NAVIGATION_PATHS: any[] = [
     icon: BadgeDollarSign,
     labelKey: 'Cobros y Ganancias',
     route: routesPrivate.admin.billing.index,
+    adminOnly: true,
   },
   {
     menuKey: 'customers',
@@ -46,5 +54,6 @@ export const NAVIGATION_PATHS: any[] = [
     icon: Settings,
     labelKey: 'Tarifas y Config.',
     route: routesPrivate.admin.settings,
+    adminOnly: true,
   },
 ];

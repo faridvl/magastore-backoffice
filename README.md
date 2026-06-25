@@ -66,16 +66,15 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 9 | Normalizar package_type (enum PackageType + script SQL) | `23f7665` |
 | Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | `ae16355` |
 | Etapa 11 | PDF de factura descargable (react-pdf + endpoint GET /api/billing/pdf) | `a931fc8` |
-| DB | Scripts SQL 001, 002 y 003 ejecutados en Neon | 2026-06-25 |
+| Etapa 12 | Multi-rol: OPERADOR no accede a billing, settings ni dashboard | `pending` |
+| DB | Scripts SQL 001-004 ejecutados en Neon | 2026-06-25 |
 
 **Funciona con datos reales:** auth, clientes (CRUD completo incluyendo edicion), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
 
-### Pendiente -- Producto Completo (Etapas 11-13)
+### Pendiente -- Producto Completo
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
-| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
-| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
 | Etapa 13 | Notificaciones por email al entregar | Pendiente |
 
 
@@ -83,9 +82,9 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 
 | Escenario | % |
 |---|---|
-| Uso interno (operadores con guia) | ~90% |
-| MVP completo (tracking en vivo) | ~87% |
-| Producto completo (Etapas 11-13 pendientes) | ~45% |
+| Uso interno (operadores con guia) | ~93% |
+| MVP completo (tracking en vivo) | ~90% |
+| Producto completo (Etapa 13 pendiente) | ~72% |
 
 ---
 
@@ -96,3 +95,4 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings | 2026-06-25 |
 | 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | 2026-06-25 |
 | 003-normalize-package-type.sql | Normalizar package_type: AEREO/Aereo/AVION a AEREO; Maritimo a MARITIMO | 2026-06-25 |
+| 004-users-role-column.sql | ADD COLUMN role VARCHAR(20) DEFAULT 'ADMIN' en users | 2026-06-25 |
