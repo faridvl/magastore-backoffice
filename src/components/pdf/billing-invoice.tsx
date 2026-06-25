@@ -2,7 +2,11 @@ import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
 
-const fmtCRC = (n: number) => `CRC ${Math.round(n).toLocaleString('es-CR')}`;
+const fmtCRC = (n: number) =>
+  `₡ ${Math.round(n).toLocaleString('es-CR')}`;
+
+const fmtUSD = (n: number) =>
+  `$ ${n.toFixed(2)}`;
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos de Costa Rica',
@@ -11,42 +15,216 @@ const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
 };
 
 const s = StyleSheet.create({
-  page: { padding: 48, fontFamily: 'Helvetica', fontSize: 10, color: '#1e293b' },
-  company: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: '#0f172a', marginBottom: 2 },
-  tagline: { fontSize: 9, color: '#94a3b8' },
-  divider: { borderBottomWidth: 1, borderBottomColor: '#e2e8f0', marginTop: 16, marginBottom: 16 },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  metaBlock: { flexDirection: 'column' },
-  label: { color: '#94a3b8', fontSize: 8, marginBottom: 3 },
-  value: { fontFamily: 'Helvetica-Bold', color: '#0f172a', fontSize: 10 },
-  section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#94a3b8', marginBottom: 8 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 3, paddingBottom: 3 },
-  rowLabel: { color: '#64748b', fontSize: 9, flex: 1 },
-  rowValue: { color: '#0f172a', fontFamily: 'Helvetica-Bold', fontSize: 9 },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
-  totalLabel: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#0f172a' },
-  totalValue: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#0f172a' },
-  trackingWrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  tracking: {
-    fontFamily: 'Courier', fontSize: 8, backgroundColor: '#f8fafc',
-    paddingTop: 3, paddingBottom: 3, paddingLeft: 6, paddingRight: 6,
-    borderRadius: 4, marginRight: 4, marginBottom: 4, color: '#475569',
+  page: {
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: '#1e293b',
+    backgroundColor: '#ffffff',
   },
+
+  // ── Header oscuro ──────────────────────────────
+  header: {
+    backgroundColor: '#0f1a2e',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingLeft: 32,
+    paddingRight: 32,
+  },
+  brandBlock: {
+    flexDirection: 'column',
+  },
+  brandName: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 22,
+    color: '#f0c040',
+    letterSpacing: 2,
+  },
+  brandSub: {
+    fontSize: 8,
+    color: '#93c5fd',
+    marginTop: 2,
+    letterSpacing: 1,
+  },
+  headerMeta: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  headerMetaRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  headerMetaLabel: {
+    fontSize: 8,
+    color: '#93c5fd',
+    marginRight: 6,
+    fontFamily: 'Helvetica-Bold',
+  },
+  headerMetaValue: {
+    fontSize: 8,
+    color: '#ffffff',
+    fontFamily: 'Helvetica-Bold',
+  },
+
+  // ── Fila de contacto ──────────────────────────
+  contactRow: {
+    backgroundColor: '#1e293b',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 32,
+    paddingRight: 32,
+  },
+  contactText: {
+    fontSize: 8,
+    color: '#94a3b8',
+  },
+  contactHighlight: {
+    fontSize: 8,
+    color: '#60a5fa',
+  },
+
+  // ── Cuerpo ────────────────────────────────────
+  body: {
+    paddingTop: 24,
+    paddingBottom: 24,
+    paddingLeft: 32,
+    paddingRight: 32,
+  },
+
+  // Nota de consolidacion
+  note: {
+    fontSize: 8,
+    color: '#3b82f6',
+    marginBottom: 16,
+  },
+
+  // ── Tabla de paquetes ─────────────────────────
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#0f1a2e',
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderRadius: 3,
+    marginBottom: 0,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingTop: 7,
+    paddingBottom: 7,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  tableRowAlt: {
+    backgroundColor: '#f8fafc',
+  },
+  colTracking: { flex: 3, fontSize: 8 },
+  colPeso: { flex: 1, textAlign: 'right', fontSize: 8 },
+  colPrecio: { flex: 1.5, textAlign: 'right', fontSize: 8 },
+  colTotal: { flex: 1.5, textAlign: 'right', fontSize: 8 },
+  thText: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 7.5,
+    color: '#ffffff',
+  },
+  tdText: {
+    color: '#1e293b',
+    fontSize: 8,
+  },
+  tdMono: {
+    fontFamily: 'Courier',
+    color: '#475569',
+    fontSize: 7.5,
+  },
+
+  // ── Resumen ───────────────────────────────────
+  summary: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 12,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  summaryLabel: {
+    color: '#64748b',
+    fontSize: 9,
+  },
+  summaryValue: {
+    color: '#1e293b',
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 9,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0f1a2e',
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 12,
+    paddingRight: 12,
+    borderRadius: 4,
+    marginTop: 10,
+  },
+  totalLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    color: '#ffffff',
+  },
+  totalValue: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 16,
+    color: '#f0c040',
+  },
+
+  // ── Estado de pago ────────────────────────────
   paidBadge: {
-    backgroundColor: '#f0fdf4', color: '#15803d',
-    paddingTop: 3, paddingBottom: 3, paddingLeft: 8, paddingRight: 8,
-    borderRadius: 4, fontSize: 8, fontFamily: 'Helvetica-Bold',
+    backgroundColor: '#f0fdf4',
+    color: '#15803d',
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderRadius: 4,
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
   },
   pendingBadge: {
-    backgroundColor: '#fff7ed', color: '#c2410c',
-    paddingTop: 3, paddingBottom: 3, paddingLeft: 8, paddingRight: 8,
-    borderRadius: 4, fontSize: 8, fontFamily: 'Helvetica-Bold',
+    backgroundColor: '#fff7ed',
+    color: '#c2410c',
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderRadius: 4,
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
   },
+
+  // ── Pie de página ─────────────────────────────
   footer: {
-    position: 'absolute', bottom: 24, left: 48, right: 48,
-    textAlign: 'center', fontSize: 8, color: '#94a3b8',
-    borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8,
+    position: 'absolute',
+    bottom: 20,
+    left: 32,
+    right: 32,
+    textAlign: 'center',
+    fontSize: 7.5,
+    color: '#94a3b8',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    paddingTop: 8,
   },
 });
 
@@ -56,118 +234,132 @@ interface Props {
 
 export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
   const shortId = detail.uuid.slice(-8).toUpperCase();
-  const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR');
+  const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  });
   const flete = detail.total_weight_charged * detail.applied_rate_usd * detail.applied_exchange;
+  const trackings = detail.package_trackings ?? [];
+  const pricePerLb = detail.applied_rate_usd;
+  const exchange = detail.applied_exchange;
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* Encabezado */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={s.company}>MAGASTORE</Text>
-          <Text style={s.tagline}>Courier · Factura de Servicio</Text>
-        </View>
 
-        <View style={s.divider} />
-
-        {/* Metadatos de la factura */}
-        <View style={[s.metaRow, { marginBottom: 0 }]}>
-          <View style={s.metaBlock}>
-            <Text style={s.label}>N de Factura</Text>
-            <Text style={s.value}>{shortId}</Text>
+        {/* ── Header oscuro ── */}
+        <View style={s.header}>
+          <View style={s.brandBlock}>
+            <Text style={s.brandName}>MAGASTORE</Text>
+            <Text style={s.brandSub}>Correos por Internet · Courier</Text>
           </View>
-          <View style={s.metaBlock}>
-            <Text style={s.label}>Fecha</Text>
-            <Text style={s.value}>{createdDate}</Text>
-          </View>
-          <View style={s.metaBlock}>
-            <Text style={s.label}>Estado</Text>
-            <Text style={detail.is_paid ? s.paidBadge : s.pendingBadge}>
-              {detail.is_paid ? 'PAGADO' : 'PENDIENTE'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={s.divider} />
-
-        {/* Cliente */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>CLIENTE</Text>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Nombre</Text>
-            <Text style={s.rowValue}>{detail.customer_name}</Text>
-          </View>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Casillero</Text>
-            <Text style={s.rowValue}>{detail.customer_code}</Text>
-          </View>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Correo</Text>
-            <Text style={{ color: '#475569', fontSize: 9 }}>{detail.customer_email}</Text>
+          <View style={s.headerMeta}>
+            <View style={s.headerMetaRow}>
+              <Text style={s.headerMetaLabel}>N.º de factura:</Text>
+              <Text style={s.headerMetaValue}>{shortId}</Text>
+            </View>
+            <View style={s.headerMetaRow}>
+              <Text style={s.headerMetaLabel}>Cliente:</Text>
+              <Text style={s.headerMetaValue}>{detail.customer_name}</Text>
+            </View>
+            <View style={s.headerMetaRow}>
+              <Text style={s.headerMetaLabel}>N.º de casillero:</Text>
+              <Text style={s.headerMetaValue}>{detail.customer_code}</Text>
+            </View>
+            <View style={[s.headerMetaRow, { marginTop: 4 }]}>
+              <Text style={s.headerMetaLabel}>Fecha:</Text>
+              <Text style={s.headerMetaValue}>{createdDate}</Text>
+            </View>
+            <View style={s.headerMetaRow}>
+              <Text style={s.headerMetaLabel}>Estado:</Text>
+              <Text style={detail.is_paid ? s.paidBadge : s.pendingBadge}>
+                {detail.is_paid ? 'PAGADO' : 'PENDIENTE'}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Paquetes */}
-        {detail.package_trackings?.length > 0 && (
-          <>
-            <View style={s.divider} />
-            <View style={s.section}>
-              <Text style={s.sectionTitle}>PAQUETES INCLUIDOS</Text>
-              <View style={s.trackingWrap}>
-                {detail.package_trackings.map((t, i) => (
-                  <Text key={i} style={s.tracking}>{t}</Text>
-                ))}
+        {/* ── Fila de contacto ── */}
+        <View style={s.contactRow}>
+          <Text style={s.contactText}>
+            Correo electrónico: <Text style={s.contactHighlight}>magastore.cr@gmail.com</Text>
+          </Text>
+          <Text style={s.contactText}>
+            WhatsApp: <Text style={s.contactHighlight}>6204-8869</Text>
+          </Text>
+        </View>
+
+        {/* ── Cuerpo ── */}
+        <View style={s.body}>
+          <Text style={s.note}>
+            En caso de esperar otro paquete para consolidar en un solo envío, por favor informarlo.
+          </Text>
+
+          {/* Tabla de paquetes */}
+          {trackings.length > 0 && (
+            <>
+              {/* Header de tabla */}
+              <View style={s.tableHeader}>
+                <Text style={[s.thText, s.colTracking]}># de Tracking</Text>
+                <Text style={[s.thText, s.colPeso]}>Peso (LB)</Text>
+                <Text style={[s.thText, s.colPrecio]}>Precio x LB</Text>
+                <Text style={[s.thText, s.colTotal]}>Subtotal</Text>
               </View>
+
+              {trackings.map((tracking, i) => {
+                const weight = detail.total_weight_charged / trackings.length;
+                const subtotal = weight * pricePerLb * exchange;
+                return (
+                  <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
+                    <Text style={[s.tdMono, s.colTracking]}>{tracking}</Text>
+                    <Text style={[s.tdText, s.colPeso]}>{weight.toFixed(2)}</Text>
+                    <Text style={[s.tdText, s.colPrecio]}>{fmtUSD(pricePerLb)}</Text>
+                    <Text style={[s.tdText, s.colTotal]}>{fmtCRC(subtotal)}</Text>
+                  </View>
+                );
+              })}
+            </>
+          )}
+
+          {/* Resumen */}
+          <View style={s.summary}>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>Peso total (LB)</Text>
+              <Text style={s.summaryValue}>{detail.total_weight_charged} lb</Text>
             </View>
-          </>
-        )}
-
-        <View style={s.divider} />
-
-        {/* Desglose */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>DESGLOSE</Text>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Peso cobrado</Text>
-            <Text style={s.rowValue}>{detail.total_weight_charged} lb</Text>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryLabel}>
+                {`Flete (${fmtUSD(pricePerLb)}/lb × ${exchange} tipo de cambio)`}
+              </Text>
+              <Text style={s.summaryValue}>{fmtCRC(flete)}</Text>
+            </View>
+            {detail.delivery_method && (
+              <View style={s.summaryRow}>
+                <Text style={s.summaryLabel}>
+                  {`Envío — ${DELIVERY_LABELS[detail.delivery_method]}`}
+                </Text>
+                <Text style={s.summaryValue}>
+                  {detail.delivery_fee_crc > 0 ? fmtCRC(detail.delivery_fee_crc) : 'Sin cargo'}
+                </Text>
+              </View>
+            )}
           </View>
-          <View style={s.row}>
-            <Text style={s.rowLabel}>
-              {`Flete internacional ($${detail.applied_rate_usd}/lb x ${detail.applied_exchange} tipo de cambio)`}
+
+          {/* Total */}
+          <View style={s.totalRow}>
+            <Text style={s.totalLabel}>TOTAL</Text>
+            <Text style={s.totalValue}>{fmtCRC(detail.total_amount_crc)}</Text>
+          </View>
+
+          {detail.is_paid && detail.paid_at && (
+            <Text style={{ fontSize: 8, color: '#15803d', marginTop: 8 }}>
+              {`Pago registrado el ${new Date(detail.paid_at).toLocaleDateString('es-CR')}`}
             </Text>
-            <Text style={s.rowValue}>{fmtCRC(flete)}</Text>
-          </View>
-          {detail.delivery_method && (
-            <View style={s.row}>
-              <Text style={s.rowLabel}>
-                {`Envio local - ${DELIVERY_LABELS[detail.delivery_method]}`}
-              </Text>
-              <Text style={s.rowValue}>
-                {detail.delivery_fee_crc > 0 ? fmtCRC(detail.delivery_fee_crc) : 'Sin cargo'}
-              </Text>
-            </View>
           )}
         </View>
 
-        <View style={s.divider} />
-
-        {/* Total */}
-        <View style={s.totalRow}>
-          <Text style={s.totalLabel}>TOTAL A CANCELAR</Text>
-          <Text style={s.totalValue}>{fmtCRC(detail.total_amount_crc)}</Text>
-        </View>
-
-        {detail.is_paid && detail.paid_at && (
-          <View style={{ marginTop: 6 }}>
-            <Text style={{ fontSize: 8, color: '#15803d' }}>
-              {`Pago registrado el ${new Date(detail.paid_at).toLocaleDateString('es-CR')}`}
-            </Text>
-          </View>
-        )}
-
-        {/* Pie de pagina */}
+        {/* ── Pie de página ── */}
         <Text style={s.footer}>
-          Magastore Courier · Costa Rica · Comprobante de servicio de mensajeria internacional
+          Magastore Courier · Costa Rica · Comprobante de servicio de mensajería internacional
         </Text>
       </Page>
     </Document>

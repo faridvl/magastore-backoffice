@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
+import type { DocumentProps } from '@react-pdf/renderer';
 import { BillingService } from '@/shared/api/services/billing.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { BillingInvoicePDF } from '@/components/pdf/billing-invoice';
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!detail) return res.status(404).json({ message: 'Factura no encontrada.' });
 
     const buffer = await renderToBuffer(
-      React.createElement(BillingInvoicePDF, { detail }),
+      React.createElement(BillingInvoicePDF, { detail }) as unknown as React.ReactElement<DocumentProps>,
     );
 
     const shortId = uuid.slice(-8).toUpperCase();
