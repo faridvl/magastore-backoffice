@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { Customer, CustomerInput, CustomerAddress } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput } from '@/types/customer/customer.types';
 
 /**
  * Verifica si ya existe un cliente por identificación o email
@@ -102,6 +102,60 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
 
   if (!rows || rows.length === 0) return null;
   return mapRowToCustomer(rows[0]);
+};
+
+/**
+ * Verifica si el email ya está tomado por otro cliente (para validación en edición)
+ */
+export const checkEmailTakenByOther = async (email: string, excludeId: string): Promise<boolean> => {
+  const result = await sql`
+    SELECT id FROM customers
+    WHERE email = ${email} AND id != ${excludeId}
+    LIMIT 1
+  `;
+  return result.length > 0;
+};
+
+/**
+ * Actualiza datos del cliente y sus direcciones existentes
+ */
+export const updateCustomer = async (id: string, data: CustomerUpdateInput): Promise<Customer> => {
+  await sql`
+    UPDATE customers
+    SET
+      first_name = ${data.first_name},
+      last_name  = ${data.last_name},
+      email      = ${data.email},
+      phone      = ${data.phone},
+      is_active  = ${data.is_active}
+    WHERE id = ${id}
+  `;
+
+  if (data.addresses && data.addresses.length > 0) {
+    for (const addr of data.addresses) {
+      if (addr.id) {
+        await sql`
+          UPDATE customer_addresses SET
+            province      = ${addr.province},
+            canton        = ${addr.canton},
+            district      = ${addr.district},
+            exact_address = ${addr.exact_address},
+            address_label = ${addr.address_label ?? 'Casa'},
+            is_default    = ${addr.is_default ?? false}
+          WHERE id = ${addr.id} AND customer_id = ${id}
+        `;
+      } else {
+        await sql`
+          INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+          VALUES (${id}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false})
+        `;
+      }
+    }
+  }
+
+  const updated = await getCustomerById(id);
+  if (!updated) throw new Error('Cliente no encontrado después de actualizar.');
+  return updated;
 };
 
 /**

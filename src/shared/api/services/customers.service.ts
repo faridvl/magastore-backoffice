@@ -1,4 +1,4 @@
-import { Customer, CustomerInput } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerUpdateInput } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -66,5 +66,28 @@ export const CustomerService = {
     const customer = await CustomerRepo.getCustomerById(id);
     if (!customer) throw new Error('Cliente no encontrado.');
     return customer;
+  },
+
+  /**
+   * Actualiza datos editables de un cliente existente
+   */
+  editCustomer: async (id: string, data: CustomerUpdateInput): Promise<Customer> => {
+    if (!id) throw new Error('El ID del cliente es requerido.');
+    if (!data.first_name?.trim()) throw new Error('El nombre es requerido.');
+    if (!data.last_name?.trim()) throw new Error('Los apellidos son requeridos.');
+    if (!data.email?.trim()) throw new Error('El correo electrónico es requerido.');
+    if (!data.phone?.trim()) throw new Error('El teléfono es requerido.');
+
+    const emailTaken = await CustomerRepo.checkEmailTakenByOther(data.email, id);
+    if (emailTaken) {
+      throw new Error('Este correo electrónico ya está registrado en otro cliente.');
+    }
+
+    try {
+      return await CustomerRepo.updateCustomer(id, data);
+    } catch (error: any) {
+      console.error('[CustomerService.editCustomer]:', error);
+      throw new Error(error.message || 'Error inesperado al actualizar el cliente.');
+    }
   },
 };

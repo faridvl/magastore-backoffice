@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending` (Etapa 9 - Normalización package_type)
+Last updated: 2026-06-25 | Last commit: `pending` (Etapa 10 - Edición de cliente)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -14,7 +14,8 @@ Last updated: 2026-06-25 | Last commit: `pending` (Etapa 9 - Normalización pack
 | Autenticacion | JWT 12h, bcrypt, HOC SSR en todas las paginas admin. Un solo rol: ADMIN |
 | Listado de clientes | Paginado, busqueda con debounce 400ms |
 | Creacion de cliente | INSERT atomico con CTE (cliente + direcciones) |
-| Detalle de cliente | Solo lectura |
+| Edicion de cliente | PUT /api/customers/[id] — nombre, apellidos, email, telefono, is_active, direcciones |
+| Detalle de cliente | Solo lectura + boton Editar que activa formulario inline |
 | Listado de paquetes | Paginado, filtro por status, busqueda |
 | Registro de paquetes | Preview usa system_settings; factura tambien lee system_settings desde Etapa 1 |
 | Actualizacion de status | Sin state-machine - cualquier a cualquier |
@@ -96,7 +97,7 @@ Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> f
 | Base de datos / esquema | 100% | Scripts 001-003 ejecutados; esquema completo |
 | API Routes | 88% | Falta /api/dashboard, /api/tracking real |
 | Autenticacion | 95% | Funciona; falta rate limiting y roles multiples |
-| Clientes | 90% | CRUD completo; falta edicion |
+| Clientes | 98% | CRUD completo incluyendo edicion; sin eliminacion (no requerida) |
 | Logistica (paquetes) | 85% | CRUD + status + UI consolidaciones; falta notificaciones, PDF |
 | Consolidaciones | 90% | Listar, crear, detalle, asignar paquetes, avanzar estado |
 | Facturacion | 80% | Generar + listar + marcar pagado; falta PDF, address, bulk |

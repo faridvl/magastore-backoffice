@@ -1,31 +1,99 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
+import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
+import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
 
 export const useCustomerDetail = (customerId: string) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
-  // Datos Reales desde API
   const { data: customer, isLoading } = useCustomerProfile(customerId);
+  const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
 
-  // Iniciales para el Avatar
+  const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
+
+  const enterEditMode = () => {
+    if (!customer) return;
+    setEditForm({
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      email: customer.email,
+      phone: customer.phone,
+      is_active: customer.is_active,
+      addresses: customer.addresses.map((a) => ({
+        id: a.id,
+        province: a.province,
+        canton: a.canton,
+        district: a.district,
+        exact_address: a.exact_address,
+        address_label: a.address_label ?? 'Casa',
+        is_default: a.is_default,
+      })),
+    });
+    setEditError(null);
+    setIsEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    setIsEditMode(false);
+    setEditForm(null);
+    setEditError(null);
+  };
+
+  const handleEditField = (field: keyof Omit<CustomerUpdateInput, 'addresses'>, value: string | boolean) => {
+    setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleEditAddress = (index: number, field: keyof CustomerAddressUpdateInput, value: string | boolean) => {
+    setEditForm((prev) => {
+      if (!prev || !prev.addresses) return prev;
+      const updated = prev.addresses.map((a, i) => (i === index ? { ...a, [field]: value } : a));
+      return { ...prev, addresses: updated };
+    });
+  };
+
+  const addNewAddress = () => {
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        addresses: [
+          ...(prev.addresses ?? []),
+          { province: '', canton: '', district: '', exact_address: '', address_label: 'Casa', is_default: false },
+        ],
+      };
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editForm) return;
+    setEditError(null);
+    try {
+      await updateCustomer(editForm);
+      setIsEditMode(false);
+      setEditForm(null);
+    } catch (err: any) {
+      setEditError(err.message || 'Error al guardar los cambios.');
+    }
+  };
+
   const initials = useMemo(() => {
     if (!customer) return '??';
     return `${customer.first_name.charAt(0)}${customer.last_name.charAt(0)}`.toUpperCase();
   }, [customer]);
 
-  // Mock de datos que aún no vienen en API
   const metrics = {
-    totalLbs: 154.5, // Mock
-    totalSpent: 450000, // Mock
-    packageCount: 12, // Mock
-    firstOrderDate: '15 Oct 2025', // Mock
-    customerType: 'VIP', // Mock
+    totalLbs: 154.5,
+    totalSpent: 450000,
+    packageCount: 12,
+    firstOrderDate: '15 Oct 2025',
+    customerType: 'VIP',
   };
 
-  // Datos para el gráfico (Mock por ahora)
   const seasonalityData = [
     { month: 'Sep', lbs: 12 },
     { month: 'Oct', lbs: 18 },
@@ -35,19 +103,10 @@ export const useCustomerDetail = (customerId: string) => {
     { month: 'Feb', lbs: 26 },
   ];
 
-  // Simulación de historial (Filtrado)
-  const purchaseHistory = [
-    {
-      id: 1,
-      date: '2026-02-15',
-      tracking: '00000885166052',
-      weight: 3.5,
-      total: 16350,
-      status: 'Pagado',
-    },
-  ];
-
   const filteredHistory = useMemo(() => {
+    const purchaseHistory = [
+      { id: 1, date: '2026-02-15', tracking: '00000885166052', weight: 3.5, total: 16350, status: 'Pagado' },
+    ];
     const query = searchTerm.toLowerCase().trim();
     return purchaseHistory.filter((item) => item.tracking.toLowerCase().includes(query));
   }, [searchTerm]);
@@ -64,5 +123,15 @@ export const useCustomerDetail = (customerId: string) => {
     handleBack: () => router.back(),
     activeTab,
     setActiveTab,
+    isEditMode,
+    editForm,
+    editError,
+    isSaving,
+    enterEditMode,
+    cancelEdit,
+    handleEditField,
+    handleEditAddress,
+    addNewAddress,
+    saveEdit,
   };
 };

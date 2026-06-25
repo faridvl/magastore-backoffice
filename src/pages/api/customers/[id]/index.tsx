@@ -23,7 +23,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(200).json(customer);
         }
 
-        res.setHeader('Allow', ['GET']);
+        if (req.method === 'PUT') {
+            if (!id || typeof id !== 'string') {
+                return res.status(400).json({ message: 'ID de cliente no válido' });
+            }
+
+            const updated = await CustomerService.editCustomer(id, req.body);
+            return res.status(200).json(updated);
+        }
+
+        res.setHeader('Allow', ['GET', 'PUT']);
         return res.status(405).end(`Method ${req.method} Not Allowed`);
 
     } catch (error: any) {

@@ -161,19 +161,22 @@ Incluye:
 ---
 
 ## Etapa 10 — Edicion de cliente
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit pending
 
 ### Cambios
 | Archivo | Tipo | Cambio |
 |---|---|---|
-| `src/shared/api/repositories/customers.repo.ts` | Modificar | Agregar `updateCustomer(id, data)` |
+| `src/types/customer/customer.types.ts` | Modificar | Agregar `CustomerAddressUpdateInput` y `CustomerUpdateInput` |
+| `src/shared/api/repositories/customers.repo.ts` | Modificar | Agregar `checkEmailTakenByOther` y `updateCustomer(id, data)` |
 | `src/shared/api/services/customers.service.ts` | Modificar | Agregar `editCustomer` con validaciones |
-| `src/pages/api/customers/[id].ts` | Nuevo o verificar | PUT handler |
-| `src/shared/api/mutations/customers/use-update-customer-mutation.ts` | Nuevo | |
-| `src/pages/admin/customers/[id]/index.tsx` | Modificar | Agregar modo edicion |
+| `src/pages/api/customers/[id]/index.tsx` | Modificar | Agregar handler PUT |
+| `src/shared/api/mutations/customers/use-update-customer-mutation.ts` | Nuevo | Hook con invalidacion de cache |
+| `src/components/containers/customers/customer-detail/use-customer-detail.ts` | Modificar | Estado de edicion + handlers |
+| `src/components/containers/customers/customer-detail/customer-edit-form.tsx` | Nuevo | Formulario de edicion con inputs y toggle is_active |
+| `src/components/containers/customers/customer-detail/customer-detail-container.tsx` | Modificar | Integrar modo edicion |
 
 ### Criterio de exito
-Desde el detalle del cliente se puede editar nombre, email, estado activo, y direcciones.
+Desde el detalle del cliente se puede editar nombre, apellidos, email, telefono, estado activo, y direcciones (editar existentes + agregar nuevas).
 
 ---
 
@@ -244,3 +247,4 @@ Cuando un paquete llega a status `ENTREGADO`, el cliente recibe un email automat
 | 2026-06-25 | — | Scripts SQL 001 y 002 ejecutados en Neon |
 | 2026-06-25 | — | Etapas 6-13 detalladas con criterios de exito |
 | 2026-06-25 | Etapa 9 | Normalizar package_type: enum + script SQL 003 ejecutado |
+| 2026-06-25 | Etapa 10 | Edicion de cliente: PUT endpoint + mutation + formulario inline |

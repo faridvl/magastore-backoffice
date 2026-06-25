@@ -64,15 +64,15 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 7 | Tracking publico conectado a API real | `8f451ef` |
 | Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
 | Etapa 9 | Normalizar package_type (enum PackageType + script SQL) | `23f7665` |
+| Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | pending |
 | DB | Scripts SQL 001, 002 y 003 ejecutados en Neon | 2026-06-25 |
 
-**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
+**Funciona con datos reales:** auth, clientes (CRUD completo incluyendo edicion), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
 
-### Pendiente -- Producto Completo (Etapas 10-13)
+### Pendiente -- Producto Completo (Etapas 11-13)
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
-| Etapa 10 | Edicion de cliente | Pendiente |
 | Etapa 11 | PDF de factura descargable | Pendiente |
 | Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
 | Etapa 13 | Notificaciones por email al entregar | Pendiente |
@@ -81,9 +81,9 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 
 | Escenario | % |
 |---|---|
-| Uso interno (operadores con guia) | ~87% |
-| MVP completo (tracking en vivo) | ~85% |
-| Producto completo (Etapas 10-13 pendientes) | ~42% |
+| Uso interno (operadores con guia) | ~90% |
+| MVP completo (tracking en vivo) | ~87% |
+| Producto completo (Etapas 11-13 pendientes) | ~45% |
 
 ---
 

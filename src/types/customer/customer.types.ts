@@ -9,6 +9,16 @@ export interface CustomerAddressInput {
   is_default?: boolean;
 }
 
+export interface CustomerAddressUpdateInput {
+  id?: string;
+  province: string;
+  canton: string;
+  district: string;
+  exact_address: string;
+  address_label?: string;
+  is_default?: boolean;
+}
+
 export interface CustomerInput {
   id_card: string;
   id_type: IdType;
@@ -17,6 +27,15 @@ export interface CustomerInput {
   email: string;
   phone: string;
   addresses: CustomerAddressInput[];
+}
+
+export interface CustomerUpdateInput {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  is_active: boolean;
+  addresses?: CustomerAddressUpdateInput[];
 }
 
 export interface CustomerAddress extends CustomerAddressInput {
