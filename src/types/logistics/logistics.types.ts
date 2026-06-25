@@ -178,3 +178,62 @@ export interface GenerateInvoiceInput {
 export interface MarkPaidInput {
   billingUuid: string;
 }
+
+// --- Tipos para Consolidaciones (gestión) ---
+
+export interface ConsolidationListItem {
+  uuid: string;
+  customer_id: string;
+  customer_name: string;
+  customer_code: string;
+  status: ConsolidationStatus;
+  total_weight_lb: number;
+  package_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConsolidationPackage {
+  uuid: string;
+  tracking_number: string;
+  weight_lb: number;
+  package_type: string;
+  status: PackageStatus;
+  arrival_date: string;
+}
+
+export interface ConsolidationDetail {
+  uuid: string;
+  customer_id: string;
+  customer_name: string;
+  customer_code: string;
+  customer_email: string;
+  status: ConsolidationStatus;
+  total_weight_lb: number;
+  created_at: string;
+  updated_at: string;
+  packages: ConsolidationPackage[];
+}
+
+export interface AvailablePackage {
+  uuid: string;
+  tracking_number: string;
+  weight_lb: number;
+  package_type: string;
+  status: PackageStatus;
+  arrival_date: string;
+}
+
+export interface CreateConsolidationInput {
+  customerUuid: string;
+}
+
+export interface UpdateConsolidationStatusInput {
+  consolidationUuid: string;
+  status: ConsolidationStatus;
+}
+
+export interface AssignPackagesToConsolidationInput {
+  consolidationUuid: string;
+  packageUuids: string[];
+}

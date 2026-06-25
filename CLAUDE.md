@@ -251,3 +251,27 @@ Addresses use Costa Rica administrative divisions: `province`, `canton`, `distri
 - **`system_settings`** — affects only the operator cost preview (`use-package-calculator.ts`) and the settings history audit trail; does not affect invoicing until `generateBilling` is updated to read from the DB.
 - **`packages.status`** — read by the public-facing `/tracking` page; status values are customer-visible.
 - **`authorizeServerSidePage` in `src/hocs/auth.tsx`** — wraps every protected admin page via `getServerSideProps`; a change here affects the entire admin surface.
+
+---
+
+## End-of-Etapa Protocol (Mandatory)
+
+At the end of every etapa, before the final commit, update these three files — no exceptions:
+
+1. **`.claude/docs/development-plan.md`** — mark the etapa as completed with date and commit hash.
+2. **`.claude/docs/status.md`** — move items from Pending to Implemented, update percentages, update date and commit hash at the top.
+3. **`README.md`** — move the etapa row from "Pendiente" to "Completado" in the Estado del Proyecto section, update the percentage table.
+
+These files are the single source of truth for project state. A commit that completes an etapa but skips updating them is incomplete.
+
+---
+
+## Living Documentation
+
+All markdown files in `.claude/docs/` are active project documents — not archives. They must be kept current:
+
+- **`development-plan.md`** — one etapa per session, criteria for success, file list per etapa.
+- **`status.md`** — real vs mocked vs missing, percentages, blockers. Update on every significant commit.
+- **`README.md`** — public-facing summary. Pendientes section tracks MVP progress.
+
+Claude must read these files at the start of any session involving a new etapa or feature planning.

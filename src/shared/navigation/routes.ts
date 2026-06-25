@@ -24,6 +24,10 @@ export const routesPrivate = {
       detail: (id: string | number) => `/admin/logistics/${id}`,
       batch: '/admin/logistics/batch-update', // Para actualizar varios pesos a la vez
     },
+    // Gestión de consolidaciones
+    consolidations: {
+      index: '/admin/consolidations',
+    },
     // Cobros y Facturación a clientes
     billing: {
       index: '/admin/billing',

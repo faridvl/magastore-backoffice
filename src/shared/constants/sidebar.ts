@@ -7,6 +7,7 @@ import {
   Settings,
   Truck,
   History,
+  Boxes,
 } from 'lucide-react';
 
 export const NAVIGATION_PATHS: any[] = [
@@ -21,6 +22,12 @@ export const NAVIGATION_PATHS: any[] = [
     icon: Truck,
     labelKey: 'Logística / Paquetes',
     route: routesPrivate.admin.logistics.index,
+  },
+  {
+    menuKey: 'consolidations',
+    icon: Boxes,
+    labelKey: 'Consolidaciones',
+    route: routesPrivate.admin.consolidations.index,
   },
   {
     menuKey: 'billing',

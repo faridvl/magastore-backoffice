@@ -1,81 +1,102 @@
-# 📦 Magastore - Sistema de Rastreo de Paquetes
+# Magastore Backoffice
 
-Este es el módulo de rastreo de carga orientado al cliente para el ecosistema de Magastore. Permite a los usuarios finales consultar el estado en tiempo real de sus importaciones mediante su número de tracking, ofreciendo una experiencia visual moderna y fluida.
-
-### 🚀 Características
-
-• Rastreo en Tiempo Real: Visualización detallada del historial de paquetes.
-
-• Interfaz de Usuario Premium: Diseño limpio basado en Tailwind CSS con estados visuales claros (En Aduana, Entregado, etc.).
-
-• Diseño Responsivo: Optimizado para dispositivos móviles y escritorio.
-
-• Acceso Rápido: Integración directa con el Backoffice para administradores mediante navegación protegida.
-
-• Feedback Visual: Animaciones de entrada y estados de carga simulados para una mejor UX.
-
-### 🛠️ Stack Tecnológico
-
-• Framework: Next.js(https://nextjs.org/) (React)
-
-• Lenguaje: TypeScript
-
-• Estilos: Tailwind CSS
-
-• Iconografía: Lucide React
-
-• Componentes: Librería interna de componentes (`Typography`, `DashboardLayout`, etc.)
-
-### 📁 Estructura del Módulo
-
-El archivo principal se encuentra en: `./src/pages/tracking/index.tsx`
-
-# ⚙️ Instalación y Desarrollo
-
-1. Clonar el repositorio:
-
-```
-
-git clone https://github.com/tu-usuario/magastore-sistema.git
-
-```
-
-2. Instalar dependencias:
-
-```
-
-npm install
-
-```
-
-3. Ejecutar en local:
-
-```
-
-npm run dev
-
-```
-
-4. Abrir el navegador: Visita `http://localhost:3000/tracking` para ver el rastreador.
-
-### 📝 Notas de Implementación
-
-Manejo de Caracteres Especiales (Linting)
-
-Para cumplir con las reglas de ESLint (`react/no-unescaped-entities`), todos los textos que contienen comillas o símbolos especiales en el JSX han sido escapados utilizando entidades HTML (ej. `&quot;`).
-
-Simulación de Datos (Mocking)
-
-Actualmente, el componente utiliza un objeto `MOCK_PACKAGE_RESULT` que simula la respuesta de la base de datos de paquetes (`BD PAQUETES.csv`). Para conectar con la API real, se debe sustituir la lógica dentro de la función `handleSearch`.
-
-### 🤝 Contribución
-
-1. Crea una rama para tu mejora: `git checkout -b feature/MejoraIncreible`
-
-2. Haz tus cambios y dales commit: `git commit -m "Añadida nueva funcionalidad"`
-
-3. Sube la rama: `git push origin feature/MejoraIncreible`
-
-4. Abre un Pull Request.
+Backoffice de gestion de courier para importaciones desde Miami a Costa Rica. Maneja el ciclo completo: registro de paquetes, consolidacion de envios, facturacion en CRC, y seguimiento para el cliente final.
 
 ---
+
+## Stack
+
+- **Framework:** Next.js 14 (Pages Router)
+- **Lenguaje:** TypeScript (strict mode)
+- **Base de datos:** Neon PostgreSQL via `@neondatabase/serverless`
+- **Estado del servidor:** React Query
+- **Estilos:** Tailwind CSS
+- **Auth:** JWT 12h + bcrypt
+
+---
+
+## Instalacion
+
+```bash
+npm install
+```
+
+Variables de entorno requeridas en `.env.local`:
+```
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+MAGASTORE_DB_POSTGRES_URL=postgresql://...
+JWT_SECRET=your-secret-key
+```
+
+```bash
+npm run dev     # servidor local en localhost:3000
+npm run lint    # ESLint
+```
+
+---
+
+## Arquitectura
+
+```
+Page (SSR auth) -> Container -> Hook -> React Query -> API Route -> Service -> Repository -> Neon SQL
+```
+
+Ver [`CLAUDE.md`](CLAUDE.md) para guia completa de arquitectura, convenciones y reglas.
+
+---
+
+## Estado del Proyecto
+
+Plan de desarrollo completo: [`.claude/docs/development-plan.md`](.claude/docs/development-plan.md)
+Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
+
+### Completado
+
+| Etapa | Descripcion | Commit |
+|---|---|---|
+| Etapa 0 | Commit inicial — detalle de paquete | `124e9bd` |
+| Etapa 1 | Billing backend: repo + service | `6782647` |
+| Etapa 2 | Billing API handlers | `2ec6aca` |
+| Etapa 3 | Billing React Query hooks | `93c3d32` |
+| Etapa 4 | Billing UI: container + page | `17ae1ba` |
+| Etapa 5 | Delivery fees (Correos CR / Tracopa) + package detail con datos reales | `168517f` |
+| Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | pendiente commit |
+| DB | Scripts SQL 001 y 002 ejecutados en Neon | 2026-06-25 |
+
+**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes.
+
+### Pendiente — MVP (Etapas 6-7)
+
+El MVP esta completo cuando un operador puede hacer todo el flujo sin acceso directo a la DB. Etapa 8 completada.
+
+| Etapa | Descripcion | Estado |
+|---|---|---|
+| Etapa 6 | Dashboard con KPIs y graficas reales | Pendiente |
+| Etapa 7 | Tracking publico conectado a API real | Pendiente |
+
+### Pendiente — Producto Completo (Etapas 9-13)
+
+| Etapa | Descripcion | Estado |
+|---|---|---|
+| Etapa 9 | Normalizar package_type en DB | Pendiente |
+| Etapa 10 | Edicion de cliente | Pendiente |
+| Etapa 11 | PDF de factura descargable | Pendiente |
+| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
+| Etapa 13 | Notificaciones por email al entregar | Pendiente |
+
+### Porcentaje actual
+
+| Escenario | % |
+|---|---|
+| Uso interno (operadores con guia) | ~68% |
+| MVP completo (Etapas 0-8) | ~48% |
+| Producto completo (Etapas 0-13) | ~32% |
+
+---
+
+## Migraciones SQL ejecutadas
+
+| Script | Descripcion | Fecha |
+|---|---|---|
+| 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings | 2026-06-25 |
+| 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | 2026-06-25 |

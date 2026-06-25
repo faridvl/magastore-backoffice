@@ -1,135 +1,158 @@
-# Project Status — Magastore Backoffice
-Last reviewed: 2026-06-24
+# Project Status - Magastore Backoffice
+Last updated: 2026-06-25 | Last commit: pendiente (Etapa 8 - UI consolidaciones)
 
-This is the master status document. Update it whenever a feature moves from one state to another.
-Detailed analysis docs live alongside this file in `.claude/docs/`.
+> Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
 ---
 
-## Feature Status
+## Estado Real por Area
 
-### ✅ Implemented & Working
+### Implementado y Funcional (conectado a DB real)
 
-| Feature | Key Files | Notes |
+| Area | Notas |
+|---|---|
+| Autenticacion | JWT 12h, bcrypt, HOC SSR en todas las paginas admin. Un solo rol: ADMIN |
+| Listado de clientes | Paginado, busqueda con debounce 400ms |
+| Creacion de cliente | INSERT atomico con CTE (cliente + direcciones) |
+| Detalle de cliente | Solo lectura |
+| Listado de paquetes | Paginado, filtro por status, busqueda |
+| Registro de paquetes | Preview usa system_settings; factura tambien lee system_settings desde Etapa 1 |
+| Actualizacion de status | Sin state-machine - cualquier a cualquier |
+| Consolidacion de paquetes | Transaccional BEGIN/COMMIT, recalcula peso |
+| Detalle de paquete | Lee system_settings para tarifas; cliente y casillero desde JOIN |
+| Configuracion del sistema | Singleton system_settings con correos_fee_crc y tracopa_fee_crc; auditoria campo por campo |
+| Generacion de factura | Lee tarifas de system_settings; delivery_method elegido al facturar; delivery_fee_crc en billing |
+| Listado de facturas | Paginado, busqueda, filtro pagado/pendiente |
+| Detalle de factura | Desglose: flete + envio local + total, boton Marcar pagado |
+| Marcar pago | PATCH /api/billing?uuid=, actualiza is_paid + paid_at |
+| Eventos de paquete | Trigger DB trg_package_status_history escribe en package_events automaticamente |
+| Historial de tarifas | settings_history campo por campo, con nombre de operador |
+| Gestion de consolidaciones | Listar, crear, detalle con paquetes, asignar paquetes, avanzar estado (state machine) |
+
+---
+
+### Parcialmente Real / Con Advertencias
+
+| Area | Problema | Impacto |
 |---|---|---|
-| Auth (login / JWT) | `auth.service.ts`, `pages/api/auth/login.ts`, `hocs/auth.tsx` | 12h JWT, bcrypt, ADMIN role only |
-| Customer list | `customers-container.tsx`, `use-customers.ts`, `querys/customers/use-customers-query.ts` | Paginated, search |
-| Customer create | `create-customer-container.tsx`, `mutations/use-create-customer-mutation.ts` | Atomic CTE insert with addresses |
-| Customer detail | `pages/admin/customers/[id]/index.tsx` | Read-only |
-| Package list (logistics) | `logistics-container.tsx`, `use-logistics.tsx`, `querys/logistics/use-logistics-query.ts` | Paginated, status filter, search |
-| Package create | `create-package-container.tsx`, `use-package-calculator.ts` | Preview via `system_settings` (missing fee) |
-| Package status update | `logistics.service.ts:updatePackageStatus` | No state-machine enforcement — any → any |
-| Package consolidation | `logistics.service.ts:processConsolidation` | Transactional, weight recalculated |
-| Settings view / edit | `settings-container.tsx`, `use-settings.ts`, `settings.service.ts` | Singleton row, field-level history audit |
-| Invoice generation (API only) | `pages/api/logistics/index.tsx`, `logistics.service.ts:createInvoice` | No UI trigger; hardcoded RATES |
+| Preview de creacion de paquetes | No incluye costo de envio local (metodo no conocido aun) | Cliente ve monto diferente al de la factura final. Bajo riesgo. |
+| Panel financiero en detalle | Calculo estimado con tarifas vigentes, no billing.total_amount_crc si ya existe factura | Puede mostrar monto distinto si las tarifas cambiaron. |
+| Estado de pago en detalle | estadoPago hardcodeado como PENDIENTE en use-logistics-detail.ts:25 | No refleja el estado real del billing. |
+| package_type en DB | Valores mixtos: AEREO, Aereo, MARITIMO, Maritimo, AVION | Filtros futuros por tipo daran resultados inconsistentes |
+| Notificacion al entregar | logistics.service.ts:152-154 es solo console.log | Cuando status llega a ENTREGADO, el cliente no es notificado |
 
 ---
 
-### 🔄 In Progress (Uncommitted on `main`)
+### Mockeado / No Implementado
 
-These files appear in `git status` as new or modified. They belong to the "package detail view" feature.
+| Pagina / Feature | Realidad |
+|---|---|
+| Dashboard (/admin/dashboard) | KPIs y graficas hardcodeadas. No llama a ninguna API |
+| Tracking publico (/tracking) | Retorna MOCK_PACKAGE_RESULT - no toca la DB |
+| Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
+| PDF de factura | No existe ninguna generacion de PDF |
+| /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
+| Multiples roles | UserRole solo tiene ADMIN. Sin operadores ni supervisores |
+| Direccion de entrega en factura | billing no guarda la direccion del cliente |
+| /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
+| /admin/billing/reports | Ruta definida, pagina no existe |
+| Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
 
-| File | Type | What it does |
+---
+
+## Bloqueadores para MVP (No Negociables)
+
+### 1. Pagina publica de tracking
+
+/tracking es lo que ve el cliente final. Actualmente retorna mock data. Sin esto los clientes no pueden auto-consultar.
+
+### 2. Dashboard con datos reales
+
+KPIs de paquetes hoy, ingresos del mes, consolidaciones pendientes. Con mock data no tiene valor operativo.
+
+### 3. UI de gestion de consolidaciones
+
+Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> facturarla. La API existe pero no hay UI.
+
+### 4. Normalizar package_type
+
+DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpieza y cambiar INSERT a usar UPPER().
+
+---
+
+## Consideraciones Importantes
+
+- Sin state machine: cualquier operador puede poner ENTREGADO sin pasar por BODEGA_CR
+- JWT hardcoded fallback en auth.service.ts:19 si no hay JWT_SECRET en .env - critico para produccion
+- Sin rate limiting en POST /api/auth/login
+- billing.applied_fee_crc siempre = 0 en nuevas facturas - campo misleading pero no rompe nada
+- La factura no guarda la direccion de entrega del cliente
+- Sin comunicacion con el cliente en ningun punto del flujo
+- La consolidacion no valida que todos los paquetes sean del mismo cliente
+
+---
+
+## Porcentajes de Completitud
+
+### Por Capa Tecnica
+
+| Capa | % Real | Notas |
 |---|---|---|
-| `containers/logistics/logistics-view-detail/logistics-view-detail.tsx` | New | Package detail container component |
-| `containers/logistics/logistics-view-detail/use-logistics-detail.ts` | New | Hook — **financial panel uses hardcoded rates (tarifaXLibre: 6, tipoCambio: 540, fee: 2500)** |
-| `querys/logistics/find-one-package-query.ts` | New | Fetches single package by UUID |
-| `querys/use-api-query-hook.ts` | New | Generic `useApiQuery` wrapper |
-| `shared/api/query-hooks/use-api-client-query.ts` | New | Another query client hook |
-| `mutations/logistics/use-add-package-mutation.ts` | New | Add package mutation |
-| `shared/errors/error-code.ts`, `fetch-error.ts` | New | Typed error classes |
-| `types/logistics/logistics.types.ts` | Modified | New types added |
-| `containers/logistics/use-package-calculator.ts` | Modified | |
-| `containers/logistics/logistics-container/*.tsx` | Modified | |
-| `containers/logistics/create-package-container.tsx` | Modified | |
-| `pages/admin/logistics/[id]/index.tsx` | Modified | Now mounts `PackageDetailContainer` |
+| Base de datos / esquema | 93% | Scripts ejecutados; solo falta normalizar package_type |
+| API Routes | 88% | Falta /api/dashboard, /api/tracking real |
+| Autenticacion | 95% | Funciona; falta rate limiting y roles multiples |
+| Clientes | 90% | CRUD completo; falta edicion |
+| Logistica (paquetes) | 85% | CRUD + status + UI consolidaciones; falta notificaciones, PDF |
+| Consolidaciones | 90% | Listar, crear, detalle, asignar paquetes, avanzar estado |
+| Facturacion | 80% | Generar + listar + marcar pagado; falta PDF, address, bulk |
+| Configuracion | 100% | Scripts ejecutados - correos_fee_crc y tracopa_fee_crc en DB |
+| Dashboard | 8% | Solo UI estatica; todo mock |
+| Tracking publico | 10% | UI existe; backend retorna mock |
+| Notificaciones | 0% | Solo console.log |
 
-**Known issue in current work:** `use-logistics-detail.ts` financial panel is disconnected from real data. Customer name not returned by `GET /logistics?uuid=...` — shows placeholder "Cliente del Sistema".
+### Resumen Global
 
----
-
-### 📋 Pending — Billing V1
-
-Full plan: `.claude/docs/billing-v1-plan.md` | Gap analysis: `.claude/docs/billing-gap.md` | Rate audit: `.claude/docs/billing-rules.md`
-
-**Critical path (must be done in order):**
-
-```
-Phase 1 (DB, manual) → Phase 2 (type rename) → Phase 3 (repos) → Phase 4 (services)
-→ Phase 5 (API handlers) → Phase 6 (React Query hooks) → Phase 7 (UI)
-```
-
-| Phase | Description | Files | Status |
-|---|---|---|---|
-| 1 — DB | Rename `profit_per_lb → fee_crc`; add UNIQUE on `billing.consolidation_id` | DB migration | ❌ Not done |
-| 2 — Types | Rename field in 6 files atomically; add `BillingListItem`, `PendingConsolidation` types | 6 modified | ❌ Not done |
-| 3A — Repo | Refactor `generateBilling` (read system_settings, consolidation-only, add guards) | `logistics.repo.ts` | ❌ Not done |
-| 3B — Repo | Create `billing.repo.ts` (4 methods: list, detail, pending consolidations, mark paid) | New file | ❌ Not done |
-| 4A — Service | Update `createInvoice` signature (remove `type` param) | `logistics.service.ts` | ❌ Not done |
-| 4B — Service | Create `billing.service.ts` (4 methods) | New file | ❌ Not done |
-| 5A — API | Update `invoice` action in `/api/logistics` | `pages/api/logistics/index.tsx` | ❌ Not done |
-| 5B — API | Create `GET+PATCH /api/billing` | New file | ❌ Not done |
-| 6 — Hooks | 5 new React Query hooks (billing list, detail, pending, generate, mark paid) | 5 new files | ❌ Not done |
-| 7 — UI | `use-billing.ts`, `billing-container.tsx`, replace mock billing page | 3 files | ❌ Not done |
+| Escenario | % |
+|---|---|
+| Para uso interno minimo (operadores con guia) | ~78% |
+| Para demo (datos reales, sin algunos flujos) | ~80% |
+| MVP completo (tracking + dashboard) | ~62% |
+| Producto completo (PDF, notificaciones, multi-rol) | ~38% |
 
 ---
 
-### ❌ Mocked / Not Implemented
+## Viabilidad General
 
-| Page / Feature | File | Reality |
+El sistema es viable como herramienta interna con 2 condiciones restantes:
+1. Un operador capacitado (consolidaciones via API o DB directa hasta que haya UI)
+2. Completar la UI de consolidaciones antes del primer mes de operacion
+
+Los scripts SQL ya estan ejecutados en Neon - el esquema de DB esta al dia.
+
+No es viable para usuarios externos: el cliente no puede consultar su paquete y no hay comunicacion automatica ni PDF.
+
+Fortalezas: billing con snapshot de tarifas (facturas historicas estables), auditoria en settings_history, consolidacion transaccional, arquitectura limpia.
+
+---
+
+## Proximas Etapas Propuestas
+
+| Etapa | Descripcion | Prioridad |
 |---|---|---|
-| Billing list page | `pages/admin/billing/index.tsx` | Hardcoded `MOCK_BILLING` array of 4 entries |
-| Packages page | `pages/admin/packages/index.tsx` | `setTimeout` + mock results |
-| Public tracking page | `pages/tracking/index.tsx` | `MOCK_PACKAGE_RESULT` — not real DB |
-| Package events write | — | `package_events` table has SELECT but no INSERT anywhere |
-| Payment confirmation | — | `billing.is_paid` and `billing.paid_at` columns exist, no write path |
-| Delivery notification | `logistics.service.ts:152-154` | `console.log` stub only |
-| `billing/:id` detail page | routes.ts:30 | Route defined, page file does not exist |
-| `billing/reports` page | routes.ts:31 | Route defined, page file does not exist |
+| Etapa 6 | Dashboard con datos reales (GET /api/dashboard/stats) | Alta |
+| Etapa 7 | Conectar tracking publico a API real | Alta |
+| Etapa 8 | UI de gestion de consolidaciones (listar, crear, cambiar estado) | Alta |
+| Etapa 9 | Normalizacion de package_type (script SQL + fix en INSERT) | Media |
+| Etapa 10 | Edicion de cliente | Media |
+| Etapa 11 | PDF de factura (react-pdf o similar) | Media |
+| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Baja |
+| Etapa 13 | Notificaciones reales (email) | Baja |
 
 ---
 
-## Open Questions / Decisions Needed
+## Historial de Migraciones SQL
 
-| # | Question | Severity | Status |
-|---|---|---|---|
-| 1 | `package_events` mystery | ✅ RESOLVED | DB trigger `trg_package_status_history` writes automatically on packages INSERT/UPDATE |
-| 2 | Is `/admin/packages` a distinct feature from `/admin/logistics`? | Medium | Not analyzed |
-| 3 | Package detail financial panel: read from `billing` record or `system_settings`? | High | Pending — `use-logistics-detail.ts:22-76` |
-| 4 | `fee_crc` value for migration | ✅ RESOLVED | DB has ₡2,900 as `profit_per_lb` — use that value |
-| 5 | Public tracking page timing | Medium | After billing V1 |
-| 6 | `package_type` normalization | Medium | DB has 5 mixed-case values; code uses title-case. Normalize on INSERT and clean existing data |
-
----
-
-## Pages Reality Check
-
-| Route | Real Data? | Blocking issues |
+| Script | Descripcion | Estado |
 |---|---|---|
-| `/admin/dashboard` | Unknown | Not analyzed |
-| `/admin/logistics` | ✅ Yes | — |
-| `/admin/logistics/create` | ✅ Yes | Preview omits flat fee |
-| `/admin/logistics/[id]` | Partial | Financial panel hardcoded; customer name missing |
-| `/admin/logistics/edit/[id]` | Unknown | Not analyzed |
-| `/admin/customers` | ✅ Yes | — |
-| `/admin/customers/create` | ✅ Yes | — |
-| `/admin/customers/[id]` | ✅ Yes | — |
-| `/admin/settings` | ✅ Yes | — |
-| `/admin/billing` | ❌ Mock | Full replacement needed (billing V1) |
-| `/admin/packages` | ❌ Mock | Unclear purpose; needs decision |
-| `/tracking` | ❌ Mock | Needs real API connection |
-
----
-
-## Rate Inconsistency Summary
-
-Four different places use different rate values for the same calculation. See `.claude/docs/billing-rules.md` for detail.
-
-| Location | price/lb | exchange | fee | Source |
-|---|---|---|---|---|
-| `logistics.repo.ts:134` (actual invoice) | $4.50 | ₡525 | ₡1,500 | Hardcoded |
-| `use-package-calculator.ts` (creation preview) | `system_settings` | `system_settings` | ❌ missing | DB |
-| `use-logistics-detail.ts:22` (detail view) | $6.00 | ₡540 | ₡2,500 | Hardcoded |
-| `billing/index.tsx:12` (billing page, mock) | $5.00 | ❌ missing | ❌ missing | Hardcoded |
-
-**All four must converge on `system_settings` values after Billing V1 Phase 2.**
+| 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings; SET profit_per_lb = 2.00 | Ejecutado 2026-06-25 |
+| 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | Ejecutado 2026-06-25 |
