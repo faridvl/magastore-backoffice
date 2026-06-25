@@ -43,7 +43,7 @@ Incluye:
 ---
 
 ## Etapa 6 — Dashboard: KPIs y graficas con datos reales
-**Estado:** Completada — 2026-06-25 — commit pendiente
+**Estado:** Completada — 2026-06-25 — commit `6e44051`
 
 ### Objetivo
 Reemplazar todos los valores hardcodeados del dashboard con datos reales de la DB.

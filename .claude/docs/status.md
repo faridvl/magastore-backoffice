@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: pendiente (Etapa 6 - Dashboard datos reales)
+Last updated: 2026-06-25 | Last commit: `6e44051` (Etapa 6 - Dashboard datos reales)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
