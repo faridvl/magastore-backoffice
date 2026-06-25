@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useBillingListQuery } from '@/shared/api/querys/billing/use-billing-list-query';
 import { usePendingConsolidationsQuery } from '@/shared/api/querys/billing/use-pending-consolidations-query';
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
@@ -62,20 +63,30 @@ export const useBilling = () => {
 
   const handleConfirmInvoice = async () => {
     if (!invoiceTarget) return;
-    await generateInvoice({
-      consolidationUuid: invoiceTarget.uuid,
-      deliveryMethod: selectedDeliveryMethod,
-    });
-    setInvoiceTarget(null);
-    setActiveTab('registros');
+    try {
+      await generateInvoice({
+        consolidationUuid: invoiceTarget.uuid,
+        deliveryMethod: selectedDeliveryMethod,
+      });
+      setInvoiceTarget(null);
+      setActiveTab('registros');
+      toast.success('Factura generada correctamente');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al generar la factura');
+    }
   };
 
   const handleMarkAsPaid = async () => {
     if (!selectedBillingUuid) return;
-    await markAsPaid({ billingUuid: selectedBillingUuid });
-    await detailQuery.invalidate();
-    await billingListQuery.invalidate();
-    setSelectedBillingUuid(null);
+    try {
+      await markAsPaid({ billingUuid: selectedBillingUuid });
+      await detailQuery.invalidate();
+      await billingListQuery.invalidate();
+      setSelectedBillingUuid(null);
+      toast.success('Factura marcada como pagada');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al marcar como pagada');
+    }
   };
 
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -90,10 +101,12 @@ export const useBilling = () => {
       const a = document.createElement('a');
       a.href = url;
       a.download = `factura-${uuid.slice(-8).toUpperCase()}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('[PDF Download]:', err);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo generar el PDF');
     } finally {
       setIsDownloadingPdf(false);
     }

@@ -2,6 +2,7 @@ import { useSettingsMutation } from '@/shared/api/mutations/settings/use-setting
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { SystemSettings } from '@/types/settings/settings.types';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export const useSettings = () => {
   const { data, isLoading } = useSettingsQuery();
@@ -66,8 +67,13 @@ export const useSettings = () => {
     }));
   };
 
-  const handleSave = () => {
-    executeUpdate(settings);
+  const handleSave = async () => {
+    try {
+      await executeUpdate(settings);
+      toast.success('Configuración guardada');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al guardar la configuración');
+    }
   };
 
   return {

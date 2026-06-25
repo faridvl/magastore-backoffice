@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useCreateCustomerMutation } from '@/shared/api/mutations/customers/use-create-customer-mutation';
 import { useNavigation } from '@/hooks/use-navigation';
 
@@ -76,13 +77,13 @@ export const useCreateCustomer = () => {
 
     try {
       await executeCreate(payload);
-
+      toast.success('Cliente registrado exitosamente');
       setShowSuccess(true);
       setTimeout(() => {
-        admin.customers.list(); // Usamos tu hook de navegación
-      }, 2000);
-    } catch (err) {
-      console.error('Error creando cliente:', err);
+        admin.customers.list();
+      }, 1500);
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al registrar el cliente');
     }
   };
 

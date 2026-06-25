@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
@@ -98,10 +99,15 @@ export const useConsolidations = () => {
 
   const handleConfirmCreate = async () => {
     if (!createCustomerUuid) return;
-    await createConsolidation({ customerUuid: createCustomerUuid });
-    setShowCreateModal(false);
-    setCreateCustomerUuid('');
-    setCreateCustomerSearch('');
+    try {
+      await createConsolidation({ customerUuid: createCustomerUuid });
+      setShowCreateModal(false);
+      setCreateCustomerUuid('');
+      setCreateCustomerSearch('');
+      toast.success('Consolidación creada');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al crear la consolidación');
+    }
   };
 
   const handleAdvanceStatus = async () => {
@@ -115,13 +121,14 @@ export const useConsolidations = () => {
     };
     const next = nextMap[status];
     if (!next) return;
-    await updateStatus({
-      consolidationUuid: uuid,
-      status: next,
-      currentStatus: status,
-    });
-    await detailQuery.invalidate();
-    await listQuery.invalidate();
+    try {
+      await updateStatus({ consolidationUuid: uuid, status: next, currentStatus: status });
+      await detailQuery.invalidate();
+      await listQuery.invalidate();
+      toast.success(`Estado actualizado a ${next}`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al actualizar el estado');
+    }
   };
 
   const handleOpenAssignModal = () => {
@@ -137,15 +144,17 @@ export const useConsolidations = () => {
 
   const handleConfirmAssign = async () => {
     if (!selectedUuid || selectedPackageUuids.length === 0) return;
-    await assignPackages({
-      consolidationUuid: selectedUuid,
-      packageUuids: selectedPackageUuids,
-    });
-    setShowAssignModal(false);
-    setSelectedPackageUuids([]);
-    await detailQuery.invalidate();
-    await listQuery.invalidate();
-    await availableQuery.invalidate();
+    try {
+      await assignPackages({ consolidationUuid: selectedUuid, packageUuids: selectedPackageUuids });
+      setShowAssignModal(false);
+      setSelectedPackageUuids([]);
+      await detailQuery.invalidate();
+      await listQuery.invalidate();
+      await availableQuery.invalidate();
+      toast.success('Paquetes asignados correctamente');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al asignar los paquetes');
+    }
   };
 
   return {

@@ -7,7 +7,7 @@ export function useSettingsMutation() {
   const queryClient = useQueryClient();
 
   const {
-    mutate: executeUpdate,
+    mutateAsync: executeUpdate,
     isPending,
     error,
     reset,

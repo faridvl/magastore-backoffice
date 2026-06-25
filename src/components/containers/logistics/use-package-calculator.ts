@@ -62,10 +62,14 @@ export const usePackageCalculator = () => {
       toast.error('Completa los campos obligatorios');
       return;
     }
-    await executeCreate(formData);
-    setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
-    setSearchTerm('');
-    toast.success('Paquete registrado');
+    try {
+      await executeCreate(formData);
+      setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
+      setSearchTerm('');
+      toast.success('Paquete registrado');
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al registrar el paquete');
+    }
   };
 
   return {

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { toast } from 'sonner';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
 import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
@@ -76,8 +77,11 @@ export const useCustomerDetail = (customerId: string) => {
       await updateCustomer(editForm);
       setIsEditMode(false);
       setEditForm(null);
+      toast.success('Cliente actualizado correctamente');
     } catch (err: any) {
-      setEditError(err.message || 'Error al guardar los cambios.');
+      const msg = err.message || 'Error al guardar los cambios.';
+      setEditError(msg);
+      toast.error(msg);
     }
   };
 
