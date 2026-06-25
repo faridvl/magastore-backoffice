@@ -50,8 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return res.status(200).json(consolidated);
 
                 case 'invoice':
-                    const { targetUuid, type } = req.body;
-                    const invoice = await LogisticsService.createInvoice(targetUuid, type);
+                    const invoice = await LogisticsService.createInvoice(req.body.consolidationUuid as string);
                     return res.status(201).json(invoice);
 
                 default:

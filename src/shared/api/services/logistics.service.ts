@@ -117,14 +117,11 @@ export const LogisticsService = {
   },
 
   /**
-   * Genera la factura para un paquete o consolidado (Snapshot de tarifas).
+   * Genera la factura para una consolidación (Snapshot de tarifas desde system_settings).
    */
-  createInvoice: async (
-    uuid: string,
-    type: 'PACKAGE' | 'CONSOLIDATION',
-  ): Promise<Partial<Billing>> => {
+  createInvoice: async (consolidationUuid: string): Promise<Partial<Billing>> => {
     try {
-      return await LogisticsRepository.generateBilling(uuid, type);
+      return await LogisticsRepository.generateBilling(consolidationUuid);
     } catch (error: any) {
       console.error('[LogisticsService.createInvoice]:', error);
       throw new Error(error.message || 'Error al generar la facturación.');

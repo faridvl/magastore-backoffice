@@ -104,16 +104,6 @@ export interface LogisticsPackage {
   customer_code: string | null;
 }
 
-// export type PackageEvent = {
-//   id: number;
-//   package_id: number;
-//   status: string;
-//   event_type: 'INFO' | 'WARNING' | 'ALERT';
-//   description: string;
-//   location: string;
-//   created_at: string;
-// };
-
 export type PackageDetail = {
   uuid: string;
   tracking_number: string;
@@ -123,3 +113,58 @@ export type PackageDetail = {
   evidence_url: string | null;
   events: PackageEvent[];
 };
+
+// --- Tipos para Billing ---
+
+export interface BillingListItem {
+  uuid: string;
+  consolidation_uuid: string;
+  customer_name: string;
+  customer_code: string;
+  total_weight_charged: number;
+  applied_rate_usd: number;
+  applied_exchange: number;
+  applied_fee_crc: number;
+  total_amount_crc: number;
+  is_paid: boolean;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface BillingDetail {
+  uuid: string;
+  consolidation_uuid: string;
+  consolidation_status: ConsolidationStatus;
+  customer_name: string;
+  customer_code: string;
+  customer_email: string;
+  total_weight_lb: number;
+  total_weight_charged: number;
+  applied_rate_usd: number;
+  applied_exchange: number;
+  applied_fee_crc: number;
+  total_amount_crc: number;
+  is_paid: boolean;
+  paid_at: string | null;
+  created_at: string;
+  package_trackings: string[];
+}
+
+export interface PendingConsolidation {
+  uuid: string;
+  customer_id: string;
+  customer_name: string;
+  customer_code: string;
+  total_weight_lb: number;
+  package_count: number;
+  status: ConsolidationStatus;
+  created_at: string;
+}
+
+export interface GenerateInvoiceInput {
+  consolidationUuid: string;
+}
+
+export interface MarkPaidInput {
+  billingUuid: string;
+}

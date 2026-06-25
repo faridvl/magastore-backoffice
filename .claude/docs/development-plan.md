@@ -7,7 +7,7 @@ Al completar cada etapa, actualizar el estado aquí y pedir el prompt de la sigu
 ---
 
 ## Etapa 0 — Commit del trabajo actual (package detail view)
-**Estado:** ⏳ Pendiente
+**Estado:** ✅ Completada — 2026-06-24 — commit `124e9bd`
 
 Archivos con cambios sin commitear que pertenecen a la feature de detalle de paquete:
 - `src/components/containers/logistics/logistics-view-detail/` (nuevo)

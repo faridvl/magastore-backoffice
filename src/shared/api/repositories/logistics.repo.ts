@@ -6,6 +6,7 @@ import {
   Consolidation,
   Billing,
 } from '@/types/logistics/logistics.types';
+import { getSettings } from './settings.repo';
 
 /**
  * Repository para el sistema de logística de couriers.
@@ -125,51 +126,55 @@ export const LogisticsRepository = {
   },
 
   /**
-   * 5. GENERATE BILLING: Crea el snapshot financiero (Factura).
+   * 5. GENERATE BILLING: Crea el snapshot financiero de una consolidación.
+   * Lee tarifas vigentes de system_settings. Valida estado y duplicados.
    */
-  generateBilling: async (
-    targetUuid: string,
-    type: 'PACKAGE' | 'CONSOLIDATION',
-  ): Promise<Partial<Billing>> => {
-    const RATES = { price_lb: 4.5, exchange: 525, fee: 1500, min_lb: 1 };
+  generateBilling: async (consolidationUuid: string): Promise<Partial<Billing>> => {
+    const settings = await getSettings();
+    if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
+
+    const price_lb = Number(settings.price_per_lb);
+    const exchange = Number(settings.exchange_rate);
+    const fee = Number(settings.profit_per_lb);
+    const min_lb = Number(settings.min_weight);
 
     try {
       await sql`BEGIN`;
 
-      let targetId: number;
-      let actualWeight: number;
+      const [c] = await sql`
+        SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
+      `;
+      if (!c) throw new Error('Consolidación no encontrada.');
 
-      if (type === 'PACKAGE') {
-        const [p] = await sql`SELECT id, weight_lb FROM packages WHERE uuid = ${targetUuid}`;
-        if (!p) throw new Error('Paquete no encontrado.');
-        targetId = p.id;
-        actualWeight = Number(p.weight_lb);
-      } else {
-        const [c] =
-          await sql`SELECT id, total_weight_lb FROM consolidations WHERE uuid = ${targetUuid}`;
-        if (!c) throw new Error('Consolidado no encontrado.');
-        targetId = c.id;
-        actualWeight = Number(c.total_weight_lb);
+      const validStatuses = ['CERRADO', 'DESPACHADO', 'ENTREGADO'];
+      if (!validStatuses.includes(c.status)) {
+        throw new Error(
+          `La consolidación debe estar en estado CERRADO o superior para facturar. Estado actual: ${c.status}`,
+        );
       }
 
-      const chargedWeight = Math.max(actualWeight, RATES.min_lb);
-      const totalCrc = chargedWeight * RATES.price_lb * RATES.exchange + RATES.fee;
+      const [existing] = await sql`
+        SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
+      `;
+      if (existing) throw new Error('Esta consolidación ya tiene una factura generada.');
+
+      const actualWeight = Number(c.total_weight_lb);
+      const chargedWeight = Math.max(actualWeight, min_lb);
+      const totalCrc = chargedWeight * price_lb * exchange + fee;
 
       const [bill] = await sql`
         INSERT INTO billing (
-          package_id, 
-          consolidation_id, 
-          applied_rate_usd, 
-          applied_exchange, 
+          consolidation_id,
+          applied_rate_usd,
+          applied_exchange,
           applied_fee_crc,
           total_weight_charged,
           total_amount_crc
         ) VALUES (
-          ${type === 'PACKAGE' ? targetId : null},
-          ${type === 'CONSOLIDATION' ? targetId : null},
-          ${RATES.price_lb},
-          ${RATES.exchange},
-          ${RATES.fee},
+          ${c.id},
+          ${price_lb},
+          ${exchange},
+          ${fee},
           ${chargedWeight},
           ${totalCrc}
         )
