@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending` (Etapa 10 - Edición de cliente)
+Last updated: 2026-06-25 | Last commit: `pending` (Etapa 11 - PDF de factura)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -23,6 +23,7 @@ Last updated: 2026-06-25 | Last commit: `pending` (Etapa 10 - Edición de client
 | Detalle de paquete | Lee system_settings para tarifas; cliente y casillero desde JOIN |
 | Configuracion del sistema | Singleton system_settings con correos_fee_crc y tracopa_fee_crc; auditoria campo por campo |
 | Generacion de factura | Lee tarifas de system_settings; delivery_method elegido al facturar; delivery_fee_crc en billing |
+| PDF de factura | GET /api/billing/pdf?uuid= genera PDF con react-pdf; boton Descargar PDF en modal de detalle |
 | Listado de facturas | Paginado, busqueda, filtro pagado/pendiente |
 | Detalle de factura | Desglose: flete + envio local + total, boton Marcar pagado |
 | Marcar pago | PATCH /api/billing?uuid=, actualiza is_paid + paid_at |
@@ -50,7 +51,7 @@ Last updated: 2026-06-25 | Last commit: `pending` (Etapa 10 - Edición de client
 | Dashboard (/admin/dashboard) | Implementado con datos reales — KPIs + graficas desde /api/dashboard/stats |
 | Tracking publico (/tracking) | GET /api/tracking?q= conectado a DB real; timeline con lifecycle steps |
 | Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
-| PDF de factura | No existe ninguna generacion de PDF |
+| PDF de factura | Implementado — ver fila en Implementado |
 | /admin/billing/:id | Ruta definida en routes.ts, pagina no existe (detalle va en modal) |
 | Multiples roles | UserRole solo tiene ADMIN. Sin operadores ni supervisores |
 | Direccion de entrega en factura | billing no guarda la direccion del cliente |
@@ -100,7 +101,7 @@ Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> f
 | Clientes | 98% | CRUD completo incluyendo edicion; sin eliminacion (no requerida) |
 | Logistica (paquetes) | 85% | CRUD + status + UI consolidaciones; falta notificaciones, PDF |
 | Consolidaciones | 90% | Listar, crear, detalle, asignar paquetes, avanzar estado |
-| Facturacion | 80% | Generar + listar + marcar pagado; falta PDF, address, bulk |
+| Facturacion | 92% | Generar + listar + marcar pagado + PDF descargable; falta address en factura, bulk |
 | Configuracion | 100% | Scripts ejecutados - correos_fee_crc y tracopa_fee_crc en DB |
 | Dashboard | 90% | KPIs y graficas con datos reales; falta datos de costos/ganancias netas |
 | Tracking publico | 90% | Conectado a DB real; falta test con paquetes con events reales |

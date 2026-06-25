@@ -161,7 +161,7 @@ Incluye:
 ---
 
 ## Etapa 10 — Edicion de cliente
-**Estado:** Completada — 2026-06-25 — commit pending
+**Estado:** Completada — 2026-06-25 — commit `ae16355`
 
 ### Cambios
 | Archivo | Tipo | Cambio |
@@ -181,16 +181,15 @@ Desde el detalle del cliente se puede editar nombre, apellidos, email, telefono,
 ---
 
 ## Etapa 11 — PDF de factura
-**Estado:** Pendiente
-
-### Dependencia
-Instalar `@react-pdf/renderer` o similar.
+**Estado:** Completada — 2026-06-25 — commit `pending`
 
 ### Cambios
 | Archivo | Tipo | Cambio |
 |---|---|---|
-| `src/pages/api/billing/pdf.ts` | Nuevo | GET con uuid, genera PDF en memoria y retorna como blob |
-| `src/components/containers/billing/billing-container.tsx` | Modificar | Agregar boton "Descargar PDF" en detalle de factura |
+| `src/components/pdf/billing-invoice.tsx` | Nuevo | Componente react-pdf con encabezado, cliente, paquetes, desglose y total |
+| `src/pages/api/billing/pdf.ts` | Nuevo | GET auth, renderToBuffer, retorna application/pdf con Content-Disposition |
+| `src/shared/api/mutations/billing/use-billing.ts` | Modificar | handleDownloadPdf + isDownloadingPdf via fetch + blob URL |
+| `src/components/containers/billing/billing-container.tsx` | Modificar | Boton "Descargar PDF" con FileDown icon en modal de detalle |
 
 ### Criterio de exito
 Desde el detalle de una factura se puede descargar un PDF con: datos del cliente, peso, tarifa, envio local y total en CRC.

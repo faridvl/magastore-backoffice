@@ -78,6 +78,27 @@ export const useBilling = () => {
     setSelectedBillingUuid(null);
   };
 
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async (uuid: string) => {
+    setIsDownloadingPdf(true);
+    try {
+      const response = await fetch(`/api/billing/pdf?uuid=${uuid}`);
+      if (!response.ok) throw new Error('No se pudo generar el PDF');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `factura-${uuid.slice(-8).toUpperCase()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[PDF Download]:', err);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return {
     activeTab, setActiveTab,
     page, setPage,
@@ -103,5 +124,7 @@ export const useBilling = () => {
     isGenerating,
     handleMarkAsPaid,
     isMarkingPaid,
+    handleDownloadPdf,
+    isDownloadingPdf,
   };
 };

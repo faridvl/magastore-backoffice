@@ -64,7 +64,8 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 7 | Tracking publico conectado a API real | `8f451ef` |
 | Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
 | Etapa 9 | Normalizar package_type (enum PackageType + script SQL) | `23f7665` |
-| Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | pending |
+| Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | `ae16355` |
+| Etapa 11 | PDF de factura descargable (react-pdf + endpoint GET /api/billing/pdf) | pending |
 | DB | Scripts SQL 001, 002 y 003 ejecutados en Neon | 2026-06-25 |
 
 **Funciona con datos reales:** auth, clientes (CRUD completo incluyendo edicion), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
@@ -73,9 +74,10 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
-| Etapa 11 | PDF de factura descargable | Pendiente |
+| Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
 | Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
 | Etapa 13 | Notificaciones por email al entregar | Pendiente |
+
 
 ### Porcentaje actual
 

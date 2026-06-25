@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, CheckCircle2, Clock, XCircle, Truck, Package } from 'lucide-react';
+import { Search, CheckCircle2, Clock, XCircle, Truck, Package, FileDown } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useBilling, PaidFilterValue, ActiveBillingTab } from './use-billing';
@@ -35,6 +35,7 @@ export const BillingContainer: React.FC = () => {
     billingDetail, isLoadingDetail,
     isGenerating,
     handleMarkAsPaid, isMarkingPaid,
+    handleDownloadPdf, isDownloadingPdf,
   } = useBilling();
 
   const billingColumns: Column<BillingListItem>[] = [
@@ -417,22 +418,32 @@ export const BillingContainer: React.FC = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-3">
                   <button
-                    onClick={() => setSelectedBillingUuid(null)}
-                    className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                    onClick={() => handleDownloadPdf(billingDetail.uuid)}
+                    disabled={isDownloadingPdf}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-all disabled:opacity-50"
                   >
-                    Cerrar
+                    <FileDown size={15} />
+                    {isDownloadingPdf ? 'Generando PDF...' : 'Descargar PDF'}
                   </button>
-                  {!billingDetail.is_paid && (
+                  <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={handleMarkAsPaid}
-                      disabled={isMarkingPaid}
-                      className="py-3.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
+                      onClick={() => setSelectedBillingUuid(null)}
+                      className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
                     >
-                      {isMarkingPaid ? 'Procesando...' : 'Marcar como Pagado'}
+                      Cerrar
                     </button>
-                  )}
+                    {!billingDetail.is_paid && (
+                      <button
+                        onClick={handleMarkAsPaid}
+                        disabled={isMarkingPaid}
+                        className="py-3.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
+                      >
+                        {isMarkingPaid ? 'Procesando...' : 'Marcar como Pagado'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </>
             ) : (
