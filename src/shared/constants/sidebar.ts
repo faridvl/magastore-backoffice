@@ -10,7 +10,7 @@ import {
 
 export interface NavItem {
   menuKey: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number | string; strokeWidth?: number | string; className?: string }>;
   labelKey: string;
   route: string;
   adminOnly?: boolean;

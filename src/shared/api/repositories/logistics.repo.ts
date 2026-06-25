@@ -276,7 +276,7 @@ export const LogisticsRepository = {
       WHERE p.uuid = ${packageUuid}
       LIMIT 1
     `;
-    return rows[0] ?? null;
+    return (rows[0] as { email: string; first_name: string; tracking_number: string }) ?? null;
   },
 
   /**
@@ -293,7 +293,7 @@ export const LogisticsRepository = {
       WHERE con.uuid = ${consolidationUuid}
       LIMIT 1
     `;
-    return rows[0] ?? null;
+    return (rows[0] as { email: string; first_name: string }) ?? null;
   },
 
   /**
