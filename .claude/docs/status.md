@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `4edb5b3` (Etapa 8 - UI consolidaciones)
+Last updated: 2026-06-25 | Last commit: pendiente (Etapa 6 - Dashboard datos reales)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -47,7 +47,7 @@ Last updated: 2026-06-25 | Last commit: `4edb5b3` (Etapa 8 - UI consolidaciones)
 
 | Pagina / Feature | Realidad |
 |---|---|
-| Dashboard (/admin/dashboard) | KPIs y graficas hardcodeadas. No llama a ninguna API |
+| Dashboard (/admin/dashboard) | Implementado con datos reales — KPIs + graficas desde /api/dashboard/stats |
 | Tracking publico (/tracking) | Retorna MOCK_PACKAGE_RESULT - no toca la DB |
 | Paquetes admin (/admin/packages) | setTimeout + mock results. Proposito no claro vs /admin/logistics |
 | PDF de factura | No existe ninguna generacion de PDF |
@@ -106,7 +106,7 @@ DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpiez
 | Consolidaciones | 90% | Listar, crear, detalle, asignar paquetes, avanzar estado |
 | Facturacion | 80% | Generar + listar + marcar pagado; falta PDF, address, bulk |
 | Configuracion | 100% | Scripts ejecutados - correos_fee_crc y tracopa_fee_crc en DB |
-| Dashboard | 8% | Solo UI estatica; todo mock |
+| Dashboard | 90% | KPIs y graficas con datos reales; falta datos de costos/ganancias netas |
 | Tracking publico | 10% | UI existe; backend retorna mock |
 | Notificaciones | 0% | Solo console.log |
 

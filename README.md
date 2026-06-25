@@ -60,18 +60,18 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 3 | Billing React Query hooks | `93c3d32` |
 | Etapa 4 | Billing UI: container + page | `17ae1ba` |
 | Etapa 5 | Delivery fees (Correos CR / Tracopa) + package detail con datos reales | `168517f` |
+| Etapa 6 | Dashboard con KPIs y graficas reales | pendiente commit |
 | Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
 | DB | Scripts SQL 001 y 002 ejecutados en Neon | 2026-06-25 |
 
-**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes.
+**Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales.
 
-### Pendiente — MVP (Etapas 6-7)
+### Pendiente — MVP (Etapa 7)
 
-El MVP esta completo cuando un operador puede hacer todo el flujo sin acceso directo a la DB. Etapa 8 completada.
+El MVP esta completo cuando el cliente puede consultar su paquete desde la web.
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
-| Etapa 6 | Dashboard con KPIs y graficas reales | Pendiente |
 | Etapa 7 | Tracking publico conectado a API real | Pendiente |
 
 ### Pendiente — Producto Completo (Etapas 9-13)
