@@ -1,6 +1,7 @@
 import sql from '@/lib/db';
 import {
   PackageStatus,
+  PackageType,
   PackageInput,
   Package,
   Consolidation,
@@ -20,7 +21,7 @@ export const LogisticsRepository = {
   createPackage: async (data: PackageInput): Promise<Partial<Package>> => {
     const rows = await sql`
       INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type)
-      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || 'Aereo'})
+      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO})
       RETURNING uuid, tracking_number, status, created_at;
     `;
     return rows[0];

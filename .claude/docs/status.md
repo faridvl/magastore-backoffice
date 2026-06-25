@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending` (Etapa 7 - Tracking público + fix build dashboard)
+Last updated: 2026-06-25 | Last commit: `pending` (Etapa 9 - Normalización package_type)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
@@ -38,7 +38,6 @@ Last updated: 2026-06-25 | Last commit: `pending` (Etapa 7 - Tracking público +
 | Preview de creacion de paquetes | No incluye costo de envio local (metodo no conocido aun) | Cliente ve monto diferente al de la factura final. Bajo riesgo. |
 | Panel financiero en detalle | Calculo estimado con tarifas vigentes, no billing.total_amount_crc si ya existe factura | Puede mostrar monto distinto si las tarifas cambiaron. |
 | Estado de pago en detalle | estadoPago hardcodeado como PENDIENTE en use-logistics-detail.ts:25 | No refleja el estado real del billing. |
-| package_type en DB | Valores mixtos: AEREO, Aereo, MARITIMO, Maritimo, AVION | Filtros futuros por tipo daran resultados inconsistentes |
 | Notificacion al entregar | logistics.service.ts:152-154 es solo console.log | Cuando status llega a ENTREGADO, el cliente no es notificado |
 
 ---
@@ -74,10 +73,6 @@ KPIs de paquetes hoy, ingresos del mes, consolidaciones pendientes. Con mock dat
 
 Flujo: crear consolidacion -> agregarle paquetes -> cerrarla -> despacharla -> facturarla. La API existe pero no hay UI.
 
-### 4. Normalizar package_type
-
-DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpieza y cambiar INSERT a usar UPPER().
-
 ---
 
 ## Consideraciones Importantes
@@ -98,7 +93,7 @@ DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpiez
 
 | Capa | % Real | Notas |
 |---|---|---|
-| Base de datos / esquema | 93% | Scripts ejecutados; solo falta normalizar package_type |
+| Base de datos / esquema | 100% | Scripts 001-003 ejecutados; esquema completo |
 | API Routes | 88% | Falta /api/dashboard, /api/tracking real |
 | Autenticacion | 95% | Funciona; falta rate limiting y roles multiples |
 | Clientes | 90% | CRUD completo; falta edicion |
@@ -114,10 +109,10 @@ DB tiene AEREO, Aereo, MARITIMO, Maritimo, AVION. Requiere script SQL de limpiez
 
 | Escenario | % |
 |---|---|
-| Para uso interno minimo (operadores con guia) | ~78% |
-| Para demo (datos reales, sin algunos flujos) | ~80% |
-| MVP completo (tracking + dashboard) | ~62% |
-| Producto completo (PDF, notificaciones, multi-rol) | ~38% |
+| Para uso interno minimo (operadores con guia) | ~87% |
+| Para demo (datos reales, sin algunos flujos) | ~85% |
+| MVP completo (tracking + dashboard) | ~70% |
+| Producto completo (PDF, notificaciones, multi-rol) | ~42% |
 
 ---
 
@@ -156,3 +151,4 @@ Fortalezas: billing con snapshot de tarifas (facturas historicas estables), audi
 |---|---|---|
 | 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings; SET profit_per_lb = 2.00 | Ejecutado 2026-06-25 |
 | 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | Ejecutado 2026-06-25 |
+| 003-normalize-package-type.sql | Normalizar package_type a AEREO / MARITIMO + enum PackageType en tipos | Ejecutado 2026-06-25 |

@@ -63,18 +63,15 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 6 | Dashboard con KPIs y graficas reales | `6e44051` |
 | Etapa 7 | Tracking publico conectado a API real | `pending-commit` |
 | Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
-| DB | Scripts SQL 001 y 002 ejecutados en Neon | 2026-06-25 |
+| Etapa 9 | Normalizar package_type (enum PackageType + script SQL) | `pending` |
+| DB | Scripts SQL 001, 002 y 003 ejecutados en Neon | 2026-06-25 |
 
 **Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico por numero de tracking.
 
-### Pendiente — Producto Completo (Etapas 9-13)
-
-### Pendiente — Producto Completo (Etapas 9-13)
+### Pendiente — Producto Completo (Etapas 10-13)
 
 | Etapa | Descripcion | Estado |
 |---|---|---|
-
-| Etapa 9 | Normalizar package_type en DB | Pendiente |
 | Etapa 10 | Edicion de cliente | Pendiente |
 | Etapa 11 | PDF de factura descargable | Pendiente |
 | Etapa 12 | Multi-rol (ADMIN / OPERADOR) | Pendiente |
@@ -84,9 +81,9 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 
 | Escenario | % |
 |---|---|
-| Uso interno (operadores con guia) | ~85% |
-| MVP completo (tracking en vivo) | ~82% |
-| Producto completo (Etapas 9-13 pendientes) | ~40% |
+| Uso interno (operadores con guia) | ~87% |
+| MVP completo (tracking en vivo) | ~85% |
+| Producto completo (Etapas 10-13 pendientes) | ~42% |
 
 ---
 
@@ -96,3 +93,4 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 |---|---|---|
 | 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings | 2026-06-25 |
 | 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | 2026-06-25 |
+| 003-normalize-package-type.sql | Normalizar package_type: AEREO, Aereo, AVION → AEREO; Maritimo → MARITIMO | 2026-06-25 |

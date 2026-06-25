@@ -13,6 +13,11 @@ export enum ConsolidationStatus {
   ENTREGADO = 'ENTREGADO',
 }
 
+export enum PackageType {
+  AEREO = 'AEREO',
+  MARITIMO = 'MARITIMO',
+}
+
 export type EventType = 'INFO' | 'WARNING' | 'DAMAGE' | 'CRITICAL';
 
 // --- Interfaces de Base de Datos ---
@@ -24,7 +29,7 @@ export interface Package {
   customer_id: string;
   tracking_number: string;
   weight_lb: number;
-  package_type: string;
+  package_type: PackageType;
   status: PackageStatus;
   internal_notes: string | null;
   evidence_url: string | null;
@@ -80,7 +85,7 @@ export interface PackageInput {
   customer_id: string;
   tracking_number: string;
   weight_lb: number;
-  package_type?: string;
+  package_type?: PackageType;
 }
 
 export interface IncidenceInput {
@@ -96,7 +101,7 @@ export interface LogisticsPackage {
   customer_id: string;
   tracking_number: string;
   weight_lb: string;
-  package_type: string;
+  package_type: PackageType;
   status: 'MIAMI' | 'TRANSITO' | 'ADUANA' | 'BODEGA_CR' | 'ENTREGADO';
   internal_notes: string | null;
   evidence_url: string | null;
@@ -197,7 +202,7 @@ export interface ConsolidationPackage {
   uuid: string;
   tracking_number: string;
   weight_lb: number;
-  package_type: string;
+  package_type: PackageType;
   status: PackageStatus;
   arrival_date: string;
 }
@@ -219,7 +224,7 @@ export interface AvailablePackage {
   uuid: string;
   tracking_number: string;
   weight_lb: number;
-  package_type: string;
+  package_type: PackageType;
   status: PackageStatus;
   arrival_date: string;
 }

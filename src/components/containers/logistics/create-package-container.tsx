@@ -1,6 +1,7 @@
 import React from 'react';
 import { Package, Search, ChevronDown, Check, Plane, Ship, Save, Calculator, Settings, Info, Loader2, User } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
+import { PackageType } from '@/types/logistics/logistics.types';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
@@ -87,13 +88,13 @@ export const CreatePackageContainer: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex p-1 bg-neutral-50 rounded-2xl border border-neutral-100">
-                            {(['Aereo', 'Maritimo'] as const).map(t => (
+                            {([PackageType.AEREO, PackageType.MARITIMO] as const).map(t => (
                                 <button
                                     key={t}
                                     onClick={() => setFormData({ ...formData, package_type: t })}
                                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.package_type === t ? 'bg-white shadow-sm text-blue-600' : 'text-neutral-400'}`}
                                 >
-                                    {t === 'Aereo' ? <Plane size={14} /> : <Ship size={14} />} {t}
+                                    {t === PackageType.AEREO ? <Plane size={14} /> : <Ship size={14} />} {t}
                                 </button>
                             ))}
                         </div>

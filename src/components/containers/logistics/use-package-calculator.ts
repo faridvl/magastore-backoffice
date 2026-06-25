@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { PackageStatus } from '@/types/logistics/logistics.types';
+import { PackageStatus, PackageType } from '@/types/logistics/logistics.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
@@ -15,7 +15,7 @@ export const usePackageCalculator = () => {
     tracking_number: '',
     customer_id: '',
     weight_lb: 0,
-    package_type: 'Aereo' as 'Aereo' | 'Maritimo',
+    package_type: PackageType.AEREO,
     status: PackageStatus.MIAMI,
     costoOperativoCRC: 0,
   });
@@ -59,10 +59,7 @@ export const usePackageCalculator = () => {
   const handleSave = async () => {
     if (!formData.customer_id || !formData.tracking_number)
       return alert('Completa los campos obligatorios');
-    await executeCreate({
-      ...formData,
-      package_type: formData.package_type.toUpperCase() as any,
-    });
+    await executeCreate(formData);
     setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
     setSearchTerm('');
     alert('✅ Registrado');

@@ -150,18 +150,13 @@ El operador puede: crear una consolidacion, asignarle paquetes (ya existe en log
 ---
 
 ## Etapa 9 — Normalizacion de package_type
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `pending`
 
-### Problema
-La DB tiene: `AEREO`, `Aereo`, `MARITIMO`, `Maritimo`, `AVION`. El codigo inserta `'Aereo'`.
-
-### Cambios
-1. Script SQL de limpieza (crear en `scripts/`, ejecutar, registrar en historial)
-2. Cambiar INSERT en `logistics.repo.ts:createPackage` a usar enum fijo (`AEREO` / `MARITIMO`)
-3. Actualizar el tipo en `src/types/logistics/logistics.types.ts` si aplica
-
-### Criterio de exito
-`SELECT DISTINCT package_type FROM packages` retorna solo `AEREO` y `MARITIMO`.
+Incluye:
+- `PackageType` enum (`AEREO` / `MARITIMO`) en `logistics.types.ts`; todos los campos `package_type: string` migrados al enum
+- `logistics.repo.ts`: fallback `'Aereo'` → `PackageType.AEREO`
+- `use-package-calculator.ts` y `create-package-container.tsx`: usan el enum, eliminado `.toUpperCase() as any`
+- Script `scripts/003-normalize-package-type.sql` ejecutado en Neon
 
 ---
 
@@ -248,3 +243,4 @@ Cuando un paquete llega a status `ENTREGADO`, el cliente recibe un email automat
 | 2026-06-24 | Etapa 5 | Delivery fees + package detail con datos reales |
 | 2026-06-25 | — | Scripts SQL 001 y 002 ejecutados en Neon |
 | 2026-06-25 | — | Etapas 6-13 detalladas con criterios de exito |
+| 2026-06-25 | Etapa 9 | Normalizar package_type: enum + script SQL 003 ejecutado |
