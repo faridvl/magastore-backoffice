@@ -14,9 +14,12 @@ export const login = async (email: string, pass: string) => {
     throw new Error('Las credenciales no coinciden con nuestros registros.');
   }
 
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET no está configurado en las variables de entorno.');
+
   const token = jwt.sign(
     { id: user.id, email: user.email },
-    process.env.JWT_SECRET || 'clave_secreta_por_defecto',
+    secret,
     { expiresIn: '12h' },
   );
 

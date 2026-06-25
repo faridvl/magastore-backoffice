@@ -295,4 +295,23 @@ export const LogisticsRepository = {
     `;
     return rows[0] ?? null;
   },
+
+  /**
+   * 9. VALIDATE PACKAGES BELONG TO CONSOLIDATION CUSTOMER: Verifica que todos los paquetes
+   * a asignar pertenezcan al mismo cliente que la consolidación.
+   * Retorna el conteo de paquetes que NO coinciden.
+   */
+  countMismatchedPackages: async (
+    consolidationUuid: string,
+    packageUuids: string[],
+  ): Promise<number> => {
+    const rows = await sql`
+      SELECT COUNT(*) AS mismatched
+      FROM packages p
+      JOIN consolidations con ON con.uuid = ${consolidationUuid}
+      WHERE p.uuid = ANY(${packageUuids})
+        AND p.customer_id != con.customer_id
+    `;
+    return parseInt(rows[0]?.mismatched ?? '0', 10);
+  },
 };

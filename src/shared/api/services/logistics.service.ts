@@ -126,6 +126,13 @@ export const LogisticsService = {
       throw new Error('Debe seleccionar al menos un paquete para consolidar.');
     }
 
+    const mismatched = await LogisticsRepository.countMismatchedPackages(consolidationUuid, packageUuids);
+    if (mismatched > 0) {
+      throw new Error(
+        `${mismatched} paquete(s) no pertenecen al cliente de esta consolidación.`,
+      );
+    }
+
     try {
       return await LogisticsRepository.consolidatePackages(consolidationUuid, packageUuids);
     } catch (error: any) {

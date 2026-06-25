@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { PackageStatus, PackageType } from '@/types/logistics/logistics.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
@@ -57,12 +58,14 @@ export const usePackageCalculator = () => {
   }, [formData, settings]);
 
   const handleSave = async () => {
-    if (!formData.customer_id || !formData.tracking_number)
-      return alert('Completa los campos obligatorios');
+    if (!formData.customer_id || !formData.tracking_number) {
+      toast.error('Completa los campos obligatorios');
+      return;
+    }
     await executeCreate(formData);
     setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
     setSearchTerm('');
-    alert('✅ Registrado');
+    toast.success('Paquete registrado');
   };
 
   return {

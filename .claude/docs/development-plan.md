@@ -242,7 +242,7 @@ Documentacion completa: `.claude/docs/email-setup.md`
 ---
 
 ## Etapa 14 — Toast notifications (reemplazar alert() del navegador)
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `pendiente`
 
 ### Objetivo
 Reemplazar todos los `alert()` del navegador con un componente de toast elegante que se descarte solo. Mejora UX significativamente.
@@ -263,7 +263,7 @@ Ningun `alert()` o `window.alert()` en el codebase. Errores y confirmaciones apa
 ---
 
 ## Etapa 15 — Seguridad: JWT sin fallback + validacion de consolidacion por cliente
-**Estado:** Pendiente
+**Estado:** Completada — 2026-06-25 — commit `pendiente`
 
 ### Objetivo
 Dos mejoras de seguridad/correctitud que no requieren UI.
