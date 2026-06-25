@@ -116,6 +116,9 @@ export type PackageDetail = {
   internal_notes: string | null;
   evidence_url: string | null;
   events: PackageEvent[];
+  first_name: string | null;
+  last_name: string | null;
+  customer_code: string | null;
 };
 
 // --- Tipos para Billing ---

@@ -31,19 +31,23 @@ export const LogisticsRepository = {
    */
   getTrackingHistory: async (packageUuid: string): Promise<any> => {
     const rows = await sql`
-      SELECT 
-        p.uuid, 
-        p.tracking_number, 
-        p.status, 
+      SELECT
+        p.uuid,
+        p.tracking_number,
+        p.status,
         p.weight_lb,
         p.internal_notes,
         p.evidence_url,
+        c.first_name,
+        c.last_name,
+        c.customer_code,
         COALESCE(
-          (SELECT json_agg(ev.* ORDER BY ev.created_at DESC) 
-           FROM package_events ev WHERE ev.package_id = p.id), 
+          (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
+           FROM package_events ev WHERE ev.package_id = p.id),
           '[]'::json
-        ) as events
+        ) AS events
       FROM packages p
+      LEFT JOIN customers c ON p.customer_id = c.id
       WHERE p.uuid = ${packageUuid}
     `;
     return rows[0] || null;
