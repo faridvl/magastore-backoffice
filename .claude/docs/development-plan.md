@@ -181,7 +181,7 @@ Desde el detalle del cliente se puede editar nombre, apellidos, email, telefono,
 ---
 
 ## Etapa 11 — PDF de factura
-**Estado:** Completada — 2026-06-25 — commit `pending`
+**Estado:** Completada — 2026-06-25 — commit `a931fc8`
 
 ### Cambios
 | Archivo | Tipo | Cambio |

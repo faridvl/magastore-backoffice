@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending` (Etapa 11 - PDF de factura)
+Last updated: 2026-06-25 | Last commit: `a931fc8` (Etapa 11 - PDF de factura)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 
