@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: pendiente (Etapa 8 - UI consolidaciones)
+Last updated: 2026-06-25 | Last commit: `4edb5b3` (Etapa 8 - UI consolidaciones)
 
 > Convencion: Actualizar este archivo en cada commit significativo. Cambiar fecha y hash, ajustar porcentajes y mover items entre secciones conforme avanzan.
 

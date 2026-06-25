@@ -102,7 +102,7 @@ Ingresar un tracking_number real en `/tracking` muestra el estado y la bitacora 
 ---
 
 ## Etapa 8 — UI Gestion de Consolidaciones
-**Estado:** Completada — 2026-06-25 — commit pendiente
+**Estado:** Completada — 2026-06-25 — commit `4edb5b3`
 
 Esta es la etapa mas compleja del MVP. Sin esta UI, el operador no puede usar el flujo principal.
 

@@ -60,7 +60,7 @@ Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
 | Etapa 3 | Billing React Query hooks | `93c3d32` |
 | Etapa 4 | Billing UI: container + page | `17ae1ba` |
 | Etapa 5 | Delivery fees (Correos CR / Tracopa) + package detail con datos reales | `168517f` |
-| Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | pendiente commit |
+| Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
 | DB | Scripts SQL 001 y 002 ejecutados en Neon | 2026-06-25 |
 
 **Funciona con datos reales:** auth, clientes (CRUD), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado), configuracion de tarifas, bitacora de paquetes.
@@ -88,9 +88,9 @@ El MVP esta completo cuando un operador puede hacer todo el flujo sin acceso dir
 
 | Escenario | % |
 |---|---|
-| Uso interno (operadores con guia) | ~68% |
-| MVP completo (Etapas 0-8) | ~48% |
-| Producto completo (Etapas 0-13) | ~32% |
+| Uso interno (operadores con guia) | ~78% |
+| MVP completo (Etapas 6-7 pendientes) | ~62% |
+| Producto completo (Etapas 9-13 pendientes) | ~38% |
 
 ---
 
