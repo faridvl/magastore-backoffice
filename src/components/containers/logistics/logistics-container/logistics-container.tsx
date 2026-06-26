@@ -165,8 +165,8 @@ export const LogisticsContainer: React.FC = () => {
                         />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <div className="flex gap-2">
-                            <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
                                 <input
                                     type="date"
@@ -175,7 +175,7 @@ export const LogisticsContainer: React.FC = () => {
                                     className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
                                 />
                             </div>
-                            <div className="flex flex-col gap-1 flex-1">
+                            <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
                                 <input
                                     type="date"
