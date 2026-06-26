@@ -159,8 +159,11 @@ export const PackageDetailContainer: React.FC = () => {
                                             <div className="flex items-center gap-1 border-b-2 border-primary">
                                                 <input
                                                     type="number"
+                                                    min="1"
+                                                    step="1"
                                                     value={data.peso}
-                                                    onChange={(e) => updateField('peso', e.target.value)}
+                                                    onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
+                                                    onChange={(e) => updateField('peso', String(Math.max(1, Math.floor(Number(e.target.value)))))}
                                                     className="w-full font-black text-xl text-primary bg-transparent outline-none"
                                                 />
                                                 <span className="text-xs font-bold text-primary">LB</span>

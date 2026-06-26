@@ -105,9 +105,12 @@ export const CreatePackageContainer: React.FC = () => {
                             <label className="text-[10px] font-bold uppercase text-neutral-400 mb-1 block ml-1">Peso (Lbs)</label>
                             <input
                                 type="number"
+                                min="1"
+                                step="1"
                                 className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-bold focus:bg-white outline-none"
                                 value={formData.weight_lb || ''}
-                                onChange={(e) => setFormData({ ...formData, weight_lb: Number(e.target.value) })}
+                                onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
+                                onChange={(e) => setFormData({ ...formData, weight_lb: Math.max(1, Math.floor(Number(e.target.value))) })}
                             />
                         </div>
                     </div>
