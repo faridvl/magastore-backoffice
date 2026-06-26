@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-26 | Last commit: `a1f9736`
+Last updated: 2026-06-26 | Last commit: `pending`
 
 Actualizar fecha y hash en cada commit significativo.
 Para el plan detallado de etapas pendientes: `development-plan.md`.
@@ -8,7 +8,7 @@ Para el plan detallado de etapas pendientes: `development-plan.md`.
 
 ## Funciona con datos reales
 
-Auth (con rate limiting 5 intentos/min por IP) · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · Registro y actualizacion de status de paquetes · Consolidaciones (crear, asignar paquetes, ciclo ABIERTO→ENTREGADO) · Facturacion (generar con snapshot de tarifas y direccion de entrega, listar, marcar pagado, PDF descargable) · Reportes mensuales de facturacion · Dashboard KPIs y graficas · Tracking publico · Notificaciones email Resend · Multi-rol ADMIN/OPERADOR · Toast notifications en todos los mutations · Historial de tarifas auditado
+Auth (con rate limiting 5 intentos/min por IP) · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · Registro y actualizacion de status de paquetes · Consolidaciones (crear, asignar paquetes, ciclo ABIERTO→ENTREGADO) · Facturacion (generar con snapshot de tarifas y direccion de entrega, listar, marcar pagado, PDF descargable) · Reportes mensuales de facturacion · Dashboard KPIs y graficas · Tracking publico · Notificaciones email Resend · Multi-rol ADMIN/OPERADOR · Toast notifications en todos los mutations · Historial de tarifas auditado · Buscador de paquetes por tracking number (/admin/packages)
 
 ---
 
@@ -20,7 +20,7 @@ Auth (con rate limiting 5 intentos/min por IP) · Clientes CRUD completo (incluy
 | Detalle de paquete — cambio de estado | Implementado (Etapa 20) — panel inline con select, nota obligatoria, ubicacion opcional | — |
 | Detalle de paquete — bitacora | Funcional; requiere trigger `trg_package_status_history` activo en Neon (script 005) | — |
 | Detalle de paquete — panel financiero | Implementado (Etapa 21) — muestra total real en verde si hay factura, estimado en gris si no | — |
-| `/admin/packages` | Mock con setTimeout; proposito duplica `/admin/logistics` | Sin etapa asignada |
+| `/admin/packages` | Implementado — buscador real por tracking number con datos de billing y cliente | — |
 | State machine en status | Descartada — flujo opcional | — |
 
 ---

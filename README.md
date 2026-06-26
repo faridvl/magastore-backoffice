@@ -26,7 +26,7 @@ Ver [`CLAUDE.md`](CLAUDE.md) para arquitectura y convenciones.
 
 ---
 
-## Estado MVP — ~95% completo
+## Estado MVP — 100% completo
 
 ### Completado
 
@@ -46,13 +46,14 @@ Ver [`CLAUDE.md`](CLAUDE.md) para arquitectura y convenciones.
 
 ### Pendiente
 
-Ninguna etapa pendiente — MVP completo.
+Ninguna etapa pendiente — MVP 100% completo.
 
 ### Lo que funciona
-Auth · Clientes (CRUD completo) · Paquetes (registro, status, cambio de estado inline con bitacora) · Consolidaciones (ciclo completo) · Facturacion (generar con snapshot de tarifas y direccion, PDF, marcar pagado) · Reportes mensuales · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications
+Auth · Clientes (CRUD completo) · Paquetes (registro, status, cambio de estado inline con bitacora, buscador por tracking) · Consolidaciones (ciclo completo) · Facturacion (generar con snapshot de tarifas y direccion, PDF, marcar pagado) · Reportes mensuales · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications
 
 ### Lo que esta roto o incompleto
-- `/admin/packages`: mock con setTimeout
+
+Nada — MVP completo.
 
 ### Migraciones SQL ejecutadas en Neon
 Scripts 001–006 ejecutados.

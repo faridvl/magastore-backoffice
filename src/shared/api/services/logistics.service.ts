@@ -116,6 +116,22 @@ export const LogisticsService = {
   },
 
   /**
+   * Búsqueda admin completa por tracking_number (incluye billing). Usada en /admin/packages.
+   */
+  lookupPackageByTracking: async (trackingNumber: string): Promise<any> => {
+    const clean = trackingNumber?.trim();
+    if (!clean) throw new Error('El número de tracking es requerido.');
+
+    const packageData = await LogisticsRepository.getPackageDetailByTracking(clean);
+
+    if (!packageData) {
+      throw new Error('No se encontró ningún paquete con ese número de tracking.');
+    }
+
+    return packageData;
+  },
+
+  /**
    * Actualiza el peso registrado de un paquete.
    */
   updatePackageWeight: async (

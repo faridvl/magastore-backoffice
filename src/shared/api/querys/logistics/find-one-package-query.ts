@@ -15,8 +15,13 @@ import { useApiQueryClient } from '../../query-hooks/use-api-client-query';
  * simplemente retornamos el resultado del GET.
  */
 export async function fetchGetPackageDetail(uuid: string): Promise<PackageDetail> {
-  // Construimos la URL con el query param manualmente ya que tu cliente usa fetch nativo
   return await ApiServiceClient(env.API.BASE_URL).get(`/logistics?uuid=${uuid}`);
+}
+
+export async function fetchPackageByTracking(tracking: string): Promise<PackageDetail> {
+  return await ApiServiceClient(env.API.BASE_URL).get(
+    `/logistics?tracking=${encodeURIComponent(tracking)}`,
+  );
 }
 
 /**

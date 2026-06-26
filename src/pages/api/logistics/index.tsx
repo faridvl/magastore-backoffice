@@ -25,6 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(200).json(pkg);
             }
 
+            const { tracking } = req.query;
+            if (tracking) {
+                const pkg = await LogisticsService.lookupPackageByTracking(tracking as string);
+                return res.status(200).json(pkg);
+            }
+
             const p = parseInt(page as string) || 1;
             const l = parseInt(limit as string) || 10;
             const s = search as string;
