@@ -148,7 +148,7 @@ export const ConsolidationsContainer: React.FC = () => {
 
       {/* TOOLBAR */}
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
-        <div className="relative flex-1 min-w-[250px]">
+        <div className="relative flex-1 min-w-0 w-full sm:w-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
             type="text"
@@ -248,7 +248,7 @@ export const ConsolidationsContainer: React.FC = () => {
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -329,7 +329,7 @@ export const ConsolidationsContainer: React.FC = () => {
           onClick={() => setShowAssignModal(false)}
         >
           <div
-            className="bg-white rounded-[2.5rem] p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">

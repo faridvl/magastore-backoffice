@@ -45,6 +45,7 @@ export function DashboardLayout({
   const [hasBackButton, setHasBackButton] = useState(!isMainPage);
   const [boxClassName, setBoxClassName] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (showSuccess) {
@@ -75,7 +76,7 @@ export function DashboardLayout({
     : (children as React.ReactElement);
 
   return (
-    <div className="flex flex-row h-screen w-screen overflow-hidden relative bg-neutral-50 dark:bg-background transition-colors duration-300">
+    <div className="flex h-screen w-screen overflow-hidden relative bg-neutral-50 dark:bg-background transition-colors duration-300">
 
       {/* Notificaciones Flotantes */}
       <div className="absolute top-6 right-6 z-[100] pointer-events-none">
@@ -86,23 +87,38 @@ export function DashboardLayout({
         )}
       </div>
 
-      {/* Navegación Lateral */}
-      {!hideSidebar && <DesktopSidebar />}
+      {/* Sidebar desktop — siempre visible en lg+ */}
+      {!hideSidebar && (
+        <div className="hidden lg:flex">
+          <DesktopSidebar />
+        </div>
+      )}
+
+      {/* Sidebar mobile — overlay cuando está abierto */}
+      {!hideSidebar && mobileSidebarOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
+            <DesktopSidebar onClose={() => setMobileSidebarOpen(false)} />
+          </div>
+        </>
+      )}
 
       <div className={tailwind(
         "flex flex-col flex-1 h-full min-w-0 transition-all",
-        !hideSidebar && "border-l border-neutral-200 dark:border-neutral-800"
+        !hideSidebar && "lg:border-l border-neutral-200 dark:border-neutral-800"
       )}>
-        {!hideSidebar && <Header
-          title={pageTitle}
-          hasBackButton={hasBackButton}
-          onBack={backNavigationHandler}
-        // Si tu Header no acepta estas props aún, puedes comentarlas
-        // menuActions={headerMenu}
-        // primaryAction={actionsButton}
-        />}
-
-
+        {!hideSidebar && (
+          <Header
+            title={pageTitle}
+            hasBackButton={hasBackButton}
+            onBack={backNavigationHandler}
+            onMenuToggle={() => setMobileSidebarOpen((v) => !v)}
+          />
+        )}
 
         <DashboardLayoutContent
           contentClassNames={tailwind(contentClassNames, bottomPadding)}
@@ -110,7 +126,6 @@ export function DashboardLayout({
           contentStyle={contentStyle}
           boxClassName={boxClassName}
         >
-          {/* Usamos el valor ya procesado */}
           {renderedChildren}
         </DashboardLayoutContent>
       </div>

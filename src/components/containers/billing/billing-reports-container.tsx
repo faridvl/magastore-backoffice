@@ -59,7 +59,7 @@ export const BillingReportsContainer: React.FC = () => {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <KpiCard label="Total Facturado" value={formatCRC(totalInvoiced)} color="text-slate-800" />
         <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-green-600" />
         <KpiCard label="Pendiente"       value={formatCRC(totalPending)}  color="text-orange-500" />
@@ -67,7 +67,7 @@ export const BillingReportsContainer: React.FC = () => {
       </div>
 
       {/* Tabla mensual */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-16 text-slate-400">
             <BarChart3 className="w-6 h-6 mr-2 animate-pulse" />

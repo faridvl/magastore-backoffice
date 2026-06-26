@@ -73,7 +73,7 @@ export const DashboardContainer: React.FC = () => {
       {/* Banner tracking */}
       <div className="relative mb-8 group">
         <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-white border border-blue-100 p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative bg-white border border-blue-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex items-center gap-5">
             <div className="h-14 w-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 animate-bounce">
               <Eye size={28} />
@@ -91,7 +91,7 @@ export const DashboardContainer: React.FC = () => {
             href="/tracking"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-neutral-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-neutral-200 hover:shadow-blue-100 group"
+            className="bg-neutral-900 hover:bg-blue-600 text-white px-5 py-3 md:px-8 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-neutral-200 hover:shadow-blue-100 group w-full md:w-auto justify-center"
           >
             Ir al Rastreo de Clientes
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -124,7 +124,7 @@ export const DashboardContainer: React.FC = () => {
       {/* Gráficas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Ingresos por mes */}
-        <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm">
+        <div className="bg-white p-5 md:p-8 rounded-3xl border border-neutral-100 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-black text-neutral-800 tracking-tight">Ingresos Mensuales</h3>
@@ -173,7 +173,7 @@ export const DashboardContainer: React.FC = () => {
         </div>
 
         {/* Top clientes */}
-        <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm">
+        <div className="bg-white p-5 md:p-8 rounded-3xl border border-neutral-100 shadow-sm">
           <div className="mb-6">
             <h3 className="font-black text-neutral-800 tracking-tight">Top Clientes</h3>
             <p className="text-neutral-400 text-xs font-bold uppercase tracking-widest mt-1">
@@ -239,10 +239,10 @@ export const DashboardContainer: React.FC = () => {
             <table className="w-full text-left">
               <thead className="bg-neutral-50 text-[11px] font-black text-neutral-400 uppercase">
                 <tr>
-                  <th className="px-6 py-4">Cliente</th>
-                  <th className="px-6 py-4">Tracking</th>
-                  <th className="px-6 py-4">Estado</th>
-                  <th className="px-6 py-4">Total Factura</th>
+                  <th className="px-3 py-3 md:px-6 md:py-4">Cliente</th>
+                  <th className="px-3 py-3 md:px-6 md:py-4">Tracking</th>
+                  <th className="px-3 py-3 md:px-6 md:py-4">Estado</th>
+                  <th className="px-3 py-3 md:px-6 md:py-4">Total Factura</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-50">
@@ -261,13 +261,13 @@ export const DashboardContainer: React.FC = () => {
                         key={pkg.uuid}
                         className="hover:bg-neutral-50/50 transition-colors"
                       >
-                        <td className="px-6 py-4 font-bold text-neutral-700 text-sm">
+                        <td className="px-3 py-3 md:px-6 md:py-4 font-bold text-neutral-700 text-sm">
                           {pkg.customer_name}
                         </td>
-                        <td className="px-6 py-4 font-mono text-xs text-neutral-400">
+                        <td className="px-3 py-3 md:px-6 md:py-4 font-mono text-xs text-neutral-400">
                           {pkg.tracking_number}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 py-3 md:px-6 md:py-4">
                           <span
                             className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                               pkg.status === PackageStatus.ENTREGADO
@@ -278,7 +278,7 @@ export const DashboardContainer: React.FC = () => {
                             {STATUS_LABELS[pkg.status] ?? pkg.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-black text-neutral-900 text-sm">
+                        <td className="px-3 py-3 md:px-6 md:py-4 font-black text-neutral-900 text-sm">
                           {pkg.total_amount_crc != null
                             ? formatCRC(pkg.total_amount_crc)
                             : '—'}

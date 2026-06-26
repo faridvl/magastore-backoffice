@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { LogOut, Search, ChevronLeft } from 'lucide-react';
+import { LogOut, Search, ChevronLeft, Menu } from 'lucide-react';
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { useHeader } from './use-header';
 import { Typography, TypographyVariant } from '../typography/typography';
@@ -12,13 +12,15 @@ interface HeaderProps {
   hasBackButton?: boolean;
   onBack?: () => void;
   primaryAction?: any;
+  onMenuToggle?: () => void;
 }
 
 export function Header({
   title,
   hasBackButton,
   onBack,
-  primaryAction
+  primaryAction,
+  onMenuToggle,
 }: HeaderProps) {
   const { userName, userRole, initials, isLoading, handleLogout } = useHeader();
   const nav = useNavigation();
@@ -27,8 +29,16 @@ export function Header({
     <header className="h-16 border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-background/90 backdrop-blur-sm sticky top-0 z-40 transition-colors">
       <div className="h-full px-6 flex items-center justify-between">
 
-        {/* Sección Izquierda: Título y Volver */}
-        <div className="flex items-center gap-4">
+        {/* Sección Izquierda: Hamburger (mobile) + Título y Volver */}
+        <div className="flex items-center gap-3">
+          {onMenuToggle && (
+            <button
+              onClick={onMenuToggle}
+              className="lg:hidden p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+            >
+              <Menu size={20} className="text-neutral-500" />
+            </button>
+          )}
           {hasBackButton && (
             <button
               onClick={onBack}
@@ -41,7 +51,7 @@ export function Header({
           {title && (
             <Typography
               variant={TypographyVariant.SUBTITLE}
-              className="text-neutral-900 dark:text-white text-lg font-black"
+              className="text-neutral-900 dark:text-white text-base md:text-lg font-black truncate max-w-[160px] sm:max-w-xs md:max-w-none"
             >
               {title}
             </Typography>

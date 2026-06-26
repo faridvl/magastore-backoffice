@@ -43,7 +43,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* LADO IZQUIERDO: Perfil Fijo */}
                 <aside className="lg:col-span-1 space-y-6">
-                    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden sticky top-6">
+                    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden lg:sticky lg:top-6">
                         <div className="p-8 flex flex-col items-center text-center">
                             <div className="h-20 w-20 bg-slate-50 text-primary rounded-[1.5rem] flex items-center justify-center mb-6 text-2xl font-black border-2 border-primary/5 uppercase">
                                 {initials}

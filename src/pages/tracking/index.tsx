@@ -105,7 +105,7 @@ const TrackingPage: React.FC = () => {
             <Head><title>Rastreo de Carga | Magastore</title></Head>
             <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Rastreo de Carga" hideSidebar={true}>
 
-                <div className="max-w-6xl mx-auto mb-8 flex justify-between items-center">
+                <div className="max-w-6xl mx-auto mb-8 flex justify-between items-center px-4 md:px-0">
                     <button
                         onClick={() => router.push('/')}
                         className="flex items-center gap-2 text-neutral-400 hover:text-blue-600 font-black text-[10px] uppercase tracking-widest transition-all group"
@@ -121,7 +121,7 @@ const TrackingPage: React.FC = () => {
                     )}
                 </div>
 
-                <div className="max-w-3xl mx-auto mb-12">
+                <div className="max-w-3xl mx-auto mb-12 px-4 md:px-0">
                     <div className="bg-white p-2 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-neutral-100 flex items-center">
                         <div className="pl-6 pr-4 text-blue-600">
                             <Search size={24} />
@@ -137,7 +137,7 @@ const TrackingPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="bg-blue-600 text-white px-4 md:px-8 py-3 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
                             >
                                 {loading ? 'Buscando...' : 'Rastrear'}
                             </button>
@@ -157,10 +157,10 @@ const TrackingPage: React.FC = () => {
                 )}
 
                 {result ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 px-4 md:px-0">
 
                         <div className="space-y-6">
-                            <div className="bg-white p-8 rounded-3xl border border-neutral-100 shadow-sm">
+                            <div className="bg-white p-5 md:p-8 rounded-3xl border border-neutral-100 shadow-sm">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Package size={20} /></div>
                                     <Typography variant={TypographyVariant.BODY_BOLD}>Detalles del Envío</Typography>
@@ -188,7 +188,7 @@ const TrackingPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-neutral-900 p-8 rounded-3xl text-white shadow-xl shadow-blue-900/20">
+                            <div className="bg-neutral-900 p-5 md:p-8 rounded-3xl text-white shadow-xl shadow-blue-900/20">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Globe size={16} className="text-blue-400" />
                                     <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Estado Actual</span>
@@ -204,7 +204,7 @@ const TrackingPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="lg:col-span-2 bg-white p-8 md:p-12 rounded-3xl border border-neutral-100 shadow-sm">
+                        <div className="lg:col-span-2 bg-white p-5 md:p-10 rounded-3xl border border-neutral-100 shadow-sm">
                             <div className="relative space-y-12">
                                 <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-neutral-100" />
                                 {timeline.map((step, index) => (

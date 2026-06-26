@@ -51,7 +51,7 @@ export const PackageDetailContainer: React.FC = () => {
                     <button
                         onClick={handleToggleStatusPanel}
                         disabled={isSavingStatus}
-                        className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
+                        className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
                             ? 'bg-red-500 text-white hover:bg-red-600'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
@@ -61,7 +61,7 @@ export const PackageDetailContainer: React.FC = () => {
                     <button
                         onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
                         disabled={isSavingWeight}
-                        className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
+                        className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
@@ -78,7 +78,7 @@ export const PackageDetailContainer: React.FC = () => {
 
             {/* PANEL DE CAMBIO DE ESTADO */}
             {statusPanel.isOpen && (
-                <div className="bg-white border border-blue-100 rounded-[2rem] p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="bg-white border border-blue-100 rounded-[2rem] p-4 md:p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
                     <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
                         <RefreshCw size={16} className="text-blue-600" /> Registrar cambio de estado
                     </Typography>
@@ -221,7 +221,7 @@ export const PackageDetailContainer: React.FC = () => {
 
                 {/* COLUMNA DERECHA: Resumen Financiero */}
                 <div className="space-y-6">
-                    <div className="bg-slate-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                    <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden">
                         {/* Decoración de fondo */}
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
 
@@ -253,7 +253,7 @@ export const PackageDetailContainer: React.FC = () => {
                                         <div className="pt-8 border-t border-white/10 mt-6">
                                             <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Total Facturado</label>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-4xl font-black italic tracking-tighter text-emerald-400">
+                                                <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-emerald-400">
                                                     ₡{Number(data.totalFacturado).toLocaleString()}
                                                 </span>
                                             </div>
@@ -276,7 +276,7 @@ export const PackageDetailContainer: React.FC = () => {
                                         <div className="pt-8 border-t border-white/10 mt-6">
                                             <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Estimado a Pagar</label>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-4xl font-black italic tracking-tighter text-slate-300">
+                                                <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-slate-300">
                                                     ₡{calculos.totalPagar.toLocaleString()}
                                                 </span>
                                             </div>

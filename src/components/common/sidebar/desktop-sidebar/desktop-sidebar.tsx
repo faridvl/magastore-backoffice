@@ -6,7 +6,11 @@ import { routesPrivate } from "@/shared/navigation/routes";
 import { NAVIGATION_PATHS } from '@/shared/constants/sidebar';
 import { useSidebar } from './use-sidebar';
 
-export default function DesktopSidebar() {
+interface DesktopSidebarProps {
+  onClose?: () => void;
+}
+
+export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
   const router = useRouter();
   const { isAdmin } = useSidebar();
 
@@ -46,6 +50,7 @@ export default function DesktopSidebar() {
               <Link
                 key={item.menuKey}
                 href={item.route}
+                onClick={onClose}
                 className={`
                   relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
                   ${isActive

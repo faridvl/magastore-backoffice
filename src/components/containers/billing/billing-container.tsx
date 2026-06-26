@@ -183,7 +183,7 @@ export const BillingContainer: React.FC = () => {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
       {/* TABS + REPORTES */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-1 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm w-fit">
           {(['registros', 'por-facturar'] as ActiveBillingTab[]).map((tab) => (
             <button
@@ -217,7 +217,7 @@ export const BillingContainer: React.FC = () => {
       {activeTab === 'registros' && (
         <>
           <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
-            <div className="relative flex-1 min-w-[250px]">
+            <div className="relative flex-1 min-w-0 w-full sm:w-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
@@ -311,7 +311,7 @@ export const BillingContainer: React.FC = () => {
           onClick={() => setInvoiceTarget(null)}
         >
           <div
-            className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -386,7 +386,7 @@ export const BillingContainer: React.FC = () => {
           onClick={() => setSelectedBillingUuid(null)}
         >
           <div
-            className="bg-white rounded-[2.5rem] p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {isLoadingDetail ? (

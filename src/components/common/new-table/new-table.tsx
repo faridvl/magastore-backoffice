@@ -43,7 +43,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                             {columns.map((col, index) => (
                                 <th
                                     key={index}
-                                    className={`px-6 py-4 border-b border-slate-100 first:rounded-tl-2xl last:rounded-tr-2xl ${col.align === 'right' ? 'text-right' : ''}`}
+                                    className={`px-3 py-3 md:px-6 md:py-4 border-b border-slate-100 first:rounded-tl-2xl last:rounded-tr-2xl ${col.align === 'right' ? 'text-right' : ''}`}
                                 >
                                     <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-bold tracking-widest">
                                         {col.header}
@@ -57,7 +57,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                             skeletonRows.map((_, i) => (
                                 <tr key={`skeleton-${i}`}>
                                     {columns.map((_, j) => (
-                                        <td key={`cell-${j}`} className="px-6 py-5">
+                                        <td key={`cell-${j}`} className="px-3 py-3 md:px-6 md:py-4">
                                             <div className="h-4 bg-slate-100 rounded animate-pulse w-full" />
                                         </td>
                                     ))}
@@ -71,7 +71,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                                     className={`transition-all duration-200 group ${onRowClick ? 'cursor-pointer hover:bg-blue-50/30' : ''}`}
                                 >
                                     {columns.map((col, colIndex) => (
-                                        <td key={colIndex} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+                                        <td key={colIndex} className={`px-3 py-3 md:px-6 md:py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
                                             {col.render ? col.render(item) : (
                                                 <span className="text-sm text-slate-600 font-medium">
                                                     {String(item[col.accessor as keyof T] || '-')}
@@ -95,7 +95,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
             </div>
 
             {/* FOOTER DE PAGINACIÓN MEJORADO */}
-            <div className="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-2xl mt-auto">
+            <div className="px-3 py-3 md:px-6 md:py-4 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-2xl mt-auto gap-2 flex-wrap">
                 <div className="flex flex-col">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         Total Registros

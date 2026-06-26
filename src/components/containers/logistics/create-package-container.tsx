@@ -15,7 +15,7 @@ export const CreatePackageContainer: React.FC = () => {
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4">
 
             {/* COLUMNA IZQUIERDA: FORMULARIO SIMPLIFICADO */}
-            <div className="lg:col-span-8 bg-white rounded-[2rem] border border-neutral-100 shadow-sm p-8">
+            <div className="lg:col-span-8 bg-white rounded-[2rem] border border-neutral-100 shadow-sm p-5 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-blue-600 text-white rounded-xl"><Package size={20} /></div>
                     <h2 className="text-lg font-bold text-neutral-800">Nuevo Ingreso</h2>
@@ -122,7 +122,7 @@ export const CreatePackageContainer: React.FC = () => {
             <div className="lg:col-span-4 space-y-6">
 
                 {/* CARD DE TOTALES */}
-                <div className="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl">
+                <div className="bg-blue-600 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-xl">
                     <div className="flex items-center gap-2 mb-6 opacity-60">
                         <Calculator size={16} />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Cálculo en vivo</span>
@@ -130,7 +130,7 @@ export const CreatePackageContainer: React.FC = () => {
                     <div className="space-y-4">
                         <div>
                             <p className="text-[10px] uppercase font-bold opacity-60 mb-1">Cobro al Cliente</p>
-                            <h3 className="text-4xl font-black italic">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
+                            <h3 className="text-2xl md:text-4xl font-black italic">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
                         </div>
                         <div className="pt-4 border-t border-white/10">
                             <p className="text-[10px] uppercase font-bold opacity-60 mb-1">Ganancia Estimada</p>
