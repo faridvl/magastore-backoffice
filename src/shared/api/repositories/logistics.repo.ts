@@ -197,7 +197,7 @@ export const LogisticsRepository = {
       await sql`BEGIN`;
 
       const [c] = await sql`
-        SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
+        SELECT id, customer_id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
       if (!c) throw new Error('Consolidación no encontrada.');
 
@@ -213,6 +213,14 @@ export const LogisticsRepository = {
       `;
       if (existing) throw new Error('Esta consolidación ya tiene una factura generada.');
 
+      const [addressRow] = await sql`
+        SELECT exact_address FROM customer_addresses
+        WHERE customer_id = ${c.customer_id}
+        ORDER BY is_default DESC
+        LIMIT 1
+      `;
+      const deliveryAddressSnapshot = addressRow?.exact_address ?? null;
+
       const actualWeight  = Number(c.total_weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
       const flete         = chargedWeight * price_lb * exchange;
@@ -227,7 +235,8 @@ export const LogisticsRepository = {
           total_weight_charged,
           total_amount_crc,
           delivery_method,
-          delivery_fee_crc
+          delivery_fee_crc,
+          delivery_address_snapshot
         ) VALUES (
           ${c.id},
           ${price_lb},
@@ -236,7 +245,8 @@ export const LogisticsRepository = {
           ${chargedWeight},
           ${totalCrc},
           ${deliveryMethod},
-          ${deliveryFee}
+          ${deliveryFee},
+          ${deliveryAddressSnapshot}
         )
         RETURNING uuid, total_amount_crc, delivery_method, delivery_fee_crc, created_at;
       `;

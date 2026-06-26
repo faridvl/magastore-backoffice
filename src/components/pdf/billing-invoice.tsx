@@ -288,6 +288,18 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
           </Text>
         </View>
 
+        {/* ── Dirección de entrega ── */}
+        {detail.delivery_address_snapshot && (
+          <View style={[s.contactRow, { backgroundColor: '#f1f5f9' }]}>
+            <Text style={[s.contactText, { color: '#475569' }]}>
+              Dirección de entrega:{' '}
+              <Text style={[s.contactHighlight, { color: '#1e293b' }]}>
+                {detail.delivery_address_snapshot}
+              </Text>
+            </Text>
+          </View>
+        )}
+
         {/* ── Cuerpo ── */}
         <View style={s.body}>
           <Text style={s.note}>

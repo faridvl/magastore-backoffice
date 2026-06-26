@@ -2,6 +2,7 @@ import { BillingRepository } from '../repositories/billing.repo';
 import {
   BillingListItem,
   BillingDetail,
+  BillingMonthlyReport,
   PendingConsolidation,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
@@ -51,6 +52,17 @@ export const BillingService = {
     } catch (error: unknown) {
       console.error('[BillingService.getPendingConsolidations]:', error);
       throw new Error('Error al obtener las consolidaciones pendientes de facturar.');
+    }
+  },
+
+  getBillingReports: async (from: string, to: string): Promise<BillingMonthlyReport[]> => {
+    if (!from || !to) throw new Error('Las fechas de inicio y fin son requeridas.');
+
+    try {
+      return await BillingRepository.getBillingReports(from, to);
+    } catch (error: unknown) {
+      console.error('[BillingService.getBillingReports]:', error);
+      throw new Error('Error al obtener el reporte de facturación.');
     }
   },
 

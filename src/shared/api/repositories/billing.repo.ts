@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { BillingListItem, BillingDetail, PendingConsolidation } from '@/types/logistics/logistics.types';
+import { BillingListItem, BillingDetail, BillingMonthlyReport, PendingConsolidation } from '@/types/logistics/logistics.types';
 
 export const BillingRepository = {
   getPaginatedBilling: async (
@@ -81,6 +81,7 @@ export const BillingRepository = {
         b.created_at,
         b.delivery_method,
         COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc,
+        b.delivery_address_snapshot,
         COALESCE(
           (SELECT json_agg(p.tracking_number ORDER BY p.created_at)
            FROM packages p WHERE p.consolidation_id = con.id),
@@ -120,6 +121,28 @@ export const BillingRepository = {
     `;
 
     return rows as PendingConsolidation[];
+  },
+
+  getBillingReports: async (
+    from: string,
+    to: string,
+  ): Promise<BillingMonthlyReport[]> => {
+    const rows = await sql`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+        COALESCE(SUM(total_amount_crc), 0)::numeric          AS total_invoiced_crc,
+        COALESCE(SUM(CASE WHEN is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS total_paid_crc,
+        COALESCE(SUM(CASE WHEN NOT is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS total_pending_crc,
+        COUNT(*)::int                                        AS invoice_count,
+        COUNT(CASE WHEN is_paid THEN 1 END)::int             AS paid_count
+      FROM billing
+      WHERE created_at >= ${from}::timestamptz
+        AND created_at <  ${to}::timestamptz
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY DATE_TRUNC('month', created_at) ASC
+    `;
+
+    return rows as BillingMonthlyReport[];
   },
 
   markBillingAsPaid: async (uuid: string): Promise<Partial<BillingListItem>> => {

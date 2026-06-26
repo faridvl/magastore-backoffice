@@ -167,6 +167,7 @@ export interface BillingDetail {
   package_trackings: string[];
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
+  delivery_address_snapshot: string | null;
 }
 
 export interface PendingConsolidation {
@@ -183,6 +184,15 @@ export interface PendingConsolidation {
 export interface GenerateInvoiceInput {
   consolidationUuid: string;
   deliveryMethod: DeliveryMethod;
+}
+
+export interface BillingMonthlyReport {
+  month: string;
+  total_invoiced_crc: number;
+  total_paid_crc: number;
+  total_pending_crc: number;
+  invoice_count: number;
+  paid_count: number;
 }
 
 export interface MarkPaidInput {
