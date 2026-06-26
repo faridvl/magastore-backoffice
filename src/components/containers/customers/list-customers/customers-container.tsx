@@ -101,8 +101,9 @@ export const CustomersContainer: React.FC = () => {
         <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
             {/* TOOLBAR */}
-            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
-                <div className="relative flex-1 min-w-[250px]">
+            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                {/* Búsqueda */}
+                <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input
                         type="text"
@@ -113,29 +114,55 @@ export const CustomersContainer: React.FC = () => {
                     />
                 </div>
 
-                <button
-                    onClick={handleDownloadTemplate}
-                    className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
-                >
-                    <Download size={15} />
-                    Template
-                </button>
+                {/* Botones mobile: uno por fila */}
+                <div className="flex flex-col gap-2 sm:hidden">
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all"
+                    >
+                        <Download size={15} />
+                        Descargar Template
+                    </button>
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all"
+                    >
+                        <Upload size={15} />
+                        Importar Clientes
+                    </button>
+                    <button
+                        onClick={() => navigation.admin.customers.create()}
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+                    >
+                        <Plus size={16} />
+                        Nuevo Cliente
+                    </button>
+                </div>
 
-                <button
-                    onClick={() => setShowImportModal(true)}
-                    className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
-                >
-                    <Upload size={15} />
-                    Importar
-                </button>
-
-                <button
-                    onClick={() => navigation.admin.customers.create()}
-                    className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
-                >
-                    <Plus size={16} />
-                    Nuevo Cliente
-                </button>
+                {/* Botones desktop: inline */}
+                <div className="hidden sm:flex gap-3 items-center justify-end">
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                        <Download size={15} />
+                        Template
+                    </button>
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                        <Upload size={15} />
+                        Importar
+                    </button>
+                    <button
+                        onClick={() => navigation.admin.customers.create()}
+                        className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+                    >
+                        <Plus size={16} />
+                        Nuevo Cliente
+                    </button>
+                </div>
             </div>
 
             {/* CARDS (mobile) */}
@@ -144,6 +171,16 @@ export const CustomersContainer: React.FC = () => {
                     Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
                     ))
+                ) : customers.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
+                        <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
+                            <Search size={24} className="text-slate-300" />
+                        </div>
+                        <p className="font-black text-slate-400 text-sm">Sin clientes</p>
+                        <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
+                            No hay clientes que coincidan con la búsqueda
+                        </p>
+                    </div>
                 ) : customers.map((customer) => (
                     <button
                         key={customer.id}
