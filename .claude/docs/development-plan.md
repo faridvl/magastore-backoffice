@@ -7,28 +7,7 @@ Al completar cada etapa: eliminar su bloque de este archivo + actualizar README.
 ---
 
 ## Etapa 16 — Billing: direccion de entrega + reportes
-**Estado:** Pendiente
-
-### Feature 1: Direccion de entrega en factura
-Snapshot de `customer_addresses.exact_address` (is_default) en `billing.delivery_address_snapshot TEXT` al generar factura.
-
-| Archivo | Cambio |
-|---|---|
-| `scripts/006-billing-address-snapshot.sql` | ADD COLUMN delivery_address_snapshot TEXT en billing |
-| `logistics.repo.ts:generateBilling` | Leer direccion default del cliente y guardarla en el INSERT |
-| `src/components/pdf/billing-invoice.tsx` | Mostrar la direccion en el PDF |
-
-### Feature 2: Pagina `/admin/billing/reports`
-Ruta definida en routes.ts, pagina no existe.
-
-| Archivo | Cambio |
-|---|---|
-| `billing.repo.ts` | Query: total facturado por mes, pagado vs pendiente |
-| `src/pages/api/billing/reports.ts` | GET auth, llama repo |
-| `use-billing-reports-query.ts` | Hook, staleTime 5min |
-| Container + pagina | Tabla + grafica barras, filtro por rango de fechas |
-
-**Criterio de exito:** PDF incluye direccion. `/admin/billing/reports` muestra datos reales.
+**Estado:** Completada 2026-06-26 | commit: `2831356`
 
 ---
 

@@ -26,31 +26,29 @@ Ver [`CLAUDE.md`](CLAUDE.md) para arquitectura y convenciones.
 
 ---
 
-## Estado MVP — ~85% completo
+## Estado MVP — ~90% completo
 
 ### Completado
 
 | Etapa | Descripcion |
 |---|---|
+| 16 | Billing: direccion entrega snapshot en factura + pagina de reportes mensuales |
 | 19 | Package Detail: guardar peso real desde UI |
 | 20 | Package Detail: cambio de estado inline + bitacora funcional |
+| 21 | Package Detail: panel financiero real vs estimado |
 
 ### Pendiente
 
 | Etapa | Descripcion | Prioridad |
 |---|---|---|
-| 21 | Package Detail: panel financiero real vs estimado | Media |
-| 16 | Billing: direccion entrega en factura + pagina reportes | Media |
 | 17 | State machine en status de paquetes | Baja |
 | 18 | Rate limiting en login | Antes de produccion publica |
 
 ### Lo que funciona
-Auth · Clientes (CRUD completo) · Paquetes (registro, status, cambio de estado inline con bitacora) · Consolidaciones (ciclo completo) · Facturacion (generar, PDF, marcar pagado) · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications
+Auth · Clientes (CRUD completo) · Paquetes (registro, status, cambio de estado inline con bitacora) · Consolidaciones (ciclo completo) · Facturacion (generar con snapshot de tarifas y direccion, PDF, marcar pagado) · Reportes mensuales · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications
 
 ### Lo que esta roto o incompleto
-- Panel financiero del detalle: siempre muestra estimado, nunca total real de billing
 - `/admin/packages`: mock con setTimeout
-- `/admin/billing/reports`: ruta definida, pagina no existe
 
 ### Migraciones SQL ejecutadas en Neon
-Scripts 001–004 ejecutados el 2026-06-25. Script 005 (trigger package_events) pendiente de verificar.
+Scripts 001–006 ejecutados.
