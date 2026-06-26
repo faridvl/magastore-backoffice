@@ -30,7 +30,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     if (apiData) {
       setData((prev) => ({
         ...prev,
-        tracking:       apiData.tracking_number || prev.tracking,
+        tracking:       apiData.tracking_number || '(Sin tracking)',
         peso:           apiData.weight_lb ? parseFloat(apiData.weight_lb) : prev.peso,
         estadoPaquete:  apiData.status || prev.estadoPaquete,
         observaciones:  apiData.internal_notes || 'Sin notas internas.',
@@ -89,7 +89,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     data,
     bitacora,
     calculos,
-    isLoading: isLoadingPackage || isLoadingSettings,
+    isLoading: !uuid || isLoadingPackage || isLoadingSettings,
     isError,
     isEditingFinancial,
     setIsEditingFinancial,

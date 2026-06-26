@@ -5,10 +5,7 @@ import { useNavigation } from '@/hooks/use-navigation';
 
 export const useCreateCustomer = () => {
   const { admin } = useNavigation();
-  const { executeCreate, isPending } = useCreateCustomerMutation();
-
-  // Estado para controlar la visibilidad de la alerta
-  const [showSuccess, setShowSuccess] = useState(false);
+  const { execute, isPending } = useCreateCustomerMutation();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -17,6 +14,7 @@ export const useCreateCustomer = () => {
     idType: 'FISICA',
     email: '',
     phone: '',
+    tier: 'Regular',
   });
 
   const [addresses, setAddresses] = useState([
@@ -61,10 +59,9 @@ export const useCreateCustomer = () => {
     setAddresses((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: value } : a)));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // MAPEANDO AL FORMATO DEL API (snake_case)
     const payload = {
       id_card: formData.idCard,
       id_type: formData.idType,
@@ -72,19 +69,18 @@ export const useCreateCustomer = () => {
       last_name: formData.lastName,
       email: formData.email,
       phone: formData.phone,
-      addresses: addresses.map(({ id, ...rest }) => rest), // Quitamos el ID temporal
+      addresses: addresses.map(({ id, ...rest }) => rest),
     };
 
-    try {
-      await executeCreate(payload);
-      toast.success('Cliente registrado exitosamente');
-      setShowSuccess(true);
-      setTimeout(() => {
+    execute(payload, {
+      onSuccess: () => {
+        toast.success('Cliente registrado exitosamente');
         admin.customers.list();
-      }, 1500);
-    } catch (err: any) {
-      toast.error(err?.message || 'Error al registrar el cliente');
-    }
+      },
+      onError: (err: any) => {
+        toast.error(err?.message || 'Error al registrar el cliente');
+      },
+    });
   };
 
   return {
@@ -96,7 +92,5 @@ export const useCreateCustomer = () => {
     handleAddressChange,
     handleSubmit,
     isPending,
-    showSuccess,
-    setShowSuccess,
   };
 };

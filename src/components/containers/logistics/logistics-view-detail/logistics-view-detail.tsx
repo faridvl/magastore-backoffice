@@ -131,7 +131,7 @@ export const PackageDetailContainer: React.FC = () => {
 
                 {/* COLUMNA DERECHA: Resumen Financiero */}
                 <div className="space-y-6">
-                    <div className="bg-slate-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden sticky top-8">
+                    <div className="bg-slate-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden">
                         {/* Decoración de fondo */}
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
 

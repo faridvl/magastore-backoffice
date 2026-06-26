@@ -2,11 +2,11 @@ import React from 'react';
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
 
-const fmtCRC = (n: number) =>
-  `₡ ${Math.round(n).toLocaleString('es-CR')}`;
+const fmtCRC = (n: number | string) =>
+  `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
 
-const fmtUSD = (n: number) =>
-  `$ ${n.toFixed(2)}`;
+const fmtUSD = (n: number | string) =>
+  `$ ${Number(n).toFixed(2)}`;
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos de Costa Rica',
@@ -237,10 +237,10 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
   const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
-  const flete = detail.total_weight_charged * detail.applied_rate_usd * detail.applied_exchange;
+  const pricePerLb = Number(detail.applied_rate_usd);
+  const exchange = Number(detail.applied_exchange);
+  const flete = Number(detail.total_weight_charged) * pricePerLb * exchange;
   const trackings = detail.package_trackings ?? [];
-  const pricePerLb = detail.applied_rate_usd;
-  const exchange = detail.applied_exchange;
 
   return (
     <Document>

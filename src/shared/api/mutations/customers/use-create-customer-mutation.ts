@@ -8,6 +8,7 @@ export function useCreateCustomerMutation() {
   const queryClient = useQueryClient();
 
   const {
+    mutate: execute,
     mutateAsync: executeCreate,
     isPending,
     error,
@@ -20,5 +21,5 @@ export function useCreateCustomerMutation() {
     },
   });
 
-  return { executeCreate, isPending, error, reset };
+  return { execute, executeCreate, isPending, error, reset };
 }

@@ -11,7 +11,7 @@ const TIERS = [
 export const CreateCustomerContainer: React.FC = () => {
     const {
         formData, addresses, handleInputChange,
-        addAddressField, removeAddress, handleAddressChange, handleSubmit
+        addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending
     } = useCreateCustomer();
 
     return (
@@ -57,8 +57,7 @@ export const CreateCustomerContainer: React.FC = () => {
                             <div
                                 key={tier.id}
                                 onClick={() => handleInputChange({ target: { name: 'tier', value: tier.id } } as any)}
-                                // className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-blue-600 bg-blue-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 border-blue-600 bg-blue-50/30 shadow-md scale-[1.02] `}
+                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-blue-600 bg-blue-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
                             >
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${tier.color}`}>{tier.label}</span>
                                 <p className="text-xs font-medium text-neutral-400 mt-2">{tier.desc}</p>
@@ -103,8 +102,8 @@ export const CreateCustomerContainer: React.FC = () => {
                 {/* ACCIONES */}
                 <div className="flex gap-4 pt-10 border-t border-neutral-50">
                     <button type="button" className="flex-1 py-5 bg-neutral-100 text-neutral-500 rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-neutral-200 transition-all">Cancelar</button>
-                    <button type="submit" className="flex-[2] py-5 bg-neutral-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-neutral-300">
-                        Guardar Cliente
+                    <button type="submit" disabled={isPending} className="flex-[2] py-5 bg-neutral-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-neutral-300 disabled:opacity-60 disabled:cursor-not-allowed">
+                        {isPending ? 'Guardando...' : 'Guardar Cliente'}
                     </button>
                 </div>
             </form>
