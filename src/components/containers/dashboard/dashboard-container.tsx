@@ -69,31 +69,31 @@ export const DashboardContainer: React.FC = () => {
   ];
 
   return (
-    <>
+    <div className="pb-8">
       {/* KPI cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
           : kpiCards.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div
-                  className={`h-12 w-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-4`}
+                  className={`h-10 w-10 md:h-12 md:w-12 ${stat.bg} ${stat.color} rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4`}
                 >
-                  <stat.icon size={24} />
+                  <stat.icon size={20} />
                 </div>
-                <p className="text-neutral-500 text-sm font-bold uppercase tracking-wider">
+                <p className="text-neutral-500 text-[10px] md:text-sm font-bold uppercase tracking-wider">
                   {stat.label}
                 </p>
-                <h3 className="text-2xl font-black text-neutral-900 mt-1">{stat.value}</h3>
+                <h3 className="text-xl md:text-2xl font-black text-neutral-900 mt-1">{stat.value}</h3>
               </div>
             ))}
       </div>
 
       {/* Gráficas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-6 md:mb-8">
         {/* Ingresos por mes */}
         <div className="bg-white p-5 md:p-8 rounded-3xl border border-neutral-100 shadow-sm">
           <div className="flex justify-between items-center mb-6">
@@ -261,6 +261,6 @@ export const DashboardContainer: React.FC = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };

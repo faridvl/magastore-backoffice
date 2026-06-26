@@ -152,67 +152,121 @@ export const LogisticsContainer: React.FC = () => {
             </div>
 
             {/* TOOLBAR: BÚSQUEDA, FECHAS Y FILTROS */}
-            <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
-                {/* Buscador */}
-                <div className="relative w-full lg:w-72">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                        type="text"
-                        placeholder="Tracking, código o nombre..."
-                        className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium shadow-sm"
-                        onChange={(e) => handleSearch(e.target.value)}
-                    />
-                </div>
-
-                {/* Filtros de fecha */}
-                <div className="flex gap-2 items-end">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+            <div className="flex flex-col gap-3">
+                {/* Fila 1: búsqueda + fechas */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                    <div className="relative w-full sm:w-72 flex-shrink-0">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input
-                            type="date"
-                            value={dateFrom}
-                            onChange={(e) => setDateFrom(e.target.value)}
-                            className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                            type="text"
+                            placeholder="Tracking, código o nombre..."
+                            className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium shadow-sm"
+                            onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                        <input
-                            type="date"
-                            value={dateTo}
-                            onChange={(e) => setDateTo(e.target.value)}
-                            className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-                        />
+                    <div className="flex gap-2 items-end flex-wrap">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                            <input
+                                type="date"
+                                value={dateFrom}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                            <input
+                                type="date"
+                                value={dateTo}
+                                onChange={(e) => setDateTo(e.target.value)}
+                                className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                            />
+                        </div>
+                        {(dateFrom || dateTo) && (
+                            <button
+                                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                                className="py-3 px-3 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
+                            >
+                                Limpiar
+                            </button>
+                        )}
                     </div>
-                    {(dateFrom || dateTo) && (
-                        <button
-                            onClick={() => { setDateFrom(''); setDateTo(''); }}
-                            className="py-3 px-3 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
-                        >
-                            Limpiar
-                        </button>
-                    )}
                 </div>
-
-                {/* Filtro de estado */}
-                <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 lg:ml-auto overflow-x-auto whitespace-nowrap">
-                    {['ALL', 'MIAMI', 'TRANSITO', 'ENTREGADO'].map((s) => (
-                        <button
-                            key={s}
-                            onClick={() => setStatusFilter(s)}
-                            className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all ${statusFilter === s
-                                ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50'
-                                : 'text-slate-400 hover:text-slate-600'
-                                }`}
-                        >
-                            {s === 'ALL' ? 'TODOS' : s}
-                        </button>
-                    ))}
+                {/* Fila 2: filtro de estado (scroll horizontal en mobile) */}
+                <div className="overflow-x-auto -mx-0.5 px-0.5">
+                    <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-max">
+                        {['ALL', 'MIAMI', 'TRANSITO', 'ENTREGADO'].map((s) => (
+                            <button
+                                key={s}
+                                onClick={() => setStatusFilter(s)}
+                                className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${statusFilter === s
+                                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                {s === 'ALL' ? 'TODOS' : s}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* TABLA PRINCIPAL */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
+            {/* CARDS (mobile) */}
+            <div className="flex flex-col gap-3 md:hidden">
+                {isLoading ? (
+                    Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                        <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
+                    ))
+                ) : packages.map((pkg) => {
+                    const statusStyles: Record<string, string> = {
+                        'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
+                        'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                        'TRANSITO': 'bg-blue-50 text-blue-600 border-blue-100',
+                    };
+                    return (
+                        <button
+                            key={pkg.uuid}
+                            onClick={() => router.push(`/admin/logistics/${pkg.uuid}`)}
+                            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+                        >
+                            <div className="flex-1 min-w-0">
+                                <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
+                                <p className="font-bold text-slate-800 text-sm mt-0.5 truncate">{pkg.first_name} {pkg.last_name}</p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR')} · {pkg.weight_lb} lb</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                    {pkg.status}
+                                </span>
+                                <span className="text-[10px] font-mono text-blue-400 uppercase">{pkg.customer_code}</span>
+                            </div>
+                        </button>
+                    );
+                })}
+                {meta.totalPages > 1 && (
+                    <div className="flex items-center justify-between px-2 pt-2">
+                        <button
+                            onClick={() => handlePageChange(Math.max(1, meta.page - 1))}
+                            disabled={meta.page === 1}
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                        >
+                            Anterior
+                        </button>
+                        <span className="text-xs text-slate-400 font-bold">{meta.page} / {meta.totalPages}</span>
+                        <button
+                            onClick={() => handlePageChange(Math.min(meta.totalPages, meta.page + 1))}
+                            disabled={meta.page === meta.totalPages}
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* TABLA PRINCIPAL (tablet+) */}
+            <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
                 <NewTable
                     data={packages}
                     columns={columns}

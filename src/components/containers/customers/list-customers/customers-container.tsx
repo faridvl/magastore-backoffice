@@ -138,8 +138,59 @@ export const CustomersContainer: React.FC = () => {
                 </button>
             </div>
 
-            {/* TABLE */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            {/* CARDS (mobile) */}
+            <div className="flex flex-col gap-3 md:hidden">
+                {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
+                    ))
+                ) : customers.map((customer) => (
+                    <button
+                        key={customer.id}
+                        onClick={() => navigation.admin.customers.detail(customer.id)}
+                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+                    >
+                        <div className="flex-1 min-w-0">
+                            <p className="font-bold text-slate-800 text-sm truncate">{customer.first_name} {customer.last_name}</p>
+                            <p className="text-[10px] font-mono font-bold text-blue-400 uppercase mt-0.5">{customer.customer_code}</p>
+                            <p className="text-xs text-slate-400 mt-1 truncate">{customer.email}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                                customer.is_active
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                            }`}>
+                                {customer.is_active ? 'Activo' : 'Inactivo'}
+                            </span>
+                            <span className="text-xs text-slate-400">{customer.phone}</span>
+                        </div>
+                    </button>
+                ))}
+                {/* Paginación mobile */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-2 pt-2">
+                        <button
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                        >
+                            Anterior
+                        </button>
+                        <span className="text-xs text-slate-400 font-bold">{currentPage} / {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* TABLE (tablet+) */}
+            <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                 <NewTable
                     data={customers}
                     columns={columns}

@@ -216,8 +216,9 @@ export const BillingContainer: React.FC = () => {
       {/* TAB: REGISTROS */}
       {activeTab === 'registros' && (
         <>
-          <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
-            <div className="relative flex-1 min-w-0 w-full sm:w-auto">
+          <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+            {/* Búsqueda */}
+            <div className="relative w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
@@ -227,48 +228,51 @@ export const BillingContainer: React.FC = () => {
                 className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
               />
             </div>
-            <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl">
-              {(['all', 'pending', 'paid'] as PaidFilterValue[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => handlePaidFilterChange(f)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${
-                    paidFilter === f
-                      ? 'bg-white shadow-sm text-slate-800'
-                      : 'text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  {f === 'all' ? 'Todos' : f === 'paid' ? 'Pagados' : 'Pendientes'}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2 items-end">
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
-                />
+            {/* Pills de estado + fechas */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+              <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl flex-shrink-0">
+                {(['all', 'pending', 'paid'] as PaidFilterValue[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => handlePaidFilterChange(f)}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+                      paidFilter === f
+                        ? 'bg-white shadow-sm text-slate-800'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    {f === 'all' ? 'Todos' : f === 'paid' ? 'Pagados' : 'Pendientes'}
+                  </button>
+                ))}
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
-                />
+              <div className="flex gap-2 items-end flex-wrap">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                {(dateFrom || dateTo) && (
+                  <button
+                    onClick={() => { setDateFrom(''); setDateTo(''); }}
+                    className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
+                  >
+                    Limpiar
+                  </button>
+                )}
               </div>
-              {(dateFrom || dateTo) && (
-                <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); }}
-                  className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
-                >
-                  Limpiar
-                </button>
-              )}
             </div>
           </div>
 

@@ -147,74 +147,130 @@ export const ConsolidationsContainer: React.FC = () => {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
       {/* TOOLBAR */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
-        <div className="relative flex-1 min-w-0 w-full sm:w-auto">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            type="text"
-            placeholder="Buscar por cliente o casillero..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
-          />
-        </div>
-
-        <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl">
-          {STATUS_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => handleStatusFilterChange(f.value)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${
-                statusFilter === f.value
-                  ? 'bg-white shadow-sm text-slate-800'
-                  : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap gap-2 items-end">
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+        {/* Fila 1: búsqueda + botón nueva */}
+        <div className="flex gap-3 items-center">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+              type="text"
+              placeholder="Buscar por cliente o casillero..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-          {(dateFrom || dateTo) && (
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); }}
-              className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
-            >
-              Limpiar
-            </button>
-          )}
+          <button
+            onClick={handleOpenCreateModal}
+            className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
+          >
+            <Plus size={16} />
+            <span className="hidden sm:inline">Nueva Consolidación</span>
+            <span className="sm:hidden">Nueva</span>
+          </button>
         </div>
 
-        <button
-          onClick={handleOpenCreateModal}
-          className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
-        >
-          <Plus size={16} />
-          Nueva Consolidación
-        </button>
+        {/* Fila 2: filtros de estado (scroll horizontal) + fechas */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+          <div className="overflow-x-auto flex-1 -mx-0.5 px-0.5">
+            <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl w-max min-w-full">
+              {STATUS_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => handleStatusFilterChange(f.value)}
+                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+                    statusFilter === f.value
+                      ? 'bg-white shadow-sm text-slate-800'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-end flex-shrink-0">
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* TABLE */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      {/* CARDS (mobile) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {isLoadingList ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
+          ))
+        ) : consolidations.map((row) => (
+          <button
+            key={row.uuid}
+            onClick={() => handleSelectRow(row)}
+            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-800 text-sm truncate">{row.customer_name}</p>
+              <p className="text-[10px] font-mono font-bold text-blue-400 uppercase mt-0.5">{row.customer_code}</p>
+              <p className="text-xs text-slate-400 mt-1">
+                {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paquete(s)
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${STATUS_COLORS[row.status]}`}>
+                {STATUS_LABELS[row.status]}
+              </span>
+              <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
+            </div>
+          </button>
+        ))}
+        {listMeta.totalPages > 1 && (
+          <div className="flex items-center justify-between px-2 pt-2">
+            <button
+              onClick={() => setPage(Math.max(1, listMeta.page - 1))}
+              disabled={listMeta.page === 1}
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <span className="text-xs text-slate-400 font-bold">{listMeta.page} / {listMeta.totalPages}</span>
+            <button
+              onClick={() => setPage(Math.min(listMeta.totalPages, listMeta.page + 1))}
+              disabled={listMeta.page === listMeta.totalPages}
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* TABLE (tablet+) */}
+      <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <NewTable
           data={consolidations}
           columns={listColumns}
