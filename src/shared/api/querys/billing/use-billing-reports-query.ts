@@ -14,9 +14,9 @@ async function fetchBillingReports(
 }
 
 export function useBillingReportsQuery(from: string, to: string) {
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<{ data: BillingMonthlyReport[] }> {
+  ): UseAPIQueryResult<{ data: BillingMonthlyReport[] }> => {
     return useApiQuery({
       queryKey: [BILLING_REPORTS_KEY, from, to],
       queryFn: () => fetchBillingReports(from, to),
@@ -24,7 +24,7 @@ export function useBillingReportsQuery(from: string, to: string) {
       enabled: Boolean(from && to),
       ...options,
     } as any);
-  }
+  };
 
   return { useQuery };
 }

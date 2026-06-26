@@ -17,7 +17,7 @@ export function useUpdateCustomerMutation(customerId: string) {
       ApiServiceClient(env.API.BASE_URL).put(`/customers/${customerId}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
-      queryClient.invalidateQueries({ queryKey: ['customersList'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
   });
 

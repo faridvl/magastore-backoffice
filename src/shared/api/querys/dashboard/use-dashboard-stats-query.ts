@@ -13,14 +13,14 @@ async function fetchDashboardStats(): Promise<{ data: DashboardStats }> {
 export function useDashboardStatsQuery() {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(options?: UseAPIQueryOptions): UseAPIQueryResult<{ data: DashboardStats }> {
+  const useQuery = (options?: UseAPIQueryOptions): UseAPIQueryResult<{ data: DashboardStats }> => {
     return useApiQuery({
       queryKey: [DASHBOARD_STATS_KEY],
       queryFn: fetchDashboardStats,
       staleTime: 1000 * 60 * 2,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [DASHBOARD_STATS_KEY] });

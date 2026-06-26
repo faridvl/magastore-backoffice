@@ -37,9 +37,9 @@ export function useBillingListQuery(
 ) {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<PaginatedResponse<BillingListItem>> {
+  ): UseAPIQueryResult<PaginatedResponse<BillingListItem>> => {
     return useApiQuery({
       queryKey: [BILLING_LIST_KEY, page, limit, search ?? '', isPaid ?? null, dateFrom ?? '', dateTo ?? ''],
       queryFn: () => fetchBillingList(page, limit, search, isPaid, dateFrom, dateTo),
@@ -47,7 +47,7 @@ export function useBillingListQuery(
       placeholderData: (prev: unknown) => prev,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [BILLING_LIST_KEY] });

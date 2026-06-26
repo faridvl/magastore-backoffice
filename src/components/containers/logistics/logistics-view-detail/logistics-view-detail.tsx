@@ -15,7 +15,8 @@ const STATUS_LABELS: Record<PackageStatus, string> = {
 
 export const PackageDetailContainer: React.FC = () => {
     const router = useRouter();
-    const { uuid } = router.query;
+    const { id } = router.query;
+    const uuid = router.isReady ? (id as string) : undefined;
     const {
         data, bitacora, calculos, tieneFactura, isLoading, isError,
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,

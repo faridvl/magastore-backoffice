@@ -23,7 +23,7 @@ export function useUpdatePackageStatusMutation(uuid: string | undefined) {
       ApiServiceClient(env.API.BASE_URL).patch(`/logistics?uuid=${uuid}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fetchPackageDetail', uuid] });
-      queryClient.invalidateQueries({ queryKey: ['packagesList'] });
+      queryClient.invalidateQueries({ queryKey: ['logistics'], exact: false });
     },
   });
 

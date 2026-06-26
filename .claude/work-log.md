@@ -966,3 +966,640 @@ fcd7d1d docs: actualizar development-plan, status, work-log y README con estado 
 afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
 --- status ---
  M .claude/work-log.md
+
+=== 2026-06-25 23:49 ===
+--- recent commits ---
+8d12053 docs: actualizar work-log
+832e8ca fix: estandarizar mensajes de error en toasts ÔÇö lenguaje amigable para el operador
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+d2d8c47 feat(etapa-19): implementar guardado real de peso en detalle de paquete
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+--- status ---
+
+=== 2026-06-25 23:54 ===
+--- recent commits ---
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+832e8ca fix: estandarizar mensajes de error en toasts ÔÇö lenguaje amigable para el operador
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:58 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:58 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:59 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:03 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-26 00:04 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-26 00:06 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/customers/list-customers/use-customers.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-26 00:07 ===
+--- recent commits ---
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+20e1272 feat(etapa-20): cambio de estado inline en detalle de paquete
+8d12053 docs: actualizar work-log
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/customers/list-customers/use-customers.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-06-26 00:08 ===
+--- recent commits ---
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:08 ===
+--- recent commits ---
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:09 ===
+--- recent commits ---
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:10 ===
+--- recent commits ---
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+6fb3d49 feat(etapa-20): script SQL package_events + INSERT explicito en bitacora
+a71d56b docs: actualizar hash de Etapa 20 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:19 ===
+--- recent commits ---
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:19 ===
+--- recent commits ---
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:21 ===
+--- recent commits ---
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:23 ===
+--- recent commits ---
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+a1f9736 feat(etapa-21): panel financiero real + migraci├│n NewTable en clientes y settings
+f42201d docs: marcar script 005 como ejecutado en Neon
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
+ M src/pages/api/auth/login.ts
+?? src/lib/rate-limiter.ts
+
+=== 2026-06-26 00:24 ===
+--- recent commits ---
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:24 ===
+--- recent commits ---
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:27 ===
+--- recent commits ---
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:29 ===
+--- recent commits ---
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+ M src/pages/admin/packages/index.tsx
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/logistics.service.ts
+
+=== 2026-06-26 00:33 ===
+--- recent commits ---
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+2831356 feat(etapa-16): billing address snapshot + pagina de reportes mensuales
+647fce1 docs: actualizar hash Etapa 21 en development-plan y status
+--- status ---
+ M .claude/work-log.md
+ M src/pages/admin/packages/index.tsx
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/logistics.service.ts
+?? src/components/containers/packages/
+
+=== 2026-06-26 00:34 ===
+--- recent commits ---
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+aafaeab docs: actualizar hash Etapa 16 en development-plan, status y README
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:35 ===
+--- recent commits ---
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+32487bd feat(etapa-18): rate limiting en login ÔÇö 5 intentos/min por IP
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:37 ===
+--- recent commits ---
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 00:58 ===
+--- recent commits ---
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+--- status ---
+ M .claude/work-log.md
+ M package.json
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/pages/api/billing/index.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+?? src/pages/api/auth/me.ts
+?? vercel.json
+
+=== 2026-06-26 00:59 ===
+--- recent commits ---
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+aff2f64 docs: actualizar hash Etapa 18 en development-plan
+--- status ---
+ M .claude/work-log.md
+ M package.json
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/pages/api/billing/index.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+?? src/pages/api/auth/me.ts
+?? vercel.json
+
+=== 2026-06-26 01:00 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 01:04 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 01:07 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-26 01:14 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:16 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:17 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:20 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:24 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:25 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:27 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+ M src/shared/api/repositories/logistics.repo.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:34 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+ M src/shared/api/repositories/logistics.repo.ts
+?? .claude/worktrees/
+
+=== 2026-06-26 01:36 ===
+--- recent commits ---
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+44d5544 feat: buscador de paquetes real en /admin/packages
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+ M src/shared/api/mutations/customers/use-update-customer-mutation.ts
+ M src/shared/api/mutations/logistics/use-add-package-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-status-mutation.ts
+ M src/shared/api/mutations/logistics/use-update-package-weight-mutation.ts
+ M src/shared/api/querys/billing/use-billing-detail-query.ts
+ M src/shared/api/querys/billing/use-billing-list-query.ts
+ M src/shared/api/querys/billing/use-billing-reports-query.ts
+ M src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/consolidations/use-available-packages-query.ts
+ M src/shared/api/querys/consolidations/use-consolidation-detail-query.ts
+ M src/shared/api/querys/consolidations/use-consolidations-query.ts
+ M src/shared/api/querys/dashboard/use-dashboard-stats-query.ts
+ M src/shared/api/querys/logistics/find-one-package-query.ts
+ M src/shared/api/repositories/logistics.repo.ts
+?? .claude/worktrees/

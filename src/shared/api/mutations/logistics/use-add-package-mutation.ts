@@ -17,7 +17,7 @@ export function useCreatePackageMutation() {
     mutationFn: (newPackage) =>
       ApiServiceClient(env.API.BASE_URL).post('/logistics?action=register', newPackage),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['packagesList'] });
+      queryClient.invalidateQueries({ queryKey: ['logistics'], exact: false });
     },
   });
 

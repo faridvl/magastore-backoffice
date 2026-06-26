@@ -33,9 +33,9 @@ export function useConsolidationsQuery(
 ) {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<PaginatedResponse<ConsolidationListItem>> {
+  ): UseAPIQueryResult<PaginatedResponse<ConsolidationListItem>> => {
     return useApiQuery({
       queryKey: [CONSOLIDATIONS_LIST_KEY, page, limit, search ?? '', status ?? 'ALL', dateFrom ?? '', dateTo ?? ''],
       queryFn: () => fetchConsolidations(page, limit, search, status, dateFrom, dateTo),
@@ -43,7 +43,7 @@ export function useConsolidationsQuery(
       placeholderData: (prev: unknown) => prev,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [CONSOLIDATIONS_LIST_KEY] });

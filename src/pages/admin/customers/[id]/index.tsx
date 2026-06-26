@@ -18,7 +18,13 @@ const CustomerDetailPage: React.FC = () => {
                 contentStyle={BoxedLayoutStyle.FULL}
                 title="Expediente de Cliente"
             >
-                <CustomerDetailContainer id={id as string} />
+                {router.isReady && id ? (
+                    <CustomerDetailContainer id={id as string} />
+                ) : (
+                    <div className="flex items-center justify-center py-20 text-slate-400 text-sm">
+                        Cargando...
+                    </div>
+                )}
             </DashboardLayout>
         </>
     );

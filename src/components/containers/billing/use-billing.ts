@@ -5,6 +5,7 @@ import { usePendingConsolidationsQuery } from '@/shared/api/querys/billing/use-p
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
 import { useGenerateInvoiceMutation } from '@/shared/api/mutations/billing/use-generate-invoice-mutation';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
+import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { DeliveryMethod, PendingConsolidation } from '@/types/logistics/logistics.types';
 
 export type PaidFilterValue = 'all' | 'paid' | 'pending';
@@ -54,6 +55,7 @@ export const useBilling = () => {
 
   const { generateInvoice, isPending: isGenerating } = useGenerateInvoiceMutation();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
+  const { data: settingsData } = useSettingsQuery();
 
   const handlePaidFilterChange = (val: PaidFilterValue) => {
     setPaidFilter(val);
@@ -145,5 +147,6 @@ export const useBilling = () => {
     isMarkingPaid,
     handleDownloadPdf,
     isDownloadingPdf,
+    settings: settingsData ?? null,
   };
 };

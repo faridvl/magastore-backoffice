@@ -31,17 +31,15 @@ export function usePackageDetailQuery(uuid: string): UseAPIQueryHook<PackageDeta
   const USE_FETCH_PACKAGE_DETAIL_KEY = 'fetchPackageDetail';
   const apiQueryClient = useApiQueryClient();
 
-  // Función que el componente llamará: const { data } = detailQuery.useQuery()
-  function useQuery(options?: UseAPIQueryOptions): UseAPIQueryResult<PackageDetail> {
+  const useQuery = (options?: UseAPIQueryOptions): UseAPIQueryResult<PackageDetail> => {
     return useApiQuery({
-      // El queryKey DEBE incluir el uuid para que React Query cachee paquetes distintos por separado
       queryKey: [USE_FETCH_PACKAGE_DETAIL_KEY, uuid],
       queryFn: () => fetchGetPackageDetail(uuid),
-      enabled: !!uuid, // Solo dispara la petición si existe el uuid
-      staleTime: 60 * 1000 * 5, // 5 minutos de caché
+      enabled: !!uuid,
+      staleTime: 60 * 1000 * 5,
       ...options,
     } as any);
-  }
+  };
 
   // Permite refrescar la información manualmente tras una edición
   async function invalidate() {

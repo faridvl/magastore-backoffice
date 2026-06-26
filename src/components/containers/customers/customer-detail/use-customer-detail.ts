@@ -89,27 +89,12 @@ export const useCustomerDetail = (customerId: string) => {
     return `${customer.first_name.charAt(0)}${customer.last_name.charAt(0)}`.toUpperCase();
   }, [customer]);
 
-  const metrics = {
-    totalLbs: 154.5,
-    totalSpent: 450000,
-    packageCount: 12,
-    firstOrderDate: '15 Oct 2025',
-    customerType: 'VIP',
-  };
+  const metrics = null as { totalLbs: number; totalSpent: number; packageCount: number; firstOrderDate: string; customerType: string } | null;
 
-  const seasonalityData = [
-    { month: 'Sep', lbs: 12 },
-    { month: 'Oct', lbs: 18 },
-    { month: 'Nov', lbs: 45 },
-    { month: 'Dic', lbs: 38 },
-    { month: 'Ene', lbs: 15 },
-    { month: 'Feb', lbs: 26 },
-  ];
+  const seasonalityData: { month: string; lbs: number }[] = [];
 
   const filteredHistory = useMemo(() => {
-    const purchaseHistory = [
-      { id: 1, date: '2026-02-15', tracking: '00000885166052', weight: 3.5, total: 16350, status: 'Pagado' },
-    ];
+    const purchaseHistory: { id: number; date: string; tracking: string; weight: number; total: number; status: string }[] = [];
     const query = searchTerm.toLowerCase().trim();
     return purchaseHistory.filter((item) => item.tracking.toLowerCase().includes(query));
   }, [searchTerm]);

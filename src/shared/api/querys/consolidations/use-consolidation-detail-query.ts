@@ -13,9 +13,9 @@ async function fetchConsolidationDetail(uuid: string): Promise<{ data: Consolida
 export function useConsolidationDetailQuery(uuid: string) {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<{ data: ConsolidationDetail }> {
+  ): UseAPIQueryResult<{ data: ConsolidationDetail }> => {
     return useApiQuery({
       queryKey: [CONSOLIDATION_DETAIL_KEY, uuid],
       queryFn: () => fetchConsolidationDetail(uuid),
@@ -23,7 +23,7 @@ export function useConsolidationDetailQuery(uuid: string) {
       enabled: !!uuid,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [CONSOLIDATION_DETAIL_KEY, uuid] });

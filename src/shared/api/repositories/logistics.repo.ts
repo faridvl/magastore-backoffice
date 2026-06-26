@@ -315,10 +315,9 @@ export const LogisticsRepository = {
   ): Promise<Partial<Package>> => {
     const rows = await sql`
       UPDATE packages
-      SET weight_lb = ${weight_lb},
-          updated_at = NOW()
+      SET weight_lb = ${weight_lb}
       WHERE uuid = ${packageUuid}
-      RETURNING uuid, weight_lb, updated_at;
+      RETURNING uuid, weight_lb;
     `;
     if (rows.length === 0) throw new Error('Paquete no encontrado.');
     return rows[0];
@@ -338,8 +337,7 @@ export const LogisticsRepository = {
       UPDATE packages
       SET status = ${status},
           internal_notes = ${note || null},
-          evidence_url = ${evidenceUrl || null},
-          updated_at = NOW()
+          evidence_url = ${evidenceUrl || null}
       WHERE uuid = ${packageUuid}
       RETURNING id, uuid, status, internal_notes, evidence_url;
     `;

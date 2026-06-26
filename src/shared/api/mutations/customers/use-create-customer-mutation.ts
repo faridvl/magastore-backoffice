@@ -17,7 +17,7 @@ export function useCreateCustomerMutation() {
     mutationKey: ['createCustomer'],
     mutationFn: (newCustomer) => ApiServiceClient(env.API.BASE_URL).post('/customers', newCustomer),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customersList'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
     },
   });
 

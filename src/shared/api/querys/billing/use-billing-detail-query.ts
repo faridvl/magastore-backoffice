@@ -13,9 +13,9 @@ async function fetchBillingDetail(uuid: string): Promise<{ data: BillingDetail }
 export function useBillingDetailQuery(uuid: string) {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<{ data: BillingDetail }> {
+  ): UseAPIQueryResult<{ data: BillingDetail }> => {
     return useApiQuery({
       queryKey: [BILLING_DETAIL_KEY, uuid],
       queryFn: () => fetchBillingDetail(uuid),
@@ -23,7 +23,7 @@ export function useBillingDetailQuery(uuid: string) {
       staleTime: 1000 * 60 * 5,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [BILLING_DETAIL_KEY, uuid] });

@@ -20,7 +20,7 @@ export function useUpdatePackageWeightMutation(uuid: string | undefined) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fetchPackageDetail', uuid] });
-      queryClient.invalidateQueries({ queryKey: ['packagesList'] });
+      queryClient.invalidateQueries({ queryKey: ['logistics'], exact: false });
     },
   });
 

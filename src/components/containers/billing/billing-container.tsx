@@ -1,9 +1,11 @@
 import React from 'react';
-import { Search, CheckCircle2, Clock, XCircle, Truck, Package, FileDown } from 'lucide-react';
+import Link from 'next/link';
+import { Search, CheckCircle2, Clock, XCircle, Truck, Package, FileDown, BarChart2 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useBilling, PaidFilterValue, ActiveBillingTab } from './use-billing';
 import { BillingListItem, PendingConsolidation, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { routesPrivate } from '@/shared/navigation/routes';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
@@ -38,6 +40,7 @@ export const BillingContainer: React.FC = () => {
     isGenerating,
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
+    settings,
   } = useBilling();
 
   const billingColumns: Column<BillingListItem>[] = [
@@ -153,8 +156,12 @@ export const BillingContainer: React.FC = () => {
       header: 'Flete estimado',
       accessor: 'total_weight_lb',
       render: (row) => {
-        const flete = Math.max(Number(row.total_weight_lb), 1) * 6 * 480;
-        return <span className="text-sm font-bold text-slate-500 italic">{formatCRC(flete)}</span>;
+        const rate = settings?.current.price_per_lb ?? 0;
+        const exchange = settings?.current.exchange_rate ?? 0;
+        const flete = rate && exchange ? Math.max(Number(row.total_weight_lb), 1) * rate * exchange : null;
+        return flete !== null
+          ? <span className="text-sm font-bold text-slate-500 italic">{formatCRC(flete)}</span>
+          : <span className="text-sm text-slate-300 italic">—</span>;
       },
     },
     {
@@ -175,26 +182,35 @@ export const BillingContainer: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
-      {/* TABS */}
-      <div className="flex gap-1 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm w-fit">
-        {(['registros', 'por-facturar'] as ActiveBillingTab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-              activeTab === tab
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            {tab === 'registros' ? 'Registros' : 'Por Facturar'}
-            {tab === 'por-facturar' && pendingConsolidations.length > 0 && (
-              <span className="ml-2 bg-orange-500 text-white text-[8px] px-1.5 py-0.5 rounded-full">
-                {pendingConsolidations.length}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* TABS + REPORTES */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex gap-1 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm w-fit">
+          {(['registros', 'por-facturar'] as ActiveBillingTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                activeTab === tab
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {tab === 'registros' ? 'Registros' : 'Por Facturar'}
+              {tab === 'por-facturar' && pendingConsolidations.length > 0 && (
+                <span className="ml-2 bg-orange-500 text-white text-[8px] px-1.5 py-0.5 rounded-full">
+                  {pendingConsolidations.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <Link
+          href={routesPrivate.admin.billing.reports}
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all"
+        >
+          <BarChart2 size={14} />
+          Reportes
+        </Link>
       </div>
 
       {/* TAB: REGISTROS */}

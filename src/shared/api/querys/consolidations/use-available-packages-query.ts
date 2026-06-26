@@ -15,9 +15,9 @@ async function fetchAvailablePackages(customerUuid: string): Promise<{ data: Ava
 export function useAvailablePackagesQuery(customerUuid: string) {
   const apiQueryClient = useApiQueryClient();
 
-  function useQuery(
+  const useQuery = (
     options?: UseAPIQueryOptions,
-  ): UseAPIQueryResult<{ data: AvailablePackage[] }> {
+  ): UseAPIQueryResult<{ data: AvailablePackage[] }> => {
     return useApiQuery({
       queryKey: [AVAILABLE_PACKAGES_KEY, customerUuid],
       queryFn: () => fetchAvailablePackages(customerUuid),
@@ -25,7 +25,7 @@ export function useAvailablePackagesQuery(customerUuid: string) {
       enabled: !!customerUuid,
       ...options,
     } as any);
-  }
+  };
 
   async function invalidate() {
     await apiQueryClient.invalidateQueries({ queryKey: [AVAILABLE_PACKAGES_KEY] });

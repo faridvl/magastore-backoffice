@@ -32,6 +32,12 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
 
     if (isLoading || !customer) return <div>Cargando expediente...</div>;
 
+    const metricPackageCount = metrics != null ? String(metrics.packageCount) : '—';
+    const metricTotalLbs = metrics != null ? `${metrics.totalLbs} lb` : '—';
+    const metricTotalSpent = metrics != null ? `₡${metrics.totalSpent.toLocaleString()}` : '—';
+    const metricCustomerType = metrics != null ? metrics.customerType : '—';
+    const metricFirstOrderDate = metrics != null ? metrics.firstOrderDate : '—';
+
     return (
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -138,21 +144,21 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><Box size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Paquetes</Typography>
-                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metrics.packageCount}</Typography>
+                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricPackageCount}</Typography>
                                             </div>
                                         </div>
                                         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
                                             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><TrendingUp size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Libras</Typography>
-                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metrics.totalLbs} lb</Typography>
+                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricTotalLbs}</Typography>
                                             </div>
                                         </div>
                                         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
                                             <div className="p-3 bg-primary/5 text-primary rounded-2xl"><DollarSign size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Inversión</Typography>
-                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">₡{metrics.totalSpent.toLocaleString()}</Typography>
+                                                <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricTotalSpent}</Typography>
                                             </div>
                                         </div>
                                     </div>
@@ -199,7 +205,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             <div className="grid grid-cols-1 gap-3 flex-1">
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
                                                     <div className="flex items-center gap-3 text-slate-500"><Tag size={18} /><Typography variant={TypographyVariant.BODY}>Categoría</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD} textColor="text-primary">{metrics.customerType}</Typography>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD} textColor="text-primary">{metricCustomerType}</Typography>
                                                 </div>
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl font-medium">
                                                     <div className="flex items-center gap-3 text-slate-500"><Calendar size={18} /><Typography variant={TypographyVariant.BODY}>Registro</Typography></div>
@@ -207,7 +213,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                 </div>
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><CreditCard size={18} /><Typography variant={TypographyVariant.BODY}>Primer Pedido</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{metrics.firstOrderDate}</Typography>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{metricFirstOrderDate}</Typography>
                                                 </div>
                                             </div>
                                         </div>
