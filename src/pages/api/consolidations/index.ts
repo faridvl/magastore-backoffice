@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, status, availablePackages } = req.query;
+      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo } = req.query;
 
       if (uuid) {
         const detail = await ConsolidationsService.getConsolidationDetail(uuid as string);
@@ -35,6 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         l,
         search as string | undefined,
         status as string | undefined,
+        dateFrom as string | undefined,
+        dateTo as string | undefined,
       );
       return res.status(200).json(result);
     }

@@ -12,6 +12,8 @@ async function fetchBillingList(
   limit: number,
   search?: string,
   isPaid?: boolean,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<PaginatedResponse<BillingListItem>> {
   const params = new URLSearchParams({
     page: String(page),
@@ -19,6 +21,8 @@ async function fetchBillingList(
   });
   if (search) params.set('search', search);
   if (isPaid !== undefined) params.set('isPaid', String(isPaid));
+  if (dateFrom) params.set('dateFrom', dateFrom);
+  if (dateTo) params.set('dateTo', dateTo);
 
   return ApiServiceClient(env.API.BASE_URL).get(`/billing?${params.toString()}`);
 }
@@ -28,6 +32,8 @@ export function useBillingListQuery(
   limit: number,
   search?: string,
   isPaid?: boolean,
+  dateFrom?: string,
+  dateTo?: string,
 ) {
   const apiQueryClient = useApiQueryClient();
 
@@ -35,8 +41,8 @@ export function useBillingListQuery(
     options?: UseAPIQueryOptions,
   ): UseAPIQueryResult<PaginatedResponse<BillingListItem>> {
     return useApiQuery({
-      queryKey: [BILLING_LIST_KEY, page, limit, search ?? '', isPaid ?? null],
-      queryFn: () => fetchBillingList(page, limit, search, isPaid),
+      queryKey: [BILLING_LIST_KEY, page, limit, search ?? '', isPaid ?? null, dateFrom ?? '', dateTo ?? ''],
+      queryFn: () => fetchBillingList(page, limit, search, isPaid, dateFrom, dateTo),
       staleTime: 1000 * 60 * 5,
       placeholderData: (prev: unknown) => prev,
       ...options,

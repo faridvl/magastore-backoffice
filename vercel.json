@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "src/pages/api/billing/pdf.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  }
+}

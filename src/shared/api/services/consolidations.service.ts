@@ -19,8 +19,10 @@ export const ConsolidationsService = {
     limit: number,
     search?: string,
     status?: string,
+    dateFrom?: string,
+    dateTo?: string,
   ) => {
-    return ConsolidationsRepository.getPaginatedConsolidations(page, limit, search, status);
+    return ConsolidationsRepository.getPaginatedConsolidations(page, limit, search, status, dateFrom, dateTo);
   },
 
   getConsolidationDetail: async (uuid: string) => {

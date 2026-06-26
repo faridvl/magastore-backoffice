@@ -9,15 +9,19 @@ export function useLogisticsQuery(
   limit: number = 10,
   search: string = '',
   status: string = 'ALL',
+  dateFrom?: string,
+  dateTo?: string,
 ) {
   return useQuery<PaginatedResponse<LogisticsPackage>>({
-    queryKey: ['logistics', page, limit, search, status],
+    queryKey: ['logistics', page, limit, search, status, dateFrom ?? '', dateTo ?? ''],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
         ...(search && { search }),
         ...(status !== 'ALL' && { status }),
+        ...(dateFrom && { dateFrom }),
+        ...(dateTo && { dateTo }),
       });
 
       const response = await ApiServiceClient(env.API.BASE_URL).get(
@@ -25,7 +29,7 @@ export function useLogisticsQuery(
       );
       return response;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    placeholderData: (previousData) => previousData, // Mantiene los datos anteriores mientras carga los nuevos (evita parpadeos)
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
   });
 }

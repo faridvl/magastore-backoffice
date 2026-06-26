@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, pending, page, limit, search, isPaid } = req.query;
+      const { uuid, pending, page, limit, search, isPaid, dateFrom, dateTo } = req.query;
 
       if (uuid) {
         const detail = await BillingService.getBillingDetail(uuid as string);
@@ -36,8 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const s = search as string | undefined;
       const paidFilter =
         isPaid === 'true' ? true : isPaid === 'false' ? false : undefined;
+      const df = dateFrom as string | undefined;
+      const dt = dateTo as string | undefined;
 
-      const result = await BillingService.getBillingList(p, l, s, paidFilter);
+      const result = await BillingService.getBillingList(p, l, s, paidFilter, df, dt);
       return res.status(200).json(result);
     }
 

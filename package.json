@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "next build",
     "lint": "next lint",
     "build:styles": "postcss styles/global.scss -o public/styles.css",
     "watch:styles": "postcss styles/global.scss -o public/styles.css --watch"

@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // --- MÉTODOS GET ---
         if (req.method === 'GET') {
-            const { uuid, page, limit, search, status } = req.query;
+            const { uuid, page, limit, search, status, dateFrom, dateTo } = req.query;
 
             if (uuid) {
                 const pkg = await LogisticsService.getPackageByUuid(uuid as string);
@@ -33,10 +33,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const p = parseInt(page as string) || 1;
             const l = parseInt(limit as string) || 10;
-            const s = search as string;
-            const st = status as string;
+            const s = search as string | undefined;
+            const st = status as string | undefined;
+            const df = dateFrom as string | undefined;
+            const dt = dateTo as string | undefined;
 
-            const result = await LogisticsService.getAllPackages(p, l, s, st);
+            const result = await LogisticsService.getAllPackages(p, l, s, st, df, dt);
             return res.status(200).json(result);
         }
 

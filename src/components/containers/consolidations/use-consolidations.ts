@@ -22,6 +22,8 @@ export const useConsolidations = () => {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConsolidationStatusFilter>('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
 
@@ -47,6 +49,8 @@ export const useConsolidations = () => {
     PAGE_SIZE,
     debouncedSearch || undefined,
     statusFilter,
+    dateFrom || undefined,
+    dateTo || undefined,
   );
   const { data: listData, isLoading: isLoadingList } = listQuery.useQuery();
 
@@ -162,6 +166,8 @@ export const useConsolidations = () => {
     page, setPage,
     search, setSearch,
     statusFilter, handleStatusFilterChange,
+    dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
+    dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     consolidations: listData?.data ?? [],
     listMeta: listData?.meta ?? { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 },
     isLoadingList,

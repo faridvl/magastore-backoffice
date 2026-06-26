@@ -7,10 +7,14 @@ export const BillingRepository = {
     limit: number,
     search?: string,
     isPaid?: boolean,
+    dateFrom?: string,
+    dateTo?: string,
   ): Promise<{ data: BillingListItem[]; total: number }> => {
     const offset = (page - 1) * limit;
     const searchTerm = search ? `%${search}%` : null;
     const isPaidFilter = isPaid !== undefined ? isPaid : null;
+    const fromDate = dateFrom || null;
+    const toDate = dateTo || null;
 
     const [rows, countResult] = await Promise.all([
       sql`
@@ -38,6 +42,8 @@ export const BillingRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR b.uuid::text ILIKE ${searchTerm})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
+          AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
         ORDER BY b.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
@@ -53,6 +59,8 @@ export const BillingRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR b.uuid::text ILIKE ${searchTerm})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
+          AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
       `,
     ]);
 

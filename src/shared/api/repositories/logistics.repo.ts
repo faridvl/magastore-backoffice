@@ -143,31 +143,38 @@ export const LogisticsRepository = {
     limit: number,
     search?: string,
     status?: string,
+    dateFrom?: string,
+    dateTo?: string,
   ): Promise<{ data: any[]; total: number }> => {
     const offset = (page - 1) * limit;
 
-    // Preparamos los valores para SQL
     const searchTerm = search ? `%${search}%` : null;
     const statusTerm = status && status !== 'ALL' ? status : null;
+    const fromDate = dateFrom || null;
+    const toDate = dateTo || null;
 
     const [packages, countResult] = await Promise.all([
       sql`
       SELECT p.*, c.first_name, c.last_name, c.customer_code
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
-      WHERE 
+      WHERE
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
+        AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
+        AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
       ORDER BY p.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `,
       sql`
-      SELECT COUNT(*) as total 
+      SELECT COUNT(*) as total
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
-      WHERE 
+      WHERE
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
+        AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
+        AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
     `,
     ]);
 

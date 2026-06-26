@@ -6,6 +6,8 @@ export const usePackages = (pageSize = 7) => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [debouncedSearch, setDebouncedSearch] = useState(search);
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -15,7 +17,10 @@ export const usePackages = (pageSize = 7) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    const { data, isLoading } = useLogisticsQuery(page, pageSize, debouncedSearch, statusFilter);
+    const { data, isLoading } = useLogisticsQuery(
+        page, pageSize, debouncedSearch, statusFilter,
+        dateFrom || undefined, dateTo || undefined,
+    );
 
     return {
         packages: data?.data || [],
@@ -29,6 +34,8 @@ export const usePackages = (pageSize = 7) => {
         statusFilter,
         setStatusFilter: (s: string) => { setStatusFilter(s); setPage(1); },
         handlePageChange: setPage,
-        handleSearch: setSearch
+        handleSearch: setSearch,
+        dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
+        dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     };
 };

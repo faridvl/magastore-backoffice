@@ -30,8 +30,8 @@ export const BillingReportsContainer: React.FC = () => {
 
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <Typography variant={TypographyVariant.H2}>Reportes de Facturación</Typography>
-        <Typography variant={TypographyVariant.MUTED}>
+        <Typography variant={TypographyVariant.SUBTITLE}>Reportes de Facturación</Typography>
+        <Typography variant={TypographyVariant.HELPER}>
           Resumen mensual de ingresos facturados, pagados y pendientes.
         </Typography>
       </div>

@@ -19,6 +19,8 @@ export const useBilling = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [paidFilter, setPaidFilter] = useState<PaidFilterValue>('all');
   const [selectedBillingUuid, setSelectedBillingUuid] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Estado para el modal de generación de factura
   const [invoiceTarget, setInvoiceTarget] = useState<PendingConsolidation | null>(null);
@@ -39,6 +41,8 @@ export const useBilling = () => {
     PAGE_SIZE,
     debouncedSearch || undefined,
     isPaid,
+    dateFrom || undefined,
+    dateTo || undefined,
   );
   const { data: listData, isLoading: isLoadingList } = billingListQuery.useQuery();
 
@@ -117,6 +121,8 @@ export const useBilling = () => {
     page, setPage,
     search, setSearch,
     paidFilter, handlePaidFilterChange,
+    dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
+    dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     selectedBillingUuid, setSelectedBillingUuid,
     // Invoice modal
     invoiceTarget, setInvoiceTarget,

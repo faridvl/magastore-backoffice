@@ -23,17 +23,20 @@ export const LogisticsService = {
     limit: number = 10,
     search?: string,
     status?: string,
+    dateFrom?: string,
+    dateTo?: string,
   ): Promise<PaginatedResponse<Package>> => {
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
 
     try {
-      // Pasamos search y status al repo
       const { data, total } = await LogisticsRepository.getPaginatedPackages(
         safePage,
         safeLimit,
         search,
         status,
+        dateFrom,
+        dateTo,
       );
 
       const totalPages = Math.ceil(total / safeLimit);

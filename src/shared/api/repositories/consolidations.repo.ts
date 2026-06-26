@@ -29,10 +29,14 @@ export const ConsolidationsRepository = {
     limit: number,
     search?: string,
     status?: string,
+    dateFrom?: string,
+    dateTo?: string,
   ): Promise<PaginatedResponse<ConsolidationListItem>> => {
     const offset = (page - 1) * limit;
     const searchTerm = search ? `%${search}%` : null;
     const statusTerm = status && status !== 'ALL' ? status : null;
+    const fromDate = dateFrom || null;
+    const toDate = dateTo || null;
 
     const [rows, countResult] = await Promise.all([
       sql`
@@ -56,6 +60,8 @@ export const ConsolidationsRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
           AND (${statusTerm}::text IS NULL OR con.status = ${statusTerm})
+          AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
         GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb, con.created_at, con.updated_at,
                  c.first_name, c.last_name, c.customer_code
         ORDER BY con.created_at DESC
@@ -72,6 +78,8 @@ export const ConsolidationsRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
           AND (${statusTerm}::text IS NULL OR con.status = ${statusTerm})
+          AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
       `,
     ]);
 

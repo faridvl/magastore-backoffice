@@ -13,6 +13,8 @@ export const BillingService = {
     limit: number = 10,
     search?: string,
     isPaid?: boolean,
+    dateFrom?: string,
+    dateTo?: string,
   ): Promise<PaginatedResponse<BillingListItem>> => {
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
@@ -23,6 +25,8 @@ export const BillingService = {
         safeLimit,
         search,
         isPaid,
+        dateFrom,
+        dateTo,
       );
 
       const totalPages = Math.ceil(total / safeLimit);

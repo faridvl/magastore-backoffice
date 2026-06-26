@@ -33,7 +33,9 @@ export const LogisticsContainer: React.FC = () => {
     const {
         packages, isLoading, meta,
         handlePageChange, handleSearch,
-        statusFilter, setStatusFilter
+        statusFilter, setStatusFilter,
+        dateFrom, setDateFrom,
+        dateTo, setDateTo,
     } = usePackages(PAGE_SIZE);
 
     const columns: Column[] = [
@@ -57,10 +59,10 @@ export const LogisticsContainer: React.FC = () => {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-slate-700 font-bold text-[11px] leading-none">
-                            {row.customer?.first_name} {row.customer?.last_name}
+                            {row.first_name} {row.last_name}
                         </span>
                         <span className="text-[9px] font-black text-blue-400 mt-1 uppercase tracking-widest">
-                            {row.customer?.customer_code}
+                            {row.customer_code}
                         </span>
                     </div>
                 </div>
@@ -175,6 +177,36 @@ export const LogisticsContainer: React.FC = () => {
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* FILTRO DE FECHAS */}
+            <div className="flex flex-wrap gap-3 items-center">
+                <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                    <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="bg-white border border-slate-100 px-4 py-2 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                    />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                    <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="bg-white border border-slate-100 px-4 py-2 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                    />
+                </div>
+                {(dateFrom || dateTo) && (
+                    <button
+                        onClick={() => { setDateFrom(''); setDateTo(''); }}
+                        className="self-end mb-0.5 px-4 py-2 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
+                    >
+                        Limpiar fechas
+                    </button>
+                )}
             </div>
 
             {/* TABLA PRINCIPAL */}

@@ -18,7 +18,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
   const packageQuery = usePackageDetailQuery(uuid as string);
   const { data: apiData, isLoading: isLoadingPackage, isError } = packageQuery.useQuery();
 
-  const { data: settingsRes, isLoading: isLoadingSettings } = useSettingsQuery();
+  const { data: settingsRes } = useSettingsQuery();
   const settings = settingsRes?.current;
 
   const { mutateAsync: saveWeight, isPending: isSavingWeight } = useUpdatePackageWeightMutation(uuid);
@@ -151,7 +151,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     bitacora,
     calculos,
     tieneFactura,
-    isLoading: !uuid || isLoadingPackage || isLoadingSettings,
+    isLoading: !uuid || isLoadingPackage,
     isError,
     isEditingFinancial,
     isSavingWeight,
