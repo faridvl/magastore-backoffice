@@ -8,7 +8,7 @@ import { Column, NewTable } from '@/components/common/new-table/new-table';
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
     const textColors: Record<string, string> = {
-        blue: 'text-blue-600 border-blue-100 bg-blue-50/50',
+        blue: 'text-amber-600 border-amber-100 bg-amber-50/50',
         amber: 'text-amber-600 border-amber-100 bg-amber-50/50',
         emerald: 'text-emerald-600 border-emerald-100 bg-emerald-50/50'
     };
@@ -44,7 +44,7 @@ export const LogisticsContainer: React.FC = () => {
             accessor: 'tracking_number',
             render: (row) => (
                 <div className="flex flex-col">
-                    <span className="text-blue-600 italic font-black text-[10px]">#{row.id_paquete || row.id?.substring(0, 8)}</span>
+                    <span className="text-amber-600 italic font-black text-[10px]">#{row.id_paquete || row.id?.substring(0, 8)}</span>
                     <span className="font-mono text-slate-600 text-[11px] uppercase font-bold tracking-tight">{row.tracking_number}</span>
                 </div>
             )
@@ -61,7 +61,7 @@ export const LogisticsContainer: React.FC = () => {
                         <span className="text-slate-700 font-bold text-[11px] leading-none">
                             {row.first_name} {row.last_name}
                         </span>
-                        <span className="text-[9px] font-black text-blue-400 mt-1 uppercase tracking-widest">
+                        <span className="text-[9px] font-black text-amber-400 mt-1 uppercase tracking-widest">
                             {row.customer_code}
                         </span>
                     </div>
@@ -98,7 +98,7 @@ export const LogisticsContainer: React.FC = () => {
                 const statusStyles: Record<string, string> = {
                     'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
                     'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                    'TRANSITO': 'bg-blue-50 text-blue-600 border-blue-100',
+                    'TRANSITO': 'bg-amber-50 text-amber-600 border-amber-100',
                 };
                 return (
                     <span className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[row.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
@@ -142,7 +142,7 @@ export const LogisticsContainer: React.FC = () => {
                 {/* Botón Primary - Nuevo Registro */}
                 <button
                     onClick={() => router.push('/admin/logistics/create')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg shadow-blue-100 active:scale-95"
+                    className="bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg active:scale-95"
                 >
                     <span className="text-[10px] font-black uppercase tracking-[0.15em]">Nuevo Registro</span>
                     <div className="bg-white/20 p-2 rounded-full group-hover:bg-white/30 transition-colors">
@@ -160,11 +160,11 @@ export const LogisticsContainer: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Tracking, código o nombre..."
-                            className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium shadow-sm"
+                            className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-amber-100 transition-all text-sm font-medium shadow-sm"
                             onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 w-full sm:w-auto">
                         <div className="flex flex-col gap-2">
                             <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
@@ -172,7 +172,7 @@ export const LogisticsContainer: React.FC = () => {
                                     type="date"
                                     value={dateFrom}
                                     onChange={(e) => setDateFrom(e.target.value)}
-                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100 shadow-sm"
                                 />
                             </div>
                             <div className="flex flex-col gap-1">
@@ -181,7 +181,7 @@ export const LogisticsContainer: React.FC = () => {
                                     type="date"
                                     value={dateTo}
                                     onChange={(e) => setDateTo(e.target.value)}
-                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100 shadow-sm"
                                 />
                             </div>
                         </div>
@@ -203,7 +203,7 @@ export const LogisticsContainer: React.FC = () => {
                                 key={s}
                                 onClick={() => setStatusFilter(s)}
                                 className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${statusFilter === s
-                                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50'
+                                    ? 'bg-white text-amber-600 shadow-sm border border-slate-200/50'
                                     : 'text-slate-400 hover:text-slate-600'
                                     }`}
                             >
@@ -224,13 +224,13 @@ export const LogisticsContainer: React.FC = () => {
                     const statusStyles: Record<string, string> = {
                         'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
                         'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                        'TRANSITO': 'bg-blue-50 text-blue-600 border-blue-100',
+                        'TRANSITO': 'bg-amber-50 text-amber-600 border-amber-100',
                     };
                     return (
                         <button
                             key={pkg.uuid}
                             onClick={() => router.push(`/admin/logistics/${pkg.uuid}`)}
-                            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+                            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
                         >
                             <div className="flex-1 min-w-0">
                                 <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
@@ -241,7 +241,7 @@ export const LogisticsContainer: React.FC = () => {
                                 <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                     {pkg.status}
                                 </span>
-                                <span className="text-[10px] font-mono text-blue-400 uppercase">{pkg.customer_code}</span>
+                                <span className="text-[10px] font-mono text-amber-400 uppercase">{pkg.customer_code}</span>
                             </div>
                         </button>
                     );

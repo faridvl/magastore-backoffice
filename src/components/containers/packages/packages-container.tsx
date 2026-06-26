@@ -38,19 +38,21 @@ export const PackagesContainer: React.FC = () => {
                     </Typography>
                 </div>
 
-                <form onSubmit={handleSearch} className="relative group">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Pegar número de tracking aquí..."
-                        className="w-full p-6 pl-14 bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-blue-500 rounded-3xl outline-none transition-all font-mono text-lg"
-                    />
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-blue-500" size={24} />
+                <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative group flex-1">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Pegar número de tracking aquí..."
+                            className="w-full p-5 pl-14 bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-amber-500 rounded-3xl outline-none transition-all font-mono text-base"
+                        />
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-amber-500" size={22} />
+                    </div>
                     <button
                         type="submit"
                         disabled={isFetching}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg disabled:opacity-60"
+                        className="bg-slate-900 text-white px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg disabled:opacity-60 whitespace-nowrap"
                     >
                         {isFetching ? 'Buscando...' : 'Rastrear'}
                     </button>
@@ -69,20 +71,20 @@ export const PackagesContainer: React.FC = () => {
                 <div className="space-y-6">
 
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-100">
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-amber-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-amber-100">
                         <div className="flex items-center gap-5">
                             <div className="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                                 <Truck size={32} />
                             </div>
                             <div>
-                                <p className="text-xs font-black uppercase text-blue-100 tracking-[0.2em] mb-1">Estado Actual</p>
+                                <p className="text-xs font-black uppercase text-amber-100 tracking-[0.2em] mb-1">Estado Actual</p>
                                 <h2 className="text-2xl font-black">
                                     {STATUS_LABELS[data.status] ?? data.status}
                                 </h2>
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs font-bold text-blue-200 uppercase mb-1">Tracking</p>
+                            <p className="text-xs font-bold text-amber-200 uppercase mb-1">Tracking</p>
                             <p className="font-mono text-sm">{data.tracking_number}</p>
                         </div>
                     </div>
@@ -92,7 +94,7 @@ export const PackagesContainer: React.FC = () => {
                         {/* Cliente */}
                         <div className="bg-white dark:bg-neutral-900 p-8 rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm">
                             <div className="flex items-center gap-3 mb-6 border-b border-neutral-100 dark:border-neutral-800 pb-4">
-                                <User className="text-blue-600" size={20} />
+                                <User className="text-amber-600" size={20} />
                                 <Typography variant={TypographyVariant.BODY_BOLD}>Cliente / Dueño</Typography>
                             </div>
                             <div className="space-y-4">
@@ -104,7 +106,7 @@ export const PackagesContainer: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-neutral-400 uppercase">Casillero</p>
-                                    <p className="font-black text-blue-600">{data.customer_code ?? '—'}</p>
+                                    <p className="font-black text-amber-600">{data.customer_code ?? '—'}</p>
                                 </div>
                             </div>
                         </div>
@@ -164,7 +166,7 @@ export const PackagesContainer: React.FC = () => {
                     <div className="flex justify-end">
                         <Link
                             href={`/admin/logistics/${data.uuid}`}
-                            className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 underline underline-offset-2"
+                            className="flex items-center gap-2 text-sm font-bold text-amber-600 hover:text-amber-700 underline underline-offset-2"
                         >
                             <Package size={16} />
                             Ver detalle completo del paquete

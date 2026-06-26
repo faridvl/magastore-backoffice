@@ -44,8 +44,8 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-50 rounded-2xl flex items-center justify-center">
-              <Upload size={16} className="text-blue-600" />
+            <div className="w-9 h-9 bg-amber-50 rounded-2xl flex items-center justify-center">
+              <Upload size={16} className="text-amber-600" />
             </div>
             <div>
               <h2 className="font-bold text-slate-800 text-sm">Importar Clientes</h2>
@@ -65,7 +65,7 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
           {/* Descarga template */}
           <button
             onClick={downloadTemplate}
-            className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors w-fit"
+            className="flex items-center gap-2 text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors w-fit"
           >
             <Download size={13} />
             Descargar template de ejemplo
@@ -76,7 +76,7 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center gap-3 hover:border-blue-300 transition-colors cursor-pointer"
+              className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center gap-3 hover:border-amber-300 transition-colors cursor-pointer"
               onClick={() => document.getElementById('import-file-input')?.click()}
             >
               <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center">
@@ -169,7 +169,7 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
             <button
               onClick={handleImport}
               disabled={parsedRows.length === 0 || isPending}
-              className="px-5 py-2.5 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-blue-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2.5 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isPending ? (
                 <>

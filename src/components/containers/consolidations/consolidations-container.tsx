@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<ConsolidationStatus, string> = {
 };
 
 const STATUS_COLORS: Record<ConsolidationStatus, string> = {
-  ABIERTO: 'bg-blue-50 text-blue-600 border-blue-100',
+  ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
   CERRADO: 'bg-amber-50 text-amber-600 border-amber-100',
   DESPACHADO: 'bg-violet-50 text-violet-600 border-violet-100',
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
@@ -91,7 +91,7 @@ export const ConsolidationsContainer: React.FC = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
-          <span className="text-[10px] font-mono font-bold text-blue-400 uppercase">{row.customer_code}</span>
+          <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
         </div>
       ),
     },
@@ -157,12 +157,12 @@ export const ConsolidationsContainer: React.FC = () => {
               placeholder="Buscar por cliente o casillero..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
+              className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
             />
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="hidden sm:flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
+            className="hidden sm:flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
           >
             <Plus size={16} />
             Nueva Consolidación
@@ -172,7 +172,7 @@ export const ConsolidationsContainer: React.FC = () => {
         {/* Fila 2 (solo mobile): botón nueva consolidación */}
         <button
           onClick={handleOpenCreateModal}
-          className="sm:hidden flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+          className="sm:hidden flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm"
         >
           <Plus size={16} />
           Nueva Consolidación
@@ -205,7 +205,7 @@ export const ConsolidationsContainer: React.FC = () => {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -214,7 +214,7 @@ export const ConsolidationsContainer: React.FC = () => {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
             />
           </div>
           {(dateFrom || dateTo) && (
@@ -248,11 +248,11 @@ export const ConsolidationsContainer: React.FC = () => {
           <button
             key={row.uuid}
             onClick={() => handleSelectRow(row)}
-            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
           >
             <div className="flex-1 min-w-0">
               <p className="font-bold text-slate-800 text-sm truncate">{row.customer_name}</p>
-              <p className="text-[10px] font-mono font-bold text-blue-400 uppercase mt-0.5">{row.customer_code}</p>
+              <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5">{row.customer_code}</p>
               <p className="text-xs text-slate-400 mt-1">
                 {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paquete(s)
               </p>
@@ -342,7 +342,7 @@ export const ConsolidationsContainer: React.FC = () => {
                 placeholder="Nombre o casillero..."
                 value={createCustomerSearch}
                 onChange={(e) => setCreateCustomerSearch(e.target.value)}
-                className="w-full bg-slate-50 px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
+                className="w-full bg-slate-50 px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
               />
             </div>
 
@@ -362,7 +362,7 @@ export const ConsolidationsContainer: React.FC = () => {
                   >
                     <div>
                       <p className="font-bold text-sm">{c.first_name} {c.last_name}</p>
-                      <p className={`text-[10px] font-mono font-bold ${createCustomerUuid === c.id ? 'text-blue-300' : 'text-blue-400'}`}>
+                      <p className={`text-[10px] font-mono font-bold ${createCustomerUuid === c.id ? 'text-amber-300' : 'text-amber-400'}`}>
                         {c.customer_code}
                       </p>
                     </div>
@@ -386,7 +386,7 @@ export const ConsolidationsContainer: React.FC = () => {
               <button
                 onClick={handleConfirmCreate}
                 disabled={!createCustomerUuid || isCreating}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg disabled:opacity-40"
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isCreating ? 'Creando...' : 'Crear Consolidación'}
               </button>
@@ -415,7 +415,7 @@ export const ConsolidationsContainer: React.FC = () => {
                 </Typography>
               </div>
               {selectedPackageUuids.length > 0 && (
-                <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full">
+                <span className="bg-amber-600 text-white text-xs font-black px-3 py-1 rounded-full">
                   {selectedPackageUuids.length} seleccionado(s)
                 </span>
               )}
@@ -441,12 +441,12 @@ export const ConsolidationsContainer: React.FC = () => {
                       onClick={() => handleTogglePackage(pkg.uuid)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
                         selected
-                          ? 'bg-blue-50 border-blue-200'
+                          ? 'bg-amber-50 border-amber-200'
                           : 'bg-slate-50 border-transparent hover:border-slate-200'
                       }`}
                     >
                       {selected
-                        ? <CheckSquare size={18} className="text-blue-600 flex-shrink-0" />
+                        ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
                         : <Square size={18} className="text-slate-300 flex-shrink-0" />
                       }
                       <div className="flex-1 min-w-0">
@@ -471,7 +471,7 @@ export const ConsolidationsContainer: React.FC = () => {
               <button
                 onClick={handleConfirmAssign}
                 disabled={selectedPackageUuids.length === 0 || isAssigning}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg disabled:opacity-40"
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isAssigning ? 'Asignando...' : `Asignar ${selectedPackageUuids.length || ''}`}
               </button>
@@ -582,7 +582,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
                 <button
                   onClick={onAdvanceStatus}
                   disabled={isUpdating || (detail.status === ConsolidationStatus.ABIERTO && detail.packages.length === 0)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg disabled:opacity-40"
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
                 >
                   <ArrowRight size={16} />
                   {isUpdating ? 'Actualizando...' : NEXT_STATUS_LABEL[detail.status]}

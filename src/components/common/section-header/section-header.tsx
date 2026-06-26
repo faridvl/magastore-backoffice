@@ -19,7 +19,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, tooltip, cl
             type="button"
             onMouseEnter={() => setShow(true)}
             onMouseLeave={() => setShow(false)}
-            className="text-slate-400 hover:text-blue-500 transition-colors"
+            className="text-slate-400 hover:text-amber-500 transition-colors"
           >
             <Info size={14} />
           </button>

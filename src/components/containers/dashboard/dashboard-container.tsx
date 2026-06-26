@@ -36,8 +36,8 @@ export const DashboardContainer: React.FC = () => {
       label: 'Paquetes este mes',
       value: isLoading ? '—' : String(stats.packagesThisMonth),
       icon: Package,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
     },
     {
       label: 'Por Cobrar',
@@ -253,7 +253,7 @@ export const DashboardContainer: React.FC = () => {
                             className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                               pkg.status === PackageStatus.ENTREGADO
                                 ? 'bg-green-100 text-green-700'
-                                : 'bg-blue-100 text-blue-700'
+                                : 'bg-amber-100 text-amber-700'
                             }`}
                           >
                             {STATUS_LABELS[pkg.status] ?? pkg.status}

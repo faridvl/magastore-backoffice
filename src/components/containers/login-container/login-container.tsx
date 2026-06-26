@@ -17,12 +17,12 @@ export const LoginContainer: React.FC = () => {
             <div className="max-w-md w-full">
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-neutral-200/60 border border-neutral-100 relative overflow-hidden">
 
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 z-0" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -mr-16 -mt-16 z-0" />
 
                     <div className="relative z-10">
                         {/* Logo Magastore */}
                         <div className="flex flex-col items-center mb-10">
-                            <div className="h-16 w-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-3xl mb-4 shadow-xl shadow-blue-200 rotate-3 hover:rotate-0 transition-transform duration-300">
+                            <div className="h-16 w-16 bg-amber-600 rounded-2xl flex items-center justify-center text-white font-black text-3xl mb-4 shadow-xl shadow-amber-200 rotate-3 hover:rotate-0 transition-transform duration-300">
                                 M
                             </div>
                             <h1 className="text-2xl font-black text-neutral-900 tracking-tight">MAGASTORE</h1>
@@ -48,7 +48,7 @@ export const LoginContainer: React.FC = () => {
                                     type="email"
                                     required
                                     disabled={loading}
-                                    className="w-full p-4 bg-neutral-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"
+                                    className="w-full p-4 bg-neutral-50 border-2 border-transparent focus:border-amber-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"
                                     placeholder="ejemplo@magastore.com"
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />
@@ -60,7 +60,7 @@ export const LoginContainer: React.FC = () => {
                                     type="password"
                                     required
                                     disabled={loading}
-                                    className="w-full p-4 bg-neutral-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"
+                                    className="w-full p-4 bg-neutral-50 border-2 border-transparent focus:border-amber-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"
                                     placeholder="••••••••"
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 />
@@ -69,7 +69,7 @@ export const LoginContainer: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-neutral-900 text-white p-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all duration-300 disabled:opacity-50 shadow-lg active:scale-[0.98]"
+                                className="w-full bg-slate-900 text-white p-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-800 transition-all duration-300 disabled:opacity-50 shadow-lg active:scale-[0.98]"
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center gap-2">

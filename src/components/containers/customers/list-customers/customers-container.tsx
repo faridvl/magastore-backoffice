@@ -45,7 +45,7 @@ export const CustomersContainer: React.FC = () => {
                     <span className="font-bold text-slate-800 text-sm leading-none mb-1">
                         {row.first_name} {row.last_name}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-blue-400 uppercase">
+                    <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">
                         {row.customer_code}
                     </span>
                 </div>
@@ -110,7 +110,7 @@ export const CustomersContainer: React.FC = () => {
                         placeholder="Buscar por nombre, cédula o casillero..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
+                        className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
                     />
                 </div>
 
@@ -132,7 +132,7 @@ export const CustomersContainer: React.FC = () => {
                     </button>
                     <button
                         onClick={() => navigation.admin.customers.create()}
-                        className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm"
                     >
                         <Plus size={16} />
                         Nuevo Cliente
@@ -157,7 +157,7 @@ export const CustomersContainer: React.FC = () => {
                     </button>
                     <button
                         onClick={() => navigation.admin.customers.create()}
-                        className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+                        className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm"
                     >
                         <Plus size={16} />
                         Nuevo Cliente
@@ -185,11 +185,11 @@ export const CustomersContainer: React.FC = () => {
                     <button
                         key={customer.id}
                         onClick={() => navigation.admin.customers.detail(customer.id)}
-                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-blue-100 transition-all active:scale-[0.99]"
+                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
                     >
                         <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-800 text-sm truncate">{customer.first_name} {customer.last_name}</p>
-                            <p className="text-[10px] font-mono font-bold text-blue-400 uppercase mt-0.5">{customer.customer_code}</p>
+                            <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5">{customer.customer_code}</p>
                             <p className="text-xs text-slate-400 mt-1 truncate">{customer.email}</p>
                         </div>
                         <div className="flex flex-col items-end gap-2 flex-shrink-0">

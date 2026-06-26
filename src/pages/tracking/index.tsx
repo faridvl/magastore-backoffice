@@ -115,7 +115,7 @@ const TrackingPage: React.FC = () => {
                         {/* Título solo visible en estado idle */}
                         {!hasSearched && (
                             <div className="text-center mb-8 animate-in fade-in duration-500">
-                                <div className="bg-blue-50 h-16 w-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-500">
+                                <div className="bg-amber-50 h-16 w-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500">
                                     <Truck size={32} />
                                 </div>
                                 <h2 className="text-xl md:text-2xl font-black text-neutral-800 tracking-tight">Rastrear Paquete</h2>
@@ -124,8 +124,8 @@ const TrackingPage: React.FC = () => {
                         )}
 
                         <div className={`w-full ${showResult ? 'max-w-2xl' : 'max-w-xl'} mx-auto`}>
-                            <div className="bg-white rounded-[1.75rem] shadow-xl shadow-blue-900/5 border border-neutral-100 flex items-center p-2">
-                                <div className="pl-3 md:pl-4 pr-2 md:pr-3 text-blue-500 flex-shrink-0">
+                            <div className="bg-white rounded-[1.75rem] shadow-xl shadow-amber-900/5 border border-neutral-100 flex items-center p-2">
+                                <div className="pl-3 md:pl-4 pr-2 md:pr-3 text-amber-500 flex-shrink-0">
                                     <Search size={20} />
                                 </div>
                                 <form onSubmit={handleSearch} className="flex-1 flex min-w-0">
@@ -140,7 +140,7 @@ const TrackingPage: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="bg-blue-600 text-white px-5 md:px-7 py-2.5 rounded-2xl font-black hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-200 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap text-sm flex-shrink-0"
+                                        className="bg-amber-600 text-white px-5 md:px-7 py-2.5 rounded-2xl font-black hover:bg-amber-700 active:scale-95 transition-all shadow-md shadow-amber-200 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap text-sm flex-shrink-0"
                                     >
                                         {loading ? (
                                             <span className="flex items-center gap-2">
@@ -191,7 +191,7 @@ const TrackingPage: React.FC = () => {
                                         {/* Tarjeta detalles */}
                                         <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-6">
                                             <div className="flex items-center gap-2.5 mb-4">
-                                                <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                                                <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
                                                     <Package size={16} />
                                                 </div>
                                                 <span className="text-xs font-black text-neutral-600 uppercase tracking-wider">Detalles</span>
@@ -199,7 +199,7 @@ const TrackingPage: React.FC = () => {
                                             <div className="space-y-3">
                                                 <div>
                                                     <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Tracking</p>
-                                                    <p className="font-mono text-xs font-bold text-blue-600 break-all mt-0.5">{result.tracking_number}</p>
+                                                    <p className="font-mono text-xs font-bold text-amber-600 break-all mt-0.5">{result.tracking_number}</p>
                                                 </div>
                                                 <div className="border-t border-neutral-50 pt-3 flex justify-between">
                                                     <div>
@@ -218,9 +218,9 @@ const TrackingPage: React.FC = () => {
                                         </div>
 
                                         {/* Tarjeta estado actual */}
-                                        <div className="bg-neutral-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-blue-900/10">
+                                        <div className="bg-neutral-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/10">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Globe size={13} className="text-blue-400" />
+                                                <Globe size={13} className="text-amber-400" />
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Estado Actual</span>
                                             </div>
                                             <h3 className="text-xl font-black tracking-tight">
@@ -243,7 +243,7 @@ const TrackingPage: React.FC = () => {
                                                 <div key={index} className="relative flex gap-5 md:gap-6">
                                                     <div className={`z-10 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-white transition-all flex-shrink-0 ${
                                                         step.current
-                                                            ? 'bg-blue-600 shadow-md shadow-blue-200'
+                                                            ? 'bg-amber-600 shadow-md shadow-amber-200'
                                                             : step.completed
                                                             ? 'bg-emerald-500'
                                                             : 'bg-neutral-200'
@@ -255,7 +255,7 @@ const TrackingPage: React.FC = () => {
                                                     <div className="flex-1 min-w-0 pt-0.5">
                                                         <div className="flex items-start justify-between gap-2">
                                                             <h4 className={`font-black text-sm uppercase tracking-wide leading-tight ${
-                                                                step.current ? 'text-blue-600' : step.completed ? 'text-neutral-800' : 'text-neutral-300'
+                                                                step.current ? 'text-amber-600' : step.completed ? 'text-neutral-800' : 'text-neutral-300'
                                                             }`}>
                                                                 {step.label}
                                                             </h4>

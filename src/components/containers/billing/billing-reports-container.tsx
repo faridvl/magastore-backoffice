@@ -43,7 +43,7 @@ export const BillingReportsContainer: React.FC = () => {
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -52,7 +52,7 @@ export const BillingReportsContainer: React.FC = () => {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
@@ -63,7 +63,7 @@ export const BillingReportsContainer: React.FC = () => {
         <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-green-600" />
         <KpiCard label="Pendiente"       value={formatCRC(totalPending)}  color="text-orange-500" />
         <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-indigo-600" />
-        <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-blue-600" />
+        <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-amber-600" />
       </div>
 
       {/* Tabla mensual */}

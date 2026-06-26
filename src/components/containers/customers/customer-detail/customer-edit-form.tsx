@@ -165,7 +165,7 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
           type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="flex-[2] py-4 bg-slate-900 text-white rounded-[20px] font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
+          className="flex-[2] py-4 bg-slate-900 text-white rounded-[20px] font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
         >
           {isSaving ? (
             <><Loader2 size={14} className="animate-spin" /> Guardando...</>

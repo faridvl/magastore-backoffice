@@ -20,7 +20,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
       {/* Logo Section - Magastore Identity */}
       <div className="flex h-[80px] items-center px-6 mb-2">
         <Link href={routesPrivate.admin.dashboard} className="flex items-center gap-3 group">
-          <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-lg transition-all duration-300 group-hover:scale-105 group-hover:-rotate-3 shadow-lg shadow-blue-200">
+          <div className="h-10 w-10 bg-amber-600 rounded-xl flex items-center justify-center text-white font-black text-lg transition-all duration-300 group-hover:scale-105 group-hover:-rotate-3 shadow-lg shadow-amber-200">
             M
           </div>
 
@@ -29,7 +29,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
               variant={TypographyVariant.BODY_BOLD}
               className="text-neutral-900 dark:text-white text-[16px] tracking-tighter leading-none"
             >
-              MAGA<span className="text-blue-600 font-black">STORE</span>
+              MAGA<span className="text-amber-600 font-black">STORE</span>
             </Typography>
             <span className="text-[9px] font-black text-neutral-400 uppercase tracking-[0.2em] mt-1">
               Logística & Envíos
@@ -54,26 +54,26 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
                 className={`
                   relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
                   ${isActive
-                    ? "text-blue-600 bg-blue-50 shadow-sm"
+                    ? "text-amber-600 bg-amber-50 shadow-sm"
                     : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-900"
                   }
                 `}
               >
                 {isActive && (
-                  <div className="absolute left-0 w-1.5 h-6 bg-blue-600 rounded-r-full" />
+                  <div className="absolute left-0 w-1.5 h-6 bg-amber-600 rounded-r-full" />
                 )}
 
                 {Icon && (
                   <Icon
                     size={20}
                     strokeWidth={isActive ? 2.5 : 2}
-                    className={isActive ? "text-blue-600" : "text-neutral-400 group-hover:text-neutral-600"}
+                    className={isActive ? "text-amber-600" : "text-neutral-400 group-hover:text-neutral-600"}
                   />
                 )}
 
                 <Typography
                   variant={isActive ? TypographyVariant.BODY_SEMIBOLD : TypographyVariant.BODY}
-                  className={`text-[14px] ${isActive ? "text-blue-600" : ""}`}
+                  className={`text-[14px] ${isActive ? "text-amber-600" : ""}`}
                 >
                   {item.labelKey}
                 </Typography>

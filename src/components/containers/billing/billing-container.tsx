@@ -50,7 +50,7 @@ export const BillingContainer: React.FC = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
-          <span className="text-[10px] font-mono font-bold text-blue-400 uppercase">{row.customer_code}</span>
+          <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
         </div>
       ),
     },
@@ -119,7 +119,7 @@ export const BillingContainer: React.FC = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
-          <span className="text-[10px] font-mono font-bold text-blue-400 uppercase">{row.customer_code}</span>
+          <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
         </div>
       ),
     },
@@ -147,7 +147,7 @@ export const BillingContainer: React.FC = () => {
       header: 'Estado',
       accessor: 'status',
       render: (row) => (
-        <span className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border-blue-100">
+        <span className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 border-amber-100">
           {row.status}
         </span>
       ),
@@ -171,7 +171,7 @@ export const BillingContainer: React.FC = () => {
       render: (row) => (
         <button
           onClick={(e) => { e.stopPropagation(); handleOpenInvoiceModal(row); }}
-          className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-blue-600 transition-all"
+          className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-slate-800 transition-all"
         >
           Facturar
         </button>
@@ -183,13 +183,13 @@ export const BillingContainer: React.FC = () => {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
       {/* TABS + REPORTES */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm w-fit">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex gap-1 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm">
           {(['registros', 'por-facturar'] as ActiveBillingTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+              className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
                 activeTab === tab
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-600'
@@ -206,7 +206,7 @@ export const BillingContainer: React.FC = () => {
         </div>
         <Link
           href={routesPrivate.admin.billing.reports}
-          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-amber-600 hover:border-amber-100 hover:bg-amber-50 transition-all"
         >
           <BarChart2 size={14} />
           Reportes
@@ -225,7 +225,7 @@ export const BillingContainer: React.FC = () => {
                 placeholder="Buscar por cliente o casillero..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
+                className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
               />
             </div>
             {/* Pills de estado + fechas */}
@@ -245,14 +245,14 @@ export const BillingContainer: React.FC = () => {
                   </button>
                 ))}
               </div>
-              <div className="flex gap-2 items-end flex-wrap">
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
                 <div className="flex flex-col gap-1">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                    className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -261,13 +261,13 @@ export const BillingContainer: React.FC = () => {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                    className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
                   />
                 </div>
                 {(dateFrom || dateTo) && (
                   <button
                     onClick={() => { setDateFrom(''); setDateTo(''); }}
-                    className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
+                    className="w-full px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
                   >
                     Limpiar
                   </button>
@@ -276,7 +276,8 @@ export const BillingContainer: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          {/* Tabla — solo md+ */}
+          <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
             <NewTable
               data={billingList}
               columns={billingColumns}
@@ -289,23 +290,115 @@ export const BillingContainer: React.FC = () => {
               itemsPerPage={10}
             />
           </div>
+
+          {/* Cards — solo mobile */}
+          <div className="md:hidden space-y-3">
+            {isLoadingList ? (
+              <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              </div>
+            ) : billingList.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center text-slate-400 text-sm">Sin registros.</div>
+            ) : (
+              billingList.map((row) => (
+                <button
+                  key={row.uuid}
+                  onClick={() => setSelectedBillingUuid(row.uuid)}
+                  className="w-full bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex flex-col gap-3 active:bg-slate-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-slate-800 text-sm">{row.customer_name}</p>
+                      <p className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                      row.is_paid
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                        : 'bg-orange-50 text-orange-600 border border-orange-100'
+                    }`}>
+                      {row.is_paid ? 'Pagado' : 'Pendiente'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? DELIVERY_LABELS[row.delivery_method] : '—'}</span>
+                      <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
+                    </div>
+                    <span className="text-xl font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>
+                  </div>
+                </button>
+              ))
+            )}
+            {listMeta.totalPages > 1 && (
+              <div className="flex justify-center gap-3 pt-2">
+                <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-4 py-2 bg-white border border-slate-100 rounded-xl text-xs font-bold text-slate-500 disabled:opacity-40">Anterior</button>
+                <span className="px-4 py-2 text-xs font-bold text-slate-400">{page} / {listMeta.totalPages}</span>
+                <button disabled={page >= listMeta.totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 bg-white border border-slate-100 rounded-xl text-xs font-bold text-slate-500 disabled:opacity-40">Siguiente</button>
+              </div>
+            )}
+          </div>
         </>
       )}
 
       {/* TAB: POR FACTURAR */}
       {activeTab === 'por-facturar' && (
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-          <NewTable
-            data={pendingConsolidations}
-            columns={pendingColumns}
-            isLoading={isLoadingPending}
-            totalRows={pendingConsolidations.length}
-            currentPage={1}
-            totalPages={1}
-            onPageChange={() => {}}
-            itemsPerPage={pendingConsolidations.length || 10}
-          />
-        </div>
+        <>
+          {/* Tabla — solo md+ */}
+          <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <NewTable
+              data={pendingConsolidations}
+              columns={pendingColumns}
+              isLoading={isLoadingPending}
+              totalRows={pendingConsolidations.length}
+              currentPage={1}
+              totalPages={1}
+              onPageChange={() => {}}
+              itemsPerPage={pendingConsolidations.length || 10}
+            />
+          </div>
+
+          {/* Cards — solo mobile */}
+          <div className="md:hidden space-y-3">
+            {isLoadingPending ? (
+              <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              </div>
+            ) : pendingConsolidations.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center text-slate-400 text-sm">No hay consolidaciones por facturar.</div>
+            ) : (
+              pendingConsolidations.map((row) => {
+                const rate = settings?.current.price_per_lb ?? 0;
+                const exchange = settings?.current.exchange_rate ?? 0;
+                const flete = rate && exchange ? Math.max(Number(row.total_weight_lb), 1) * rate * exchange : null;
+                return (
+                  <div key={row.uuid} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">{row.customer_name}</p>
+                        <p className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</p>
+                      </div>
+                      <span className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-600 border-amber-100">
+                        {row.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] text-slate-400">{row.total_weight_lb} lb · {row.package_count} paquete(s)</span>
+                        {flete !== null && <span className="text-xs font-bold text-slate-500 italic">{formatCRC(flete)} est.</span>}
+                      </div>
+                      <button
+                        onClick={() => handleOpenInvoiceModal(row)}
+                        className="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-2xl hover:bg-slate-800 transition-all"
+                      >
+                        Facturar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </>
       )}
 
       {/* MODAL: SELECCIONAR MÉTODO DE ENTREGA */}
@@ -374,7 +467,7 @@ export const BillingContainer: React.FC = () => {
               <button
                 onClick={handleConfirmInvoice}
                 disabled={isGenerating}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg disabled:opacity-50"
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-50"
               >
                 {isGenerating ? 'Generando...' : 'Confirmar y Facturar'}
               </button>
@@ -488,7 +581,7 @@ export const BillingContainer: React.FC = () => {
                       <button
                         onClick={handleMarkAsPaid}
                         disabled={isMarkingPaid}
-                        className="py-3.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
+                        className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-50"
                       >
                         {isMarkingPaid ? 'Procesando...' : 'Marcar como Pagado'}
                       </button>

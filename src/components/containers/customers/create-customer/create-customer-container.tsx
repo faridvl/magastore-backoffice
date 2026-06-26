@@ -4,8 +4,8 @@ import { useCreateCustomer } from './use-create-customer';
 
 const TIERS = [
     { id: 'Regular', label: 'Regular', desc: 'Cliente estándar', color: 'bg-neutral-100 text-neutral-500' },
-    { id: 'VIP', label: 'VIP', desc: 'Cliente frecuente', color: 'bg-blue-50 text-blue-600 border-blue-100' },
-    { id: 'Diamond', label: 'Diamond', desc: 'Nivel máximo', color: 'bg-blue-600 text-white' }
+    { id: 'VIP', label: 'VIP', desc: 'Cliente frecuente', color: 'bg-amber-50 text-amber-600 border-amber-100' },
+    { id: 'Diamond', label: 'Diamond', desc: 'Nivel máximo', color: 'bg-amber-600 text-white' }
 ];
 
 export const CreateCustomerContainer: React.FC = () => {
@@ -33,7 +33,7 @@ export const CreateCustomerContainer: React.FC = () => {
                             name="idType"
                             value={formData.idType}
                             onChange={handleInputChange}
-                            className="w-full bg-neutral-50 border-none rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-neutral-700 shadow-sm appearance-none text-sm md:text-base"
+                            className="w-full bg-neutral-50 border-none rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-neutral-700 shadow-sm appearance-none text-sm md:text-base"
                         >
                             <option value="FISICA">Física</option>
                             <option value="JURIDICA">Jurídica</option>
@@ -57,7 +57,7 @@ export const CreateCustomerContainer: React.FC = () => {
                             <div
                                 key={tier.id}
                                 onClick={() => handleInputChange({ target: { name: 'tier', value: tier.id } } as any)}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-blue-600 bg-blue-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
+                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
                             >
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${tier.color}`}>{tier.label}</span>
                                 <p className="text-xs font-medium text-neutral-400 mt-2">{tier.desc}</p>
@@ -75,7 +75,7 @@ export const CreateCustomerContainer: React.FC = () => {
                                 <p className="text-xs text-red-500 font-semibold mt-1">{errors.addresses}</p>
                             )}
                         </div>
-                        <button type="button" onClick={addAddressField} className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-6 py-3 rounded-2xl hover:bg-blue-100 transition-all">
+                        <button type="button" onClick={addAddressField} className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-6 py-3 rounded-2xl hover:bg-amber-100 transition-all">
                             + Añadir Dirección
                         </button>
                     </div>
@@ -83,7 +83,7 @@ export const CreateCustomerContainer: React.FC = () => {
                     {addresses.map((addr, index) => (
                         <div key={addr.id} className="p-5 md:p-8 bg-neutral-50/50 rounded-[24px] md:rounded-[32px] border border-neutral-100 relative">
                             <div className="flex justify-between items-center mb-6">
-                                <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest bg-white px-4 py-2 rounded-full shadow-sm">
+                                <span className="text-[10px] font-black uppercase text-amber-500 tracking-widest bg-white px-4 py-2 rounded-full shadow-sm">
                                     📍 {addr.address_label}
                                 </span>
                                 {index > 0 && (
@@ -125,7 +125,7 @@ interface FormInputProps {
 const FormInput = ({ label, error, ...props }: FormInputProps) => (
     <div className="space-y-2">
         <label className="text-[10px] font-black uppercase text-neutral-400 ml-2 tracking-widest">{label}</label>
-        <input {...props as any} className={`w-full bg-neutral-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-neutral-700 placeholder:text-neutral-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
+        <input {...props as any} className={`w-full bg-neutral-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-neutral-700 placeholder:text-neutral-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
         {error && <p className="text-xs text-red-500 font-semibold ml-2">{error}</p>}
     </div>
 );

@@ -64,7 +64,7 @@ export function Header({
           {/* BOTÓN DE TRACKING GLOBAL: Para consultas rápidas */}
           <button
             onClick={() => nav.admin.packages()} // O una ruta específica de búsqueda si la tienes
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-neutral-600 dark:text-neutral-400 hover:text-blue-600 rounded-xl transition-all border border-transparent hover:border-blue-100"
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-neutral-600 dark:text-neutral-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
           >
             <Search size={18} />
             <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">Rastrear Paquete</span>

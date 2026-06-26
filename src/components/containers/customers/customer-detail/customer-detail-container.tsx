@@ -141,7 +141,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                     {/* Score Cards */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
-                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><Box size={24} /></div>
+                                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl"><Box size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Paquetes</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricPackageCount}</Typography>

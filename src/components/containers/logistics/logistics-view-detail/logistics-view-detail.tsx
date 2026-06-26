@@ -47,13 +47,13 @@ export const PackageDetailContainer: React.FC = () => {
                     </Typography>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <button
                         onClick={handleToggleStatusPanel}
                         disabled={isSavingStatus}
                         className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            ? 'bg-slate-500 text-white hover:bg-slate-600'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
                     >
                         {statusPanel.isOpen ? <><X size={16} /> Cancelar</> : <><RefreshCw size={16} /> Cambiar Estado</>}
@@ -62,7 +62,7 @@ export const PackageDetailContainer: React.FC = () => {
                         onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
                         disabled={isSavingWeight}
                         className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105'
+                            ? 'bg-slate-900 text-white shadow-lg scale-105'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
                     >
@@ -78,9 +78,9 @@ export const PackageDetailContainer: React.FC = () => {
 
             {/* PANEL DE CAMBIO DE ESTADO */}
             {statusPanel.isOpen && (
-                <div className="bg-white border border-blue-100 rounded-[2rem] p-4 md:p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="bg-white border border-amber-100 rounded-[2rem] p-4 md:p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
                     <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <RefreshCw size={16} className="text-blue-600" /> Registrar cambio de estado
+                        <RefreshCw size={16} className="text-amber-600" /> Registrar cambio de estado
                     </Typography>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
@@ -88,7 +88,7 @@ export const PackageDetailContainer: React.FC = () => {
                             <select
                                 value={statusPanel.nuevoEstado}
                                 onChange={(e) => setStatusPanel((p) => ({ ...p, nuevoEstado: e.target.value as PackageStatus }))}
-                                className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-black text-xs text-blue-700 uppercase tracking-widest transition-all outline-none"
+                                className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-black text-xs text-amber-700 uppercase tracking-widest transition-all outline-none"
                             >
                                 <option value="">— Seleccionar —</option>
                                 {Object.values(PackageStatus).map((s) => (
@@ -105,20 +105,20 @@ export const PackageDetailContainer: React.FC = () => {
                                     placeholder="Ej: Bodega Central, San José"
                                     value={statusPanel.ubicacion}
                                     onChange={(e) => setStatusPanel((p) => ({ ...p, ubicacion: e.target.value }))}
-                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block flex justify-between">
-                                <span>Comentario <span className="text-blue-500 normal-case tracking-normal ml-1">Obligatorio</span></span>
+                                <span>Comentario <span className="text-amber-500 normal-case tracking-normal ml-1">Obligatorio</span></span>
                             </label>
                             <input
                                 type="text"
                                 placeholder="Motivo del cambio..."
                                 value={statusPanel.nota}
                                 onChange={(e) => setStatusPanel((p) => ({ ...p, nota: e.target.value }))}
-                                className="w-full px-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                                className="w-full px-4 py-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
                             />
                         </div>
                     </div>
@@ -126,7 +126,7 @@ export const PackageDetailContainer: React.FC = () => {
                         <button
                             onClick={handleUpdateStatus}
                             disabled={isSavingStatus || !statusPanel.nuevoEstado || !statusPanel.nota.trim()}
-                            className="flex items-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSavingStatus
                                 ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
@@ -152,7 +152,7 @@ export const PackageDetailContainer: React.FC = () => {
                                         <span className="font-mono font-bold text-slate-700 break-all">{data.tracking}</span>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-4 rounded-2xl border border-slate-100 bg-white">
                                         <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Peso Registrado</label>
                                         {isEditingFinancial ? (

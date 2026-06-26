@@ -9,7 +9,7 @@ export const CreatePackageContainer: React.FC = () => {
         customerAddresses, searchTerm, setSearchTerm, isOpen, setIsOpen, handleSave, isSaving, isLoading
     } = usePackageCalculator();
 
-    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-500" /></div>;
+    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
 
     return (
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4">
@@ -17,7 +17,7 @@ export const CreatePackageContainer: React.FC = () => {
             {/* COLUMNA IZQUIERDA: FORMULARIO SIMPLIFICADO */}
             <div className="lg:col-span-8 bg-white rounded-[2rem] border border-neutral-100 shadow-sm p-5 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 bg-blue-600 text-white rounded-xl"><Package size={20} /></div>
+                    <div className="p-2 bg-amber-600 text-white rounded-xl"><Package size={20} /></div>
                     <h2 className="text-lg font-bold text-neutral-800">Nuevo Ingreso</h2>
                 </div>
 
@@ -54,10 +54,10 @@ export const CreatePackageContainer: React.FC = () => {
                                         <div
                                             key={c.id}
                                             onClick={() => { setFormData({ ...formData, customer_id: c.id }); setIsOpen(false); }}
-                                            className="p-4 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors"
+                                            className="p-4 hover:bg-amber-50 cursor-pointer flex justify-between items-center transition-colors"
                                         >
                                             <span className="text-sm font-medium">{c.customer_code} - {c.first_name}</span>
-                                            {formData.customer_id === c.id && <Check size={14} className="text-blue-600" />}
+                                            {formData.customer_id === c.id && <Check size={14} className="text-amber-600" />}
                                         </div>
                                     ))}
                                 </div>
@@ -76,7 +76,7 @@ export const CreatePackageContainer: React.FC = () => {
                                 </div>
                             ) : (
                                 <select
-                                    className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-medium outline-none focus:border-blue-200 transition-all"
+                                    className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-medium outline-none focus:border-amber-200 transition-all"
                                     value={formData.address_id ?? ''}
                                     onChange={(e) => setFormData({ ...formData, address_id: e.target.value || null })}
                                 >
@@ -91,11 +91,11 @@ export const CreatePackageContainer: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="text-[10px] font-bold uppercase text-neutral-400 mb-1 block ml-1">Tracking</label>
                             <input
-                                className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-mono uppercase focus:bg-white focus:border-blue-200 transition-all outline-none"
+                                className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-mono uppercase focus:bg-white focus:border-amber-200 transition-all outline-none"
                                 placeholder="0000000000"
                                 value={formData.tracking_number}
                                 onChange={(e) => setFormData({ ...formData, tracking_number: e.target.value })}
@@ -115,13 +115,13 @@ export const CreatePackageContainer: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex p-1 bg-neutral-50 rounded-2xl border border-neutral-100">
                             {([PackageType.AEREO, PackageType.MARITIMO] as const).map(t => (
                                 <button
                                     key={t}
                                     onClick={() => setFormData({ ...formData, package_type: t })}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.package_type === t ? 'bg-white shadow-sm text-blue-600' : 'text-neutral-400'}`}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.package_type === t ? 'bg-white shadow-sm text-amber-600' : 'text-neutral-400'}`}
                                 >
                                     {t === PackageType.AEREO ? <Plane size={14} /> : <Ship size={14} />} {t}
                                 </button>
@@ -139,7 +139,7 @@ export const CreatePackageContainer: React.FC = () => {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="w-full bg-neutral-900 text-white p-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all flex justify-center items-center gap-2"
+                        className="w-full bg-neutral-900 text-white p-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2"
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                         Guardar Paquete
@@ -151,19 +151,25 @@ export const CreatePackageContainer: React.FC = () => {
             <div className="lg:col-span-4 space-y-6">
 
                 {/* CARD DE TOTALES */}
-                <div className="bg-blue-600 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-xl">
-                    <div className="flex items-center gap-2 mb-6 opacity-60">
-                        <Calculator size={16} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Cálculo en vivo</span>
-                    </div>
-                    <div className="space-y-4">
-                        <div>
-                            <p className="text-[10px] uppercase font-bold opacity-60 mb-1">Cobro al Cliente</p>
-                            <h3 className="text-2xl md:text-4xl font-black italic">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
+                <div className="bg-slate-900 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl" />
+                    <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-xl" />
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                                <Calculator size={14} className="text-amber-400" />
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cálculo en vivo</span>
                         </div>
-                        <div className="pt-4 border-t border-white/10">
-                            <p className="text-[10px] uppercase font-bold opacity-60 mb-1">Ganancia Estimada</p>
-                            <p className="text-xl font-bold text-blue-200">₡{calculations.ganancia.toLocaleString()}</p>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Cobro al Cliente</p>
+                                <h3 className="text-2xl md:text-4xl font-black italic text-white">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
+                            </div>
+                            <div className="pt-4 border-t border-white/5">
+                                <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Ganancia Estimada</p>
+                                <p className="text-xl font-bold text-amber-400">₡{calculations.ganancia.toLocaleString()}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
