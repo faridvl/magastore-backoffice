@@ -47,11 +47,11 @@ export const PackageDetailContainer: React.FC = () => {
                     </Typography>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-3">
                     <button
                         onClick={handleToggleStatusPanel}
                         disabled={isSavingStatus}
-                        className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
                             ? 'bg-slate-500 text-white hover:bg-slate-600'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
@@ -61,7 +61,7 @@ export const PackageDetailContainer: React.FC = () => {
                     <button
                         onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
                         disabled={isSavingWeight}
-                        className={`flex items-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
                             ? 'bg-slate-900 text-white shadow-lg scale-105'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
@@ -163,7 +163,7 @@ export const PackageDetailContainer: React.FC = () => {
                                                     step="1"
                                                     value={data.peso}
                                                     onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
-                                                    onChange={(e) => updateField('peso', String(Math.max(1, Math.floor(Number(e.target.value)))))}
+                                                    onChange={(e) => updateField('peso', e.target.value === '' ? '' : Math.floor(Number(e.target.value)))}
                                                     className="w-full font-black text-xl text-primary bg-transparent outline-none"
                                                 />
                                                 <span className="text-xs font-bold text-primary">LB</span>

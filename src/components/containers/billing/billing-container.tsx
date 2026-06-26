@@ -246,23 +246,25 @@ export const BillingContainer: React.FC = () => {
                 ))}
               </div>
               <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
+                    />
+                  </div>
                 </div>
                 {(dateFrom || dateTo) && (
                   <button
