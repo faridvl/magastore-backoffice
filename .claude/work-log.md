@@ -917,3 +917,52 @@ fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
  M .claude/docs/status.md
  M .claude/work-log.md
  M README.md
+
+=== 2026-06-25 23:37 ===
+--- recent commits ---
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+--- status ---
+
+=== 2026-06-25 23:43 ===
+--- recent commits ---
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+d2d8c47 feat(etapa-19): implementar guardado real de peso en detalle de paquete
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:45 ===
+--- recent commits ---
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+d2d8c47 feat(etapa-19): implementar guardado real de peso en detalle de paquete
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:45 ===
+--- recent commits ---
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+d2d8c47 feat(etapa-19): implementar guardado real de peso en detalle de paquete
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:48 ===
+--- recent commits ---
+832e8ca fix: estandarizar mensajes de error en toasts ÔÇö lenguaje amigable para el operador
+617de6d docs: actualizar hash de Etapa 19 en development-plan
+d2d8c47 feat(etapa-19): implementar guardado real de peso en detalle de paquete
+fcd7d1d docs: actualizar development-plan, status, work-log y README con estado actual de etapas
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+--- status ---
+ M .claude/work-log.md
