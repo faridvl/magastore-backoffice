@@ -11,7 +11,7 @@ const LogisticsPage: React.FC = () => {
             <Head>
                 <title>Control Logístico | Magastore System</title>
             </Head>
-            <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Logística Maestro">
+            <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Gestión de Paquetes">
                 <LogisticsContainer />
             </DashboardLayout>
         </>

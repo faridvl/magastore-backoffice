@@ -19,9 +19,10 @@ export const LogisticsRepository = {
    * 1. CREATE PACKAGE: Registro de entrada de mercancía en Miami.
    */
   createPackage: async (data: PackageInput): Promise<Partial<Package>> => {
+    const addressId = data.address_id || null;
     const rows = await sql`
-      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type)
-      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO})
+      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type, address_id)
+      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO}, ${addressId})
       RETURNING uuid, tracking_number, status, created_at;
     `;
     return rows[0];

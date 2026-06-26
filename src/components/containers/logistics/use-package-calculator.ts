@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { PackageStatus, PackageType } from '@/types/logistics/logistics.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
+import { useCustomerAddressesQuery } from '@/shared/api/querys/customers/use-customer-addresses-query';
 
 export const usePackageCalculator = () => {
   const { data: customersRes, isLoading: loadingCustomers } = useCustomersQuery();
@@ -15,6 +16,7 @@ export const usePackageCalculator = () => {
   const [formData, setFormData] = useState({
     tracking_number: '',
     customer_id: '',
+    address_id: '' as string | null,
     weight_lb: 0,
     package_type: PackageType.AEREO,
     status: PackageStatus.MIAMI,
@@ -22,6 +24,21 @@ export const usePackageCalculator = () => {
   });
 
   const settings = settingsRes?.current;
+
+  const { data: addressesRes } = useCustomerAddressesQuery(formData.customer_id || undefined);
+  const customerAddresses = addressesRes?.data ?? [];
+
+  // Auto-seleccionar dirección por defecto al cambiar de cliente
+  useEffect(() => {
+    if (!formData.customer_id) {
+      setFormData((prev) => ({ ...prev, address_id: null }));
+      return;
+    }
+    if (customerAddresses.length > 0) {
+      const defaultAddr = customerAddresses.find((a) => a.is_default) ?? customerAddresses[0];
+      setFormData((prev) => ({ ...prev, address_id: defaultAddr.id }));
+    }
+  }, [formData.customer_id, customerAddresses.length]);
 
   // Filtrado de clientes para el dropdown
   const filteredCustomers = useMemo(() => {
@@ -63,11 +80,18 @@ export const usePackageCalculator = () => {
       return;
     }
     try {
-      await executeCreate(formData);
-      setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0 }));
+      await executeCreate({
+        tracking_number: formData.tracking_number,
+        customer_id: formData.customer_id,
+        weight_lb: formData.weight_lb,
+        package_type: formData.package_type,
+        status: formData.status,
+        address_id: formData.address_id || null,
+      });
+      setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0, address_id: null }));
       setSearchTerm('');
       toast.success('Paquete registrado');
-    } catch (err: any) {
+    } catch {
       toast.error('No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
     }
   };
@@ -79,6 +103,7 @@ export const usePackageCalculator = () => {
     settings,
     customers: filteredCustomers,
     selectedCustomer,
+    customerAddresses,
     searchTerm,
     setSearchTerm,
     isOpen,

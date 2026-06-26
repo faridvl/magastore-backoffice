@@ -151,62 +151,64 @@ export const LogisticsContainer: React.FC = () => {
                 </button>
             </div>
 
-            {/* TOOLBAR: BÚSQUEDA Y FILTROS */}
-            <div className="flex flex-col lg:flex-row gap-4 items-center">
-                <div className="relative flex-[1.5] w-full">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            {/* TOOLBAR: BÚSQUEDA, FECHAS Y FILTROS */}
+            <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
+                {/* Buscador */}
+                <div className="relative w-full lg:w-72">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input
                         type="text"
-                        placeholder="Buscar por tracking, código o nombre..."
-                        className="w-full bg-white border border-slate-100 pl-14 pr-6 py-4 rounded-3xl outline-none focus:ring-4 focus:ring-blue-50/50 transition-all text-sm font-medium shadow-sm"
+                        placeholder="Tracking, código o nombre..."
+                        className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium shadow-sm"
                         onChange={(e) => handleSearch(e.target.value)}
                     />
                 </div>
 
-                <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-full lg:w-auto overflow-x-auto whitespace-nowrap">
+                {/* Filtros de fecha */}
+                <div className="flex gap-2 items-end">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                        <input
+                            type="date"
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                        <input
+                            type="date"
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                        />
+                    </div>
+                    {(dateFrom || dateTo) && (
+                        <button
+                            onClick={() => { setDateFrom(''); setDateTo(''); }}
+                            className="py-3 px-3 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
+
+                {/* Filtro de estado */}
+                <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 lg:ml-auto overflow-x-auto whitespace-nowrap">
                     {['ALL', 'MIAMI', 'TRANSITO', 'ENTREGADO'].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-5 py-2.5 rounded-[1.5rem] text-[9px] font-black transition-all ${statusFilter === s
+                            className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all ${statusFilter === s
                                 ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50'
                                 : 'text-slate-400 hover:text-slate-600'
                                 }`}
                         >
-                            {s === 'ALL' ? 'VER TODOS' : s}
+                            {s === 'ALL' ? 'TODOS' : s}
                         </button>
                     ))}
                 </div>
-            </div>
-
-            {/* FILTRO DE FECHAS */}
-            <div className="flex flex-wrap gap-3 items-center">
-                <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-                    <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="bg-white border border-slate-100 px-4 py-2 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-                    />
-                </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                    <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="bg-white border border-slate-100 px-4 py-2 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-                    />
-                </div>
-                {(dateFrom || dateTo) && (
-                    <button
-                        onClick={() => { setDateFrom(''); setDateTo(''); }}
-                        className="self-end mb-0.5 px-4 py-2 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
-                    >
-                        Limpiar fechas
-                    </button>
-                )}
             </div>
 
             {/* TABLA PRINCIPAL */}

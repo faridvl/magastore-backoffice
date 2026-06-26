@@ -1,8 +1,8 @@
 import React from 'react';
 import { BarChart3 } from 'lucide-react';
-import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { useBillingReports } from './use-billing-reports';
 import { BillingMonthlyReport } from '@/types/logistics/logistics.types';
+import { SectionHeader } from '@/components/common/section-header/section-header';
 
 const formatCRC = (n: number) => `₡${Math.round(Number(n)).toLocaleString('es-CR')}`;
 
@@ -23,18 +23,17 @@ export const BillingReportsContainer: React.FC = () => {
   const totalInvoiced = rows.reduce((s, r) => s + Number(r.total_invoiced_crc), 0);
   const totalPaid     = rows.reduce((s, r) => s + Number(r.total_paid_crc), 0);
   const totalPending  = rows.reduce((s, r) => s + Number(r.total_pending_crc), 0);
+  const totalGanancia = rows.reduce((s, r) => s + Number(r.total_ganancia_crc), 0);
   const totalInvoices = rows.reduce((s, r) => s + r.invoice_count, 0);
 
   return (
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col gap-1">
-        <Typography variant={TypographyVariant.SUBTITLE}>Reportes de Facturación</Typography>
-        <Typography variant={TypographyVariant.HELPER}>
-          Resumen mensual de ingresos facturados, pagados y pendientes.
-        </Typography>
-      </div>
+      <SectionHeader
+        title="Reportes de Facturación"
+        tooltip="Resumen mensual de ingresos facturados, pagados, pendientes y ganancia estimada por mes."
+      />
 
       {/* Filtro de rango */}
       <div className="flex flex-wrap items-end gap-4 bg-white border border-slate-200 rounded-xl p-4">
@@ -59,10 +58,11 @@ export const BillingReportsContainer: React.FC = () => {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
         <KpiCard label="Total Facturado" value={formatCRC(totalInvoiced)} color="text-slate-800" />
         <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-green-600" />
         <KpiCard label="Pendiente"       value={formatCRC(totalPending)}  color="text-orange-500" />
+        <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-indigo-600" />
         <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-blue-600" />
       </div>
 
@@ -88,6 +88,7 @@ export const BillingReportsContainer: React.FC = () => {
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Total Facturado</th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Pagado</th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Pendiente</th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Ganancia Est.</th>
               </tr>
             </thead>
             <tbody>
@@ -102,6 +103,7 @@ export const BillingReportsContainer: React.FC = () => {
                   <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatCRC(row.total_invoiced_crc)}</td>
                   <td className="px-4 py-3 text-right font-semibold text-green-600">{formatCRC(row.total_paid_crc)}</td>
                   <td className="px-4 py-3 text-right font-semibold text-orange-500">{formatCRC(row.total_pending_crc)}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-indigo-600">{formatCRC(row.total_ganancia_crc)}</td>
                 </tr>
               ))}
             </tbody>
@@ -115,6 +117,7 @@ export const BillingReportsContainer: React.FC = () => {
                 <td className="px-4 py-3 text-right font-bold text-slate-800">{formatCRC(totalInvoiced)}</td>
                 <td className="px-4 py-3 text-right font-bold text-green-600">{formatCRC(totalPaid)}</td>
                 <td className="px-4 py-3 text-right font-bold text-orange-500">{formatCRC(totalPending)}</td>
+                <td className="px-4 py-3 text-right font-bold text-indigo-600">{formatCRC(totalGanancia)}</td>
               </tr>
             </tfoot>
           </table>

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Package, Search, ChevronDown, Check, Plane, Ship, Save, Calculator, Settings, Info, Loader2, User } from 'lucide-react';
+import { Package, Search, ChevronDown, Check, Plane, Ship, Save, Calculator, Settings, Info, Loader2, MapPin } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
 import { PackageType } from '@/types/logistics/logistics.types';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
         formData, setFormData, calculations, settings, customers, selectedCustomer,
-        searchTerm, setSearchTerm, isOpen, setIsOpen, handleSave, isSaving, isLoading
+        customerAddresses, searchTerm, setSearchTerm, isOpen, setIsOpen, handleSave, isSaving, isLoading
     } = usePackageCalculator();
 
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-500" /></div>;
@@ -64,6 +64,32 @@ export const CreatePackageContainer: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* DIRECCIÓN DE ENTREGA */}
+                    {formData.customer_id && (
+                        <div>
+                            <label className="text-[10px] font-bold uppercase text-neutral-400 mb-1 block ml-1">Dirección de Entrega</label>
+                            {customerAddresses.length === 0 ? (
+                                <div className="flex items-center gap-2 p-4 bg-orange-50 rounded-2xl border border-orange-100 text-xs text-orange-700">
+                                    <MapPin size={14} />
+                                    <span>Este cliente no tiene direcciones registradas.</span>
+                                </div>
+                            ) : (
+                                <select
+                                    className="w-full p-4 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm font-medium outline-none focus:border-blue-200 transition-all"
+                                    value={formData.address_id ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, address_id: e.target.value || null })}
+                                >
+                                    <option value="">Sin dirección específica</option>
+                                    {customerAddresses.map((addr) => (
+                                        <option key={addr.id} value={addr.id}>
+                                            {addr.address_label} — {addr.province}, {addr.canton}{addr.is_default ? ' (Principal)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>

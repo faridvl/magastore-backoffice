@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import { DashboardLayout } from '@/components/common/layout/dashboard-layout';
 import { BoxedLayoutStyle } from '@/components/common/layout/boxed-container/boxed-container';
 import {
     Search, Package, Truck, Globe, CheckCircle,
-    MapPin, ArrowLeft, AlertCircle,
+    MapPin, AlertCircle,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 
@@ -55,7 +54,6 @@ function formatDate(iso: string) {
 }
 
 const TrackingPage: React.FC = () => {
-    const router = useRouter();
     const [search, setSearch] = useState('');
     const [result, setResult] = useState<TrackingResult | null>(null);
     const [loading, setLoading] = useState(false);
@@ -105,23 +103,8 @@ const TrackingPage: React.FC = () => {
             <Head><title>Rastreo de Carga | Magastore</title></Head>
             <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Rastreo de Carga" hideSidebar={true}>
 
-                <div className="max-w-6xl mx-auto mb-8 flex justify-between items-center px-4 md:px-0">
-                    <button
-                        onClick={() => router.push('/')}
-                        className="flex items-center gap-2 text-neutral-400 hover:text-blue-600 font-black text-[10px] uppercase tracking-widest transition-all group"
-                    >
-                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        Volver al Backoffice
-                    </button>
 
-                    {result && (
-                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest">
-                            Vista de Cliente Activa
-                        </span>
-                    )}
-                </div>
-
-                <div className="max-w-3xl mx-auto mb-12 px-4 md:px-0">
+                <div className="max-w-3xl mx-auto mb-12 px-4 md:px-0 w-full">
                     <div className="bg-white p-2 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-neutral-100 flex items-center">
                         <div className="pl-6 pr-4 text-blue-600">
                             <Search size={24} />

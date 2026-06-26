@@ -2,12 +2,13 @@ import React from 'react';
 import { tailwind } from '@/utils/tailwind-utils';
 
 export enum ButtonVariant {
-    PRIMARY = 'PRIMARY',   // Azul - General / Admin
+    PRIMARY = 'PRIMARY',   // Azul - Acciones principales / CTA
     ACCENT = 'ACCENT',     // Dorado - Compra / Destacados
-    DANGER = 'DANGER',     // Rojo - Errores / Eliminar
+    DANGER = 'DANGER',     // Rojo - Eliminar / Destructivo
     ALERT = 'ALERT',       // Naranja - Avisos
-    CANCEL = 'CANCEL',     // Gris - Volver / Cancelar
-    GHOST = 'GHOST'        // Bordeado - Acciones secundarias
+    CANCEL = 'CANCEL',     // Gris - Cancelar / Volver
+    GHOST = 'GHOST',       // Bordeado - Acciones secundarias
+    SUCCESS = 'SUCCESS',   // Verde - Confirmar pago / Completado
 }
 
 type VariantStyle = {
@@ -56,6 +57,9 @@ export function Button({
         },
         [ButtonVariant.GHOST]: {
             className: `${baseStyle} border-2 border-primary text-primary hover:bg-primary/5 focus:ring-primary/20`,
+        },
+        [ButtonVariant.SUCCESS]: {
+            className: `${baseStyle} bg-success text-white hover:bg-success-dark focus:ring-success/40`,
         },
     };
 

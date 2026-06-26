@@ -3,7 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell,
 } from 'recharts';
-import { TrendingUp, Package, Clock, Users, Eye, ArrowRight } from 'lucide-react';
+import { TrendingUp, Package, Clock, Users } from 'lucide-react';
 import { useDashboard } from './use-dashboard';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 
@@ -70,35 +70,6 @@ export const DashboardContainer: React.FC = () => {
 
   return (
     <>
-      {/* Banner tracking */}
-      <div className="relative mb-8 group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-white border border-blue-100 p-5 md:p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-          <div className="flex items-center gap-5">
-            <div className="h-14 w-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200 animate-bounce">
-              <Eye size={28} />
-            </div>
-            <div>
-              <h4 className="text-neutral-900 font-black text-lg tracking-tight">
-                ¡Hey! Echa un vistazo a la vista del cliente
-              </h4>
-              <p className="text-neutral-500 text-sm font-medium">
-                Así es como tus clientes rastrean sus paquetes en tiempo real.
-              </p>
-            </div>
-          </div>
-          <a
-            href="/tracking"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-neutral-900 hover:bg-blue-600 text-white px-5 py-3 md:px-8 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-neutral-200 hover:shadow-blue-100 group w-full md:w-auto justify-center"
-          >
-            Ir al Rastreo de Clientes
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </a>
-        </div>
-      </div>
-
       {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {isLoading

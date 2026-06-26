@@ -105,6 +105,19 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
 };
 
 /**
+ * Obtiene las direcciones de un cliente por su ID
+ */
+export const getCustomerAddresses = async (customerId: string): Promise<CustomerAddress[]> => {
+  const rows = await sql`
+    SELECT id, customer_id, province, canton, district, exact_address, address_label, is_default, created_at
+    FROM customer_addresses
+    WHERE customer_id = ${customerId}
+    ORDER BY is_default DESC, created_at ASC
+  `;
+  return rows as CustomerAddress[];
+};
+
+/**
  * Verifica si el email ya está tomado por otro cliente (para validación en edición)
  */
 export const checkEmailTakenByOther = async (email: string, excludeId: string): Promise<boolean> => {

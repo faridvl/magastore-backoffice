@@ -86,6 +86,7 @@ export interface PackageInput {
   tracking_number: string;
   weight_lb: number;
   package_type?: PackageType;
+  address_id?: string | null;
 }
 
 export interface IncidenceInput {
@@ -191,6 +192,7 @@ export interface BillingMonthlyReport {
   total_invoiced_crc: number;
   total_paid_crc: number;
   total_pending_crc: number;
+  total_ganancia_crc: number;
   invoice_count: number;
   paid_count: number;
 }

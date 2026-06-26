@@ -137,17 +137,21 @@ export const BillingRepository = {
   ): Promise<BillingMonthlyReport[]> => {
     const rows = await sql`
       SELECT
-        TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
-        COALESCE(SUM(total_amount_crc), 0)::numeric          AS total_invoiced_crc,
-        COALESCE(SUM(CASE WHEN is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS total_paid_crc,
-        COALESCE(SUM(CASE WHEN NOT is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS total_pending_crc,
-        COUNT(*)::int                                        AS invoice_count,
-        COUNT(CASE WHEN is_paid THEN 1 END)::int             AS paid_count
-      FROM billing
-      WHERE created_at >= ${from}::timestamptz
-        AND created_at <  ${to}::timestamptz
-      GROUP BY DATE_TRUNC('month', created_at)
-      ORDER BY DATE_TRUNC('month', created_at) ASC
+        TO_CHAR(DATE_TRUNC('month', b.created_at), 'YYYY-MM') AS month,
+        COALESCE(SUM(b.total_amount_crc), 0)::numeric          AS total_invoiced_crc,
+        COALESCE(SUM(CASE WHEN b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_paid_crc,
+        COALESCE(SUM(CASE WHEN NOT b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_pending_crc,
+        COALESCE(
+          SUM(b.total_weight_charged * s.profit_per_lb * s.exchange_rate), 0
+        )::numeric AS total_ganancia_crc,
+        COUNT(*)::int                                          AS invoice_count,
+        COUNT(CASE WHEN b.is_paid THEN 1 END)::int             AS paid_count
+      FROM billing b
+      CROSS JOIN system_settings s
+      WHERE b.created_at >= ${from}::timestamptz
+        AND b.created_at <  ${to}::timestamptz
+      GROUP BY DATE_TRUNC('month', b.created_at)
+      ORDER BY DATE_TRUNC('month', b.created_at) ASC
     `;
 
     return rows as BillingMonthlyReport[];

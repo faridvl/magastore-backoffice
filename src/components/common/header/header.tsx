@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { LogOut, Search, ChevronLeft, Menu } from 'lucide-react';
+import { LogOut, Search, ChevronLeft, Menu as MenuIcon } from 'lucide-react';
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { useHeader } from './use-header';
 import { Typography, TypographyVariant } from '../typography/typography';
@@ -36,7 +36,7 @@ export function Header({
               onClick={onMenuToggle}
               className="lg:hidden p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             >
-              <Menu size={20} className="text-neutral-500" />
+              <MenuIcon size={20} className="text-neutral-500" />
             </button>
           )}
           {hasBackButton && (

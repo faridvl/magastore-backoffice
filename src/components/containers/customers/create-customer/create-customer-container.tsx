@@ -10,7 +10,7 @@ const TIERS = [
 
 export const CreateCustomerContainer: React.FC = () => {
     const {
-        formData, addresses, handleInputChange,
+        formData, addresses, errors, handleInputChange,
         addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending
     } = useCreateCustomer();
 
@@ -21,11 +21,11 @@ export const CreateCustomerContainer: React.FC = () => {
                 {/* SECCIÓN 1: DATOS PERSONALES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="col-span-2 border-b border-neutral-100 pb-4 mb-2">
-                        <Typography variant={TypographyVariant.SUBTITLE}>Datos Personales</Typography>
+                        <Typography variant={TypographyVariant.SUBTITLE}>Nuevo Cliente</Typography>
                     </div>
 
-                    <FormInput label="Nombre" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="Ej. Alexander" />
-                    <FormInput label="Apellidos" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Ej. Pierce" />
+                    <FormInput label="Nombre" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="Ej. Alexander" error={errors.firstName} />
+                    <FormInput label="Apellidos" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Ej. Pierce" error={errors.lastName} />
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-neutral-400 ml-2 tracking-widest">Tipo Identificación</label>
@@ -42,9 +42,9 @@ export const CreateCustomerContainer: React.FC = () => {
                         </select>
                     </div>
 
-                    <FormInput label="Número de Cédula" name="idCard" value={formData.idCard} onChange={handleInputChange} placeholder="0-0000-0000" />
-                    <FormInput label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="cliente@email.com" />
-                    <FormInput label="Teléfono" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+506 0000-0000" />
+                    <FormInput label="Número de Cédula" name="idCard" value={formData.idCard} onChange={handleInputChange} placeholder="0-0000-0000" error={errors.idCard} />
+                    <FormInput label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="cliente@email.com" error={errors.email} />
+                    <FormInput label="Teléfono" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+506 0000-0000" error={errors.phone} />
                 </div>
 
                 {/* SECCIÓN 2: TIER */}
@@ -66,10 +66,15 @@ export const CreateCustomerContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* SECCIÓN 3: DIRECCIONES ESTRUCTURADAS */}
+                {/* SECCIÓN 3: DIRECCIONES */}
                 <div className="space-y-8">
                     <div className="flex justify-between items-center border-b border-neutral-100 pb-4">
-                        <Typography variant={TypographyVariant.SUBTITLE}>Puntos de Entrega (Costa Rica)</Typography>
+                        <div>
+                            <Typography variant={TypographyVariant.SUBTITLE}>Direcciones de Entrega</Typography>
+                            {errors.addresses && (
+                                <p className="text-xs text-red-500 font-semibold mt-1">{errors.addresses}</p>
+                            )}
+                        </div>
                         <button type="button" onClick={addAddressField} className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-6 py-3 rounded-2xl hover:bg-blue-100 transition-all">
                             + Añadir Dirección
                         </button>
@@ -103,7 +108,7 @@ export const CreateCustomerContainer: React.FC = () => {
                 <div className="flex gap-4 pt-10 border-t border-neutral-50">
                     <button type="button" className="flex-1 py-5 bg-neutral-100 text-neutral-500 rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-neutral-200 transition-all">Cancelar</button>
                     <button type="submit" disabled={isPending} className="flex-[2] py-5 bg-neutral-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-neutral-300 disabled:opacity-60 disabled:cursor-not-allowed">
-                        {isPending ? 'Guardando...' : 'Guardar Cliente'}
+                        {isPending ? 'Guardando...' : 'Registrar Cliente'}
                     </button>
                 </div>
             </form>
@@ -111,9 +116,16 @@ export const CreateCustomerContainer: React.FC = () => {
     );
 };
 
-const FormInput = ({ label, ...props }: any) => (
+interface FormInputProps {
+    label: string;
+    error?: string;
+    [key: string]: unknown;
+}
+
+const FormInput = ({ label, error, ...props }: FormInputProps) => (
     <div className="space-y-2">
         <label className="text-[10px] font-black uppercase text-neutral-400 ml-2 tracking-widest">{label}</label>
-        <input {...props} className="w-full bg-neutral-50 border-none rounded-[20px] px-6 py-5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-neutral-700 placeholder:text-neutral-300 shadow-sm" />
+        <input {...props as any} className={`w-full bg-neutral-50 border rounded-[20px] px-6 py-5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-neutral-700 placeholder:text-neutral-300 shadow-sm ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
+        {error && <p className="text-xs text-red-500 font-semibold ml-2">{error}</p>}
     </div>
 );
