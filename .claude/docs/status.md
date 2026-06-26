@@ -44,4 +44,4 @@ Auth · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · R
 | 002 billing-delivery-columns | Ejecutado 2026-06-25 |
 | 003 normalize-package-type | Ejecutado 2026-06-25 |
 | 004 users-role-column | Ejecutado 2026-06-25 |
-| 005 package-events-trigger | **Pendiente verificar** — puede que ya exista en Neon |
+| 005 package-events-trigger | Ejecutado 2026-06-25 |
