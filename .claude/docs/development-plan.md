@@ -12,27 +12,20 @@ Al completar cada etapa: eliminar su bloque de este archivo + actualizar README.
 ---
 
 ## Etapa 17 — State machine en status de paquetes
-**Estado:** Pendiente (baja prioridad)
-
-Transiciones validas: `MIAMI → TRANSITO → ADUANA → BODEGA_CR → ENTREGADO`. Solo avanzar.
-
-| Archivo | Cambio |
-|---|---|
-| `logistics.service.ts:updateStatus` | Validar transicion; 400 si no es valida |
-
-**Criterio de exito:** Pasar de MIAMI a ENTREGADO directamente retorna 400.
+**Estado:** Descartada — flujo opcional, no se bloquean transiciones
 
 ---
 
 ## Etapa 18 — Rate limiting en login
-**Estado:** Pendiente (requerido antes de produccion publica)
+**Estado:** Completada 2026-06-26 | commit: pendiente
 
-Opcion recomendada: `upstash/ratelimit` + Redis (Vercel/Upstash gratis).
+Implementado con `Map` en memoria (sin dependencias externas).
 Limite: 5 intentos fallidos por IP en 1 minuto → 429.
 
 | Archivo | Cambio |
 |---|---|
-| `src/pages/api/auth/login.ts` | Agregar rate limiting antes de la verificacion de password |
+| `src/lib/rate-limiter.ts` | Nuevo — singleton con Map, ventana de 60s, max 5 intentos |
+| `src/pages/api/auth/login.ts` | Verificar bloqueo antes de login; registrar fallo; limpiar en exito |
 
 **Criterio de exito:** 6to intento fallido desde la misma IP retorna 429.
 

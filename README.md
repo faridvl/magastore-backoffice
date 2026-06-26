@@ -26,23 +26,27 @@ Ver [`CLAUDE.md`](CLAUDE.md) para arquitectura y convenciones.
 
 ---
 
-## Estado MVP — ~90% completo
+## Estado MVP — ~95% completo
 
 ### Completado
 
 | Etapa | Descripcion |
 |---|---|
 | 16 | Billing: direccion entrega snapshot en factura + pagina de reportes mensuales |
+| 18 | Rate limiting en login (5 intentos / 1 min por IP, sin dependencias externas) |
 | 19 | Package Detail: guardar peso real desde UI |
 | 20 | Package Detail: cambio de estado inline + bitacora funcional |
 | 21 | Package Detail: panel financiero real vs estimado |
 
+### Descartado
+
+| Etapa | Descripcion | Razon |
+|---|---|---|
+| 17 | State machine en status de paquetes | Flujo opcional; no se bloquean transiciones |
+
 ### Pendiente
 
-| Etapa | Descripcion | Prioridad |
-|---|---|---|
-| 17 | State machine en status de paquetes | Baja |
-| 18 | Rate limiting en login | Antes de produccion publica |
+Ninguna etapa pendiente — MVP completo.
 
 ### Lo que funciona
 Auth · Clientes (CRUD completo) · Paquetes (registro, status, cambio de estado inline con bitacora) · Consolidaciones (ciclo completo) · Facturacion (generar con snapshot de tarifas y direccion, PDF, marcar pagado) · Reportes mensuales · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications

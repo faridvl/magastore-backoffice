@@ -8,7 +8,7 @@ Para el plan detallado de etapas pendientes: `development-plan.md`.
 
 ## Funciona con datos reales
 
-Auth · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · Registro y actualizacion de status de paquetes · Consolidaciones (crear, asignar paquetes, ciclo ABIERTO→ENTREGADO) · Facturacion (generar con snapshot de tarifas y direccion de entrega, listar, marcar pagado, PDF descargable) · Reportes mensuales de facturacion · Dashboard KPIs y graficas · Tracking publico · Notificaciones email Resend · Multi-rol ADMIN/OPERADOR · Toast notifications en todos los mutations · Historial de tarifas auditado
+Auth (con rate limiting 5 intentos/min por IP) · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · Registro y actualizacion de status de paquetes · Consolidaciones (crear, asignar paquetes, ciclo ABIERTO→ENTREGADO) · Facturacion (generar con snapshot de tarifas y direccion de entrega, listar, marcar pagado, PDF descargable) · Reportes mensuales de facturacion · Dashboard KPIs y graficas · Tracking publico · Notificaciones email Resend · Multi-rol ADMIN/OPERADOR · Toast notifications en todos los mutations · Historial de tarifas auditado
 
 ---
 
@@ -21,8 +21,7 @@ Auth · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · R
 | Detalle de paquete — bitacora | Funcional; requiere trigger `trg_package_status_history` activo en Neon (script 005) | — |
 | Detalle de paquete — panel financiero | Implementado (Etapa 21) — muestra total real en verde si hay factura, estimado en gris si no | — |
 | `/admin/packages` | Mock con setTimeout; proposito duplica `/admin/logistics` | Sin etapa asignada |
-| State machine en status | Cualquier operador puede poner ENTREGADO desde MIAMI | 17 |
-| Rate limiting en login | Sin proteccion contra fuerza bruta | 18 |
+| State machine en status | Descartada — flujo opcional | — |
 
 ---
 
