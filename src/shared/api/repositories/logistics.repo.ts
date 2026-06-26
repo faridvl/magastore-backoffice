@@ -266,18 +266,25 @@ export const LogisticsRepository = {
     status: PackageStatus,
     note?: string,
     evidenceUrl?: string,
+    location?: string,
   ): Promise<Partial<Package>> => {
     const rows = await sql`
-      UPDATE packages 
+      UPDATE packages
       SET status = ${status},
           internal_notes = ${note || null},
           evidence_url = ${evidenceUrl || null},
           updated_at = NOW()
       WHERE uuid = ${packageUuid}
-      RETURNING uuid, status, internal_notes, evidence_url;
+      RETURNING id, uuid, status, internal_notes, evidence_url;
     `;
 
     if (rows.length === 0) throw new Error('Paquete no encontrado.');
+
+    await sql`
+      INSERT INTO package_events (package_id, status, event_type, description, location)
+      VALUES (${rows[0].id}, ${status}, 'INFO', ${note || null}, ${location || null})
+    `;
+
     return rows[0];
   },
 

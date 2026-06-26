@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const { uuid } = req.query;
             if (!uuid) return res.status(400).json({ message: 'UUID requerido para actualización' });
 
-            const { action: bodyAction, status, note, evidenceUrl, weight_lb } = req.body;
+            const { action: bodyAction, status, note, evidenceUrl, weight_lb, location } = req.body;
 
             if (bodyAction === 'weight') {
                 if (!weight_lb) return res.status(400).json({ message: 'weight_lb es requerido.' });
@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(200).json(updated);
             }
 
-            const updated = await LogisticsService.updateStatus(uuid as string, status, note, evidenceUrl);
+            const updated = await LogisticsService.updateStatus(uuid as string, status, note, evidenceUrl, location);
             return res.status(200).json(updated);
         }
 

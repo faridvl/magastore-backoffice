@@ -196,6 +196,7 @@ export const LogisticsService = {
     status: PackageStatus,
     note?: string,
     evidenceUrl?: string,
+    location?: string,
   ): Promise<Partial<Package>> => {
     try {
       const updatedPackage = await LogisticsRepository.updatePackageStatus(
@@ -203,6 +204,7 @@ export const LogisticsService = {
         status,
         note,
         evidenceUrl,
+        location,
       );
 
       if (status === PackageStatus.ENTREGADO) {
