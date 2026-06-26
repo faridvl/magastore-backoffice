@@ -32,7 +32,7 @@ const STATUS_LABELS: Record<ConsolidationStatus, string> = {
 const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
   CERRADO: 'bg-amber-50 text-amber-600 border-amber-100',
-  DESPACHADO: 'bg-violet-50 text-violet-600 border-violet-100',
+  DESPACHADO: 'bg-violet-50 text-amber-600 border-violet-100',
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 

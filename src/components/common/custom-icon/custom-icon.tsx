@@ -49,7 +49,7 @@ export function CustomIcon({
     return (
         <HeroIcon
             //TODO(): agregar colores de texto al tailwind config
-            className={tailwind(`${size} text-gray-900 cursor-pointer`, onClick ? 'cursor-pointer' : '', className)}
+            className={tailwind(`${size} text-slate-900 cursor-pointer`, onClick ? 'cursor-pointer' : '', className)}
             onClick={onClick}
         />
     );

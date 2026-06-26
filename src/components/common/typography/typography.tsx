@@ -40,9 +40,9 @@ type VariantStyle = {
 
 const brandPrimary = 'text-primary';
 const brandAccent = 'text-accent';
-const neutralDark = 'text-neutral-900 dark:text-neutral-50';
-const neutralBase = 'text-neutral-700 dark:text-neutral-300';
-const neutralLight = 'text-neutral-500 dark:text-neutral-400';
+const neutralDark = 'text-slate-900 dark:text-slate-50';
+const neutralBase = 'text-slate-700 dark:text-slate-300';
+const neutralLight = 'text-slate-500 dark:text-slate-400';
 
 const commonStylesClassName = 'tracking-tight';
 

@@ -3,7 +3,7 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { useCreateCustomer } from './use-create-customer';
 
 const TIERS = [
-    { id: 'Regular', label: 'Regular', desc: 'Cliente estándar', color: 'bg-neutral-100 text-neutral-500' },
+    { id: 'Regular', label: 'Regular', desc: 'Cliente estándar', color: 'bg-slate-100 text-slate-500' },
     { id: 'VIP', label: 'VIP', desc: 'Cliente frecuente', color: 'bg-amber-50 text-amber-600 border-amber-100' },
     { id: 'Diamond', label: 'Diamond', desc: 'Nivel máximo', color: 'bg-amber-600 text-white' }
 ];
@@ -16,11 +16,11 @@ export const CreateCustomerContainer: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-10 bg-white p-4 md:p-12 rounded-[24px] md:rounded-[40px] border border-neutral-100 shadow-xl shadow-neutral-100/50 mb-20">
+            <form onSubmit={handleSubmit} className="space-y-10 bg-white p-4 md:p-12 rounded-[24px] md:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-100/50 mb-20">
 
                 {/* SECCIÓN 1: DATOS PERSONALES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-1 md:col-span-2 border-b border-neutral-100 pb-4 mb-2">
+                    <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-4 mb-2">
                         <Typography variant={TypographyVariant.SUBTITLE}>Nuevo Cliente</Typography>
                     </div>
 
@@ -28,12 +28,12 @@ export const CreateCustomerContainer: React.FC = () => {
                     <FormInput label="Apellidos" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Ej. Pierce" error={errors.lastName} />
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-neutral-400 ml-2 tracking-widest">Tipo Identificación</label>
+                        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Tipo Identificación</label>
                         <select
                             name="idType"
                             value={formData.idType}
                             onChange={handleInputChange}
-                            className="w-full bg-neutral-50 border-none rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-neutral-700 shadow-sm appearance-none text-sm md:text-base"
+                            className="w-full bg-slate-50 border-none rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 shadow-sm appearance-none text-sm md:text-base"
                         >
                             <option value="FISICA">Física</option>
                             <option value="JURIDICA">Jurídica</option>
@@ -49,7 +49,7 @@ export const CreateCustomerContainer: React.FC = () => {
 
                 {/* SECCIÓN 2: TIER */}
                 <div className="space-y-4">
-                    <div className="border-b border-neutral-100 pb-4 mb-2">
+                    <div className="border-b border-slate-100 pb-4 mb-2">
                         <Typography variant={TypographyVariant.SUBTITLE}>Nivel de Lealtad</Typography>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -57,10 +57,10 @@ export const CreateCustomerContainer: React.FC = () => {
                             <div
                                 key={tier.id}
                                 onClick={() => handleInputChange({ target: { name: 'tier', value: tier.id } } as any)}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-neutral-50 bg-neutral-50/50 hover:border-neutral-200'}`}
+                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
                             >
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${tier.color}`}>{tier.label}</span>
-                                <p className="text-xs font-medium text-neutral-400 mt-2">{tier.desc}</p>
+                                <p className="text-xs font-medium text-slate-400 mt-2">{tier.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -68,7 +68,7 @@ export const CreateCustomerContainer: React.FC = () => {
 
                 {/* SECCIÓN 3: DIRECCIONES */}
                 <div className="space-y-8">
-                    <div className="flex justify-between items-center border-b border-neutral-100 pb-4">
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                         <div>
                             <Typography variant={TypographyVariant.SUBTITLE}>Direcciones de Entrega</Typography>
                             {errors.addresses && (
@@ -81,7 +81,7 @@ export const CreateCustomerContainer: React.FC = () => {
                     </div>
 
                     {addresses.map((addr, index) => (
-                        <div key={addr.id} className="p-5 md:p-8 bg-neutral-50/50 rounded-[24px] md:rounded-[32px] border border-neutral-100 relative">
+                        <div key={addr.id} className="p-5 md:p-8 bg-slate-50/50 rounded-[24px] md:rounded-[32px] border border-slate-100 relative">
                             <div className="flex justify-between items-center mb-6">
                                 <span className="text-[10px] font-black uppercase text-amber-500 tracking-widest bg-white px-4 py-2 rounded-full shadow-sm">
                                     📍 {addr.address_label}
@@ -105,9 +105,9 @@ export const CreateCustomerContainer: React.FC = () => {
                 </div>
 
                 {/* ACCIONES */}
-                <div className="flex gap-4 pt-6 md:pt-10 border-t border-neutral-50">
-                    <button type="button" className="flex-1 py-4 md:py-5 bg-neutral-100 text-neutral-500 rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-neutral-200 transition-all">Cancelar</button>
-                    <button type="submit" disabled={isPending} className="flex-[2] py-4 md:py-5 bg-neutral-900 text-white rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-neutral-300 disabled:opacity-60 disabled:cursor-not-allowed">
+                <div className="flex gap-4 pt-6 md:pt-10 border-t border-slate-50">
+                    <button type="button" className="flex-1 py-4 md:py-5 bg-slate-100 text-slate-500 rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all">Cancelar</button>
+                    <button type="submit" disabled={isPending} className="flex-[2] py-4 md:py-5 bg-slate-900 text-white rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-slate-300 disabled:opacity-60 disabled:cursor-not-allowed">
                         {isPending ? 'Guardando...' : 'Registrar Cliente'}
                     </button>
                 </div>
@@ -124,8 +124,8 @@ interface FormInputProps {
 
 const FormInput = ({ label, error, ...props }: FormInputProps) => (
     <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase text-neutral-400 ml-2 tracking-widest">{label}</label>
-        <input {...props as any} className={`w-full bg-neutral-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-neutral-700 placeholder:text-neutral-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
+        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">{label}</label>
+        <input {...props as any} className={`w-full bg-slate-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
         {error && <p className="text-xs text-red-500 font-semibold ml-2">{error}</p>}
     </div>
 );

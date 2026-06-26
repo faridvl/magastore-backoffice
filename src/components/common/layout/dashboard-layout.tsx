@@ -76,7 +76,7 @@ export function DashboardLayout({
     : (children as React.ReactElement);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden relative bg-neutral-50 dark:bg-background transition-colors duration-300">
+    <div className="flex h-screen w-screen overflow-hidden relative bg-slate-50 dark:bg-background transition-colors duration-300">
 
       {/* Notificaciones Flotantes */}
       <div className="absolute top-6 right-6 z-[100] pointer-events-none">
@@ -109,7 +109,7 @@ export function DashboardLayout({
 
       <div className={tailwind(
         "flex flex-col flex-1 h-full min-w-0 transition-all",
-        !hideSidebar && "lg:border-l border-neutral-200 dark:border-neutral-800"
+        !hideSidebar && "lg:border-l border-slate-200 dark:border-slate-800"
       )}>
         {!hideSidebar && (
           <Header

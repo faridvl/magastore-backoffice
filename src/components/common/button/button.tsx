@@ -53,7 +53,7 @@ export function Button({
             className: `${baseStyle} bg-warning text-white hover:bg-warning-dark focus:ring-warning/40`,
         },
         [ButtonVariant.CANCEL]: {
-            className: `${baseStyle} bg-neutral-100 text-neutral-700 hover:bg-neutral-200 focus:ring-neutral-300 dark:bg-neutral-800 dark:text-neutral-200`,
+            className: `${baseStyle} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300 dark:bg-slate-800 dark:text-slate-200`,
         },
         [ButtonVariant.GHOST]: {
             className: `${baseStyle} border-2 border-primary text-primary hover:bg-primary/5 focus:ring-primary/20`,

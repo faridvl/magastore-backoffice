@@ -118,13 +118,13 @@ const TrackingPage: React.FC = () => {
                                 <div className="bg-amber-50 h-16 w-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500">
                                     <Truck size={32} />
                                 </div>
-                                <h2 className="text-xl md:text-2xl font-black text-neutral-800 tracking-tight">Rastrear Paquete</h2>
-                                <p className="text-neutral-400 text-sm mt-1">Ingresa el número de tracking para ver el estado de tu envío</p>
+                                <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Rastrear Paquete</h2>
+                                <p className="text-slate-400 text-sm mt-1">Ingresa el número de tracking para ver el estado de tu envío</p>
                             </div>
                         )}
 
                         <div className={`w-full ${showResult ? 'max-w-2xl' : 'max-w-xl'} mx-auto`}>
-                            <div className="bg-white rounded-[1.75rem] shadow-xl shadow-amber-900/5 border border-neutral-100 flex items-center p-2">
+                            <div className="bg-white rounded-[1.75rem] shadow-xl shadow-amber-900/5 border border-slate-100 flex items-center p-2">
                                 <div className="pl-3 md:pl-4 pr-2 md:pr-3 text-amber-500 flex-shrink-0">
                                     <Search size={20} />
                                 </div>
@@ -132,7 +132,7 @@ const TrackingPage: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Número de tracking..."
-                                        className="w-full py-3 md:py-3.5 bg-transparent border-none focus:ring-0 font-bold text-neutral-700 placeholder:text-neutral-300 text-sm md:text-base min-w-0"
+                                        className="w-full py-3 md:py-3.5 bg-transparent border-none focus:ring-0 font-bold text-slate-700 placeholder:text-slate-300 text-sm md:text-base min-w-0"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         autoComplete="off"
@@ -174,10 +174,10 @@ const TrackingPage: React.FC = () => {
                             {loading && (
                                 <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
                                     <div className="space-y-4">
-                                        <div className="bg-white rounded-2xl h-40 border border-neutral-100" />
-                                        <div className="bg-neutral-800 rounded-2xl h-24" />
+                                        <div className="bg-white rounded-2xl h-40 border border-slate-100" />
+                                        <div className="bg-slate-800 rounded-2xl h-24" />
                                     </div>
-                                    <div className="lg:col-span-2 bg-white rounded-2xl h-80 border border-neutral-100" />
+                                    <div className="lg:col-span-2 bg-white rounded-2xl h-80 border border-slate-100" />
                                 </div>
                             )}
 
@@ -189,45 +189,45 @@ const TrackingPage: React.FC = () => {
                                     <div className="flex flex-col gap-4">
 
                                         {/* Tarjeta detalles */}
-                                        <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-6">
+                                        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-6">
                                             <div className="flex items-center gap-2.5 mb-4">
                                                 <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
                                                     <Package size={16} />
                                                 </div>
-                                                <span className="text-xs font-black text-neutral-600 uppercase tracking-wider">Detalles</span>
+                                                <span className="text-xs font-black text-slate-600 uppercase tracking-wider">Detalles</span>
                                             </div>
                                             <div className="space-y-3">
                                                 <div>
-                                                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Tracking</p>
+                                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tracking</p>
                                                     <p className="font-mono text-xs font-bold text-amber-600 break-all mt-0.5">{result.tracking_number}</p>
                                                 </div>
-                                                <div className="border-t border-neutral-50 pt-3 flex justify-between">
+                                                <div className="border-t border-slate-50 pt-3 flex justify-between">
                                                     <div>
-                                                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Cliente</p>
-                                                        <p className="text-sm font-bold text-neutral-700 mt-0.5">{result.first_name} {result.last_name}</p>
+                                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Cliente</p>
+                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{result.first_name} {result.last_name}</p>
                                                         {result.customer_code && (
-                                                            <p className="text-[10px] font-mono text-neutral-400 mt-0.5">{result.customer_code}</p>
+                                                            <p className="text-[10px] font-mono text-slate-400 mt-0.5">{result.customer_code}</p>
                                                         )}
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Peso</p>
-                                                        <p className="text-sm font-bold text-neutral-700 mt-0.5">{result.weight_lb} LB</p>
+                                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Peso</p>
+                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{result.weight_lb} LB</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Tarjeta estado actual */}
-                                        <div className="bg-neutral-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/10">
+                                        <div className="bg-slate-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/10">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Globe size={13} className="text-amber-400" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Estado Actual</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Estado Actual</span>
                                             </div>
                                             <h3 className="text-xl font-black tracking-tight">
                                                 {STATUS_LABELS[result.status] ?? result.status}
                                             </h3>
                                             {result.arrival_date && (
-                                                <p className="text-neutral-500 text-xs mt-2 font-medium">
+                                                <p className="text-slate-500 text-xs mt-2 font-medium">
                                                     Llegó: {formatDate(result.arrival_date)}
                                                 </p>
                                             )}
@@ -235,10 +235,10 @@ const TrackingPage: React.FC = () => {
                                     </div>
 
                                     {/* Columna derecha: timeline */}
-                                    <div className="lg:col-span-2 bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 md:p-8">
-                                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-5">Historial de Seguimiento</p>
+                                    <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-8">
+                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-5">Historial de Seguimiento</p>
                                         <div className="relative space-y-6 md:space-y-10">
-                                            <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-neutral-100" />
+                                            <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-100" />
                                             {timeline.map((step, index) => (
                                                 <div key={index} className="relative flex gap-5 md:gap-6">
                                                     <div className={`z-10 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-white transition-all flex-shrink-0 ${
@@ -246,7 +246,7 @@ const TrackingPage: React.FC = () => {
                                                             ? 'bg-amber-600 shadow-md shadow-amber-200'
                                                             : step.completed
                                                             ? 'bg-emerald-500'
-                                                            : 'bg-neutral-200'
+                                                            : 'bg-slate-200'
                                                     }`}>
                                                         {step.completed
                                                             ? <CheckCircle size={15} className="text-white" />
@@ -255,15 +255,15 @@ const TrackingPage: React.FC = () => {
                                                     <div className="flex-1 min-w-0 pt-0.5">
                                                         <div className="flex items-start justify-between gap-2">
                                                             <h4 className={`font-black text-sm uppercase tracking-wide leading-tight ${
-                                                                step.current ? 'text-amber-600' : step.completed ? 'text-neutral-800' : 'text-neutral-300'
+                                                                step.current ? 'text-amber-600' : step.completed ? 'text-slate-800' : 'text-slate-300'
                                                             }`}>
                                                                 {step.label}
                                                             </h4>
-                                                            <span className="text-[10px] font-bold text-neutral-400 bg-neutral-50 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
+                                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
                                                                 {step.date}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
+                                                        <div className="flex items-center gap-1.5 mt-1 text-slate-400">
                                                             <MapPin size={11} />
                                                             <span className="text-xs font-medium">{step.location}</span>
                                                         </div>

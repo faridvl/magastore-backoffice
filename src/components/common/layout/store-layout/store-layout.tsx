@@ -18,7 +18,7 @@ export const StoreLayout: React.FC<StoreLayoutProps> = ({ children, title }) => 
             <div className="min-h-screen bg-white flex flex-col font-sans">
 
                 {/* Navbar superior: Limpio y sin distracciones */}
-                <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-100">
+                <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
                     <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
                         {/* Logo con tu tipografía de display */}
@@ -28,15 +28,15 @@ export const StoreLayout: React.FC<StoreLayoutProps> = ({ children, title }) => 
 
                         {/* Menú de navegación central (opcional) */}
                         <nav className="hidden md:flex gap-8">
-                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-neutral-500">Hombre</Typography>
-                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-neutral-500">Mujer</Typography>
-                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-neutral-500">Nicho</Typography>
+                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-slate-500">Hombre</Typography>
+                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-slate-500">Mujer</Typography>
+                            <Typography variant={TypographyVariant.LINK_TEXT} className="text-slate-500">Nicho</Typography>
                         </nav>
 
                         {/* Carrito y Perfil */}
                         <div className="flex items-center gap-4">
                             <div className="relative cursor-pointer hover:scale-105 transition-transform">
-                                <ShoppingBagIcon className="w-7 h-7 text-neutral-800" />
+                                <ShoppingBagIcon className="w-7 h-7 text-slate-800" />
                                 <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                                     2
                                 </span>
@@ -51,9 +51,9 @@ export const StoreLayout: React.FC<StoreLayoutProps> = ({ children, title }) => 
                 </main>
 
                 {/* Footer elegante */}
-                <footer className="bg-neutral-900 py-12 text-white">
+                <footer className="bg-slate-900 py-12 text-white">
                     <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <Typography variant={TypographyVariant.BODY} className="text-neutral-400">
+                        <Typography variant={TypographyVariant.BODY} className="text-slate-400">
                             © 2026 ScentStack. Todos los derechos reservados.
                         </Typography>
                         <div className="flex gap-6">

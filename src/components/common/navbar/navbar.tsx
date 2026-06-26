@@ -2,7 +2,7 @@
 
 // const Navbar = () => {
 //   return (
-//     <nav className="bg-gray-800 shadow-md">
+//     <nav className="bg-slate-800 shadow-md">
 //       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
 //         <div className="relative flex items-center justify-between h-16">
 //           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -41,19 +41,19 @@
 //               <div className="flex space-x-4">
 //                 <a
 //                   href="#"
-//                   className="text-gray-300 hover:bg-gray-700 hover: px-3 py-2 rounded-md text-sm font-medium"
+//                   className="text-slate-300 hover:bg-slate-700 hover: px-3 py-2 rounded-md text-sm font-medium"
 //                 >
 //                   Home
 //                 </a>
 //                 <a
 //                   href="#"
-//                   className="text-gray-300 hover:bg-gray-700 hover: px-3 py-2 rounded-md text-sm font-medium"
+//                   className="text-slate-300 hover:bg-slate-700 hover: px-3 py-2 rounded-md text-sm font-medium"
 //                 >
 //                   About
 //                 </a>
 //                 <a
 //                   href="#"
-//                   className="text-gray-300 hover:bg-gray-700 hover: px-3 py-2 rounded-md text-sm font-medium"
+//                   className="text-slate-300 hover:bg-slate-700 hover: px-3 py-2 rounded-md text-sm font-medium"
 //                 >
 //                   Contact
 //                 </a>
@@ -66,7 +66,7 @@
 //             <div className="ml-3 relative">
 //               <div>
 //                 <button
-//                   className="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+//                   className="bg-slate-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-white"
 //                   id="user-menu"
 //                   aria-haspopup="true"
 //                 >

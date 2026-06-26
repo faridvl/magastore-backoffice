@@ -60,9 +60,9 @@ export const BillingReportsContainer: React.FC = () => {
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
         <KpiCard label="Total Facturado" value={formatCRC(totalInvoiced)} color="text-slate-800" />
-        <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-green-600" />
+        <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-emerald-600" />
         <KpiCard label="Pendiente"       value={formatCRC(totalPending)}  color="text-orange-500" />
-        <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-indigo-600" />
+        <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-amber-600" />
         <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-amber-600" />
       </div>
 
@@ -101,9 +101,9 @@ export const BillingReportsContainer: React.FC = () => {
                   <td className="px-4 py-3 text-right text-slate-600">{row.invoice_count}</td>
                   <td className="px-4 py-3 text-right text-slate-600">{row.paid_count}</td>
                   <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatCRC(row.total_invoiced_crc)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-green-600">{formatCRC(row.total_paid_crc)}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatCRC(row.total_paid_crc)}</td>
                   <td className="px-4 py-3 text-right font-semibold text-orange-500">{formatCRC(row.total_pending_crc)}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-indigo-600">{formatCRC(row.total_ganancia_crc)}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatCRC(row.total_ganancia_crc)}</td>
                 </tr>
               ))}
             </tbody>
@@ -115,9 +115,9 @@ export const BillingReportsContainer: React.FC = () => {
                   {rows.reduce((s, r) => s + r.paid_count, 0)}
                 </td>
                 <td className="px-4 py-3 text-right font-bold text-slate-800">{formatCRC(totalInvoiced)}</td>
-                <td className="px-4 py-3 text-right font-bold text-green-600">{formatCRC(totalPaid)}</td>
+                <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatCRC(totalPaid)}</td>
                 <td className="px-4 py-3 text-right font-bold text-orange-500">{formatCRC(totalPending)}</td>
-                <td className="px-4 py-3 text-right font-bold text-indigo-600">{formatCRC(totalGanancia)}</td>
+                <td className="px-4 py-3 text-right font-bold text-amber-600">{formatCRC(totalGanancia)}</td>
               </tr>
             </tfoot>
           </table>

@@ -36,17 +36,17 @@ export function Pagination({ currentPage, onPageChange, startIndex, endIndex, to
                 <button
                     onClick={handlePrevious}
                     disabled={currentPage === 1}
-                    className={`p-2 ${currentPage === 1 ? 'text-gray-400' : 'text-gray-700'} hover:text-gray-900 focus:outline-none`}
+                    className={`p-2 ${currentPage === 1 ? 'text-slate-400' : 'text-slate-700'} hover:text-slate-900 focus:outline-none`}
                 >
                     <CustomIcon icon={IconName.CHEVRON_LEFT_ICON} size={IconSize.XS} />
                 </button>
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-slate-700">
                     {currentPage} / {totalPages}
                 </span>
                 <button
                     onClick={handleNext}
                     disabled={currentPage === totalPages}
-                    className={`p-2 ${currentPage === totalPages ? 'text-gray-400' : 'text-gray-700'} hover:text-gray-900 focus:outline-none`}
+                    className={`p-2 ${currentPage === totalPages ? 'text-slate-400' : 'text-slate-700'} hover:text-slate-900 focus:outline-none`}
                 >
                     <CustomIcon icon={IconName.CHEVRON_RIGHT_ICON} size={IconSize.XS} />
 

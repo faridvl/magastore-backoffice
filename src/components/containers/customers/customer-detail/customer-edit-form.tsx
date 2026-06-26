@@ -88,7 +88,7 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               }`}
             />
           </button>
-          <Typography variant={TypographyVariant.BODY_SEMIBOLD} className={form.is_active ? 'text-green-600' : 'text-slate-400'}>
+          <Typography variant={TypographyVariant.BODY_SEMIBOLD} className={form.is_active ? 'text-emerald-600' : 'text-slate-400'}>
             {form.is_active ? 'Activo' : 'Inactivo'}
           </Typography>
         </div>

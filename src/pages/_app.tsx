@@ -46,7 +46,7 @@ const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
         TODO:
         - Activar clase "dark" en <html> o <body> desde _document.tsx
         - Asegurar que el layout principal aplique:
-          bg-background text-neutral-100 min-h-screen font-sans
+          bg-background text-slate-100 min-h-screen font-sans
       */}
 
       <QueryClientProvider client={queryClient}>

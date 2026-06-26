@@ -15,7 +15,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
   const { isAdmin } = useSidebar();
 
   return (
-    <div className="flex h-full w-64 max-h-screen flex-col bg-white border-r border-neutral-100 dark:bg-background dark:border-neutral-800">
+    <div className="flex h-full w-64 max-h-screen flex-col bg-white border-r border-slate-100 dark:bg-background dark:border-slate-800">
 
       {/* Logo Section - Magastore Identity */}
       <div className="flex h-[80px] items-center px-6 mb-2">
@@ -27,11 +27,11 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
           <div className="flex flex-col">
             <Typography
               variant={TypographyVariant.BODY_BOLD}
-              className="text-neutral-900 dark:text-white text-[16px] tracking-tighter leading-none"
+              className="text-slate-900 dark:text-white text-[16px] tracking-tighter leading-none"
             >
               MAGA<span className="text-amber-600 font-black">STORE</span>
             </Typography>
-            <span className="text-[9px] font-black text-neutral-400 uppercase tracking-[0.2em] mt-1">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
               Logística & Envíos
             </span>
           </div>
@@ -55,7 +55,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
                   relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
                   ${isActive
                     ? "text-amber-600 bg-amber-50 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 dark:hover:bg-slate-900"
                   }
                 `}
               >
@@ -67,7 +67,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
                   <Icon
                     size={20}
                     strokeWidth={isActive ? 2.5 : 2}
-                    className={isActive ? "text-amber-600" : "text-neutral-400 group-hover:text-neutral-600"}
+                    className={isActive ? "text-amber-600" : "text-slate-400 group-hover:text-slate-600"}
                   />
                 )}
 
