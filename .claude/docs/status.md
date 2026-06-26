@@ -16,7 +16,7 @@ Auth · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · R
 
 | Area | Problema | Etapa que lo arregla |
 |---|---|---|
-| Detalle de paquete — editar peso | `handleSaveFinancial` es un stub, no llama API | 19 |
+| Detalle de paquete — editar peso | Implementado (Etapa 19) — PATCH `/logistics?uuid=X` `action=weight` | — |
 | Detalle de paquete — cambio de estado | No hay UI real; `/edit/[id]` es 100% mock con datos hardcoded | 20 |
 | Detalle de paquete — bitacora | Depende del trigger `trg_package_status_history` en Neon; pendiente verificar | 20 |
 | Detalle de paquete — panel financiero | Siempre muestra estimado, nunca `billing.total_amount_crc` real. JOIN billing sin LIMIT 1 | 21 |

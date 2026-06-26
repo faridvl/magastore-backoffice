@@ -9,7 +9,7 @@ export const PackageDetailContainer: React.FC = () => {
     const { uuid } = router.query;
     const {
         data, bitacora, calculos, isLoading, isError,
-        isEditingFinancial, setIsEditingFinancial, handleSaveFinancial, updateField
+        isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField
     } = usePackageDetailContainer(uuid as string);
 
     if (isLoading) return (
@@ -38,12 +38,18 @@ export const PackageDetailContainer: React.FC = () => {
 
                 <button
                     onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
-                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isEditingFinancial
+                    disabled={isSavingWeight}
+                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105'
                         : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}
                 >
-                    {isEditingFinancial ? <><Save size={16} /> Confirmar Cambios</> : <><Edit3 size={16} /> Editar Peso/Precios</>}
+                    {isSavingWeight
+                        ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
+                        : isEditingFinancial
+                            ? <><Save size={16} /> Confirmar Cambios</>
+                            : <><Edit3 size={16} /> Editar Peso/Precios</>
+                    }
                 </button>
             </div>
 

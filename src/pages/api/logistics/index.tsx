@@ -16,8 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const { action, uuid, page, limit } = req.query;
-
         // --- MÉTODOS GET ---
         if (req.method === 'GET') {
             const { uuid, page, limit, search, status } = req.query;
@@ -27,10 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(200).json(pkg);
             }
 
-            // Convertimos y limpiamos los params
             const p = parseInt(page as string) || 1;
             const l = parseInt(limit as string) || 10;
-            const s = search as string;  // Si es undefined, el service lo maneja
+            const s = search as string;
             const st = status as string;
 
             const result = await LogisticsService.getAllPackages(p, l, s, st);
@@ -39,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // --- MÉTODOS POST ---
         if (req.method === 'POST') {
+            const { action } = req.query;
             switch (action) {
                 case 'register':
                     const newPkg = await LogisticsService.registerIncomingPackage(req.body);
@@ -64,8 +62,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // --- MÉTODOS PATCH (Actualizaciones parciales) ---
         if (req.method === 'PATCH') {
-            const { status, note, evidenceUrl } = req.body;
+            const { uuid } = req.query;
             if (!uuid) return res.status(400).json({ message: 'UUID requerido para actualización' });
+
+            const { action: bodyAction, status, note, evidenceUrl, weight_lb } = req.body;
+
+            if (bodyAction === 'weight') {
+                if (!weight_lb) return res.status(400).json({ message: 'weight_lb es requerido.' });
+                const updated = await LogisticsService.updatePackageWeight(uuid as string, Number(weight_lb));
+                return res.status(200).json(updated);
+            }
 
             const updated = await LogisticsService.updateStatus(uuid as string, status, note, evidenceUrl);
             return res.status(200).json(updated);

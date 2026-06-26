@@ -1,6 +1,8 @@
 import { usePackageDetailQuery } from '@/shared/api/querys/logistics/find-one-package-query';
+import { useUpdatePackageWeightMutation } from '@/shared/api/mutations/logistics/use-update-package-weight-mutation';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 
 export const usePackageDetailContainer = (uuid?: string) => {
   const [isEditingFinancial, setIsEditingFinancial] = useState(false);
@@ -10,6 +12,8 @@ export const usePackageDetailContainer = (uuid?: string) => {
 
   const { data: settingsRes, isLoading: isLoadingSettings } = useSettingsQuery();
   const settings = settingsRes?.current;
+
+  const { mutateAsync: saveWeight, isPending: isSavingWeight } = useUpdatePackageWeightMutation(uuid);
 
   const [data, setData] = useState({
     tracking: 'Cargando...',
@@ -21,7 +25,6 @@ export const usePackageDetailContainer = (uuid?: string) => {
     tarifaXLibre: 6,
     tipoCambio: 480,
     costoEnvioCorreos: 4500,
-    costoPTY: 0,
     estadoPago: 'PENDIENTE',
   });
 
@@ -80,9 +83,19 @@ export const usePackageDetailContainer = (uuid?: string) => {
   const updateField = (field: string, value: any) =>
     setData((prev) => ({ ...prev, [field]: value }));
 
-  const handleSaveFinancial = () => {
-    // TODO Etapa 5+: mutación para actualizar peso en el servidor
-    setIsEditingFinancial(false);
+  const handleSaveFinancial = async () => {
+    const weight = Number(data.peso);
+    if (!weight || weight <= 0) {
+      toast.error('El peso debe ser mayor a 0.');
+      return;
+    }
+    try {
+      await saveWeight({ weight_lb: weight });
+      toast.success('Peso actualizado correctamente.');
+      setIsEditingFinancial(false);
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al actualizar el peso.');
+    }
   };
 
   return {
@@ -92,6 +105,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     isLoading: !uuid || isLoadingPackage || isLoadingSettings,
     isError,
     isEditingFinancial,
+    isSavingWeight,
     setIsEditingFinancial,
     handleSaveFinancial,
     updateField,

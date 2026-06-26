@@ -116,6 +116,24 @@ export const LogisticsService = {
   },
 
   /**
+   * Actualiza el peso registrado de un paquete.
+   */
+  updatePackageWeight: async (
+    uuid: string,
+    weight_lb: number,
+  ): Promise<Partial<Package>> => {
+    if (!weight_lb || weight_lb <= 0) {
+      throw new Error('El peso del paquete debe ser mayor a 0.');
+    }
+    try {
+      return await LogisticsRepository.updatePackageWeight(uuid, weight_lb);
+    } catch (error: any) {
+      console.error('[LogisticsService.updatePackageWeight]:', error);
+      throw new Error(error.message || 'Error al actualizar el peso.');
+    }
+  },
+
+  /**
    * Agrupa varios paquetes en un solo consolidado y recalcula pesos.
    */
   processConsolidation: async (

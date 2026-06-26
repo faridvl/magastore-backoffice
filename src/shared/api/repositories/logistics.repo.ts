@@ -241,6 +241,24 @@ export const LogisticsRepository = {
   },
 
   /**
+   * 5b. UPDATE PACKAGE WEIGHT: Actualiza solo el peso registrado.
+   */
+  updatePackageWeight: async (
+    packageUuid: string,
+    weight_lb: number,
+  ): Promise<Partial<Package>> => {
+    const rows = await sql`
+      UPDATE packages
+      SET weight_lb = ${weight_lb},
+          updated_at = NOW()
+      WHERE uuid = ${packageUuid}
+      RETURNING uuid, weight_lb, updated_at;
+    `;
+    if (rows.length === 0) throw new Error('Paquete no encontrado.');
+    return rows[0];
+  },
+
+  /**
    * 6. REGISTER INCIDENCE / UPDATE STATUS: Actualización con metadatos de daño.
    */
   updatePackageStatus: async (

@@ -60,20 +60,7 @@ Limite: 5 intentos fallidos por IP en 1 minuto → 429.
 ---
 
 ## Etapa 19 — Package Detail: guardar peso real
-**Estado:** Pendiente
-
-El boton "Editar Peso/Precios" llama `setIsEditingFinancial(false)` sin ningun fetch. `costoPTY` es estado muerto.
-
-| Archivo | Cambio |
-|---|---|
-| `logistics.repo.ts` | Agregar `updatePackageWeight(uuid, weight_lb, internal_notes)` |
-| `logistics.service.ts` | Agregar `updatePackageWeight` con validacion peso > 0 |
-| `src/pages/api/logistics/index.tsx` | PATCH: discriminar `action` del body (`'weight'` vs status por defecto); limpiar doble destructuring de `uuid` en lineas 19 y 23 |
-| `mutations/logistics/use-update-package-weight-mutation.ts` | Nuevo — PATCH con `action=weight`, invalida `['fetchPackageDetail', uuid]` |
-| `use-logistics-detail.ts` | `handleSaveFinancial` llama mutacion; toast.success / toast.error; eliminar `costoPTY` |
-| `logistics-view-detail.tsx` | Boton "Confirmar Cambios" con spinner mientras `isPending` |
-
-**Criterio de exito:** Cambiar peso → persiste en DB → nuevo peso visible sin recargar. Toast de exito.
+**Estado:** Completada 2026-06-25 | commit: pendiente
 
 ---
 
