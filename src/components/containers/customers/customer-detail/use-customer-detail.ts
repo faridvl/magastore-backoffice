@@ -78,10 +78,9 @@ export const useCustomerDetail = (customerId: string) => {
       setIsEditMode(false);
       setEditForm(null);
       toast.success('Cliente actualizado correctamente');
-    } catch (err: any) {
-      const msg = err.message || 'Error al guardar los cambios.';
-      setEditError(msg);
-      toast.error(msg);
+    } catch {
+      setEditError('No se pudieron guardar los cambios.');
+      toast.error('No se pudieron guardar los cambios del cliente. Intenta de nuevo.');
     }
   };
 

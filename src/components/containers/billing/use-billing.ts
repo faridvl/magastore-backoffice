@@ -72,7 +72,7 @@ export const useBilling = () => {
       setActiveTab('registros');
       toast.success('Factura generada correctamente');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al generar la factura');
+      toast.error('No se pudo generar la factura. Verifica que la consolidación esté cerrada y sin factura previa.');
     }
   };
 
@@ -85,7 +85,7 @@ export const useBilling = () => {
       setSelectedBillingUuid(null);
       toast.success('Factura marcada como pagada');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al marcar como pagada');
+      toast.error('No se pudo registrar el pago. Intenta de nuevo.');
     }
   };
 
@@ -106,7 +106,7 @@ export const useBilling = () => {
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (err: any) {
-      toast.error(err?.message || 'No se pudo generar el PDF');
+      toast.error('No se pudo descargar el PDF. Intenta de nuevo más tarde.');
     } finally {
       setIsDownloadingPdf(false);
     }

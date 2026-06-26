@@ -59,7 +59,7 @@ export const usePackageCalculator = () => {
 
   const handleSave = async () => {
     if (!formData.customer_id || !formData.tracking_number) {
-      toast.error('Completa los campos obligatorios');
+      toast.error('Selecciona un cliente e ingresa el número de tracking antes de continuar.');
       return;
     }
     try {
@@ -68,7 +68,7 @@ export const usePackageCalculator = () => {
       setSearchTerm('');
       toast.success('Paquete registrado');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al registrar el paquete');
+      toast.error('No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
     }
   };
 

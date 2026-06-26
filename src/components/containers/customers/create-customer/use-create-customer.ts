@@ -78,7 +78,7 @@ export const useCreateCustomer = () => {
         admin.customers.list();
       },
       onError: (err: any) => {
-        toast.error(err?.message || 'Error al registrar el cliente');
+        toast.error('No se pudo registrar el cliente. Verifica que el correo y la cédula no estén ya registrados.');
       },
     });
   };

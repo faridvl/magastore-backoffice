@@ -72,7 +72,7 @@ export const useSettings = () => {
       await executeUpdate(settings);
       toast.success('Configuración guardada');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al guardar la configuración');
+      toast.error('No se pudieron guardar los cambios. Intenta de nuevo.');
     }
   };
 

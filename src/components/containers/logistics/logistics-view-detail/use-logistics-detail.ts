@@ -86,7 +86,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
   const handleSaveFinancial = async () => {
     const weight = Number(data.peso);
     if (!weight || weight <= 0) {
-      toast.error('El peso debe ser mayor a 0.');
+      toast.error('Ingresa un peso válido mayor a 0 libras.');
       return;
     }
     try {
@@ -94,7 +94,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
       toast.success('Peso actualizado correctamente.');
       setIsEditingFinancial(false);
     } catch (err: any) {
-      toast.error(err?.message || 'Error al actualizar el peso.');
+      toast.error('No se pudo actualizar el peso. Intenta de nuevo.');
     }
   };
 

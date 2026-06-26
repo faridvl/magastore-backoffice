@@ -106,7 +106,7 @@ export const useConsolidations = () => {
       setCreateCustomerSearch('');
       toast.success('Consolidación creada');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al crear la consolidación');
+      toast.error('No se pudo crear la consolidación. Intenta de nuevo.');
     }
   };
 
@@ -127,7 +127,7 @@ export const useConsolidations = () => {
       await listQuery.invalidate();
       toast.success(`Estado actualizado a ${next}`);
     } catch (err: any) {
-      toast.error(err?.message || 'Error al actualizar el estado');
+      toast.error('No se pudo avanzar el estado de la consolidación. Intenta de nuevo.');
     }
   };
 
@@ -153,7 +153,7 @@ export const useConsolidations = () => {
       await availableQuery.invalidate();
       toast.success('Paquetes asignados correctamente');
     } catch (err: any) {
-      toast.error(err?.message || 'Error al asignar los paquetes');
+      toast.error('No se pudieron asignar los paquetes. Verifica que pertenezcan al cliente de esta consolidación.');
     }
   };
 
