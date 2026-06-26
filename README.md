@@ -1,17 +1,8 @@
 # Magastore Backoffice
 
-Backoffice de gestion de courier para importaciones desde Miami a Costa Rica. Maneja el ciclo completo: registro de paquetes, consolidacion de envios, facturacion en CRC, y seguimiento para el cliente final.
+Backoffice de courier — importaciones Miami → Costa Rica. Registro de paquetes, consolidaciones, facturacion en CRC, tracking para el cliente.
 
----
-
-## Stack
-
-- **Framework:** Next.js 14 (Pages Router)
-- **Lenguaje:** TypeScript (strict mode)
-- **Base de datos:** Neon PostgreSQL via `@neondatabase/serverless`
-- **Estado del servidor:** React Query
-- **Estilos:** Tailwind CSS
-- **Auth:** JWT 12h + bcrypt
+**Stack:** Next.js 14 (Pages Router) · TypeScript strict · Neon PostgreSQL · React Query · Tailwind · JWT · Resend · sonner
 
 ---
 
@@ -19,84 +10,43 @@ Backoffice de gestion de courier para importaciones desde Miami a Costa Rica. Ma
 
 ```bash
 npm install
+npm run dev   # localhost:3000
 ```
 
-Variables de entorno requeridas en `.env.local`:
+`.env.local` requerido:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
 MAGASTORE_DB_POSTGRES_URL=postgresql://...
 JWT_SECRET=your-secret-key
+RESEND_API_KEY=...
+EMAIL_FROM=notificaciones@tudominio.com
 ```
 
-```bash
-npm run dev     # servidor local en localhost:3000
-npm run lint    # ESLint
-```
+Ver [`CLAUDE.md`](CLAUDE.md) para arquitectura y convenciones.
 
 ---
 
-## Arquitectura
-
-```
-Page (SSR auth) -> Container -> Hook -> React Query -> API Route -> Service -> Repository -> Neon SQL
-```
-
-Ver [`CLAUDE.md`](CLAUDE.md) para guia completa de arquitectura, convenciones y reglas.
-
----
-
-## Estado del Proyecto
-
-Plan de desarrollo completo: [`.claude/docs/development-plan.md`](.claude/docs/development-plan.md)
-Estado detallado por area: [`.claude/docs/status.md`](.claude/docs/status.md)
-
-### Completado
-
-| Etapa | Descripcion | Commit |
-|---|---|---|
-| Etapa 0 | Commit inicial -- detalle de paquete | `124e9bd` |
-| Etapa 1 | Billing backend: repo + service | `6782647` |
-| Etapa 2 | Billing API handlers | `2ec6aca` |
-| Etapa 3 | Billing React Query hooks | `93c3d32` |
-| Etapa 4 | Billing UI: container + page | `17ae1ba` |
-| Etapa 5 | Delivery fees (Correos CR / Tracopa) + package detail con datos reales | `168517f` |
-| Etapa 6 | Dashboard con KPIs y graficas reales | `6e44051` |
-| Etapa 7 | Tracking publico conectado a API real | `8f451ef` |
-| Etapa 8 | UI consolidaciones: listar, crear, detalle, asignar paquetes, avanzar estado | `4edb5b3` |
-| Etapa 9 | Normalizar package_type (enum PackageType + script SQL) | `23f7665` |
-| Etapa 10 | Edicion de cliente (PUT endpoint + formulario inline) | `ae16355` |
-| Etapa 11 | PDF de factura descargable (react-pdf + endpoint GET /api/billing/pdf) | `a931fc8` |
-| Etapa 12 | Multi-rol: OPERADOR no accede a billing, settings ni dashboard | `411ec6c` |
-| Etapa 13 | Notificaciones por email (Resend): entrega de paquete + factura generada | `6ce7077` |
-| DB | Scripts SQL 001-004 ejecutados en Neon | 2026-06-25 |
-
-**Funciona con datos reales:** auth, clientes (CRUD completo incluyendo edicion), paquetes (registro, status), consolidaciones (crear, asignar paquetes, ciclo de vida completo), facturacion completa (generar, listar, marcar pagado, descargar PDF), configuracion de tarifas, bitacora de paquetes, dashboard con KPIs y graficas reales, tracking publico, notificaciones por email al cliente.
+## Estado MVP — ~82% completo
 
 ### Pendiente
 
 | Etapa | Descripcion | Prioridad |
 |---|---|---|
-| Etapa 14 | Toast notifications (reemplazar alert() del navegador) | Alta |
-| Etapa 15 | Seguridad: JWT sin fallback + validacion consolidacion por cliente | Alta |
-| Etapa 16 | Billing: direccion entrega en factura + pagina de reportes | Media |
-| Etapa 17 | State machine en status de paquetes | Baja |
-| Etapa 18 | Rate limiting en POST /api/auth/login | Antes de produccion publica |
+| 19 | Package Detail: guardar peso real desde UI | Alta |
+| 20 | Package Detail: cambio de estado inline + bitacora funcional | Alta |
+| 21 | Package Detail: panel financiero real vs estimado | Media |
+| 16 | Billing: direccion entrega en factura + pagina reportes | Media |
+| 17 | State machine en status de paquetes | Baja |
+| 18 | Rate limiting en login | Antes de produccion publica |
 
-### Porcentaje actual
+### Lo que funciona
+Auth · Clientes (CRUD completo) · Paquetes (registro, status) · Consolidaciones (ciclo completo) · Facturacion (generar, PDF, marcar pagado) · Dashboard real · Tracking publico · Notificaciones email · Multi-rol ADMIN/OPERADOR · Toast notifications
 
-| Escenario | % |
-|---|---|
-| Uso interno (operadores con guia) | ~97% |
-| MVP completo | ~95% |
-| Producto listo para produccion publica | ~85% |
+### Lo que esta roto o incompleto
+- Detalle de paquete: editar peso no guarda, sin cambio de estado real en UI, panel financiero siempre muestra estimado
+- `/admin/logistics/edit/[id]`: 100% mock, auth comentada
+- `/admin/packages`: mock con setTimeout
+- `/admin/billing/reports`: ruta definida, pagina no existe
 
----
-
-## Migraciones SQL ejecutadas
-
-| Script | Descripcion | Fecha |
-|---|---|---|
-| 001-delivery-fees-settings.sql | ADD COLUMN correos_fee_crc, tracopa_fee_crc en system_settings | 2026-06-25 |
-| 002-billing-delivery-columns.sql | ADD COLUMN delivery_method, delivery_fee_crc en billing | 2026-06-25 |
-| 003-normalize-package-type.sql | Normalizar package_type: AEREO/Aereo/AVION a AEREO; Maritimo a MARITIMO | 2026-06-25 |
-| 004-users-role-column.sql | ADD COLUMN role VARCHAR(20) DEFAULT 'ADMIN' en users | 2026-06-25 |
+### Migraciones SQL ejecutadas en Neon
+Scripts 001–004 ejecutados el 2026-06-25. Script 005 (trigger package_events) pendiente de verificar.

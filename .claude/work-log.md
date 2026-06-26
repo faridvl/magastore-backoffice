@@ -787,3 +787,133 @@ f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan eta
  M .claude/docs/development-plan.md
  M .claude/work-log.md
  M yarn.lock
+
+=== 2026-06-25 16:52 ===
+--- recent commits ---
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+--- status ---
+
+=== 2026-06-25 16:54 ===
+--- recent commits ---
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 16:57 ===
+--- recent commits ---
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/use-billing.ts
+
+=== 2026-06-25 17:02 ===
+--- recent commits ---
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+2af4c68 fix: corregir type error en renderToBuffer + redisenar PDF con estilo Magastore
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/use-settings.ts
+ M src/shared/api/mutations/settings/use-settings-mutation.ts
+
+=== 2026-06-25 17:03 ===
+--- recent commits ---
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 17:08 ===
+--- recent commits ---
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+--- status ---
+ M .claude/work-log.md
+ M next.config.mjs
+ M src/components/pdf/billing-invoice.tsx
+
+=== 2026-06-25 22:54 ===
+--- recent commits ---
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+f547313 fix: estadoPago real desde billing + applied_fee_crc correcto + plan etapas 14-18
+--- status ---
+ M .claude/work-log.md
+ M next.config.mjs
+ M src/components/common/layout/boxed-container/boxed-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/shared/api/mutations/customers/use-create-customer-mutation.ts
+
+=== 2026-06-25 22:58 ===
+--- recent commits ---
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+b51755f feat: Etapas 14+15 ÔÇö toast notifications (sonner) + seguridad JWT y consolidacion
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:23 ===
+--- recent commits ---
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:27 ===
+--- recent commits ---
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-06-25 23:36 ===
+--- recent commits ---
+afeee5c fix: reemplazar serverExternalPackages invalido con webpack externals para react-pdf
+321e3cb fix: corregir PDF 500, detalle de paquete, toasts y layout general
+0c77e5b feat: agregar toast notifications en todos los mutations
+0d6aa2f docs: actualizar hashes de Etapas 14-15 y work-log
+fd3c184 fix: corregir errores TypeScript que rompen el build en Vercel
+--- status ---
+ M .claude/docs/development-plan.md
+ M .claude/docs/status.md
+ M .claude/work-log.md
+ M README.md
