@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `pending`
+Last updated: 2026-06-25 | Last commit: `20e1272`
 
 Actualizar fecha y hash en cada commit significativo.
 Para el plan detallado de etapas pendientes: `development-plan.md`.

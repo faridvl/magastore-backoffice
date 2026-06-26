@@ -65,7 +65,7 @@ Limite: 5 intentos fallidos por IP en 1 minuto → 429.
 ---
 
 ## Etapa 20 — Package Detail: cambio de estado inline + bitacora
-**Estado:** Completada 2026-06-25 | commit: pending
+**Estado:** Completada 2026-06-25 | commit: `20e1272`
 
 `/admin/logistics/edit/[id]` esta 100% mockeada (datos hardcoded, auth comentada, redirige a ruta inexistente, tiene estado `LISTO` que no existe en `PackageStatus`).
 
