@@ -205,6 +205,16 @@ export const DashboardContainer: React.FC = () => {
           <div className="p-8 text-center text-sm text-red-500 font-bold">
             Error al cargar los datos. Recarga la página.
           </div>
+        ) : !isLoading && stats.recentPackages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="h-14 w-14 bg-neutral-100 rounded-2xl flex items-center justify-center">
+              <Package size={24} className="text-neutral-300" />
+            </div>
+            <p className="font-black text-neutral-400 text-sm">Sin actividad reciente</p>
+            <p className="text-neutral-300 text-xs font-bold uppercase tracking-widest">
+              Los paquetes registrados aparecerán aquí
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">

@@ -148,7 +148,7 @@ export const ConsolidationsContainer: React.FC = () => {
 
       {/* TOOLBAR */}
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
-        {/* Fila 1: búsqueda + botón nueva */}
+        {/* Fila 1: búsqueda (mobile: full width, sm+: con botón inline) */}
         <div className="flex gap-3 items-center">
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -162,62 +162,71 @@ export const ConsolidationsContainer: React.FC = () => {
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
+            className="hidden sm:flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
           >
             <Plus size={16} />
-            <span className="hidden sm:inline">Nueva Consolidación</span>
-            <span className="sm:hidden">Nueva</span>
+            Nueva Consolidación
           </button>
         </div>
 
-        {/* Fila 2: filtros de estado (scroll horizontal) + fechas */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-          <div className="overflow-x-auto flex-1 -mx-0.5 px-0.5">
-            <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl w-max min-w-full">
-              {STATUS_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => handleStatusFilterChange(f.value)}
-                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
-                    statusFilter === f.value
-                      ? 'bg-white shadow-sm text-slate-800'
-                      : 'text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Fila 2 (solo mobile): botón nueva consolidación */}
+        <button
+          onClick={handleOpenCreateModal}
+          className="sm:hidden flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
+        >
+          <Plus size={16} />
+          Nueva Consolidación
+        </button>
 
-          <div className="flex gap-2 items-end flex-shrink-0">
-            <div className="flex flex-col gap-1">
+        {/* Fila 3: filtros de estado */}
+        <div className="overflow-x-auto -mx-0.5 px-0.5">
+          <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl w-max min-w-full">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => handleStatusFilterChange(f.value)}
+                className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+                  statusFilter === f.value
+                    ? 'bg-white shadow-sm text-slate-800'
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Fila 4: filtros de fecha */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <div className="flex flex-col gap-1 flex-1">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
               />
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 flex-1">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
+                className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100"
               />
             </div>
-            {(dateFrom || dateTo) && (
-              <button
-                onClick={() => { setDateFrom(''); setDateTo(''); }}
-                className="self-end px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
-              >
-                Limpiar
-              </button>
-            )}
           </div>
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="w-full px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
+            >
+              Limpiar fechas
+            </button>
+          )}
         </div>
       </div>
 
@@ -227,6 +236,16 @@ export const ConsolidationsContainer: React.FC = () => {
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
           ))
+        ) : consolidations.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
+            <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
+              <Boxes size={24} className="text-slate-300" />
+            </div>
+            <p className="font-black text-slate-400 text-sm">Sin consolidaciones</p>
+            <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
+              No hay consolidaciones que coincidan con los filtros
+            </p>
+          </div>
         ) : consolidations.map((row) => (
           <button
             key={row.uuid}

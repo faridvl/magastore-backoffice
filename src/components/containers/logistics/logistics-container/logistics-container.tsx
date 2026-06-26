@@ -164,31 +164,33 @@ export const LogisticsContainer: React.FC = () => {
                             onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-2 items-end flex-wrap">
-                        <div className="flex flex-col gap-1">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-                            <input
-                                type="date"
-                                value={dateFrom}
-                                onChange={(e) => setDateFrom(e.target.value)}
-                                className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                            <input
-                                type="date"
-                                value={dateTo}
-                                onChange={(e) => setDateTo(e.target.value)}
-                                className="bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
-                            />
+                    <div className="flex flex-col gap-2">
+                        <div className="flex gap-2">
+                            <div className="flex flex-col gap-1 flex-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
+                                <input
+                                    type="date"
+                                    value={dateFrom}
+                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1 flex-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
+                                <input
+                                    type="date"
+                                    value={dateTo}
+                                    onChange={(e) => setDateTo(e.target.value)}
+                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 shadow-sm"
+                                />
+                            </div>
                         </div>
                         {(dateFrom || dateTo) && (
                             <button
                                 onClick={() => { setDateFrom(''); setDateTo(''); }}
-                                className="py-3 px-3 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
+                                className="w-full py-2 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
                             >
-                                Limpiar
+                                Limpiar fechas
                             </button>
                         )}
                     </div>

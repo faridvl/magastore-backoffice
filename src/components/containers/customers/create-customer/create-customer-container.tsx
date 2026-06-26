@@ -16,11 +16,11 @@ export const CreateCustomerContainer: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-10 bg-white p-6 md:p-12 rounded-[24px] md:rounded-[40px] border border-neutral-100 shadow-xl shadow-neutral-100/50 mb-20">
+            <form onSubmit={handleSubmit} className="space-y-10 bg-white p-4 md:p-12 rounded-[24px] md:rounded-[40px] border border-neutral-100 shadow-xl shadow-neutral-100/50 mb-20">
 
                 {/* SECCIÓN 1: DATOS PERSONALES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-2 border-b border-neutral-100 pb-4 mb-2">
+                    <div className="col-span-1 md:col-span-2 border-b border-neutral-100 pb-4 mb-2">
                         <Typography variant={TypographyVariant.SUBTITLE}>Nuevo Cliente</Typography>
                     </div>
 
@@ -95,7 +95,7 @@ export const CreateCustomerContainer: React.FC = () => {
                                 <FormInput label="Provincia" value={addr.province} onChange={(e: any) => handleAddressChange(addr.id, 'province', e.target.value)} placeholder="Ej. San José" />
                                 <FormInput label="Cantón" value={addr.canton} onChange={(e: any) => handleAddressChange(addr.id, 'canton', e.target.value)} placeholder="Ej. Escazú" />
                                 <FormInput label="Distrito" value={addr.district} onChange={(e: any) => handleAddressChange(addr.id, 'district', e.target.value)} placeholder="Ej. San Rafael" />
-                                <div className="md:col-span-2">
+                                <div className="col-span-1 md:col-span-2">
                                     <FormInput label="Dirección Exacta" value={addr.exact_address} onChange={(e: any) => handleAddressChange(addr.id, 'exact_address', e.target.value)} placeholder="Detalles de la ubicación..." />
                                 </div>
                                 <FormInput label="Etiqueta" value={addr.address_label} onChange={(e: any) => handleAddressChange(addr.id, 'address_label', e.target.value)} placeholder="Ej. Casa de mis papás" />

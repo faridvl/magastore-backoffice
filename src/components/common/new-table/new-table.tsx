@@ -85,7 +85,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                             <tr>
                                 <td colSpan={columns.length} className="px-6 py-20 text-center">
                                     <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-300 uppercase tracking-tighter">
-                                        No se encontraron paquetes registrados
+                                        Sin registros
                                     </Typography>
                                 </td>
                             </tr>
@@ -94,16 +94,16 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                 </table>
             </div>
 
-            {/* FOOTER DE PAGINACIÓN MEJORADO */}
-            <div className="px-3 py-3 md:px-6 md:py-4 bg-white border-t border-slate-100 flex items-center justify-between rounded-b-2xl mt-auto gap-2 flex-wrap">
-                <div className="flex flex-col">
+            {/* FOOTER DE PAGINACIÓN */}
+            <div className="px-3 py-3 md:px-6 md:py-4 bg-white border-t border-slate-100 rounded-b-2xl mt-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center justify-between md:block">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         Total Registros
                     </span>
-                    <span className="text-sm font-bold text-slate-700">{totalRows}</span>
+                    <span className="text-sm font-bold text-slate-700 md:block">{totalRows}</span>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-3">
                     <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400">
                         Página {currentPage} de {totalPages || 1}
                     </Typography>
