@@ -60,7 +60,7 @@ Limite: 5 intentos fallidos por IP en 1 minuto → 429.
 ---
 
 ## Etapa 19 — Package Detail: guardar peso real
-**Estado:** Completada 2026-06-25 | commit: pendiente
+**Estado:** Completada 2026-06-25 | commit: `d2d8c47`
 
 ---
 
