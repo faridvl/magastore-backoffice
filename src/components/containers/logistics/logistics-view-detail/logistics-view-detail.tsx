@@ -17,7 +17,7 @@ export const PackageDetailContainer: React.FC = () => {
     const router = useRouter();
     const { uuid } = router.query;
     const {
-        data, bitacora, calculos, isLoading, isError,
+        data, bitacora, calculos, tieneFactura, isLoading, isError,
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
@@ -225,34 +225,66 @@ export const PackageDetailContainer: React.FC = () => {
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
 
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-8">
-                                <div className="p-2 bg-primary/20 rounded-lg text-primary">
-                                    <DollarSign size={20} />
+                            <div className="flex items-center justify-between gap-2 mb-8">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                                        <DollarSign size={20} />
+                                    </div>
+                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-white uppercase text-[10px] tracking-widest">
+                                        Detalle de Cobro
+                                    </Typography>
                                 </div>
-                                <Typography variant={TypographyVariant.BODY_BOLD} className="text-white uppercase text-[10px] tracking-widest">
-                                    Detalle de Cobro
-                                </Typography>
+                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${tieneFactura ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+                                    {tieneFactura ? 'Facturado' : 'Estimado'}
+                                </span>
                             </div>
 
                             <div className="space-y-5">
-                                <FinanceRow label="Peso Final" value={`${data.peso} Lbs`} />
-                                <FinanceRow label="Tarifa por Libra" value={`$${data.tarifaXLibre.toFixed(2)}`} />
-                                <FinanceRow label="Flete Internacional" value={`$${calculos.fleteUSD.toFixed(2)}`} isHighlight />
+                                {tieneFactura ? (
+                                    <>
+                                        <FinanceRow label="Peso Final" value={`${data.peso} Lbs`} />
+                                        {data.deliveryMethod && (
+                                            <FinanceRow label="Método de Entrega" value={data.deliveryMethod} />
+                                        )}
+                                        {data.deliveryFeeCrc !== null && data.deliveryFeeCrc > 0 && (
+                                            <FinanceRow label="Costo de Entrega" value={`₡${Number(data.deliveryFeeCrc).toLocaleString()}`} />
+                                        )}
+                                        <div className="pt-8 border-t border-white/10 mt-6">
+                                            <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Total Facturado</label>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-4xl font-black italic tracking-tighter text-emerald-400">
+                                                    ₡{Number(data.totalFacturado).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="mt-4 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg w-fit">
+                                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-tighter">{data.estadoPago}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FinanceRow label="Peso Final" value={`${data.peso} Lbs`} />
+                                        <FinanceRow label="Tarifa por Libra" value={`$${data.tarifaXLibre.toFixed(2)}`} />
+                                        <FinanceRow label="Flete Internacional" value={`$${calculos.fleteUSD.toFixed(2)}`} isHighlight />
 
-                                <div className="h-px bg-white/5 my-2" />
+                                        <div className="h-px bg-white/5 my-2" />
 
-                                <FinanceRow label="Tipo de Cambio" value={`₡${data.tipoCambio}`} />
-                                <FinanceRow label="Envío Local (Correos)" value={`₡${data.costoEnvioCorreos.toLocaleString()}`} />
+                                        <FinanceRow label="Tipo de Cambio" value={`₡${data.tipoCambio}`} />
+                                        <FinanceRow label="Envío Local (Correos)" value={`₡${data.costoEnvioCorreos.toLocaleString()}`} />
 
-                                <div className="pt-8 border-t border-white/10 mt-6">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Total a cancelar</label>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-4xl font-black italic tracking-tighter">₡{calculos.totalPagar.toLocaleString()}</span>
-                                    </div>
-                                    <div className="mt-4 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg w-fit">
-                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-tighter">{data.estadoPago}</span>
-                                    </div>
-                                </div>
+                                        <div className="pt-8 border-t border-white/10 mt-6">
+                                            <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Estimado a Pagar</label>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-4xl font-black italic tracking-tighter text-slate-300">
+                                                    ₡{calculos.totalPagar.toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="mt-4 px-3 py-1 bg-slate-700/50 border border-slate-600/30 rounded-lg w-fit">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Sin Factura</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

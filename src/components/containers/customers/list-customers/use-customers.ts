@@ -46,6 +46,9 @@ export const useCustomers = () => {
     setCurrentPage(1);
   };
 
+  const totalRows = filteredCustomers.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
+
   return {
     search: searchTerm,
     setSearch: handleSearch,
@@ -53,7 +56,8 @@ export const useCustomers = () => {
     setCurrentPage,
     itemsPerPage,
     customers: paginatedCustomers,
-    totalRows: filteredCustomers.length,
+    totalRows,
+    totalPages,
     isLoading,
     isError,
     navigation,

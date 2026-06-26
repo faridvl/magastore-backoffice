@@ -82,7 +82,7 @@ Limite: 5 intentos fallidos por IP en 1 minuto → 429.
 ---
 
 ## Etapa 21 — Package Detail: panel financiero real + limpieza
-**Estado:** Pendiente
+**Estado:** Completada 2026-06-26 | commit: pendiente
 
 El panel siempre muestra un estimado calculado con tarifas vigentes, incluso cuando ya existe `billing.total_amount_crc` en DB. El JOIN de billing en `getTrackingHistory` no tiene LIMIT 1.
 

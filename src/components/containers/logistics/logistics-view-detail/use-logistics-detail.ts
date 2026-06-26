@@ -35,6 +35,9 @@ export const usePackageDetailContainer = (uuid?: string) => {
     tipoCambio: 480,
     costoEnvioCorreos: 4500,
     estadoPago: 'PENDIENTE',
+    totalFacturado: null as number | null,
+    deliveryMethod: null as string | null,
+    deliveryFeeCrc: null as number | null,
   });
 
   // Sincronizar datos del paquete + cliente
@@ -51,6 +54,9 @@ export const usePackageDetailContainer = (uuid?: string) => {
                           : prev.cliente,
         casillero:      apiData.customer_code || prev.casillero,
         estadoPago:     apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
+        totalFacturado: apiData.total_amount_crc ?? null,
+        deliveryMethod: apiData.delivery_method ?? null,
+        deliveryFeeCrc: apiData.delivery_fee_crc ?? null,
       }));
     }
   }, [apiData]);
@@ -138,10 +144,13 @@ export const usePackageDetailContainer = (uuid?: string) => {
     }
   };
 
+  const tieneFactura = data.totalFacturado !== null;
+
   return {
     data,
     bitacora,
     calculos,
+    tieneFactura,
     isLoading: !uuid || isLoadingPackage || isLoadingSettings,
     isError,
     isEditingFinancial,

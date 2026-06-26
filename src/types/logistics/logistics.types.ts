@@ -126,6 +126,9 @@ export type PackageDetail = {
   customer_code: string | null;
   is_paid: boolean | null;
   paid_at: string | null;
+  total_amount_crc: number | null;
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number | null;
 };
 
 // --- Tipos para Billing ---

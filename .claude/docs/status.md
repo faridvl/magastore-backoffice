@@ -1,5 +1,5 @@
 # Project Status - Magastore Backoffice
-Last updated: 2026-06-25 | Last commit: `20e1272`
+Last updated: 2026-06-26 | Last commit: pendiente (Etapa 21)
 
 Actualizar fecha y hash en cada commit significativo.
 Para el plan detallado de etapas pendientes: `development-plan.md`.
@@ -19,7 +19,7 @@ Auth · Clientes CRUD completo (incluyendo edicion y multiples direcciones) · R
 | Detalle de paquete — editar peso | Implementado (Etapa 19) — PATCH `/logistics?uuid=X` `action=weight` | — |
 | Detalle de paquete — cambio de estado | Implementado (Etapa 20) — panel inline con select, nota obligatoria, ubicacion opcional | — |
 | Detalle de paquete — bitacora | Funcional; requiere trigger `trg_package_status_history` activo en Neon (script 005) | — |
-| Detalle de paquete — panel financiero | Siempre muestra estimado, nunca `billing.total_amount_crc` real. JOIN billing sin LIMIT 1 | 21 |
+| Detalle de paquete — panel financiero | Implementado (Etapa 21) — muestra total real en verde si hay factura, estimado en gris si no | — |
 | `/admin/packages` | Mock con setTimeout; proposito duplica `/admin/logistics` | Sin etapa asignada |
 | `/admin/billing/reports` | Ruta definida, pagina no existe | 16 |
 | Direccion de entrega en factura | `billing` no guarda la direccion del cliente | 16 |

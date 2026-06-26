@@ -1,8 +1,6 @@
 import React from 'react';
-import { Table } from '@/components/common/table/table';
-import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Button, ButtonVariant } from '@/components/common/button/button';
-import { Action } from '@/components/common/menu-item/menu-item';
+import { Search, Plus, ChevronRight } from 'lucide-react';
+import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useCustomers } from './use-customers';
 import { Customer } from '@/types/customer/customer.types';
 
@@ -14,80 +12,110 @@ export const CustomersContainer: React.FC = () => {
         setCurrentPage,
         customers,
         totalRows,
-        itemsPerPage,
+        totalPages,
         isLoading,
-        navigation
+        navigation,
     } = useCustomers();
 
-    // 1. Columnas alineadas con el Typography de la Tabla
-    const columns = [
-        { header: 'Cliente', accessor: 'full_name' },
-        { header: 'Identificación', accessor: 'id_card' },
-        { header: 'Correo Electrónico', accessor: 'email' },
-        { header: 'Teléfono', accessor: 'phone' },
-        { header: 'Estado', accessor: 'status_label' },
-    ];
-
-    // 2. Definición de Acciones basada en tu interfaz 'Action'
-    // Nota: Usamos 'label' si tu ToggleMenu lo espera así, o 'name' según tu definición de tipo Action
-    const tableActions: Action[] = [
+    const columns: Column<Customer>[] = [
         {
-            name: 'Ver Detalles', // Cambiar a 'name' si tu interfaz usa estrictamente name
-            icon: <span className="text-lg">👁️</span>,
-            onClick: (customer: Customer) => navigation.admin.customers.detail(customer.id)
+            header: 'Cliente',
+            accessor: 'first_name',
+            render: (row) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-slate-800 text-sm leading-none mb-1">
+                        {row.first_name} {row.last_name}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-blue-400 uppercase">
+                        {row.customer_code}
+                    </span>
+                </div>
+            ),
         },
         {
-            name: 'Editar Cliente',
-            icon: <span className="text-lg">✏️</span>,
-            onClick: (customer: Customer) => console.log('Editando cliente:', customer.id)
-        }
+            header: 'Identificación',
+            accessor: 'id_card',
+            render: (row) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-700">{row.id_card}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">{row.id_type}</span>
+                </div>
+            ),
+        },
+        {
+            header: 'Correo',
+            accessor: 'email',
+            render: (row) => (
+                <span className="text-sm text-slate-600 font-medium">{row.email}</span>
+            ),
+        },
+        {
+            header: 'Teléfono',
+            accessor: 'phone',
+            render: (row) => (
+                <span className="text-sm text-slate-600 font-medium">{row.phone}</span>
+            ),
+        },
+        {
+            header: 'Estado',
+            accessor: 'is_active',
+            render: (row) => (
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                    row.is_active
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        : 'bg-slate-50 text-slate-500 border-slate-200'
+                }`}>
+                    {row.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+            ),
+        },
+        {
+            header: '',
+            accessor: 'id',
+            align: 'right',
+            render: () => <ChevronRight size={16} className="text-slate-300" />,
+        },
     ];
 
     return (
-        <div className="flex flex-col gap-8">
-            {/* SECCIÓN DE TÍTULO */}
-            <div className="flex justify-between items-end">
-                <div className="flex flex-col gap-1">
-                    <Typography variant={TypographyVariant.SUBTITLE}>
-                        Gestión de Clientes
-                    </Typography>
+        <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
+
+            {/* TOOLBAR */}
+            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-end">
+                <div className="relative flex-1 min-w-[250px]">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre, cédula o casillero..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
+                    />
                 </div>
 
-                <Button
-                    variant={ButtonVariant.PRIMARY}
+                <button
                     onClick={() => navigation.admin.customers.create()}
-                    className="px-8 rounded-[22px]"
+                    className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 transition-all shadow-sm"
                 >
-                    + Nuevo Cliente
-                </Button>
+                    <Plus size={16} />
+                    Nuevo Cliente
+                </button>
             </div>
 
-            {/* BARRA DE BÚSQUEDA */}
-            <div className="relative group">
-                <span className="absolute inset-y-0 left-6 flex items-center text-slate-400 group-focus-within:text-primary transition-colors">
-                    🔍
-                </span>
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre, cédula o código..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-[20px] outline-none focus:ring-4 focus:ring-primary/5 shadow-sm transition-all"
+            {/* TABLE */}
+            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <NewTable
+                    data={customers}
+                    columns={columns}
+                    isLoading={isLoading}
+                    totalRows={totalRows}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    onRowClick={(customer) => navigation.admin.customers.detail(customer.id)}
+                    itemsPerPage={10}
                 />
             </div>
-
-            {/* TABLA DE DATOS */}
-            <Table
-                columns={columns}
-                data={customers}
-                currentPage={currentPage}
-                totalRows={totalRows}
-                onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                actions={tableActions}
-                isLoading={isLoading}
-                onRowClick={(customer: Customer) => navigation.admin.customers.detail(customer.id)}
-            />
         </div>
     );
 };

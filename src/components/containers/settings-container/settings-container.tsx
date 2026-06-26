@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Table } from '@/components/common/table/table';
+import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useSettings } from './use-settings';
+import { SettingsHistory } from '@/types/settings/settings.types';
 
 export const SettingsContainer: React.FC = () => {
     const {
@@ -17,31 +18,52 @@ export const SettingsContainer: React.FC = () => {
     } = useSettings();
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5; // Cantidad fija para evitar scroll excesivo
+    const itemsPerPage = 5;
 
-    const columns = [
-        { header: 'Fecha', accessor: 'formattedDate' },
-        { header: 'Parámetro', accessor: 'parameter_name' },
-        { header: 'Cambio', accessor: 'changeDisplay' },
-        { header: 'Usuario', accessor: 'changed_by_name' },
+    const historyColumns: Column<SettingsHistory>[] = [
+        {
+            header: 'Fecha',
+            accessor: 'changed_at',
+            render: (row) => (
+                <span className="text-xs text-slate-500 font-medium">
+                    {new Date(row.changed_at).toLocaleDateString('es-CR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                    })}
+                </span>
+            ),
+        },
+        {
+            header: 'Parámetro',
+            accessor: 'parameter_name',
+            render: (row) => (
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                    {row.parameter_name}
+                </span>
+            ),
+        },
+        {
+            header: 'Cambio',
+            accessor: 'old_value',
+            render: (row) => (
+                <div className="flex items-center gap-2 font-mono text-[11px]">
+                    <span className="text-slate-400 line-through">{Number(row.old_value).toLocaleString()}</span>
+                    <ArrowRight size={10} className="text-slate-300" />
+                    <span className="text-blue-600 font-bold">{Number(row.new_value).toLocaleString()}</span>
+                </div>
+            ),
+        },
+        {
+            header: 'Usuario',
+            accessor: 'changed_by_name',
+            render: (row) => (
+                <span className="text-sm text-slate-600 font-medium">{row.changed_by_name}</span>
+            ),
+        },
     ];
 
-    const tableData = history.map((item) => ({
-        ...item,
-        formattedDate: new Date(item.changed_at).toLocaleDateString('es-CR', {
-            day: '2-digit',
-            month: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        changeDisplay: (
-            <div className="flex items-center gap-2 font-mono text-[11px]">
-                <span className="text-slate-400 line-through">{Number(item.old_value).toLocaleString()}</span>
-                <ArrowRight size={10} className="text-slate-300" />
-                <span className="text-blue-600 font-bold">{Number(item.new_value).toLocaleString()}</span>
-            </div>
-        )
-    }));
+    const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(history.length / itemsPerPage));
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -129,20 +151,21 @@ export const SettingsContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Tabla de Auditoría (Sin scroll interno, controlada por paginación) */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-4 border-b border-slate-50 bg-slate-50/30 flex items-center gap-2">
+                {/* Tabla de Auditoría */}
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30 flex items-center gap-2">
                         <History size={15} className="text-slate-400" />
                         <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-600">Registro de Modificaciones</Typography>
                     </div>
-                    <Table
-                        columns={columns}
-                        data={tableData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)}
-                        totalRows={tableData.length}
+                    <NewTable
+                        data={paginatedHistory}
+                        columns={historyColumns}
+                        isLoading={false}
+                        totalRows={history.length}
                         currentPage={currentPage}
+                        totalPages={totalPages}
                         onPageChange={setCurrentPage}
                         itemsPerPage={itemsPerPage}
-                        isLoading={false}
                     />
                 </div>
             </div>

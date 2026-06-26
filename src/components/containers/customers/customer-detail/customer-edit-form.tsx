@@ -151,8 +151,8 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
         </div>
       )}
 
-      {/* Acciones */}
-      <div className="flex gap-4">
+      {/* Acciones — barra sticky al fondo */}
+      <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-slate-100 rounded-b-[32px] px-2 py-5 flex gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
         <button
           type="button"
           onClick={onCancel}
@@ -165,7 +165,7 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
           type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="flex-[2] py-4 bg-slate-900 text-white rounded-[20px] font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          className="flex-[2] py-4 bg-slate-900 text-white rounded-[20px] font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 transition-all disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
         >
           {isSaving ? (
             <><Loader2 size={14} className="animate-spin" /> Guardando...</>
