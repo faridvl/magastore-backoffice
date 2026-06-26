@@ -1,8 +1,10 @@
-import React from 'react';
-import { Search, Plus, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, ChevronRight, Upload, Download } from 'lucide-react';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useCustomers } from './use-customers';
 import { Customer } from '@/types/customer/customer.types';
+import { ImportCustomersModal } from '../import/import-customers-modal';
+import * as XLSX from 'xlsx';
 
 export const CustomersContainer: React.FC = () => {
     const {
@@ -16,6 +18,23 @@ export const CustomersContainer: React.FC = () => {
         isLoading,
         navigation,
     } = useCustomers();
+
+    const [showImportModal, setShowImportModal] = useState(false);
+
+    const handleDownloadTemplate = () => {
+        const headers = [
+            'cedula', 'tipo_identificacion', 'nombre', 'apellidos', 'email', 'telefono',
+            'codigo_magastore', 'provincia', 'canton', 'distrito', 'direccion_exacta', 'etiqueta', 'es_principal',
+        ];
+        const example = [
+            '123456789', 'FISICA', 'Juan', 'Pérez González', 'juan@email.com', '88881234',
+            '', 'San José', 'Central', 'Carmen', 'Casa 123 frente al parque', 'Casa', 'Si',
+        ];
+        const ws = XLSX.utils.aoa_to_sheet([headers, example]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+        XLSX.writeFile(wb, 'template_importacion_clientes.xlsx');
+    };
 
     const columns: Column<Customer>[] = [
         {
@@ -78,6 +97,7 @@ export const CustomersContainer: React.FC = () => {
     ];
 
     return (
+        <>
         <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
             {/* TOOLBAR */}
@@ -92,6 +112,22 @@ export const CustomersContainer: React.FC = () => {
                         className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-blue-100 font-medium text-sm"
                     />
                 </div>
+
+                <button
+                    onClick={handleDownloadTemplate}
+                    className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
+                >
+                    <Download size={15} />
+                    Template
+                </button>
+
+                <button
+                    onClick={() => setShowImportModal(true)}
+                    className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm"
+                >
+                    <Upload size={15} />
+                    Importar
+                </button>
 
                 <button
                     onClick={() => navigation.admin.customers.create()}
@@ -117,5 +153,11 @@ export const CustomersContainer: React.FC = () => {
                 />
             </div>
         </div>
+
+        {showImportModal && (
+            <ImportCustomersModal onClose={() => setShowImportModal(false)} />
+        )}
+        </>
     );
 };
+

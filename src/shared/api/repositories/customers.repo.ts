@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 
 /**
  * Verifica si ya existe un cliente por identificación o email
@@ -169,6 +169,110 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
   const updated = await getCustomerById(id);
   if (!updated) throw new Error('Cliente no encontrado después de actualizar.');
   return updated;
+};
+
+export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {
+  const result = await sql`SELECT id FROM customers WHERE customer_code = ${code} LIMIT 1`;
+  return result.length > 0;
+};
+
+export const importCustomers = async (rows: CustomerImportRow[]): Promise<CustomerImportResult> => {
+  // Agrupar filas por id_card
+  const grouped = new Map<string, { meta: Omit<CustomerImportRow, 'province' | 'canton' | 'district' | 'exact_address' | 'address_label' | 'is_default'>; addresses: { province: string; canton: string; district: string; exact_address: string; address_label: string; is_default: boolean }[] }>();
+
+  for (const row of rows) {
+    if (grouped.has(row.id_card)) {
+      const existing = grouped.get(row.id_card)!;
+      existing.addresses.push({
+        province: row.province,
+        canton: row.canton,
+        district: row.district,
+        exact_address: row.exact_address,
+        address_label: row.address_label ?? 'Casa',
+        is_default: row.is_default ?? false,
+      });
+    } else {
+      grouped.set(row.id_card, {
+        meta: {
+          id_card: row.id_card,
+          id_type: row.id_type,
+          first_name: row.first_name,
+          last_name: row.last_name,
+          email: row.email,
+          phone: row.phone,
+          customer_code: row.customer_code,
+        },
+        addresses: [{
+          province: row.province,
+          canton: row.canton,
+          district: row.district,
+          exact_address: row.exact_address,
+          address_label: row.address_label ?? 'Casa',
+          is_default: row.is_default ?? false,
+        }],
+      });
+    }
+  }
+
+  let inserted = 0;
+  const errors: { id_card: string; reason: string }[] = [];
+
+  for (const [id_card, { meta, addresses }] of Array.from(grouped.entries())) {
+    try {
+      // Asegurar exactamente una dirección default
+      const hasDefault = addresses.some((a: { is_default: boolean }) => a.is_default);
+      if (!hasDefault) addresses[0].is_default = true;
+
+      const addressesJson = JSON.stringify(addresses);
+
+      if (meta.customer_code) {
+        const codeExists = await checkCustomerCodeExists(meta.customer_code);
+        if (codeExists) {
+          errors.push({ id_card, reason: `El código ${meta.customer_code} ya está en uso.` });
+          continue;
+        }
+      }
+
+      await sql`
+        WITH new_cust AS (
+          INSERT INTO customers (id_card, id_type, first_name, last_name, email, phone, customer_code)
+          VALUES (
+            ${meta.id_card},
+            ${meta.id_type},
+            ${meta.first_name},
+            ${meta.last_name},
+            ${meta.email},
+            ${meta.phone},
+            ${meta.customer_code ?? sql`'MG-' || UPPER(SUBSTRING(uuid_generate_v4()::text FROM 31)) || '-' || nextval(pg_get_serial_sequence('customers', 'customer_id'))`}
+          )
+          RETURNING *
+        )
+        INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+        SELECT
+          new_cust.id,
+          (addr->>'province'),
+          (addr->>'canton'),
+          (addr->>'district'),
+          (addr->>'exact_address'),
+          COALESCE(addr->>'address_label', 'Casa'),
+          COALESCE((addr->>'is_default')::boolean, false)
+        FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
+      `;
+
+      inserted++;
+    } catch (err: any) {
+      const msg: string = err.message ?? 'Error desconocido';
+      if (msg.includes('customers_id_card_key') || msg.includes('duplicate key') && msg.includes('id_card')) {
+        errors.push({ id_card, reason: 'La cédula ya existe en el sistema.' });
+      } else if (msg.includes('customers_email_key') || msg.includes('duplicate key') && msg.includes('email')) {
+        errors.push({ id_card, reason: 'El correo ya está registrado en otro cliente.' });
+      } else {
+        errors.push({ id_card, reason: msg });
+      }
+    }
+  }
+
+  return { inserted, errors };
 };
 
 /**

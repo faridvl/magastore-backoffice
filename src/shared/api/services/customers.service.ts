@@ -1,4 +1,4 @@
-import { Customer, CustomerInput, CustomerUpdateInput } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -66,6 +66,34 @@ export const CustomerService = {
     const customer = await CustomerRepo.getCustomerById(id);
     if (!customer) throw new Error('Cliente no encontrado.');
     return customer;
+  },
+
+  importCustomers: async (rows: CustomerImportRow[]): Promise<CustomerImportResult> => {
+    if (!rows || rows.length === 0) {
+      throw new Error('No se proporcionaron filas para importar.');
+    }
+
+    // Validar conflictos de datos entre filas del mismo id_card antes de insertar
+    const seen = new Map<string, { email: string; first_name: string; last_name: string }>();
+    for (const row of rows) {
+      if (!row.id_card?.trim()) throw new Error('Una o más filas tienen la cédula vacía.');
+      if (!row.email?.trim()) throw new Error(`Fila con cédula ${row.id_card}: el correo es requerido.`);
+      if (!row.first_name?.trim() || !row.last_name?.trim()) throw new Error(`Fila con cédula ${row.id_card}: nombre y apellidos son requeridos.`);
+      if (!row.province?.trim() || !row.canton?.trim() || !row.district?.trim() || !row.exact_address?.trim()) {
+        throw new Error(`Fila con cédula ${row.id_card}: todos los campos de dirección son requeridos.`);
+      }
+
+      if (seen.has(row.id_card)) {
+        const prev = seen.get(row.id_card)!;
+        if (prev.email !== row.email || prev.first_name !== row.first_name || prev.last_name !== row.last_name) {
+          throw new Error(`La cédula ${row.id_card} aparece con datos de cliente distintos en múltiples filas.`);
+        }
+      } else {
+        seen.set(row.id_card, { email: row.email, first_name: row.first_name, last_name: row.last_name });
+      }
+    }
+
+    return CustomerRepo.importCustomers(rows);
   },
 
   /**
