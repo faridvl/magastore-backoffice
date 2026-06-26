@@ -1,11 +1,19 @@
 import { usePackageDetailQuery } from '@/shared/api/querys/logistics/find-one-package-query';
 import { useUpdatePackageWeightMutation } from '@/shared/api/mutations/logistics/use-update-package-weight-mutation';
+import { useUpdatePackageStatusMutation } from '@/shared/api/mutations/logistics/use-update-package-status-mutation';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
+import { PackageStatus } from '@/types/logistics/logistics.types';
 
 export const usePackageDetailContainer = (uuid?: string) => {
   const [isEditingFinancial, setIsEditingFinancial] = useState(false);
+  const [statusPanel, setStatusPanel] = useState({
+    isOpen: false,
+    nuevoEstado: '' as PackageStatus | '',
+    nota: '',
+    ubicacion: '',
+  });
 
   const packageQuery = usePackageDetailQuery(uuid as string);
   const { data: apiData, isLoading: isLoadingPackage, isError } = packageQuery.useQuery();
@@ -14,6 +22,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
   const settings = settingsRes?.current;
 
   const { mutateAsync: saveWeight, isPending: isSavingWeight } = useUpdatePackageWeightMutation(uuid);
+  const { mutateAsync: saveStatus, isPending: isSavingStatus } = useUpdatePackageStatusMutation(uuid);
 
   const [data, setData] = useState({
     tracking: 'Cargando...',
@@ -83,6 +92,37 @@ export const usePackageDetailContainer = (uuid?: string) => {
   const updateField = (field: string, value: any) =>
     setData((prev) => ({ ...prev, [field]: value }));
 
+  const handleToggleStatusPanel = () => {
+    setStatusPanel((prev) => ({
+      isOpen: !prev.isOpen,
+      nuevoEstado: prev.isOpen ? '' : (data.estadoPaquete as PackageStatus),
+      nota: '',
+      ubicacion: '',
+    }));
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!statusPanel.nuevoEstado) {
+      toast.error('Selecciona un estado.');
+      return;
+    }
+    if (!statusPanel.nota.trim()) {
+      toast.error('El comentario es obligatorio.');
+      return;
+    }
+    try {
+      await saveStatus({
+        status: statusPanel.nuevoEstado as PackageStatus,
+        note: statusPanel.nota.trim(),
+        location: statusPanel.ubicacion.trim() || undefined,
+      });
+      toast.success('Estado actualizado correctamente.');
+      setStatusPanel({ isOpen: false, nuevoEstado: '', nota: '', ubicacion: '' });
+    } catch {
+      toast.error('No se pudo actualizar el estado. Intenta de nuevo.');
+    }
+  };
+
   const handleSaveFinancial = async () => {
     const weight = Number(data.peso);
     if (!weight || weight <= 0) {
@@ -109,5 +149,10 @@ export const usePackageDetailContainer = (uuid?: string) => {
     setIsEditingFinancial,
     handleSaveFinancial,
     updateField,
+    statusPanel,
+    setStatusPanel,
+    isSavingStatus,
+    handleToggleStatusPanel,
+    handleUpdateStatus,
   };
 };

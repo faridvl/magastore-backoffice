@@ -1,15 +1,25 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Truck, ChevronLeft, History, MapPin, Edit3, Save, DollarSign, AlertCircle } from 'lucide-react';
+import { Truck, ChevronLeft, History, MapPin, Edit3, Save, DollarSign, AlertCircle, RefreshCw, X, Check } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { usePackageDetailContainer } from './use-logistics-detail';
+import { PackageStatus } from '@/types/logistics/logistics.types';
+
+const STATUS_LABELS: Record<PackageStatus, string> = {
+    [PackageStatus.MIAMI]: 'En Bodega Miami',
+    [PackageStatus.TRANSITO]: 'En Tránsito a CR',
+    [PackageStatus.ADUANA]: 'En Trámites de Aduana',
+    [PackageStatus.BODEGA_CR]: 'En Bodega Costa Rica',
+    [PackageStatus.ENTREGADO]: 'Entregado con Éxito',
+};
 
 export const PackageDetailContainer: React.FC = () => {
     const router = useRouter();
     const { uuid } = router.query;
     const {
         data, bitacora, calculos, isLoading, isError,
-        isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField
+        isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
+        statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
 
     if (isLoading) return (
@@ -36,22 +46,95 @@ export const PackageDetailContainer: React.FC = () => {
                     </Typography>
                 </div>
 
-                <button
-                    onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
-                    disabled={isSavingWeight}
-                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105'
-                        : 'bg-slate-900 text-white hover:bg-slate-800'
-                        }`}
-                >
-                    {isSavingWeight
-                        ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
-                        : isEditingFinancial
-                            ? <><Save size={16} /> Confirmar Cambios</>
-                            : <><Edit3 size={16} /> Editar Peso/Precios</>
-                    }
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleToggleStatusPanel}
+                        disabled={isSavingStatus}
+                        className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
+                            ? 'bg-red-500 text-white hover:bg-red-600'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                    >
+                        {statusPanel.isOpen ? <><X size={16} /> Cancelar</> : <><RefreshCw size={16} /> Cambiar Estado</>}
+                    </button>
+                    <button
+                        onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
+                        disabled={isSavingWeight}
+                        className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 scale-105'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
+                            }`}
+                    >
+                        {isSavingWeight
+                            ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
+                            : isEditingFinancial
+                                ? <><Save size={16} /> Confirmar Cambios</>
+                                : <><Edit3 size={16} /> Editar Peso</>
+                        }
+                    </button>
+                </div>
             </div>
+
+            {/* PANEL DE CAMBIO DE ESTADO */}
+            {statusPanel.isOpen && (
+                <div className="bg-white border border-blue-100 rounded-[2rem] p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <RefreshCw size={16} className="text-blue-600" /> Registrar cambio de estado
+                    </Typography>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Nuevo Estado</label>
+                            <select
+                                value={statusPanel.nuevoEstado}
+                                onChange={(e) => setStatusPanel((p) => ({ ...p, nuevoEstado: e.target.value as PackageStatus }))}
+                                className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-black text-xs text-blue-700 uppercase tracking-widest transition-all outline-none"
+                            >
+                                <option value="">— Seleccionar —</option>
+                                {Object.values(PackageStatus).map((s) => (
+                                    <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Ubicación (Opcional)</label>
+                            <div className="relative">
+                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Ej: Bodega Central, San José"
+                                    value={statusPanel.ubicacion}
+                                    onChange={(e) => setStatusPanel((p) => ({ ...p, ubicacion: e.target.value }))}
+                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block flex justify-between">
+                                <span>Comentario <span className="text-blue-500 normal-case tracking-normal ml-1">Obligatorio</span></span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Motivo del cambio..."
+                                value={statusPanel.nota}
+                                onChange={(e) => setStatusPanel((p) => ({ ...p, nota: e.target.value }))}
+                                className="w-full px-4 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                            />
+                        </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                        <button
+                            onClick={handleUpdateStatus}
+                            disabled={isSavingStatus || !statusPanel.nuevoEstado || !statusPanel.nota.trim()}
+                            className="flex items-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isSavingStatus
+                                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
+                                : <><Check size={16} /> Confirmar Cambio</>
+                            }
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* COLUMNA IZQUIERDA: Info y Bitácora */}
