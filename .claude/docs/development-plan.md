@@ -17,7 +17,7 @@ Al completar cada etapa: eliminar su bloque de este archivo + actualizar README.
 ---
 
 ## Etapa 18 — Rate limiting en login
-**Estado:** Completada 2026-06-26 | commit: pendiente
+**Estado:** Completada 2026-06-26 | commit: `32487bd`
 
 Implementado con `Map` en memoria (sin dependencias externas).
 Limite: 5 intentos fallidos por IP en 1 minuto → 429.
