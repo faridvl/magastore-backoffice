@@ -199,7 +199,7 @@ export const ConsolidationsContainer: React.FC = () => {
 
         {/* Fila 4: filtros de fecha */}
         <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
               <input
@@ -510,7 +510,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-[2.5rem] p-8 max-w-xl w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col"
+        className="bg-white rounded-[2.5rem] p-5 sm:p-8 max-w-xl w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {isLoading ? (
@@ -535,22 +535,22 @@ const DetailModal: React.FC<DetailModalProps> = ({
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-slate-50 rounded-2xl p-4 text-center">
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              <div className="bg-slate-50 rounded-2xl p-3 text-center">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado</p>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${STATUS_COLORS[detail.status]}`}>
+                <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wide border inline-block max-w-full truncate ${STATUS_COLORS[detail.status]}`}>
                   {STATUS_LABELS[detail.status]}
                 </span>
               </div>
-              <div className="bg-slate-50 rounded-2xl p-4 text-center">
+              <div className="bg-slate-50 rounded-2xl p-3 text-center">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Peso Total</p>
-                <p className="font-black text-slate-800 text-lg">
+                <p className="font-black text-slate-800 text-base">
                   {Number(detail.total_weight_lb).toFixed(2)} <span className="text-xs text-slate-400">lb</span>
                 </p>
               </div>
-              <div className="bg-slate-50 rounded-2xl p-4 text-center">
+              <div className="bg-slate-50 rounded-2xl p-3 text-center">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Paquetes</p>
-                <p className="font-black text-slate-800 text-lg">{detail.packages.length}</p>
+                <p className="font-black text-slate-800 text-base">{detail.packages.length}</p>
               </div>
             </div>
 
@@ -569,7 +569,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               {detail.status === ConsolidationStatus.ABIERTO && (
                 <button
                   onClick={onOpenAssignModal}

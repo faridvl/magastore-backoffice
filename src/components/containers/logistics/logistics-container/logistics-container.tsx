@@ -165,7 +165,7 @@ export const LogisticsContainer: React.FC = () => {
                         />
                     </div>
                     <div className="flex flex-col gap-2 w-full sm:w-auto">
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
                                 <input

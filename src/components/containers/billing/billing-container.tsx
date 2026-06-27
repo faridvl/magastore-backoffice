@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, CheckCircle2, Clock, XCircle, Truck, Package, FileDown, BarChart2 } from 'lucide-react';
+import { Search, CheckCircle2, Clock, XCircle, X, Truck, Package, FileDown, BarChart2 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useBilling, PaidFilterValue, ActiveBillingTab } from './use-billing';
@@ -230,12 +230,12 @@ export const BillingContainer: React.FC = () => {
             </div>
             {/* Pills de estado + fechas */}
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-              <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl flex-shrink-0">
+              <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl w-full sm:w-auto sm:flex-shrink-0">
                 {(['all', 'pending', 'paid'] as PaidFilterValue[]).map((f) => (
                   <button
                     key={f}
                     onClick={() => handlePaidFilterChange(f)}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
                       paidFilter === f
                         ? 'bg-white shadow-sm text-slate-800'
                         : 'text-slate-400 hover:text-slate-600'
@@ -246,7 +246,7 @@ export const BillingContainer: React.FC = () => {
                 ))}
               </div>
               <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
                     <input
@@ -494,13 +494,18 @@ export const BillingContainer: React.FC = () => {
               </div>
             ) : billingDetail ? (
               <>
-                <div className="mb-6">
-                  <Typography variant={TypographyVariant.HEADER} className="text-2xl tracking-tighter">
-                    {billingDetail.customer_name}
-                  </Typography>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                    {billingDetail.customer_code} · {billingDetail.customer_email}
-                  </p>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <Typography variant={TypographyVariant.HEADER} className="text-2xl tracking-tighter">
+                      {billingDetail.customer_name}
+                    </Typography>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                      {billingDetail.customer_code} · {billingDetail.customer_email}
+                    </p>
+                  </div>
+                  <button onClick={() => setSelectedBillingUuid(null)} className="p-2 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
+                    <X size={18} className="text-slate-400" />
+                  </button>
                 </div>
 
                 {/* Desglose de cobro */}
@@ -572,7 +577,7 @@ export const BillingContainer: React.FC = () => {
                     <FileDown size={15} />
                     {isDownloadingPdf ? 'Generando PDF...' : 'Descargar PDF'}
                   </button>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setSelectedBillingUuid(null)}
                       className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
@@ -583,7 +588,7 @@ export const BillingContainer: React.FC = () => {
                       <button
                         onClick={handleMarkAsPaid}
                         disabled={isMarkingPaid}
-                        className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-50"
+                        className="py-3.5 px-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-50"
                       >
                         {isMarkingPaid ? 'Procesando...' : 'Marcar como Pagado'}
                       </button>

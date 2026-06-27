@@ -24,9 +24,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ title, tooltip, cl
             <Info size={14} />
           </button>
           {show && (
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 w-56 bg-slate-800 text-white text-[11px] font-medium rounded-xl px-3 py-2 shadow-xl leading-snug">
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-[70] w-56 bg-slate-800 text-white text-[11px] font-medium rounded-xl px-3 py-2 shadow-xl leading-snug">
               {tooltip}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full w-2 h-2 bg-slate-800 rotate-45 -mt-1" />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full w-2 h-2 bg-slate-800 rotate-45 mt-1" />
             </div>
           )}
         </div>

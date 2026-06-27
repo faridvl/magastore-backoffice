@@ -27,7 +27,7 @@ export function Header({
 
   return (
     <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-background/90 backdrop-blur-sm sticky top-0 z-40 transition-colors">
-      <div className="h-full px-6 flex items-center justify-between">
+      <div className="h-full px-3 sm:px-6 flex items-center justify-between">
 
         {/* Sección Izquierda: Hamburger (mobile) + Título y Volver */}
         <div className="flex items-center gap-3">
@@ -51,7 +51,7 @@ export function Header({
           {title && (
             <Typography
               variant={TypographyVariant.SUBTITLE}
-              className="text-slate-900 dark:text-white text-base md:text-lg font-black truncate max-w-[160px] sm:max-w-xs md:max-w-none"
+              className="text-slate-900 dark:text-white text-sm md:text-lg font-black truncate max-w-[120px] sm:max-w-[200px] md:max-w-none"
             >
               {title}
             </Typography>
@@ -59,12 +59,12 @@ export function Header({
         </div>
 
         {/* Sección Derecha: Tracking y Usuario */}
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-1 sm:gap-3 md:gap-4">
 
           {/* BOTÓN DE TRACKING GLOBAL: Para consultas rápidas */}
           <button
             onClick={() => nav.admin.packages()} // O una ruta específica de búsqueda si la tienes
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-600 dark:text-slate-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
+            className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-600 dark:text-slate-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
           >
             <Search size={18} />
             <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">Rastrear Paquete</span>
@@ -79,7 +79,7 @@ export function Header({
             />
           )}
 
-          <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-2" />
+          <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-0.5 sm:mx-2" />
 
           {/* User Dropdown Simplificado */}
           <Menu as="div" className="relative inline-block text-left">
