@@ -47,6 +47,7 @@ Al registrar un cliente se debe seleccionar el tipo de documento de identidad:
 | Apellido | Apellido(s) | Sí |
 | Email | Correo electrónico (único en el sistema) | Sí |
 | Teléfono | Número de contacto | Sí |
+| Nivel de lealtad | Regular / VIP / Diamond | Sí (por defecto: Regular) |
 | Estado | Activo / Inactivo | Sí (por defecto: Activo) |
 | Dirección(es) | Al menos una dirección de entrega en Costa Rica | Sí |
 
@@ -78,11 +79,49 @@ Cada cliente puede tener **una o más direcciones** de entrega. La información 
 
 ---
 
+## Importación masiva desde Excel
+
+El sistema permite importar múltiples clientes a la vez desde un archivo Excel (`.xlsx`).
+
+### Cómo funciona
+
+1. Ir a **Clientes** (`/admin/customers`)
+2. Hacer clic en **"Descargar Template"** para obtener el archivo Excel con el formato correcto
+3. Llenar el archivo con los datos de los clientes
+4. Hacer clic en **"Importar Clientes"** y subir el archivo completado
+
+### Estructura del Excel
+
+| Columna | Descripción | Obligatorio |
+|---|---|---|
+| `cedula` | Número de documento de identidad | Sí |
+| `tipo_identificacion` | FISICA / JURIDICA / DIMEX / PASAPORTE | Sí |
+| `nombre` | Primer nombre | Sí |
+| `apellidos` | Apellidos | Sí |
+| `email` | Correo electrónico | Sí |
+| `telefono` | Teléfono de contacto | Sí |
+| `codigo_magastore` | Casillero existente (dejar vacío para generar uno nuevo) | No |
+| `provincia` | Provincia de la dirección | Sí |
+| `canton` | Cantón de la dirección | Sí |
+| `distrito` | Distrito de la dirección | Sí |
+| `direccion_exacta` | Dirección completa | Sí |
+| `etiqueta` | Nombre de la dirección (ej: "Casa") | Sí |
+| `es_principal` | "Si" o "No" — si es la dirección principal | Sí |
+
+### Comportamiento del import
+
+- **Múltiples filas del mismo cliente:** Si varias filas tienen el mismo número de cédula, el sistema las agrupa en un solo cliente con múltiples direcciones.
+- **Casillero opcional:** Si la columna `codigo_magastore` viene vacía, el sistema genera uno nuevo automáticamente. Si viene con un valor, lo usa tal cual.
+- **Import parcial:** Si un cliente falla (datos inválidos, cédula duplicada con conflicto), los demás se importan igualmente. El sistema reporta cuáles fallaron y por qué.
+- **Conflicto de datos:** Si se intenta importar un cliente con una cédula que ya existe pero con diferente nombre o email, el sistema lo rechaza como error.
+
+---
+
 ## Pantallas disponibles
 
 | Pantalla | Qué permite hacer |
 |---|---|
-| **Lista de clientes** (`/admin/customers`) | Ver todos los clientes, buscar por nombre/código/ID, filtrar por estado activo/inactivo |
+| **Lista de clientes** (`/admin/customers`) | Ver todos los clientes, buscar por nombre/código/ID, importar desde Excel, descargar template |
 | **Crear cliente** (`/admin/customers/create`) | Registrar un nuevo cliente con su información y al menos una dirección |
 | **Detalle de cliente** (`/admin/customers/[id]`) | Ver toda la información del cliente, sus direcciones y sus paquetes |
 
@@ -104,3 +143,6 @@ Desde la pantalla de detalle o edición del cliente, se cambia el estado a "Inac
 
 **¿Los paquetes de un cliente inactivo siguen apareciendo?**
 Sí. Desactivar un cliente no elimina ni oculta sus paquetes existentes.
+
+**¿Puedo importar un cliente que ya existe en el sistema?**
+Si la cédula ya existe con los mismos datos (mismo nombre y email), el sistema puede actualizar sus direcciones. Si la cédula existe con datos distintos (nombre o email diferente), se rechaza como error de conflicto.

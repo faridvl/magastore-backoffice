@@ -14,18 +14,36 @@ Flujos completos de las operaciones más comunes en Magastore.
 2. Seleccionar el tipo de identificación (ej: FISICA para cédula costarricense)
 3. Ingresar el número de cédula
 4. Ingresar nombre, apellido, email y teléfono
-5. Agregar al menos una dirección de entrega:
+5. Seleccionar nivel de lealtad (Regular por defecto)
+6. Agregar al menos una dirección de entrega:
    - Seleccionar provincia, cantón y distrito
    - Ingresar la dirección exacta
    - Asignar una etiqueta (ej: "Casa")
    - Marcar como dirección principal
-6. Guardar
+7. Guardar
 
 **Resultado:** El sistema crea el cliente y genera automáticamente su casillero (ej: `MG-A1B2C3-7`). Se le comparte este casillero al cliente para futuras referencias.
 
 ---
 
-## Escenario 2: Registrar un paquete que llegó a Miami
+## Escenario 2: Importar múltiples clientes desde Excel
+
+**Situación:** Se tiene una lista de 20 clientes nuevos en una hoja de cálculo y se quieren registrar todos a la vez.
+
+**Pasos:**
+
+1. Ir a **Clientes** (`/admin/customers`)
+2. Hacer clic en **"Descargar Template"** para obtener el formato correcto
+3. Llenar el Excel con los datos de los clientes (un cliente puede tener varias filas si tiene múltiples direcciones)
+4. Hacer clic en **"Importar Clientes"**
+5. Arrastrar el archivo o buscarlo con el selector
+6. Revisar el resumen: cuántos se importaron exitosamente y cuáles fallaron (con el motivo del error)
+
+**Resultado:** Los clientes válidos quedan registrados. Los que fallan (cédula duplicada con conflicto, datos inválidos) se reportan individualmente sin cancelar los demás.
+
+---
+
+## Escenario 3: Registrar un paquete que llegó a Miami
 
 **Situación:** Se recibe un paquete en el depósito de Miami y hay que ingresarlo al sistema.
 
@@ -34,7 +52,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 1. Ir a **Logística → Registrar Paquete** (`/admin/logistics/create`)
 2. Seleccionar el cliente al que pertenece el paquete (buscar por nombre o casillero)
 3. Ingresar el número de tracking del transportista (UPS, FedEx, Amazon, etc.)
-4. Pesar el paquete e ingresar el peso en libras
+4. Pesar el paquete e ingresar el peso en libras (**número entero, mínimo 1**)
 5. Seleccionar el tipo de envío (Aéreo o Marítimo)
 6. Revisar el preview de cobro que muestra el sistema
 7. Agregar notas internas si hay algo relevante (ej: "caja un poco golpeada por fuera")
@@ -44,7 +62,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 3: Actualizar el estado de un paquete
+## Escenario 4: Actualizar el estado de un paquete
 
 **Situación:** El paquete llegó a Costa Rica y está en aduana. Hay que actualizar el estado.
 
@@ -53,32 +71,35 @@ Flujos completos de las operaciones más comunes en Magastore.
 1. Ir a **Logística** (`/admin/logistics`)
 2. Buscar el paquete (por tracking o nombre del cliente)
 3. Hacer clic en el paquete para ver su detalle
-4. Ir a **Editar** (`/admin/logistics/edit/[id]`)
-5. Cambiar el estado a **ADUANA**
-6. Agregar notas si aplica (ej: "En revisión aduanera, estimado 3 días hábiles")
-7. Guardar
+4. Cambiar el estado a **ADUANA**
+5. Agregar notas si aplica (ej: "En revisión aduanera, estimado 3 días hábiles")
+6. Guardar
 
 **Resultado:** El estado se actualiza. Se genera automáticamente un nuevo evento de rastreo. El cliente puede ver el cambio en la página de rastreo.
 
 ---
 
-## Escenario 4: Consolidar paquetes de un cliente
+## Escenario 5: Consolidar paquetes de un cliente
 
-**Situación:** Un cliente tiene 3 paquetes en bodega de Costa Rica y quiere que se le cobre todo junto.
+**Situación:** Un cliente tiene 3 paquetes en bodega de Costa Rica y hay que agruparlos para cobrarlos juntos.
 
 **Pasos:**
 
-1. Verificar que los 3 paquetes del cliente estén registrados en el sistema
-2. Ir a la sección de **Logística** y seleccionar los paquetes del cliente
-3. Crear una nueva consolidación con los 3 paquetes
-4. El sistema calcula automáticamente el peso total (suma de los 3 paquetes)
-5. Cuando esté lista para facturar, cambiar el estado de la consolidación a **CERRADO**
+1. Ir a **Consolidaciones** (`/admin/consolidations`)
+2. Hacer clic en **"Nueva Consolidación"**
+3. Buscar y seleccionar el cliente
+4. Confirmar — la consolidación se crea en estado ABIERTO con peso 0
+5. Hacer clic en la consolidación recién creada para abrir el detalle
+6. Hacer clic en **"Asignar Paquetes"**
+7. Seleccionar los 3 paquetes del cliente y confirmar
+8. El sistema recalcula automáticamente el peso total (suma de los 3)
+9. Cuando esté lista para facturar, hacer clic en **"Cerrar consolidación"** → pasa a CERRADO
 
 **Resultado:** Los 3 paquetes quedan agrupados en una sola consolidación, con el peso total calculado. Lista para generar la factura.
 
 ---
 
-## Escenario 5: Generar una factura y registrar el pago
+## Escenario 6: Generar una factura y registrar el pago
 
 **Situación:** El cliente tiene una consolidación en estado CERRADO y hay que cobrarle.
 
@@ -88,20 +109,20 @@ Flujos completos de las operaciones más comunes en Magastore.
 2. Ir al tab **"Por Facturar"**
 3. Encontrar la consolidación del cliente
 4. Hacer clic en **"Generar Factura"**
-5. El sistema crea la factura usando las tarifas actuales:
-   - Peso total de la consolidación
-   - Precio por libra vigente
-   - Tipo de cambio vigente
-   - Cargo fijo
-6. La factura queda en estado **Pendiente**
-7. Cuando el cliente pague, ir a la factura en el tab **"Registros"**
-8. Hacer clic en la factura y luego en **"Cobrar Ahora"** o **"Marcar como Pagado"**
+5. Seleccionar el **método de entrega**:
+   - **Correos de Costa Rica** (₡2,900)
+   - **Tracopa / Encomienda** (₡2,500)
+   - **Retiro en bodega** (₡0)
+6. El sistema crea la factura usando las tarifas actuales
+7. La factura queda en estado **Pendiente**
+8. Cuando el cliente pague, ir a la factura en el tab **"Registros"**
+9. Hacer clic en la factura y luego en **"Cobrar Ahora"**
 
 **Resultado:** La factura queda marcada como pagada con la fecha del pago registrada.
 
 ---
 
-## Escenario 6: El cliente llama para saber el estado de su paquete
+## Escenario 7: El cliente llama para saber el estado de su paquete
 
 **Situación:** Un cliente llama diciendo que su casillero es MG-21642F-13 y quiere saber cuándo le llega su paquete.
 
@@ -116,7 +137,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 7: Un paquete llegó dañado
+## Escenario 8: Un paquete llegó dañado
 
 **Situación:** Llega un paquete a Miami con daños visibles. Hay que registrarlo y documentar el daño.
 
@@ -132,7 +153,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 8: Actualizar las tarifas del servicio
+## Escenario 9: Actualizar las tarifas del servicio
 
 **Situación:** El dólar subió y hay que ajustar el tipo de cambio.
 
@@ -147,7 +168,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 9: Buscar un paquete del que solo se sabe el tracking
+## Escenario 10: Buscar un paquete del que solo se sabe el tracking
 
 **Situación:** Un cliente envía por WhatsApp su número de tracking y quiere saber si llegó.
 
@@ -165,7 +186,7 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 10: Ver el historial de cambios de tarifas
+## Escenario 11: Ver el historial de cambios de tarifas
 
 **Situación:** El dueño quiere saber cuándo y cuánto cambió el precio por libra en los últimos meses.
 
@@ -174,4 +195,4 @@ Flujos completos de las operaciones más comunes en Magastore.
 1. Ir a **Configuración** (`/admin/settings`)
 2. En la parte inferior de la pantalla ver el historial de cambios
 3. El historial muestra: qué cambió, valor anterior, valor nuevo, cuándo y quién lo cambió
-4. Se muestran los últimos 15 cambios
+4. Usar la paginación para ver cambios más antiguos

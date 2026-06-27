@@ -1603,3 +1603,1470 @@ b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
  M src/shared/api/querys/logistics/find-one-package-query.ts
  M src/shared/api/repositories/logistics.repo.ts
 ?? .claude/worktrees/
+
+=== 2026-06-26 08:16 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 09:30 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 09:32 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/boxed-container/boxed-container.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 09:32 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/boxed-container/boxed-container.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 09:35 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/boxed-container/boxed-container.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 09:36 ===
+--- recent commits ---
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+b962061 docs: actualizar hash en status.md ÔÇö MVP 100% completo
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/layout/boxed-container/boxed-container.tsx
+ M src/components/common/layout/dashboard-layout.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 09:37 ===
+--- recent commits ---
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 09:55 ===
+--- recent commits ---
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/button/button.tsx
+ M src/components/common/header/header.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/billing/use-billing-reports.ts
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/pages/admin/billing/reports.tsx
+ M src/pages/admin/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/007-packages-address-id.sql
+?? src/components/common/section-header/
+?? src/pages/api/customers/[id]/addresses.ts
+?? src/shared/api/querys/customers/use-customer-addresses-query.ts
+
+=== 2026-06-26 09:58 ===
+--- recent commits ---
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+f01b85d chore: eliminar status.md y development-plan.md ÔÇö MVP completado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/button/button.tsx
+ M src/components/common/header/header.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/billing/use-billing-reports.ts
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/pages/admin/billing/reports.tsx
+ M src/pages/admin/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/007-packages-address-id.sql
+?? src/components/common/section-header/
+?? src/pages/api/customers/[id]/addresses.ts
+?? src/shared/api/querys/customers/use-customer-addresses-query.ts
+
+=== 2026-06-26 10:01 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:03 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:05 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:06 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:07 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:08 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:11 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:17 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/services/customers.service.ts
+ M src/types/customer/customer.types.ts
+ M yarn.lock
+?? src/components/containers/customers/import/
+?? src/pages/api/customers/import.ts
+?? src/shared/api/mutations/use-import-customers-mutation.ts
+
+=== 2026-06-26 10:19 ===
+--- recent commits ---
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+e232a92 docs: reescribir README ÔÇö descripcion del proyecto, arquitectura, modulos y notas de dev
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/services/customers.service.ts
+ M src/types/customer/customer.types.ts
+ M yarn.lock
+?? src/components/containers/customers/import/
+?? src/pages/api/customers/import.ts
+?? src/shared/api/mutations/use-import-customers-mutation.ts
+
+=== 2026-06-26 10:21 ===
+--- recent commits ---
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:32 ===
+--- recent commits ---
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:38 ===
+--- recent commits ---
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 10:39 ===
+--- recent commits ---
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+0104400 fix: corregir errores de build, datos de cliente, auth/me, PDF Vercel y agregar filtros de fecha
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 10:40 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:45 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+
+=== 2026-06-26 10:46 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+
+=== 2026-06-26 10:48 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+
+=== 2026-06-26 10:48 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+
+=== 2026-06-26 10:49 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-26 10:51 ===
+--- recent commits ---
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+98e8273 finalizado
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/new-table/new-table.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-26 10:51 ===
+--- recent commits ---
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:53 ===
+--- recent commits ---
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+1b1118a feat: responsive completo mobile/tablet/desktop + bugfixes de runtime
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/customers/list-customers/customers-container.tsx
+
+=== 2026-06-26 10:54 ===
+--- recent commits ---
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 10:55 ===
+--- recent commits ---
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/consolidations/consolidations-container.tsx
+
+=== 2026-06-26 10:56 ===
+--- recent commits ---
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+4d59137 feat: UI improvements ÔÇö billing ganancia, address selection, validations, layout cleanup
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-26 10:56 ===
+--- recent commits ---
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 11:00 ===
+--- recent commits ---
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+3e6483f feat: import masivo de clientes desde Excel
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 11:22 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-26 11:24 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+
+=== 2026-06-26 11:30 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-26 11:34 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-26 11:34 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 11:35 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+
+=== 2026-06-26 11:36 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+
+=== 2026-06-26 11:39 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+
+=== 2026-06-26 11:41 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/import/import-customers-modal.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+
+=== 2026-06-26 11:43 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/common/header/header.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/section-header/section-header.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/import/import-customers-modal.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 11:44 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/common/header/header.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/section-header/section-header.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/import/import-customers-modal.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 11:46 ===
+--- recent commits ---
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+902d74d feat: responsive mobile completo ÔÇö cards, filtros y tracking redesign
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/common/header/header.tsx
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/section-header/section-header.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/import/import-customers-modal.tsx
+ M src/components/containers/customers/list-customers/customers-container.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/pages/tracking/index.tsx
+
+=== 2026-06-26 11:47 ===
+--- recent commits ---
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-26 11:48 ===
+--- recent commits ---
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+f11320d feat: responsive mobile ÔÇö empty states, toolbar y paginador
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-26 11:49 ===
+--- recent commits ---
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-26 12:02 ===
+--- recent commits ---
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 12:03 ===
+--- recent commits ---
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 12:04 ===
+--- recent commits ---
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 12:06 ===
+--- recent commits ---
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+9ddfe64 feat: responsive mobile clientes ÔÇö botones apilados y empty state
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-06-26 12:07 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-27 12:11 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-27 12:14 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-27 12:18 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-27 12:21 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+
+=== 2026-06-27 12:27 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+
+=== 2026-06-27 12:28 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+
+=== 2026-06-27 12:59 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+
+=== 2026-06-27 12:59 ===
+--- recent commits ---
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y log├¡stica)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/02-gestion-clientes.md
+ M claude-project/03-gestion-paquetes.md
+ M claude-project/04-consolidaciones.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/06-configuracion-tarifas.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts

@@ -22,16 +22,11 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Quién accede:** Operadores autenticados.
 
 **Qué muestra:**
-- KPIs rápidos: paquetes del mes, por cobrar, ganancia neta, clientes activos
-- Gráfico de crecimiento de ganancias (ingresos vs costos por mes)
-- Gráfico de top clientes por volumen
-- Tabla de actividad reciente de paquetes
-- Calculadora rápida de cotización para un cliente
-
-**Acciones disponibles:**
-- Acceso rápido a registrar un nuevo ingreso de paquete
-- Enlace a la página pública de rastreo
-- Ver historial completo de paquetes
+- KPIs reales desde la base de datos: paquetes del mes, monto por cobrar, ingresos del mes, clientes activos
+- Gráfica de ingresos mensuales (últimos 6 meses, basada en facturas pagadas)
+- Gráfica de top clientes por volumen de facturación
+- Tabla de actividad reciente: últimos 5 paquetes registrados con su estado y monto de factura
+- Empty state en la tabla de actividad cuando no hay paquetes registrados
 
 ---
 
@@ -40,10 +35,11 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Quién accede:** Operadores autenticados.
 
 **Qué muestra:**
-- Tabla de todos los paquetes registrados
+- Lista de todos los paquetes registrados (tabla en desktop, cards en mobile)
 - Columnas: tracking, cliente, peso, tipo, estado, fecha
 - Barra de búsqueda (por tracking o nombre de cliente)
 - Filtros por estado del paquete
+- Filtro de rango de fechas: Desde / Hasta (cada uno en su propia fila en mobile)
 
 **Acciones disponibles:**
 - Buscar paquetes
@@ -64,7 +60,7 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Datos a ingresar:**
 - Cliente (selección del cliente al que pertenece el paquete)
 - Número de tracking del transportista
-- Peso en libras
+- Peso en libras (**solo enteros ≥ 1**, sin decimales)
 - Tipo de envío (Aéreo / Marítimo)
 - Notas internas (opcional)
 
@@ -82,22 +78,12 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 - Estado actual
 - Historial de eventos de rastreo
 - Panel de información financiera (peso, tarifa estimada, total)
+- Campo editable de peso (solo enteros ≥ 1)
 
 **Acciones disponibles:**
-- Ver el historial completo de eventos
-- Ir a editar el paquete
-
----
-
-## Editar Paquete (`/admin/logistics/edit/[id]`)
-
-**Quién accede:** Operadores autenticados.
-
-**Qué permite:**
-- Cambiar el estado del paquete (actualizar a la siguiente etapa del ciclo)
-- Modificar notas internas
-- Agregar o cambiar URL de evidencia fotográfica
-- Modificar el peso
+- Cambiar el estado del paquete
+- Editar el peso registrado
+- Agregar notas internas y URL de evidencia
 
 ---
 
@@ -106,7 +92,7 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Quién accede:** Operadores autenticados.
 
 **Qué muestra:**
-- Tabla de todos los clientes registrados
+- Tabla de todos los clientes registrados (tabla en desktop, cards en mobile)
 - Columnas: nombre, código/casillero, email, teléfono, estado
 - Barra de búsqueda
 - Filtro por estado (activos / inactivos / todos)
@@ -115,7 +101,11 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 - Buscar clientes por nombre, casillero o email
 - Filtrar por estado activo/inactivo
 - Hacer clic en un cliente para ver su detalle
-- Botón para registrar un nuevo cliente
+- **Descargar Template** — descarga el archivo Excel con el formato para importar clientes
+- **Importar Clientes** — abre el modal para cargar un archivo Excel con clientes
+- **Nuevo Cliente** — va al formulario de creación
+
+*En mobile, los tres botones (Template, Importar, Nuevo Cliente) se muestran apilados en columna a ancho completo.*
 
 ---
 
@@ -126,6 +116,7 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Qué hace:**
 - Formulario para registrar un nuevo cliente
 - El casillero se genera automáticamente al guardar
+- En mobile el formulario se muestra en una sola columna
 
 **Datos a ingresar:**
 - Tipo de documento de identidad
@@ -133,6 +124,7 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 - Nombre y apellido
 - Email
 - Teléfono
+- Nivel de lealtad (Regular / VIP / Diamond)
 - Al menos una dirección (provincia, cantón, distrito, dirección exacta, etiqueta)
 
 ---
@@ -149,6 +141,35 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 
 ---
 
+## Gestión de Consolidaciones (`/admin/consolidations`)
+
+**Quién accede:** Operadores autenticados.
+
+**Qué muestra:**
+- Lista de todas las consolidaciones (tabla en desktop, cards en mobile)
+- Columnas: cliente, casillero, estado, peso total, cantidad de paquetes, fecha
+- Empty state cuando no hay consolidaciones que coincidan con los filtros
+
+**Filtros disponibles:**
+- Búsqueda por nombre de cliente o casillero
+- Filtro por estado: Todos / Abiertos / Cerrados / Despachados / Entregados
+- Filtro de fechas: Desde y Hasta (cada uno en su propia fila)
+
+*En mobile, el toolbar se organiza en filas: búsqueda → botón nueva consolidación → filtros de estado → fecha Desde → fecha Hasta.*
+
+**Acciones disponibles:**
+- Crear nueva consolidación (seleccionar cliente)
+- Ver detalle de una consolidación (panel lateral/modal)
+- Asignar paquetes a una consolidación abierta
+- Avanzar el estado de la consolidación
+
+**Modal de detalle:**
+- Muestra cliente, estado, peso total y lista de paquetes asignados
+- Botón "Asignar Paquetes" (solo si está ABIERTO)
+- Botón de avance de estado según el estado actual
+
+---
+
 ## Cobros / Billing (`/admin/billing`)
 
 **Quién accede:** Operadores autenticados.
@@ -162,10 +183,10 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Acciones disponibles:**
 - Buscar facturas por nombre de cliente o casillero
 - Filtrar por estado de pago (todas / pagadas / pendientes)
-- Filtrar por período (semana / mes / todo el tiempo)
 - Ver detalle de una factura
 - Marcar una factura como pagada ("Cobrar Ahora")
-- Generar factura para una consolidación pendiente
+- Generar factura para una consolidación pendiente (seleccionando método de entrega)
+- Descargar PDF de la factura
 
 ---
 
@@ -174,13 +195,16 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 **Quién accede:** Operadores autenticados (ADMIN).
 
 **Qué muestra:**
-- Formulario con las 4 tarifas del sistema
-- Preview del precio en colones con las tarifas actuales
-- Historial de los últimos 15 cambios de tarifas
+- Formulario con las tarifas de flete internacional (precio/lb, tipo de cambio, ganancia/lb, peso mínimo)
+- Formulario con tarifas de entrega local (Correos CR, Tracopa)
+- Panel de simulación: precio por libra en CRC y ganancia estimada con las tarifas actuales
+- Historial completo de cambios de tarifas con paginación
 
 **Acciones disponibles:**
-- Modificar precio por libra, tipo de cambio, cargo fijo y peso mínimo
+- Modificar cualquiera de las tarifas
 - Guardar los cambios (se registran automáticamente en el historial)
+
+*En mobile, el historial usa un paginador en 2 filas: total de registros arriba, navegación abajo.*
 
 ---
 
@@ -204,6 +228,5 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 - Campo de búsqueda por número de tracking
 - Muestra el estado actual y el historial de eventos del paquete
 - Muestra información del cliente (nombre, casillero)
-- Muestra el estado de pago del paquete
 
 **Qué NO muestra:** Información financiera interna, notas del operador, datos de otros clientes.

@@ -6,6 +6,8 @@ El cliente final tiene acceso a una página pública de tracking (`/tracking`) d
 
 **Stack:** Next.js 14 (Pages Router) · TypeScript strict · Neon PostgreSQL (serverless) · React Query · Tailwind CSS · JWT · Resend · sonner
 
+> **UI/UX:** La interfaz es completamente responsive — mobile-first con breakpoints `sm` / `md` / `lg`. En mobile los botones de acción se apilan en columna (ancho completo), los filtros de fecha van en filas separadas, y todas las vistas de lista tienen empty states con ícono y mensaje descriptivo.
+
 ---
 
 ## Instalación
@@ -52,17 +54,17 @@ EMAIL_FROM=notificaciones@tudominio.com
 
 | Ruta | Descripción |
 |---|---|
-| `/admin/dashboard` | KPIs y gráficas: ingresos del mes, paquetes activos, clientes |
-| `/admin/logistics` | Lista paginada de paquetes con filtros por estado y búsqueda |
-| `/admin/logistics/[id]` | Detalle de paquete: peso, bitácora, cambio de estado, panel financiero |
+| `/admin/dashboard` | KPIs y gráficas: ingresos del mes, paquetes activos, clientes. Muestra empty state en actividad reciente si no hay paquetes. |
+| `/admin/logistics` | Lista paginada de paquetes con filtros por estado, búsqueda y rango de fechas (Desde/Hasta en filas separadas en mobile). Cards mobile con empty state. |
+| `/admin/logistics/[id]` | Detalle de paquete: peso (solo enteros ≥ 1 lb), bitácora, cambio de estado, panel financiero |
 | `/admin/packages` | Buscador rápido por número de tracking — vista resumida con datos de cliente y billing |
-| `/admin/customers` | Lista de clientes |
+| `/admin/customers` | Lista de clientes con empty state en mobile. Botones Template/Importar/Nuevo Cliente apilados en mobile. |
 | `/admin/customers/[id]` | Detalle de cliente con historial y direcciones |
-| `/admin/customers/create` | Registro de nuevo cliente |
-| `/admin/consolidations` | Gestión de consolidaciones: crear, asignar paquetes, cerrar |
+| `/admin/customers/create` | Registro de nuevo cliente. Formulario en 1 columna en mobile. |
+| `/admin/consolidations` | Gestión de consolidaciones: crear, asignar paquetes, cerrar. Toolbar en 4 filas en mobile (búsqueda → botón → filtros de estado → fechas). Empty state en cards mobile. |
 | `/admin/billing` | Lista de facturas generadas, marcar pagado, descargar PDF |
 | `/admin/billing/reports` | Reporte mensual de facturación |
-| `/admin/settings` | Tarifas del sistema: precio/lb, tipo de cambio, costos de envío local |
+| `/admin/settings` | Tarifas del sistema: precio/lb, tipo de cambio, costos de envío local. Tabla de historial con paginador en 2 filas en mobile. |
 | `/tracking` | Página pública — el cliente busca su paquete por tracking number |
 
 ---

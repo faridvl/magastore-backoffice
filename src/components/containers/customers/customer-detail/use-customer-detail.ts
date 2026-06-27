@@ -52,7 +52,11 @@ export const useCustomerDetail = (customerId: string) => {
   const handleEditAddress = (index: number, field: keyof CustomerAddressUpdateInput, value: string | boolean) => {
     setEditForm((prev) => {
       if (!prev || !prev.addresses) return prev;
-      const updated = prev.addresses.map((a, i) => (i === index ? { ...a, [field]: value } : a));
+      const updated = prev.addresses.map((a, i) => {
+        if (i === index) return { ...a, [field]: value };
+        if (field === 'is_default' && value === true) return { ...a, is_default: false };
+        return a;
+      });
       return { ...prev, addresses: updated };
     });
   };

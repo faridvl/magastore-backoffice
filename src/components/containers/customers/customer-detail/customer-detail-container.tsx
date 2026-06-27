@@ -1,5 +1,40 @@
 import React from 'react';
-import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus } from 'lucide-react';
+import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon } from 'lucide-react';
+
+const MAILBOXES = [
+  { label: 'USA Aéreo', suffix: 'A', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
+  { label: 'USA Marítimo', suffix: 'M', flag: '🚢', color: 'bg-blue-50 border-blue-100 text-blue-700' },
+  { label: 'China', suffix: 'CH', flag: '🇨🇳', color: 'bg-red-50 border-red-100 text-red-700' },
+  { label: 'Colombia', suffix: 'CO', flag: '🇨🇴', color: 'bg-amber-50 border-amber-100 text-amber-700' },
+];
+
+function MailboxCard({ code, label, suffix, flag, color }: { code: string; label: string; suffix: string; flag: string; color: string }) {
+  const [copied, setCopied] = React.useState(false);
+  const mailboxCode = `${code}-${suffix}`;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(mailboxCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className={`flex items-center justify-between p-4 rounded-2xl border ${color}`}>
+      <div className="flex items-center gap-3">
+        <span className="text-lg">{flag}</span>
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{label}</p>
+          <p className="text-sm font-mono font-black">{mailboxCode}</p>
+        </div>
+      </div>
+      <button
+        onClick={handleCopy}
+        title="Copiar casillero"
+        className="p-2 rounded-xl hover:bg-white/60 transition-colors"
+      >
+        {copied ? <CheckIcon size={14} /> : <Copy size={14} />}
+      </button>
+    </div>
+  );
+}
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
@@ -190,6 +225,23 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                             </Typography>
                                                         </div>
                                                     </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Casilleros */}
+                                        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4 md:col-span-2">
+                                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {MAILBOXES.map((mb) => (
+                                                    <MailboxCard
+                                                        key={mb.suffix}
+                                                        code={customer.customer_code}
+                                                        label={mb.label}
+                                                        suffix={mb.suffix}
+                                                        flag={mb.flag}
+                                                        color={mb.color}
+                                                    />
                                                 ))}
                                             </div>
                                         </div>

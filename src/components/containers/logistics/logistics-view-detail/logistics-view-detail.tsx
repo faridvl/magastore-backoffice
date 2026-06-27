@@ -274,7 +274,6 @@ export const PackageDetailContainer: React.FC = () => {
                                         <div className="h-px bg-white/5 my-2" />
 
                                         <FinanceRow label="Tipo de Cambio" value={`₡${data.tipoCambio}`} />
-                                        <FinanceRow label="Envío Local (Correos)" value={`₡${data.costoEnvioCorreos.toLocaleString()}`} />
 
                                         <div className="pt-8 border-t border-white/10 mt-6">
                                             <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Estimado a Pagar</label>

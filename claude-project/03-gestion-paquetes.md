@@ -12,10 +12,12 @@ Un paquete es una mercancía física que un cliente importó desde Estados Unido
 |---|---|---|
 | Cliente | A quién pertenece el paquete | Sí |
 | Número de tracking | Código del transportista (UPS, FedEx, Amazon, etc.) | Sí |
-| Peso (libras) | Peso real del paquete. Debe ser mayor a 0. | Sí |
+| Peso (libras) | Peso real del paquete. Debe ser un número **entero mayor o igual a 1**. | Sí |
 | Tipo de envío | Aéreo o Marítimo | Sí |
 | Notas internas | Observaciones del operador (daños, instrucciones especiales) | No |
 | URL de evidencia | Enlace a foto de daño o evidencia del paquete | No |
+
+**Importante sobre el peso:** El sistema solo acepta libras como números enteros (1, 2, 3...). No se permiten decimales. El peso mínimo aceptable es 1 libra.
 
 ---
 
@@ -77,10 +79,9 @@ Al actualizar el estado de un paquete, el operador puede:
 
 | Pantalla | Qué permite hacer |
 |---|---|
-| **Lista de paquetes** (`/admin/logistics`) | Ver todos los paquetes con filtros por estado y búsqueda por tracking/cliente |
+| **Lista de paquetes** (`/admin/logistics`) | Ver todos los paquetes con filtros por estado, búsqueda por tracking/cliente y rango de fechas |
 | **Registrar paquete** (`/admin/logistics/create`) | Ingresar un nuevo paquete al sistema. Muestra preview de cobro antes de guardar. |
 | **Detalle de paquete** (`/admin/logistics/[id]`) | Ver toda la información del paquete, su historial de eventos y panel de facturación |
-| **Editar paquete** (`/admin/logistics/edit/[id]`) | Modificar datos del paquete o actualizar su estado |
 
 ---
 
@@ -97,8 +98,11 @@ Este preview es una **estimación**. La factura real se genera cuando se crea la
 
 ## Preguntas frecuentes sobre paquetes
 
+**¿Puedo registrar un paquete con peso decimal (ej: 2.5 lbs)?**
+No. El sistema solo acepta libras enteras (números sin decimales). El peso mínimo es 1 libra. Si el paquete real pesa una fracción, se debe redondear al entero más cercano.
+
 **¿Puedo registrar un paquete sin saber el peso exacto?**
-No. El sistema requiere un peso mayor a 0 para registrar el paquete.
+No. El sistema requiere un peso entero mayor o igual a 1 para registrar el paquete.
 
 **¿Puedo cambiar el cliente de un paquete después de registrarlo?**
 No está disponible en la interfaz actual. El cliente se asigna al registrar el paquete y no se puede cambiar posteriormente.

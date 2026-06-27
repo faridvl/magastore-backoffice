@@ -88,7 +88,7 @@ export const usePackageCalculator = () => {
         status: formData.status,
         address_id: formData.address_id || null,
       });
-      setFormData((prev) => ({ ...prev, tracking_number: '', weight_lb: 0, costoOperativoCRC: 0, address_id: null }));
+      setFormData({ tracking_number: '', customer_id: '', address_id: null, weight_lb: 0, package_type: PackageType.AEREO, status: PackageStatus.MIAMI, costoOperativoCRC: 0 });
       setSearchTerm('');
       toast.success('Paquete registrado');
     } catch {

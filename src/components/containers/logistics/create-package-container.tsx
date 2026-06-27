@@ -30,7 +30,7 @@ export const CreatePackageContainer: React.FC = () => {
                             className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-all"
                         >
                             <span className={`text-sm ${selectedCustomer ? 'font-bold text-slate-900' : 'text-slate-400'}`}>
-                                {selectedCustomer ? `${selectedCustomer.customer_code} | ${selectedCustomer.first_name}` : "Seleccionar cliente..."}
+                                {selectedCustomer ? `${selectedCustomer.customer_code} | ${selectedCustomer.first_name} ${selectedCustomer.last_name}` : "Seleccionar cliente..."}
                             </span>
                             <ChevronDown size={16} className={isOpen ? 'rotate-180 transition-all' : ''} />
                         </div>
@@ -56,7 +56,7 @@ export const CreatePackageContainer: React.FC = () => {
                                             onClick={() => { setFormData({ ...formData, customer_id: c.id }); setIsOpen(false); }}
                                             className="p-4 hover:bg-amber-50 cursor-pointer flex justify-between items-center transition-colors"
                                         >
-                                            <span className="text-sm font-medium">{c.customer_code} - {c.first_name}</span>
+                                            <span className="text-sm font-medium">{c.customer_code} — {c.first_name} {c.last_name}</span>
                                             {formData.customer_id === c.id && <Check size={14} className="text-amber-600" />}
                                         </div>
                                     ))}

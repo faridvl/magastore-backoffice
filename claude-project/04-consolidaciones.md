@@ -13,15 +13,17 @@ Una consolidación es la agrupación de **varios paquetes de un mismo cliente** 
 ```
 1. Cliente tiene varios paquetes registrados en el sistema
        ↓
-2. Operador agrupa los paquetes en una consolidación (status: ABIERTO)
+2. Operador crea una nueva consolidación para el cliente
        ↓
-3. Operador cierra la consolidación cuando está lista para facturar (status: CERRADO)
+3. Operador asigna los paquetes del cliente a la consolidación (status: ABIERTO)
        ↓
-4. Se genera la factura de la consolidación
+4. Operador cierra la consolidación cuando está lista para facturar (status: CERRADO)
        ↓
-5. Consolidación se despacha (status: DESPACHADO)
+5. Se genera la factura de la consolidación en la pantalla de Cobros
        ↓
-6. Paquetes son entregados al cliente (status: ENTREGADO)
+6. Consolidación se despacha (status: DESPACHADO)
+       ↓
+7. Paquetes son entregados al cliente (status: ENTREGADO)
 ```
 
 ---
@@ -50,7 +52,48 @@ Cada vez que se agrega un paquete a la consolidación, el peso total se recalcul
 - Paquetes que pertenezcan al **mismo cliente**
 - Paquetes que **no estén ya en otra consolidación**
 
+Al asignar paquetes, el sistema muestra únicamente los paquetes disponibles del cliente seleccionado — ya filtra automáticamente los que están en otra consolidación.
+
 **Nota importante:** El sistema no valida automáticamente que todos los paquetes de una consolidación sean del mismo cliente. Es responsabilidad del operador verificarlo antes de consolidar.
+
+---
+
+## Pantalla de gestión de consolidaciones (`/admin/consolidations`)
+
+La pantalla de consolidaciones permite al operador gestionar todo el ciclo de vida de las consolidaciones.
+
+### Qué muestra
+
+- Lista de todas las consolidaciones con cliente, estado, peso total, cantidad de paquetes y fecha
+- Barra de búsqueda por nombre de cliente o casillero
+- Filtros por estado: Todos / Abiertos / Cerrados / Despachados / Entregados
+- Filtro de rango de fechas (Desde / Hasta)
+
+### Crear una nueva consolidación
+
+1. Hacer clic en **"Nueva Consolidación"**
+2. Buscar y seleccionar el cliente
+3. Confirmar — la consolidación se crea en estado **ABIERTO**
+
+### Asignar paquetes
+
+1. Hacer clic en una consolidación existente para abrir el detalle
+2. Hacer clic en **"Asignar Paquetes"**
+3. El sistema muestra todos los paquetes disponibles del cliente (sin consolidación asignada)
+4. Seleccionar uno o más paquetes y confirmar
+
+### Avanzar el estado
+
+Desde el panel de detalle, el botón de acción avanza la consolidación al siguiente estado:
+
+| Estado actual | Acción disponible |
+|---|---|
+| ABIERTO | "Cerrar consolidación" → pasa a CERRADO |
+| CERRADO | "Marcar como Despachado" → pasa a DESPACHADO |
+| DESPACHADO | "Marcar como Entregado" → pasa a ENTREGADO |
+| ENTREGADO | Sin acciones disponibles |
+
+**Nota:** No se puede cerrar una consolidación sin paquetes asignados.
 
 ---
 
@@ -61,6 +104,7 @@ La factura se genera **a nivel de consolidación**, no por paquete individual. E
 - Se cobra el peso total de todos los paquetes consolidados juntos
 - Se aplica el peso mínimo cobrable sobre el peso total (no sobre cada paquete)
 - Se genera una sola factura para todo el grupo
+- Al facturar se selecciona el **método de entrega** (Correos CR, Tracopa o Retiro en bodega)
 
 Ver el documento **05-facturacion-cobros.md** para la fórmula de cálculo detallada.
 
@@ -69,7 +113,7 @@ Ver el documento **05-facturacion-cobros.md** para la fórmula de cálculo detal
 ## Preguntas frecuentes sobre consolidaciones
 
 **¿Un paquete siempre tiene que estar en una consolidación para ser facturado?**
-En el modelo de negocio de Magastore, sí — la facturación está diseñada para hacerse a nivel de consolidación. Sin embargo, la estructura técnica del sistema permite facturar paquetes individualmente (aunque esta funcionalidad no se usa en la práctica).
+Sí — la facturación está diseñada para hacerse a nivel de consolidación.
 
 **¿Puedo agregar paquetes a una consolidación que ya está CERRADA?**
 No. Una vez cerrada, la consolidación no acepta más paquetes.
@@ -85,3 +129,6 @@ No hay un límite definido. Puede tener desde 1 paquete en adelante.
 
 **¿Qué pasa con el estado de los paquetes individuales cuando se consolidan?**
 El estado de cada paquete sigue siendo independiente. La consolidación tiene su propio estado separado del estado de cada paquete.
+
+**¿Puedo eliminar una consolidación?**
+No está disponible. Las consolidaciones son permanentes una vez creadas.

@@ -21,12 +21,24 @@ Puedes agregar una nueva dirección a su perfil y marcarla como principal. La di
 **¿Puedo cambiar el casillero de un cliente?**
 No. El casillero se genera automáticamente y es permanente.
 
+**¿Cómo importo varios clientes a la vez?**
+Descarga el template Excel con el botón "Descargar Template", llénalo con los datos y luego usa "Importar Clientes" para subirlo. El sistema agrupa filas con la misma cédula en un solo cliente con múltiples direcciones.
+
+**¿Qué pasa si en el Excel hay una cédula que ya existe en el sistema?**
+Si los datos coinciden (mismo nombre y email), el sistema puede actualizar las direcciones. Si hay conflicto (mismo número pero diferente nombre o email), ese cliente se rechaza con un error y los demás del lote se importan igualmente.
+
 ---
 
 ## Sobre paquetes
 
+**¿Puedo ingresar el peso de un paquete con decimales (ej: 2.5 lbs)?**
+No. El sistema solo acepta libras como números enteros (1, 2, 3...). Si el paquete pesa una fracción, redondear al entero más cercano.
+
+**¿Cuál es el peso mínimo que puedo registrar?**
+1 libra. El sistema bloquea valores menores.
+
 **¿Qué pasa si ingreso mal el peso de un paquete?**
-Puedes corregirlo editando el paquete (`/admin/logistics/edit/[id]`). Si ya se generó una factura para la consolidación que contiene ese paquete, el cambio de peso no afectará la factura ya emitida.
+Puedes corregirlo editando el paquete desde su vista de detalle. Si ya se generó una factura para la consolidación que contiene ese paquete, el cambio de peso no afectará la factura ya emitida.
 
 **¿Puedo cambiar el cliente de un paquete?**
 No está disponible. El cliente se asigna al crear el paquete y no puede modificarse.
@@ -56,8 +68,11 @@ Técnicamente el sistema lo permite pero es un error — siempre consolide paque
 **¿Puedo agregar un paquete a una consolidación cerrada?**
 No. Solo se pueden agregar paquetes a consolidaciones en estado ABIERTO.
 
-**¿Cómo sé qué paquetes están sin consolidar?**
-En la lista de logística puedes filtrar por paquetes que no tienen consolidación asignada.
+**¿Puedo cerrar una consolidación sin paquetes?**
+No. El botón de cerrar está deshabilitado si la consolidación no tiene paquetes asignados.
+
+**¿Puedo remover un paquete de una consolidación?**
+No está disponible en la interfaz actual. Una vez asignado, el paquete no se puede remover de la consolidación.
 
 **¿Puedo eliminar una consolidación?**
 No está disponible. Las consolidaciones son permanentes una vez creadas.
@@ -67,13 +82,18 @@ No está disponible. Las consolidaciones son permanentes una vez creadas.
 ## Sobre facturación
 
 **¿Cómo sé cuánto le voy a cobrar a un cliente?**
-Al registrar el paquete, el sistema muestra un preview del cobro estimado. La factura definitiva se genera al facturar la consolidación con las tarifas vigentes en ese momento.
+Al registrar el paquete, el sistema muestra un preview del cobro estimado (flete). La factura definitiva depende también del método de entrega que se seleccione al facturar.
 
 **¿Por qué el monto en el preview puede diferir del monto en la factura?**
-Porque entre el momento en que se registra el paquete y el momento en que se genera la factura, las tarifas pueden haber cambiado.
+Dos razones: (1) las tarifas pueden haber cambiado entre el registro del paquete y la facturación, y (2) el preview no incluye la tarifa de entrega local, que se suma al generar la factura.
+
+**¿Qué métodos de entrega existen y cuánto cuestan?**
+- Correos de Costa Rica: ₡2,900
+- Tracopa / Encomienda: ₡2,500
+- Retiro en bodega: ₡0 (gratis)
 
 **¿Puedo generar la factura antes de que el paquete llegue a Costa Rica?**
-Técnicamente sí, pero la práctica recomendada es facturar cuando la consolidación esté en estado CERRADO o superior (paquetes en bodega CR o listos para entrega).
+Técnicamente sí, pero la práctica recomendada es facturar cuando la consolidación esté en estado CERRADO o superior.
 
 **¿Puedo modificar el monto de una factura?**
 No. Una vez generada, el monto no se puede cambiar.
@@ -85,7 +105,7 @@ No está disponible en el sistema actual.
 No hay forma de "desmarcar" un pago en el sistema actual. Contacta al administrador del sistema si necesitas corregir esto a nivel de base de datos.
 
 **¿El sistema acepta múltiples métodos de pago?**
-No. El sistema solo registra si la factura fue pagada (sí/no) pero no registra el método de pago (efectivo, transferencia, etc.). Si necesitas registrar el método, usa las notas internas del paquete.
+No. El sistema solo registra si la factura fue pagada (sí/no) pero no el método de pago (efectivo, transferencia, etc.).
 
 ---
 
@@ -101,7 +121,10 @@ No. Cada factura guarda una copia de las tarifas del momento en que fue generada
 Solo los operadores con rol de administrador (ADMIN).
 
 **¿Dónde veo el historial de cambios de tarifas?**
-En la pantalla de Configuración (`/admin/settings`), en la parte inferior aparecen los últimos 15 cambios con fecha, operador y valores anterior/nuevo.
+En la pantalla de Configuración (`/admin/settings`), en la parte inferior aparece el historial completo con paginación.
+
+**¿Puedo configurar el costo de retiro en bodega?**
+No. El retiro en bodega siempre es gratuito y no tiene campo de configuración.
 
 ---
 

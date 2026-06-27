@@ -1,5 +1,7 @@
 import React from 'react';
 import { Plus, MapPin, Loader2 } from 'lucide-react';
+
+const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
 
@@ -69,7 +71,15 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
           <FieldInput
             label="Teléfono"
             value={form.phone}
-            onChange={(v) => onFieldChange('phone', v)}
+            onChange={(v) => {
+              const digits = v.replace(/\D/g, '');
+              const local = digits.startsWith('506') ? digits.slice(3) : digits;
+              const trimmed = local.slice(0, 8);
+              const part1 = trimmed.slice(0, 4);
+              const part2 = trimmed.slice(4, 8);
+              const formatted = part2 ? `${part1}-${part2}` : part1;
+              onFieldChange('phone', formatted ? `+506 ${formatted}` : '');
+            }}
           />
         </div>
 
@@ -129,18 +139,28 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FieldInput label="Dirección Exacta" value={addr.exact_address} onChange={(v) => onAddressChange(index, 'exact_address', v)} />
-              <FieldInput label="Etiqueta" value={addr.address_label ?? ''} onChange={(v) => onAddressChange(index, 'address_label', v)} />
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Etiqueta</label>
+                <select
+                  value={addr.address_label ?? 'Casa'}
+                  onChange={(e) => onAddressChange(index, 'address_label', e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700"
+                >
+                  {ADDRESS_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
             </div>
 
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={addr.is_default ?? false}
-                onChange={(e) => onAddressChange(index, 'is_default', e.target.checked)}
-                className="h-4 w-4 rounded text-primary accent-primary"
-              />
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => onAddressChange(index, 'is_default', !(addr.is_default ?? false))}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${addr.is_default ? 'bg-amber-500' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${addr.is_default ? 'translate-x-4' : 'translate-x-1'}`} />
+              </button>
               <Typography variant={TypographyVariant.BODY} className="text-slate-600 text-sm">Marcar como dirección principal</Typography>
-            </label>
+            </div>
           </div>
         ))}
       </div>
