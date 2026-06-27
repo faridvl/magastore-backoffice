@@ -1,9 +1,12 @@
 import { useLogisticsQuery } from '@/shared/api/querys/logistics/use-logistics-query';
 import { useState, useEffect } from 'react';
 
+export type ViewMode = 'activos' | 'historial';
+
 export const usePackages = (pageSize = 7) => {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
+    const [viewMode, setViewMode] = useState<ViewMode>('activos');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [dateFrom, setDateFrom] = useState('');
@@ -17,10 +20,22 @@ export const usePackages = (pageSize = 7) => {
         return () => clearTimeout(handler);
     }, [search]);
 
+    // En modo activos: ALL → ACTIVOS (excluye ENTREGADO), status específico pasa directo
+    // En modo historial: siempre ENTREGADO
+    const resolvedStatus = viewMode === 'historial'
+        ? 'ENTREGADO'
+        : statusFilter === 'ALL' ? 'ACTIVOS' : statusFilter;
+
     const { data, isLoading } = useLogisticsQuery(
-        page, pageSize, debouncedSearch, statusFilter,
+        page, pageSize, debouncedSearch, resolvedStatus,
         dateFrom || undefined, dateTo || undefined,
     );
+
+    const handleViewModeChange = (mode: ViewMode) => {
+        setViewMode(mode);
+        setStatusFilter('ALL');
+        setPage(1);
+    };
 
     return {
         packages: data?.data || [],
@@ -31,6 +46,8 @@ export const usePackages = (pageSize = 7) => {
             limit: pageSize,
             totalPages: data?.meta.totalPages || 1
         },
+        viewMode,
+        setViewMode: handleViewModeChange,
         statusFilter,
         setStatusFilter: (s: string) => { setStatusFilter(s); setPage(1); },
         handlePageChange: setPage,

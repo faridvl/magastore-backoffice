@@ -150,7 +150,8 @@ export const LogisticsRepository = {
     const offset = (page - 1) * limit;
 
     const searchTerm = search ? `%${search}%` : null;
-    const statusTerm = status && status !== 'ALL' ? status : null;
+    const isActivos = status === 'ACTIVOS';
+    const statusTerm = status && status !== 'ALL' && !isActivos ? status : null;
     const fromDate = dateFrom || null;
     const toDate = dateTo || null;
 
@@ -162,6 +163,7 @@ export const LogisticsRepository = {
       WHERE
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
+        AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
         AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
       ORDER BY p.created_at DESC
@@ -174,6 +176,7 @@ export const LogisticsRepository = {
       WHERE
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
+        AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
         AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
     `,

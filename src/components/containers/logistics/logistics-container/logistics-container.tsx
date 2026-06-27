@@ -33,6 +33,7 @@ export const LogisticsContainer: React.FC = () => {
     const {
         packages, isLoading, meta,
         handlePageChange, handleSearch,
+        viewMode, setViewMode,
         statusFilter, setStatusFilter,
         dateFrom, setDateFrom,
         dateTo, setDateTo,
@@ -151,6 +152,28 @@ export const LogisticsContainer: React.FC = () => {
                 </button>
             </div>
 
+            {/* TOGGLE: ACTIVOS / HISTORIAL */}
+            <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-fit">
+                <button
+                    onClick={() => setViewMode('activos')}
+                    className={`px-5 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${viewMode === 'activos'
+                        ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                >
+                    ACTIVOS
+                </button>
+                <button
+                    onClick={() => setViewMode('historial')}
+                    className={`px-5 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${viewMode === 'historial'
+                        ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                >
+                    HISTORIAL
+                </button>
+            </div>
+
             {/* TOOLBAR: BÚSQUEDA, FECHAS Y FILTROS */}
             <div className="flex flex-col gap-3">
                 {/* Fila 1: búsqueda + fechas */}
@@ -195,23 +218,25 @@ export const LogisticsContainer: React.FC = () => {
                         )}
                     </div>
                 </div>
-                {/* Fila 2: filtro de estado (scroll horizontal en mobile) */}
-                <div className="overflow-x-auto -mx-0.5 px-0.5">
-                    <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-max">
-                        {['ALL', 'MIAMI', 'TRANSITO', 'ENTREGADO'].map((s) => (
-                            <button
-                                key={s}
-                                onClick={() => setStatusFilter(s)}
-                                className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${statusFilter === s
-                                    ? 'bg-white text-amber-600 shadow-sm border border-slate-200/50'
-                                    : 'text-slate-400 hover:text-slate-600'
-                                    }`}
-                            >
-                                {s === 'ALL' ? 'TODOS' : s}
-                            </button>
-                        ))}
+                {/* Fila 2: filtro de estado — solo en modo activos */}
+                {viewMode === 'activos' && (
+                    <div className="overflow-x-auto -mx-0.5 px-0.5">
+                        <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-max">
+                            {['ALL', 'MIAMI', 'TRANSITO', 'ADUANA', 'BODEGA_CR'].map((s) => (
+                                <button
+                                    key={s}
+                                    onClick={() => setStatusFilter(s)}
+                                    className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${statusFilter === s
+                                        ? 'bg-white text-amber-600 shadow-sm border border-slate-200/50'
+                                        : 'text-slate-400 hover:text-slate-600'
+                                        }`}
+                                >
+                                    {s === 'ALL' ? 'TODOS' : s.replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* CARDS (mobile) */}
