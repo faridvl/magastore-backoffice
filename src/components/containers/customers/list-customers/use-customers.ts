@@ -12,10 +12,9 @@ export const useCustomers = () => {
 
   const { data: queryResponse, isLoading, isError } = useCustomersQuery();
 
-  const rawCustomers: Customer[] = queryResponse?.data || [];
-
   // 2. Transformación y Filtrado con Tipado Estricto
   const filteredCustomers = useMemo(() => {
+    const rawCustomers: Customer[] = queryResponse?.data ?? [];
     const cleanQuery = searchTerm.toLowerCase().trim();
 
     return rawCustomers
@@ -33,7 +32,7 @@ export const useCustomers = () => {
           customer.customer_code?.toLowerCase().includes(cleanQuery)
         );
       });
-  }, [searchTerm, rawCustomers]);
+  }, [searchTerm, queryResponse]);
 
   // 3. Paginación
   const paginatedCustomers = useMemo(() => {

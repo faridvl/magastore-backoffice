@@ -19,6 +19,9 @@ Required in `.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
 MAGASTORE_DB_POSTGRES_URL=postgresql://...
 JWT_SECRET=your-secret-key
+RESEND_API_KEY=re_...
+EMAIL_FROM=notificaciones@tudominio.com
+EMAIL_LOGO_URL=https://tudominio.com/logo.png   # optional
 ```
 
 `src/shared/api/config.ts` exposes `env.API.BASE_URL` — all API client calls go through that.
@@ -163,93 +166,106 @@ Tailwind-only. No CSS modules. Use the `tailwind()` utility from `src/utils/tail
 
 ## Domain Knowledge
 
-This is a **package import and logistics backoffice** for a courier service operating in Costa Rica. Operators manage incoming packages from Miami, track their transit through customs and warehousing, consolidate shipments, and generate invoices for customers.
+This is a **package import and logistics backoffice** for a courier service operating in Costa Rica. Operators manage incoming packages from Panama, track their transit, consolidate shipments per customer, generate pre-invoices and final invoices in CRC, and notify customers by email.
 
 ### Main Entities
 
 | Entity | Table | Key Fields | Source |
 |---|---|---|---|
-| Package | `packages` | `uuid`, `tracking_number`, `weight_lb`, `status`, `consolidation_id`, `customer_id`, `package_type`, `internal_notes`, `evidence_url` | `types/logistics/logistics.types.ts` `Package` |
+| Package | `packages` | `uuid`, `tracking_number`, `weight_lb`, `status`, `consolidation_id`, `customer_id`, `package_type`, `internal_notes`, `evidence_url`, `address_id`, `courier_cost_usd`, `tc_banco`, `insurance_applied`, `courier_rate_id` | `types/logistics/logistics.types.ts` `Package` |
 | Customer | `customers` | `id` (UUID string), `id_card`, `id_type`, `customer_code`, `is_active` | `types/customer/customer.types.ts` `Customer` |
 | Customer Address | `customer_addresses` | `customer_id`, `province`, `canton`, `district`, `exact_address`, `address_label`, `is_default` | `types/customer/customer.types.ts` `CustomerAddress`; SQL in `customers.repo.ts` |
 | Consolidation | `consolidations` | `uuid`, `customer_id`, `total_weight_lb`, `status` | `types/logistics/logistics.types.ts` `Consolidation` |
-| Billing | `billing` | `uuid`, `package_id`, `consolidation_id`, `applied_rate_usd`, `applied_exchange`, `applied_fee_crc`, `total_weight_charged`, `total_amount_crc`, `is_paid`, `paid_at` | `types/logistics/logistics.types.ts` `Billing` |
+| Pre-Billing | `pre_billing` | `uuid`, `consolidation_id`, `estimated_amount_crc`, `delivery_method`, `delivery_fee_crc`, `applied_rate_usd`, `applied_exchange`, `is_confirmed` | `types/logistics/logistics.types.ts` `PreBilling` |
+| Billing | `billing` | `uuid`, `consolidation_id`, `applied_rate_usd`, `applied_exchange`, `applied_fee_crc`, `total_weight_charged`, `total_amount_crc`, `is_paid`, `paid_at`, `delivery_method`, `delivery_fee_crc`, `delivery_address_snapshot` | `types/logistics/logistics.types.ts` `Billing` |
 | Package Event | `package_events` | `package_id`, `status`, `event_type`, `description`, `location` | `types/logistics/logistics.types.ts` `PackageEvent` |
-| System Settings | `system_settings` | `price_per_lb`, `exchange_rate`, `profit_per_lb`, `min_weight` | `types/settings/settings.types.ts` `SystemSettings` |
+| Courier Rate | `courier_rates` | `uuid`, `name`, `origin`, `package_type`, `rate_usd`, `insurance_usd`, `is_active` | `types/logistics/logistics.types.ts` `CourierRate` |
+| System Settings | `system_settings` | `price_per_lb`, `exchange_rate`, `min_weight`, `correos_fee_crc`, `tracopa_fee_crc`, `courier_rate_usd`, `courier_insurance_usd` | `types/settings/settings.types.ts` `SystemSettings` |
 | Settings History | `settings_history` | `parameter_name`, `old_value`, `new_value`, `changed_by_name`, `changed_at` | `types/settings/settings.types.ts` `SettingsHistory` |
-
-**Note on `package_events`:** The only reference to this table in the entire `src/` codebase is a `SELECT` inside `getTrackingHistory` (`logistics.repo.ts:39-43`). There is no `INSERT` into `package_events` in any source file. How this table gets populated is not implemented in the current code.
 
 ### Package Status Lifecycle
 
 ```
-MIAMI → TRANSITO → ADUANA → BODEGA_CR → ENTREGADO
+PANAMA → EN_TRAMITE → ENTREGADO
 ```
 
-Defined in `PackageStatus` enum — `types/logistics/logistics.types.ts:1-7`. No state machine is enforced: `updatePackageStatus` in `logistics.repo.ts:190-208` performs a direct `UPDATE` with no transition check; any value can be set regardless of current state. When status is set to `ENTREGADO`, `logistics.service.ts:152-154` executes a `console.log` — this is a stub with no real notification delivery.
+Defined in `PackageStatus` enum — `types/logistics/logistics.types.ts:1-5`. No state machine is enforced: status can be set to any value regardless of current state. When status is set to `ENTREGADO`, `logistics.service.ts` calls `sendDeliveryNotification` via Resend — this sends a real email to the customer.
 
 ### Consolidation Status Lifecycle
 
 ```
-ABIERTO → CERRADO → DESPACHADO → ENTREGADO
+ABIERTO → CERRADO → ENTREGADO
 ```
 
-Defined in `ConsolidationStatus` enum — `types/logistics/logistics.types.ts:9-14`. `total_weight_lb` is recalculated as `SUM(weight_lb)` of all packages with that `consolidation_id` on every consolidation operation (`logistics.repo.ts:111-117`). Linking packages and updating the weight run inside a single `BEGIN`/`COMMIT`/`ROLLBACK` block (`logistics.repo.ts:100-124`). Neither the service nor the repository validates that all grouped packages share the same `customer_id`.
+Defined in `ConsolidationStatus` enum — `types/logistics/logistics.types.ts:7-11`. `total_weight_lb` is recalculated as `SUM(weight_lb)` of all packages with that `consolidation_id` on every package assignment. Linking packages and updating the weight run inside a single `BEGIN`/`COMMIT`/`ROLLBACK` block. Neither the service nor the repository validates that all grouped packages share the same `customer_id`.
 
-### Billing Calculation
+### Billing Flow
 
+Billing is a two-step process:
+
+1. **Pre-billing** (`generatePreBilling`) — generates an estimate using live `system_settings`. Stores `estimated_amount_crc`, delivery method, and applied rates as a snapshot. The operator shares this with the customer before confirming.
+2. **Final billing** (`generateBilling`) — called when the pre-billing is confirmed. Creates the final `billing` row using a fresh read of `system_settings` at confirmation time. Triggers `sendInvoiceNotification` to email the customer.
+
+All rate sources come from `system_settings` — there are no hardcoded constants in the repositories.
+
+**Billing formula:**
 ```
 chargedWeight  = MAX(actual_weight_lb, min_weight)
-totalCRC       = (chargedWeight × price_per_lb × exchange_rate) + fixed_fee_crc
+deliveryFee    = correos_fee_crc | tracopa_fee_crc | 0  (based on delivery_method)
+totalCRC       = (chargedWeight × price_per_lb × exchange_rate) + deliveryFee
 ```
 
-`generateBilling` in `logistics.repo.ts:134` uses **hardcoded constants**: `{ price_lb: 4.5, exchange: 525, fee: 1500, min_lb: 1 }`. These constants are not read from `system_settings`. The `billing` row stores snapshots of the applied values (`applied_rate_usd`, `applied_exchange`, `applied_fee_crc`, `total_weight_charged`), making past invoices stable against future constant changes.
+The `billing` row stores snapshots of the applied values (`applied_rate_usd`, `applied_exchange`, `applied_fee_crc`, `total_weight_charged`, `delivery_address_snapshot`), making past invoices stable against future rate changes.
 
-`use-package-calculator.ts` reads live `system_settings` via `useSettingsQuery` to compute the cost preview shown to the operator. This preview and the actual billing generation use **different rate sources** and may show different amounts if the hardcoded constants in `logistics.repo.ts` diverge from `system_settings`.
+### Package Events
+
+`package_events` receives `INSERT` statements from `logistics.repo.ts` (via `updatePackageStatus`) and from a DB-level trigger (`005-package-events-trigger.sql`). The `event_type` field accepts: `INFO`, `WARNING`, `DAMAGE`, `CRITICAL`. Events are displayed in the package detail bitácora and on the public tracking page.
 
 ### Business Rules (confirmed in service/repo code)
 
-- `weight_lb` must be `> 0` — enforced in `logistics.service.ts:73`.
-- Every customer must have at least one address. If none is marked `is_default`, the service sets the first one as default — `customers.service.ts:13-19`.
-- `id_card` and `email` uniqueness is checked via `checkExistingCustomer` before any INSERT — `customers.service.ts:22-27`.
-- `customer_code` is generated at INSERT time: `'MG-' || UPPER(SUBSTRING(uuid_generate_v4()::text FROM 31)) || '-' || nextval(serial_sequence)` — `customers.repo.ts:43`.
-- `system_settings` is a singleton: fixed UUID `00000000-0000-0000-0000-000000000000`, all access uses `UPDATE`, never `INSERT` — `settings.repo.ts:3,22-34`.
-- Every field change in `system_settings` is compared against the previous value and, if different, logged to `settings_history` with old value, new value, and operator name — `settings.service.ts:10-24`.
+- `weight_lb` must be integer `>= 1` — enforced in both UI (input validation) and service layer.
+- Every customer must have at least one address. If none is marked `is_default`, the service sets the first one as default — `customers.service.ts`.
+- `id_card` and `email` uniqueness is checked via `checkExistingCustomer` before any INSERT — `customers.service.ts`.
+- `customer_code` is generated at INSERT time: `'MG-' || UPPER(SUBSTRING(uuid_generate_v4()::text FROM 31)) || '-' || nextval(serial_sequence)` — `customers.repo.ts`.
+- `system_settings` is a singleton: fixed UUID `00000000-0000-0000-0000-000000000000`, all access uses `UPDATE`, never `INSERT` — `settings.repo.ts`.
+- Every field change in `system_settings` is compared against the previous value and, if different, logged to `settings_history` with old value, new value, and operator name — `settings.service.ts`.
 
 ### Customer ID Types
 
-`IdType` union type: `'FISICA' | 'JURIDICA' | 'DIMEX' | 'PASAPORTE'` — `types/customer/customer.types.ts:1`. The value is stored as-is. No format or length validation per type exists in any service or repository file.
+`IdType` union type: `'FISICA' | 'JURIDICA' | 'DIMEX' | 'PASAPORTE'` — `types/customer/customer.types.ts`. The value is stored as-is. No format or length validation per type exists in any service or repository file.
 
 ### Auth
 
-JWT tokens expire in `12h` — `auth.service.ts:20`. The fallback secret is the hardcoded string `'clave_secreta_por_defecto'` when `JWT_SECRET` is absent — `auth.service.ts:19`. `UserRole` enum has one value: `ADMIN` — `types/auth/auth.ts:1-3`.
+JWT tokens expire in `12h` — `auth.service.ts`. The fallback secret is the hardcoded string `'clave_secreta_por_defecto'` when `JWT_SECRET` is absent — **do not deploy without this variable**. `UserRole` enum has two values: `ADMIN` and `OPERADOR` — `types/auth/auth.ts`.
 
 ### Critical Flows (High Risk of Regression)
 
 | Flow | Entry Files | Risk |
 |---|---|---|
-| Package registration | `use-package-calculator.ts`, `logistics.service.ts:registerIncomingPackage`, `logistics.repo.ts:createPackage` | Preview uses live `system_settings`; actual invoice uses hardcoded constants — amounts can differ |
-| Generate invoice | `logistics.service.ts:createInvoice`, `logistics.repo.ts:generateBilling` | Transactional; changing `RATES` constant at `logistics.repo.ts:134` changes all future invoice amounts |
-| Consolidate packages | `logistics.service.ts:processConsolidation`, `logistics.repo.ts:consolidatePackages` | Transactional — a mid-transaction failure leaves `packages.consolidation_id` partially updated |
-| Update system settings | `settings.service.ts:updateSystemSettings`, `settings.repo.ts` | History is logged field-by-field; a missing field in `newData` silently skips its history entry |
-| Customer creation | `customers.service.ts:registerCustomer`, `customers.repo.ts:createCustomerWithAddresses` | SQL CTE — customer and all addresses are inserted atomically; failure rolls back both |
+| Package registration | `use-package-calculator.ts`, `logistics.service.ts`, `logistics.repo.ts:createPackage` | Preview reads `system_settings`; actual billing is generated at pre-billing confirmation — rates may change between registration and invoicing |
+| Generate pre-billing | `logistics.service.ts`, `logistics.repo.ts:generatePreBilling` | Reads `system_settings` at call time; snapshot stored in `pre_billing` row |
+| Confirm pre-billing / generate invoice | `logistics.service.ts`, `logistics.repo.ts:generateBilling` | Transactional; triggers `sendInvoiceNotification` — requires `RESEND_API_KEY` |
+| Consolidate packages | `logistics.service.ts`, `logistics.repo.ts:consolidatePackages` | Transactional — a mid-transaction failure leaves `packages.consolidation_id` partially updated |
+| Update system settings | `settings.service.ts`, `settings.repo.ts` | History is logged field-by-field; a missing field in `newData` silently skips its history entry |
+| Customer creation | `customers.service.ts`, `customers.repo.ts:createCustomerWithAddresses` | SQL CTE — customer and all addresses are inserted atomically; failure rolls back both |
 
 ### External Integrations
 
 - **Neon PostgreSQL** (`@neondatabase/serverless`) — primary database, HTTP transport — `src/lib/db.ts`
-- **JWT** (`jsonwebtoken`) — 12-hour expiry, `JWT_SECRET` env var with hardcoded fallback — `auth.service.ts:17-21`
-- **bcryptjs** — password comparison at login — `auth.service.ts:14`
-- **Delivery notification** — `console.log` stub only, triggered at `logistics.service.ts:152-154` when status = `ENTREGADO`; no real email or SMS integration exists
+- **JWT** (`jsonwebtoken`) — 12-hour expiry, `JWT_SECRET` env var with hardcoded fallback — `auth.service.ts`
+- **bcryptjs** — password comparison at login — `auth.service.ts`
+- **Resend** (`resend`) — email notifications for delivery (`ENTREGADO`) and invoice generation. Templates in `src/lib/email-templates.ts`. Fails silently if `RESEND_API_KEY` is absent.
+- **PDF generation** (`@react-pdf/renderer`) — invoice PDF downloadable by operator and customer from tracking page — `src/components/pdf/`
 
 ### Geographic Scope
 
-Addresses use Costa Rica administrative divisions: `province`, `canton`, `district` — `types/customer/customer.types.ts`. Billing is denominated in CRC (Costa Rican colón): fields `total_amount_crc`, `applied_fee_crc`. Package entry is described as "Registro de entrada de mercancía en Miami" — `logistics.repo.ts:16`.
+Addresses use Costa Rica administrative divisions: `province`, `canton`, `district` — `types/customer/customer.types.ts`. Billing is denominated in CRC (Costa Rican colón): fields `total_amount_crc`, `applied_fee_crc`. Packages originate from Panama.
 
 ### Areas Where Changes Have High Impact
 
-- **`RATES` constant in `logistics.repo.ts:134`** — controls actual invoice amounts. Changing it affects all future billing. This is separate from `system_settings`.
-- **`system_settings`** — affects only the operator cost preview (`use-package-calculator.ts`) and the settings history audit trail; does not affect invoicing until `generateBilling` is updated to read from the DB.
-- **`packages.status`** — read by the public-facing `/tracking` page; status values are customer-visible.
+- **`system_settings`** — controls all billing calculations (pre-billing and final invoice). Changes immediately affect all new pre-billings generated after the update.
+- **`packages.status`** — read by the public-facing `/tracking` page; status values are customer-visible. Changing enum values requires a DB migration + UI label update.
+- **`courier_rates` table** — changing `is_active` on a rate hides it from new package registration. Rates already stored on packages are not affected.
 - **`authorizeServerSidePage` in `src/hocs/auth.tsx`** — wraps every protected admin page via `getServerSideProps`; a change here affects the entire admin surface.
 
 ---

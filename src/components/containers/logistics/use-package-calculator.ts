@@ -51,7 +51,7 @@ export const usePackageCalculator = () => {
       const defaultAddr = customerAddresses.find((a) => a.is_default) ?? customerAddresses[0];
       setFormData((prev) => ({ ...prev, address_id: defaultAddr.id }));
     }
-  }, [formData.customer_id, customerAddresses.length]);
+  }, [formData.customer_id, customerAddresses.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filtrado de clientes para el dropdown
   const filteredCustomers = useMemo(() => {
@@ -76,7 +76,7 @@ export const usePackageCalculator = () => {
       courierRates.find((r) => r.name.toLowerCase().includes('aereo') && r.name.toLowerCase().includes('usa')) ??
       courierRates[0];
     if (defaultRate) setFormData((prev) => ({ ...prev, courier_rate_id: defaultRate.uuid }));
-  }, [courierRates]);
+  }, [courierRates]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedCourierRate = (courierRates ?? []).find((r) => r.uuid === formData.courier_rate_id) ?? null;
 
