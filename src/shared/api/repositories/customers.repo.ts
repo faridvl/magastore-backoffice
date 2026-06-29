@@ -120,6 +120,15 @@ export const getCustomerAddresses = async (customerId: string): Promise<Customer
 /**
  * Verifica si el email ya está tomado por otro cliente (para validación en edición)
  */
+export const checkExistingCustomerByIdCardExcluding = async (idCard: string, excludeId: string): Promise<boolean> => {
+  const result = await sql`
+    SELECT id FROM customers
+    WHERE id_card = ${idCard} AND id != ${excludeId}
+    LIMIT 1
+  `;
+  return result.length > 0;
+};
+
 export const checkEmailTakenByOther = async (email: string, excludeId: string): Promise<boolean> => {
   const result = await sql`
     SELECT id FROM customers
@@ -140,7 +149,9 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
       last_name  = ${data.last_name},
       email      = ${data.email},
       phone      = ${data.phone},
-      is_active  = ${data.is_active}
+      is_active  = ${data.is_active},
+      id_card    = COALESCE(${data.id_card ?? null}, id_card),
+      id_type    = COALESCE(${data.id_type ?? null}, id_type)
     WHERE id = ${id}
   `;
 
@@ -169,6 +180,32 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
   const updated = await getCustomerById(id);
   if (!updated) throw new Error('Cliente no encontrado después de actualizar.');
   return updated;
+};
+
+export const getPackagesByCustomer = async (customerId: string): Promise<{
+  tracking_number: string;
+  weight_lb: string;
+  status: string;
+  arrival_date: string;
+  courier_rate_name: string | null;
+  courier_cost_usd: string | null;
+  insurance_applied: boolean;
+}[]> => {
+  const rows = await sql`
+    SELECT
+      p.tracking_number,
+      p.weight_lb,
+      p.status,
+      p.arrival_date,
+      p.courier_cost_usd,
+      p.insurance_applied,
+      cr.name AS courier_rate_name
+    FROM packages p
+    LEFT JOIN courier_rates cr ON p.courier_rate_id = cr.id
+    WHERE p.customer_id = ${customerId}
+    ORDER BY p.created_at DESC
+  `;
+  return rows as any[];
 };
 
 export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {

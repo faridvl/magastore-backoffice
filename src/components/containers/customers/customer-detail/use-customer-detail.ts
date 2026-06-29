@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
+import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-customer-packages-query';
 import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
 
 export const useCustomerDetail = (customerId: string) => {
@@ -14,12 +15,19 @@ export const useCustomerDetail = (customerId: string) => {
 
   const { data: customer, isLoading } = useCustomerProfile(customerId);
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
+  const { data: packagesRes, isLoading: loadingPackages } = useCustomerPackagesQuery(customerId);
 
   const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
+
+  const allPackages = packagesRes?.data ?? [];
+  const activePackages = allPackages.filter((p) => p.status !== 'ENTREGADO');
+  const historyPackages = allPackages.filter((p) => p.status === 'ENTREGADO');
 
   const enterEditMode = () => {
     if (!customer) return;
     setEditForm({
+      id_card: customer.id_card,
+      id_type: customer.id_type,
       first_name: customer.first_name,
       last_name: customer.last_name,
       email: customer.email,
@@ -98,10 +106,10 @@ export const useCustomerDetail = (customerId: string) => {
   const seasonalityData: { month: string; lbs: number }[] = [];
 
   const filteredHistory = useMemo(() => {
-    const purchaseHistory: { id: number; date: string; tracking: string; weight: number; total: number; status: string }[] = [];
     const query = searchTerm.toLowerCase().trim();
-    return purchaseHistory.filter((item) => item.tracking.toLowerCase().includes(query));
-  }, [searchTerm]);
+    if (!query) return historyPackages;
+    return historyPackages.filter((p) => p.tracking_number.toLowerCase().includes(query));
+  }, [historyPackages, searchTerm]);
 
   return {
     customer,
@@ -109,7 +117,9 @@ export const useCustomerDetail = (customerId: string) => {
     initials,
     metrics,
     seasonalityData,
+    activePackages,
     filteredHistory,
+    loadingPackages,
     searchTerm,
     setSearchTerm,
     handleBack: () => router.back(),

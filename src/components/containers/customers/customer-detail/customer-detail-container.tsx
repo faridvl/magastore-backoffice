@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon } from 'lucide-react';
+import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, Package, Clock, Loader2 } from 'lucide-react';
 
 const MAILBOXES = [
   { label: 'USA Aéreo', suffix: 'A', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
@@ -48,7 +48,9 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         initials,
         metrics,
         seasonalityData,
+        activePackages,
         filteredHistory,
+        loadingPackages,
         setSearchTerm,
         handleBack,
         activeTab,
@@ -272,13 +274,80 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                     </div>
                                 </div>
                             ) : (
-                                /* VISTA 2: HISTORIAL */
-                                <div className="animate-in fade-in slide-in-from-right-4 duration-500 min-h-[600px]">
-                                    <CustomerHistoryTab
-                                        seasonalityData={seasonalityData}
-                                        filteredHistory={filteredHistory}
-                                        setSearchTerm={setSearchTerm}
-                                    />
+                                /* VISTA 2: PAQUETES */
+                                <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+                                    {loadingPackages ? (
+                                        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-amber-500" /></div>
+                                    ) : (
+                                        <>
+                                            {/* Paquetes Activos */}
+                                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className="p-1.5 bg-amber-50 rounded-lg"><Package size={14} className="text-amber-600" /></div>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>Paquetes Activos</Typography>
+                                                    <span className="ml-auto text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{activePackages.length}</span>
+                                                </div>
+                                                {activePackages.length === 0 ? (
+                                                    <p className="text-sm text-slate-400 text-center py-6">Sin paquetes activos</p>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {activePackages.map((pkg) => (
+                                                            <div key={pkg.tracking_number} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                                <div className="flex items-center gap-3">
+                                                                    <Package size={14} className="text-slate-400" />
+                                                                    <div>
+                                                                        <p className="text-xs font-mono font-black text-slate-800">{pkg.tracking_number}</p>
+                                                                        <p className="text-[10px] text-slate-400">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full ${
+                                                                    pkg.status === 'PANAMA' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                                                                }`}>
+                                                                    {pkg.status === 'PANAMA' ? 'Panamá' : 'En Trámite'}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Historial */}
+                                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className="p-1.5 bg-slate-50 rounded-lg"><Clock size={14} className="text-slate-500" /></div>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>Historial de Paquetes</Typography>
+                                                    <span className="ml-auto text-xs font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{filteredHistory.length}</span>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <input
+                                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-amber-200"
+                                                        placeholder="Buscar tracking..."
+                                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                                    />
+                                                </div>
+                                                {filteredHistory.length === 0 ? (
+                                                    <p className="text-sm text-slate-400 text-center py-6">Sin paquetes entregados</p>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {filteredHistory.map((pkg) => (
+                                                            <div key={pkg.tracking_number} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                                <div className="flex items-center gap-3">
+                                                                    <Clock size={14} className="text-slate-400" />
+                                                                    <div>
+                                                                        <p className="text-xs font-mono font-black text-slate-800">{pkg.tracking_number}</p>
+                                                                        <p className="text-[10px] text-slate-400">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
+                                                                    </div>
+                                                                </div>
+                                                                <span className="text-[9px] font-black uppercase px-2 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                                                                    Entregado
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </>

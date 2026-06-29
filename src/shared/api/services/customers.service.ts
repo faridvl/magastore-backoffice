@@ -96,6 +96,11 @@ export const CustomerService = {
     return CustomerRepo.importCustomers(rows);
   },
 
+  getCustomerPackages: async (id: string) => {
+    if (!id) throw new Error('El ID del cliente es requerido.');
+    return CustomerRepo.getPackagesByCustomer(id);
+  },
+
   /**
    * Actualiza datos editables de un cliente existente
    */
@@ -109,6 +114,11 @@ export const CustomerService = {
     const emailTaken = await CustomerRepo.checkEmailTakenByOther(data.email, id);
     if (emailTaken) {
       throw new Error('Este correo electrónico ya está registrado en otro cliente.');
+    }
+
+    if (data.id_card) {
+      const idCardTaken = await CustomerRepo.checkExistingCustomerByIdCardExcluding(data.id_card, id);
+      if (idCardTaken) throw new Error('Esta cédula ya está registrada en otro cliente.');
     }
 
     try {

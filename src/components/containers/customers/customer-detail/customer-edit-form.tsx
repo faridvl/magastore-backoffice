@@ -3,7 +3,14 @@ import { Plus, MapPin, Loader2 } from 'lucide-react';
 
 const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
+import { CustomerUpdateInput, CustomerAddressUpdateInput, IdType } from '@/types/customer/customer.types';
+
+const ID_TYPES: { value: IdType; label: string }[] = [
+  { value: 'FISICA', label: 'Física' },
+  { value: 'JURIDICA', label: 'Jurídica' },
+  { value: 'DIMEX', label: 'DIMEX' },
+  { value: 'PASAPORTE', label: 'Pasaporte' },
+];
 
 interface CustomerEditFormProps {
   form: CustomerUpdateInput;
@@ -61,6 +68,23 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
             label="Apellidos"
             value={form.last_name}
             onChange={(v) => onFieldChange('last_name', v)}
+          />
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Tipo de ID</label>
+            <select
+              value={form.id_type ?? 'FISICA'}
+              onChange={(e) => onFieldChange('id_type', e.target.value as IdType)}
+              className="w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700"
+            >
+              {ID_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <FieldInput
+            label="Número de Cédula"
+            value={form.id_card ?? ''}
+            onChange={(v) => onFieldChange('id_card', v)}
           />
           <FieldInput
             label="Correo Electrónico"

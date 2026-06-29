@@ -30,6 +30,8 @@ export interface CustomerInput {
 }
 
 export interface CustomerUpdateInput {
+  id_card?: string;
+  id_type?: IdType;
   first_name: string;
   last_name: string;
   email: string;
