@@ -16,7 +16,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo } = req.query;
+      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo, action, customerUuid } = req.query;
+
+      if (action === 'check-open' && customerUuid) {
+        const existing = await ConsolidationsService.getOpenConsolidationForCustomer(customerUuid as string);
+        return res.status(200).json(
+          existing
+            ? { hasOpen: true, uuid: existing.uuid }
+            : { hasOpen: false },
+        );
+      }
 
       if (uuid) {
         const detail = await ConsolidationsService.getConsolidationDetail(uuid as string);
@@ -61,6 +70,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         currentStatus as ConsolidationStatus,
       );
       return res.status(200).json({ data: updated });
+    }
+
+    if (req.method === 'DELETE') {
+      const { uuid } = req.body;
+      if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
+      await ConsolidationsService.deleteConsolidation(uuid);
+      return res.status(200).json({ data: { deleted: true } });
     }
 
     return res.status(405).json({ message: 'Método no permitido.' });

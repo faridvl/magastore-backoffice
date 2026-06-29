@@ -23,12 +23,13 @@ export const updateSettings = async (data: any) => {
   return await sql`
     UPDATE system_settings
     SET
-      price_per_lb    = ${data.price_per_lb},
-      exchange_rate   = ${data.exchange_rate},
-      profit_per_lb   = ${data.profit_per_lb},
-      min_weight      = ${data.min_weight},
-      correos_fee_crc = ${data.correos_fee_crc},
-      tracopa_fee_crc = ${data.tracopa_fee_crc},
+      price_per_lb          = ${data.price_per_lb},
+      exchange_rate         = ${data.exchange_rate},
+      min_weight            = ${data.min_weight},
+      correos_fee_crc       = ${data.correos_fee_crc},
+      tracopa_fee_crc       = ${data.tracopa_fee_crc},
+      courier_rate_usd      = ${data.courier_rate_usd},
+      courier_insurance_usd = ${data.courier_insurance_usd},
       updated_at      = NOW()
     WHERE id = ${SETTINGS_ID}
     RETURNING *

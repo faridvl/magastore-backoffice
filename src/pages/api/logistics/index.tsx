@@ -18,7 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // --- MÉTODOS GET ---
         if (req.method === 'GET') {
-            const { uuid, page, limit, search, status, dateFrom, dateTo } = req.query;
+            const { uuid, page, limit, search, status, dateFrom, dateTo, action: getAction } = req.query;
+
+            if (getAction === 'courier-rates') {
+                const rates = await LogisticsService.getCourierRates();
+                return res.status(200).json(rates);
+            }
 
             if (uuid) {
                 const pkg = await LogisticsService.getPackageByUuid(uuid as string);
@@ -47,7 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const { action } = req.query;
             switch (action) {
                 case 'register':
-                    const newPkg = await LogisticsService.registerIncomingPackage(req.body);
+                    const { courier_cost_usd, tc_banco, insurance_applied, ...restBody } = req.body;
+                    const newPkg = await LogisticsService.registerIncomingPackage({
+                      ...restBody,
+                      courier_cost_usd: courier_cost_usd != null ? Number(courier_cost_usd) : null,
+                      tc_banco: tc_banco != null ? Number(tc_banco) : null,
+                      insurance_applied: insurance_applied ?? true,
+                    });
                     return res.status(201).json(newPkg);
 
                 case 'consolidate':
@@ -62,6 +73,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     }
                     const invoice = await LogisticsService.createInvoice(invUuid, deliveryMethod);
                     return res.status(201).json(invoice);
+
+                case 'pre-billing':
+                    const { consolidationUuid: preUuid, deliveryMethod: preDm } = req.body;
+                    if (!preUuid || !preDm) {
+                        return res.status(400).json({ message: 'consolidationUuid y deliveryMethod son requeridos.' });
+                    }
+                    const preBill = await LogisticsService.generatePreBilling(preUuid, preDm);
+                    return res.status(201).json(preBill);
+
+                case 'confirm-pre-billing':
+                    const { consolidationUuid: confirmUuid } = req.body;
+                    if (!confirmUuid) {
+                        return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+                    }
+                    const confirmed = await LogisticsService.confirmPreBilling(confirmUuid);
+                    return res.status(200).json(confirmed);
+
+                case 'bulk-status':
+                    const { packageUuids: bulkUuids, status: bulkStatus } = req.body;
+                    if (!bulkUuids?.length || !bulkStatus) {
+                        return res.status(400).json({ message: 'packageUuids y status son requeridos.' });
+                    }
+                    const updated = await LogisticsService.bulkUpdateStatus(bulkUuids, bulkStatus);
+                    return res.status(200).json({ updated });
 
                 default:
                     return res.status(400).json({ message: 'Acción no reconocida' });

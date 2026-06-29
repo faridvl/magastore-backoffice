@@ -1,12 +1,12 @@
 import React from 'react';
-import { Package, Search, ChevronDown, Check, Plane, Ship, Save, Calculator, Settings, Info, Loader2, MapPin } from 'lucide-react';
+import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Info, Loader2, MapPin } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
-import { PackageType } from '@/types/logistics/logistics.types';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
-        formData, setFormData, calculations, settings, customers, selectedCustomer,
-        customerAddresses, searchTerm, setSearchTerm, isOpen, setIsOpen, handleSave, isSaving, isLoading
+        formData, setFormData, calculations, settings, courierRates, selectedCourierRate,
+        customers, selectedCustomer, customerAddresses, searchTerm, setSearchTerm,
+        isOpen, setIsOpen, handleSave, isSaving, isLoading
     } = usePackageCalculator();
 
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
@@ -14,7 +14,7 @@ export const CreatePackageContainer: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4">
 
-            {/* COLUMNA IZQUIERDA: FORMULARIO SIMPLIFICADO */}
+            {/* COLUMNA IZQUIERDA: FORMULARIO */}
             <div className="lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-amber-600 text-white rounded-xl"><Package size={20} /></div>
@@ -22,7 +22,7 @@ export const CreatePackageContainer: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                    {/* CLIENTE: SELECT + SEARCH UNIFICADO */}
+                    {/* CLIENTE */}
                     <div className="relative">
                         <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Cliente</label>
                         <div
@@ -115,26 +115,57 @@ export const CreatePackageContainer: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* COURIER RATE + TC BANCO */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex p-1 bg-slate-50 rounded-2xl border border-slate-100">
-                            {([PackageType.AEREO, PackageType.MARITIMO] as const).map(t => (
-                                <button
-                                    key={t}
-                                    onClick={() => setFormData({ ...formData, package_type: t })}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${formData.package_type === t ? 'bg-white shadow-sm text-amber-600' : 'text-slate-400'}`}
+                        <div>
+                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Tarifa Courier</label>
+                            {courierRates.length === 0 ? (
+                                <div className="p-4 bg-slate-50 rounded-2xl text-xs text-slate-400 font-medium border border-slate-100">
+                                    Sin tarifas configuradas
+                                </div>
+                            ) : (
+                                <select
+                                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-amber-200 transition-all"
+                                    value={formData.courier_rate_id ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, courier_rate_id: e.target.value || null })}
                                 >
-                                    {t === PackageType.AEREO ? <Plane size={14} /> : <Ship size={14} />} {t}
-                                </button>
-                            ))}
+                                    <option value="">Sin tarifa / manual</option>
+                                    {courierRates.map((r) => (
+                                        <option key={r.uuid} value={r.uuid}>
+                                            {r.name} — ${Number(r.rate_usd).toFixed(2)}/lb
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
-                        <input
-                            type="number"
-                            placeholder="Costo Aduana (₡)"
-                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none"
-                            value={formData.costoOperativoCRC || ''}
-                            onChange={(e) => setFormData({ ...formData, costoOperativoCRC: Number(e.target.value) })}
-                        />
+                        <div>
+                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">TC Banco (₡ por $)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="Ej: 518.50"
+                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white outline-none"
+                                value={formData.tc_banco || ''}
+                                onChange={(e) => setFormData({ ...formData, tc_banco: Number(e.target.value) })}
+                            />
+                        </div>
                     </div>
+
+                    {selectedCourierRate && (
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={formData.insurance_applied}
+                                onChange={(e) => setFormData({ ...formData, insurance_applied: e.target.checked })}
+                                className="w-4 h-4 accent-amber-500"
+                            />
+                            <span className="text-xs font-semibold text-slate-600">
+                                Seguro courier cobrado
+                                {selectedCourierRate.insurance_usd ? ` ($${Number(selectedCourierRate.insurance_usd).toFixed(2)})` : ''}
+                            </span>
+                        </label>
+                    )}
 
                     <button
                         onClick={handleSave}
@@ -166,10 +197,22 @@ export const CreatePackageContainer: React.FC = () => {
                                 <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Cobro al Cliente</p>
                                 <h3 className="text-2xl md:text-4xl font-black italic text-white">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
                             </div>
-                            <div className="pt-4 border-t border-white/5">
-                                <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Ganancia Estimada</p>
-                                <p className="text-xl font-bold text-amber-400">₡{calculations.ganancia.toLocaleString()}</p>
-                            </div>
+                            {calculations.courierCostCRC > 0 && (
+                                <div className="pt-4 border-t border-white/5 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-[10px] uppercase font-bold text-slate-500">Costo Courier</p>
+                                        <p className="text-sm font-bold text-slate-300">
+                                            ${calculations.courierCostUSD.toFixed(2)} · ₡{Math.round(calculations.courierCostCRC).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-[10px] uppercase font-bold text-slate-500">Ganancia Est.</p>
+                                        <p className={`text-sm font-bold ${calculations.ganancia >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                            ₡{Math.round(calculations.ganancia).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -5,10 +5,8 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { usePackages } from './use-packages';
 
 const STATUS_LABELS: Record<string, string> = {
-    MIAMI: 'En Miami',
-    TRANSITO: 'En Tránsito',
-    ADUANA: 'En Aduana',
-    BODEGA_CR: 'Bodega CR',
+    PANAMA: 'En Panamá',
+    EN_TRAMITE: 'En Trámite',
     ENTREGADO: 'Entregado',
 };
 

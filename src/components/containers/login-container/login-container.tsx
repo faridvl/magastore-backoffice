@@ -46,6 +46,8 @@ export const LoginContainer: React.FC = () => {
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">Correo Electrónico</label>
                                 <input
                                     type="email"
+                                    name="email"
+                                    autoComplete="username"
                                     required
                                     disabled={loading}
                                     className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-amber-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"
@@ -58,6 +60,8 @@ export const LoginContainer: React.FC = () => {
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">Contraseña</label>
                                 <input
                                     type="password"
+                                    name="password"
+                                    autoComplete="current-password"
                                     required
                                     disabled={loading}
                                     className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-amber-100 focus:bg-white rounded-2xl outline-none transition-all text-sm font-medium disabled:opacity-50"

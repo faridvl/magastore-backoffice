@@ -5,6 +5,8 @@ import {
   Package,
   Consolidation,
   Billing,
+  CourierRate,
+  PreBilling,
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
@@ -82,7 +84,8 @@ export const LogisticsService = {
     try {
       return await LogisticsRepository.createPackage(data);
     } catch (error: any) {
-      console.error('[LogisticsService.registerIncomingPackage]:', error);
+      console.error('[LogisticsService.registerIncomingPackage] data:', JSON.stringify(data));
+      console.error('[LogisticsService.registerIncomingPackage] error:', error?.message ?? error);
       throw new Error('No se pudo registrar el paquete. Verifique los datos.');
     }
   },
@@ -210,6 +213,60 @@ export const LogisticsService = {
   /**
    * Actualiza el estado de un paquete e inserta eventos en la bitácora.
    */
+  getCourierRates: async (): Promise<CourierRate[]> => {
+    return await LogisticsRepository.getCourierRates();
+  },
+
+  generatePreBilling: async (
+    consolidationUuid: string,
+    deliveryMethod: DeliveryMethod,
+  ): Promise<Partial<PreBilling>> => {
+    try {
+      return await LogisticsRepository.generatePreBilling(consolidationUuid, deliveryMethod);
+    } catch (error: any) {
+      console.error('[LogisticsService.generatePreBilling]:', error);
+      throw new Error(error.message || 'Error al generar la prefactura.');
+    }
+  },
+
+  confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {
+    try {
+      const result = await LogisticsRepository.confirmPreBilling(consolidationUuid);
+      const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
+      if (customerInfo) {
+        const [billing] = await Promise.resolve([result]);
+        if (billing?.billing_uuid) {
+          const { sendInvoiceNotification } = await import('@/lib/email');
+          sendInvoiceNotification({
+            to: customerInfo.email,
+            firstName: customerInfo.first_name,
+            totalAmountCRC: 0,
+            billingUuid: billing.billing_uuid,
+          }).catch((err) => console.error('[Email] Error enviando notificación de factura:', err));
+        }
+      }
+      return result;
+    } catch (error: any) {
+      console.error('[LogisticsService.confirmPreBilling]:', error);
+      throw new Error(error.message || 'Error al confirmar la prefactura.');
+    }
+  },
+
+  bulkUpdateStatus: async (
+    packageUuids: string[],
+    status: PackageStatus,
+  ): Promise<number> => {
+    if (!packageUuids || packageUuids.length === 0) {
+      throw new Error('Debe seleccionar al menos un paquete.');
+    }
+    try {
+      return await LogisticsRepository.bulkUpdateStatus(packageUuids, status);
+    } catch (error: any) {
+      console.error('[LogisticsService.bulkUpdateStatus]:', error);
+      throw new Error(error.message || 'Error al actualizar estados.');
+    }
+  },
+
   updateStatus: async (
     uuid: string,
     status: PackageStatus,

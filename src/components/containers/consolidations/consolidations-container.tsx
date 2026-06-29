@@ -9,7 +9,16 @@ import {
   Square,
   Boxes,
   ArrowRight,
+  FileText,
+  CheckCircle,
+  Download,
+  AlertTriangle,
+  Trash2,
+  Loader2,
+  RotateCcw,
+  SendHorizonal,
 } from 'lucide-react';
+import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useConsolidations, ConsolidationStatusFilter } from './use-consolidations';
@@ -19,37 +28,42 @@ import {
   ConsolidationStatus,
   ConsolidationPackage,
   AvailablePackage,
+  DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { Customer } from '@/types/customer/customer.types';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
   CERRADO: 'Cerrado',
-  DESPACHADO: 'Despachado',
   ENTREGADO: 'Entregado',
 };
 
 const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
-  CERRADO: 'bg-amber-50 text-amber-600 border-amber-100',
-  DESPACHADO: 'bg-violet-50 text-amber-600 border-violet-100',
+  CERRADO: 'bg-blue-50 text-blue-600 border-blue-100',
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
 const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
   ABIERTO: 'Cerrar consolidación',
-  CERRADO: 'Marcar como Despachado',
-  DESPACHADO: 'Marcar como Entregado',
+  CERRADO: 'Marcar como Entregado',
   ENTREGADO: null,
 };
 
+const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
+  CORREOS_CR: 'Correos de Costa Rica',
+  TRACOPA: 'Tracopa',
+  RETIRO: 'Retiro en oficina',
+};
+
 const STATUS_FILTERS: { value: ConsolidationStatusFilter; label: string }[] = [
-  { value: 'ALL', label: 'Todos' },
   { value: ConsolidationStatus.ABIERTO, label: 'Abiertos' },
   { value: ConsolidationStatus.CERRADO, label: 'Cerrados' },
-  { value: ConsolidationStatus.DESPACHADO, label: 'Despachados' },
   { value: ConsolidationStatus.ENTREGADO, label: 'Entregados' },
+  { value: 'ALL', label: 'Todos' },
 ];
+
+const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
 
 export const ConsolidationsContainer: React.FC = () => {
   const {
@@ -82,9 +96,34 @@ export const ConsolidationsContainer: React.FC = () => {
     isAssigning,
 
     handleSelectRow,
+    openConsolidationCheck,
+
+    showPreBillingModal, setShowPreBillingModal,
+    preBillingDeliveryMethod, setPreBillingDeliveryMethod,
+    handleGeneratePreBilling,
+    isGeneratingPreBilling,
+    handleConfirmPreBilling,
+    isConfirmingPreBilling,
+    handleDownloadPreBillingPDF,
+
+    deleteUuid, setDeleteUuid,
+    handleConfirmDelete,
+    isDeleting,
+
+    quickActionTarget, setQuickActionTarget,
+    handleConfirmQuickAction,
   } = useConsolidations();
 
   const listColumns: Column<ConsolidationListItem>[] = [
+    {
+      header: '#ID',
+      accessor: '_id',
+      render: (row) => (
+        <span className="font-mono text-[11px] font-black text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg tracking-widest">
+          #{row.uuid.slice(-5).toUpperCase()}
+        </span>
+      ),
+    },
     {
       header: 'Cliente',
       accessor: 'customer_name',
@@ -135,10 +174,39 @@ export const ConsolidationsContainer: React.FC = () => {
     },
     {
       header: '',
-      accessor: 'uuid',
+      accessor: '_chevron',
       align: 'right',
-      render: () => (
-        <ChevronRight size={16} className="text-slate-300" />
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          {row.status === ConsolidationStatus.ABIERTO && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setDeleteUuid(row.uuid); }}
+              className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="Eliminar consolidación"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+          {row.status === ConsolidationStatus.CERRADO && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setQuickActionTarget({ uuid: row.uuid, action: 'reopen' }); }}
+                className="p-1.5 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                title="Volver a abrir"
+              >
+                <RotateCcw size={14} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setQuickActionTarget({ uuid: row.uuid, action: 'dispatch' }); }}
+                className="p-1.5 rounded-lg text-slate-300 hover:text-violet-500 hover:bg-violet-50 transition-colors"
+                title="Marcar como despachado"
+              >
+                <SendHorizonal size={14} />
+              </button>
+            </>
+          )}
+          <ChevronRight size={16} className="text-slate-300" />
+        </div>
       ),
     },
   ];
@@ -147,48 +215,47 @@ export const ConsolidationsContainer: React.FC = () => {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
       {/* TOOLBAR */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
-        {/* Fila 1: búsqueda (mobile: full width, sm+: con botón inline) */}
-        <div className="flex gap-3 items-center">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        {/* Fila principal */}
+        <div className="flex items-center gap-3 p-4 border-b border-slate-50">
           <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
             <input
               type="text"
               placeholder="Buscar por cliente o casillero..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
+              className="w-full bg-slate-50 pl-9 pr-4 py-2.5 rounded-xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
+            />
+          </div>
+          <div className="hidden md:flex flex-shrink-0">
+            <DateRangeFilter
+              from={dateFrom} to={dateTo}
+              onFromChange={setDateFrom} onToChange={setDateTo}
+              onClear={() => { setDateFrom(''); setDateTo(''); }}
             />
           </div>
           <button
             onClick={handleOpenCreateModal}
-            className="hidden sm:flex items-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
           >
-            <Plus size={16} />
-            Nueva Consolidación
+            <Plus size={15} />
+            <span className="hidden sm:inline">Nueva Consolidación</span>
+            <span className="sm:hidden">Nueva</span>
           </button>
         </div>
 
-        {/* Fila 2 (solo mobile): botón nueva consolidación */}
-        <button
-          onClick={handleOpenCreateModal}
-          className="sm:hidden flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm"
-        >
-          <Plus size={16} />
-          Nueva Consolidación
-        </button>
-
-        {/* Fila 3: filtros de estado */}
-        <div className="overflow-x-auto -mx-0.5 px-0.5">
-          <div className="flex gap-1 bg-slate-100/60 p-1.5 rounded-2xl w-max min-w-full">
+        {/* Filtros de estado */}
+        <div className="px-4 py-2.5 overflow-x-auto">
+          <div className="flex gap-1">
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => handleStatusFilterChange(f.value)}
-                className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${
                   statusFilter === f.value
-                    ? 'bg-white shadow-sm text-slate-800'
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 {f.label}
@@ -197,36 +264,13 @@ export const ConsolidationsContainer: React.FC = () => {
           </div>
         </div>
 
-        {/* Fila 4: filtros de fecha */}
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full bg-slate-50 border-none px-3 py-2 rounded-xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100"
-              />
-            </div>
-          </div>
-          {(dateFrom || dateTo) && (
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); }}
-              className="w-full px-3 py-2 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-600 bg-slate-50 transition-colors"
-            >
-              Limpiar fechas
-            </button>
-          )}
+        {/* Fechas mobile */}
+        <div className="md:hidden px-4 pb-3">
+          <DateRangeFilter
+            from={dateFrom} to={dateTo}
+            onFromChange={setDateFrom} onToChange={setDateTo}
+            onClear={() => { setDateFrom(''); setDateTo(''); }}
+          />
         </div>
       </div>
 
@@ -310,10 +354,107 @@ export const ConsolidationsContainer: React.FC = () => {
           isLoading={isLoadingDetail}
           isUpdating={isUpdating}
           isAssigning={isAssigning}
+          isConfirmingPreBilling={isConfirmingPreBilling}
           onClose={() => setSelectedUuid(null)}
           onAdvanceStatus={handleAdvanceStatus}
+          onReopen={() => consolidationDetail && setQuickActionTarget({ uuid: consolidationDetail.uuid, action: 'reopen' })}
           onOpenAssignModal={handleOpenAssignModal}
+          onOpenPreBillingModal={() => setShowPreBillingModal(true)}
+          onConfirmPreBilling={handleConfirmPreBilling}
+          onDownloadPreBillingPDF={handleDownloadPreBillingPDF}
         />
+      )}
+
+      {/* MODAL: CONFIRMAR ELIMINACIÓN */}
+      {deleteUuid && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setDeleteUuid(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4 mb-5">
+              <div className="p-2.5 bg-red-50 rounded-xl flex-shrink-0">
+                <Trash2 size={18} className="text-red-500" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 text-sm">¿Eliminar consolidación?</p>
+                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
+                  Los paquetes asignados quedarán disponibles nuevamente. Esta acción no se puede deshacer.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteUuid(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REABRIR / DESPACHAR */}
+      {quickActionTarget && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setQuickActionTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4 mb-5">
+              <div className={`p-2.5 rounded-xl flex-shrink-0 ${quickActionTarget.action === 'reopen' ? 'bg-amber-50' : 'bg-violet-50'}`}>
+                {quickActionTarget.action === 'reopen'
+                  ? <RotateCcw size={18} className="text-amber-500" />
+                  : <SendHorizonal size={18} className="text-violet-500" />
+                }
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 text-sm">
+                  {quickActionTarget.action === 'reopen' ? '¿Volver a abrir esta consolidación?' : '¿Marcar como despachada?'}
+                </p>
+                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
+                  {quickActionTarget.action === 'reopen'
+                    ? 'La consolidación volverá a estado ABIERTO y podrás seguir editándola.'
+                    : 'La consolidación pasará a estado ENTREGADO.'
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setQuickActionTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmQuickAction}
+                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 ${quickActionTarget.action === 'reopen' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-violet-500 hover:bg-violet-600'}`}
+              >
+                {quickActionTarget.action === 'reopen'
+                  ? <><RotateCcw size={14} /> Reabrir</>
+                  : <><SendHorizonal size={14} /> Despachar</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL: CREAR CONSOLIDACIÓN */}
@@ -378,6 +519,19 @@ export const ConsolidationsContainer: React.FC = () => {
               )}
             </div>
 
+            {openConsolidationCheck?.hasOpen && (
+              <div className="mb-4 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-black text-amber-800">Este cliente ya tiene una consolidación abierta</p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    ID: <span className="font-mono font-black">#{openConsolidationCheck.uuid?.slice(-5).toUpperCase()}</span>.
+                    {' '}Ciérrala antes de crear una nueva, o selecciona otro cliente.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -387,7 +541,7 @@ export const ConsolidationsContainer: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirmCreate}
-                disabled={!createCustomerUuid || isCreating}
+                disabled={!createCustomerUuid || isCreating || !!openConsolidationCheck?.hasOpen}
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isCreating ? 'Creando...' : 'Crear Consolidación'}
@@ -481,6 +635,68 @@ export const ConsolidationsContainer: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL: GENERAR PREFACTURA */}
+      {showPreBillingModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowPreBillingModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <FileText size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Generar Prefactura
+              </Typography>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                Método de entrega
+              </label>
+              <div className="space-y-2">
+                {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                  <button
+                    key={method}
+                    onClick={() => setPreBillingDeliveryMethod(method)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                      preBillingDeliveryMethod === method
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
+                    {preBillingDeliveryMethod === method && (
+                      <CheckCircle size={16} className="text-amber-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowPreBillingModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGeneratePreBilling}
+                disabled={isGeneratingPreBilling}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -490,9 +706,14 @@ type DetailModalProps = {
   isLoading: boolean;
   isUpdating: boolean;
   isAssigning: boolean;
+  isConfirmingPreBilling: boolean;
   onClose: () => void;
   onAdvanceStatus: () => void;
+  onReopen: () => void;
   onOpenAssignModal: () => void;
+  onOpenPreBillingModal: () => void;
+  onConfirmPreBilling: () => void;
+  onDownloadPreBillingPDF: (uuid: string, customerCode: string) => void;
 };
 
 const DetailModal: React.FC<DetailModalProps> = ({
@@ -500,10 +721,19 @@ const DetailModal: React.FC<DetailModalProps> = ({
   isLoading,
   isUpdating,
   isAssigning,
+  isConfirmingPreBilling,
   onClose,
   onAdvanceStatus,
+  onReopen,
   onOpenAssignModal,
+  onOpenPreBillingModal,
+  onConfirmPreBilling,
+  onDownloadPreBillingPDF,
 }) => {
+  const hasBilling = !!detail?.billing_uuid;
+  const hasPreBilling = !!detail?.pre_billing_uuid;
+  const preBillingConfirmed = !!detail?.pre_billing_confirmed;
+
   return (
     <div
       className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -554,6 +784,98 @@ const DetailModal: React.FC<DetailModalProps> = ({
               </div>
             </div>
 
+            {/* Pre-billing section */}
+            {!hasBilling && (
+              <div className="mb-6">
+                {!hasPreBilling ? (
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                      <p className="text-xs font-black text-slate-700">Prefactura</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Genera el estimado para enviar al cliente</p>
+                    </div>
+                    <button
+                      onClick={onOpenPreBillingModal}
+                      disabled={detail.packages.length === 0}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all disabled:opacity-40"
+                    >
+                      <FileText size={14} />
+                      Generar
+                    </button>
+                  </div>
+                ) : preBillingConfirmed ? (
+                  <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-black text-emerald-800">Prefactura confirmada</p>
+                        <p className="text-[10px] text-emerald-600 mt-0.5">
+                          {formatCRC(detail.pre_billing_amount ?? 0)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
+                      className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
+                    >
+                      <Download size={13} />
+                      PDF
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-xs font-black text-amber-900">Estimado pendiente de confirmación</p>
+                        <p className="text-[10px] text-amber-700 mt-0.5">
+                          {detail.pre_billing_delivery_method
+                            ? `Entrega: ${detail.pre_billing_delivery_method === 'CORREOS_CR' ? 'Correos CR' : detail.pre_billing_delivery_method === 'TRACOPA' ? 'Tracopa' : 'Retiro'}`
+                            : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
+                        >
+                          <Download size={12} />
+                          PDF
+                        </button>
+                        <button
+                          onClick={onOpenPreBillingModal}
+                          className="text-[9px] font-black text-amber-700 underline underline-offset-2"
+                        >
+                          Recalcular
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-black text-amber-900">
+                        {formatCRC(detail.pre_billing_amount ?? 0)}
+                      </p>
+                      <button
+                        onClick={onConfirmPreBilling}
+                        disabled={isConfirmingPreBilling}
+                        className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-xs hover:bg-amber-500 transition-all disabled:opacity-40"
+                      >
+                        <CheckCircle size={14} />
+                        {isConfirmingPreBilling ? 'Confirmando...' : 'Confirmar y Facturar'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {hasBilling && (
+              <div className="mb-6 flex items-center gap-3 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-black text-emerald-800">Factura generada</p>
+                  <p className="text-[10px] text-emerald-600 mt-0.5">Esta consolidación ya tiene factura</p>
+                </div>
+              </div>
+            )}
+
             {/* Packages list */}
             <div className="flex-1 overflow-y-auto mb-6">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
@@ -578,6 +900,16 @@ const DetailModal: React.FC<DetailModalProps> = ({
                 >
                   <Package size={16} />
                   Asignar Paquetes
+                </button>
+              )}
+              {detail.status === ConsolidationStatus.CERRADO && (
+                <button
+                  onClick={onReopen}
+                  disabled={isUpdating}
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-2xl font-bold text-sm hover:bg-amber-100 transition-all disabled:opacity-40"
+                >
+                  <RotateCcw size={16} />
+                  Volver a abrir
                 </button>
               )}
               {NEXT_STATUS_LABEL[detail.status] && (

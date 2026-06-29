@@ -3,6 +3,7 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 
 export interface Column<T = any> {
     header: string;
+    headerRender?: () => React.ReactNode;
     accessor: keyof T | string;
     render?: (item: T) => React.ReactNode;
     align?: 'left' | 'center' | 'right';
@@ -45,9 +46,11 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                                     key={index}
                                     className={`px-3 py-3 md:px-6 md:py-4 border-b border-slate-100 first:rounded-tl-2xl last:rounded-tr-2xl ${col.align === 'right' ? 'text-right' : ''}`}
                                 >
-                                    <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-bold tracking-widest">
-                                        {col.header}
-                                    </Typography>
+                                    {col.headerRender ? col.headerRender() : (
+                                        <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-bold tracking-widest">
+                                            {col.header}
+                                        </Typography>
+                                    )}
                                 </th>
                             ))}
                         </tr>

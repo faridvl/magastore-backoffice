@@ -7,7 +7,7 @@ export const usePackages = (pageSize = 7) => {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [viewMode, setViewMode] = useState<ViewMode>('activos');
-    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('PANAMA');
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
@@ -20,8 +20,6 @@ export const usePackages = (pageSize = 7) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    // En modo activos: ALL → ACTIVOS (excluye ENTREGADO), status específico pasa directo
-    // En modo historial: siempre ENTREGADO
     const resolvedStatus = viewMode === 'historial'
         ? 'ENTREGADO'
         : statusFilter === 'ALL' ? 'ACTIVOS' : statusFilter;

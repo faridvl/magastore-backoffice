@@ -118,7 +118,7 @@ export const BillingRepository = {
       FROM consolidations con
       JOIN customers c ON con.customer_id = c.id
       LEFT JOIN packages p ON p.consolidation_id = con.id
-      WHERE con.status IN ('CERRADO', 'DESPACHADO', 'ENTREGADO')
+      WHERE con.status IN ('CERRADO', 'ENTREGADO')
         AND NOT EXISTS (
           SELECT 1 FROM billing b WHERE b.consolidation_id = con.id
         )
@@ -142,12 +142,19 @@ export const BillingRepository = {
         COALESCE(SUM(CASE WHEN b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_paid_crc,
         COALESCE(SUM(CASE WHEN NOT b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_pending_crc,
         COALESCE(
-          SUM(b.total_weight_charged * s.profit_per_lb * s.exchange_rate), 0
+          SUM(
+            b.total_amount_crc - (
+              SELECT COALESCE(SUM(p.courier_cost_usd * p.tc_banco), 0)
+              FROM packages p
+              WHERE p.consolidation_id = b.consolidation_id
+                AND p.courier_cost_usd IS NOT NULL
+                AND p.tc_banco IS NOT NULL
+            )
+          ), 0
         )::numeric AS total_ganancia_crc,
         COUNT(*)::int                                          AS invoice_count,
         COUNT(CASE WHEN b.is_paid THEN 1 END)::int             AS paid_count
       FROM billing b
-      CROSS JOIN system_settings s
       WHERE b.created_at >= ${from}::timestamptz
         AND b.created_at <  ${to}::timestamptz
       GROUP BY DATE_TRUNC('month', b.created_at)
@@ -158,17 +165,38 @@ export const BillingRepository = {
   },
 
   markBillingAsPaid: async (uuid: string): Promise<Partial<BillingListItem>> => {
-    const rows = await sql`
-      UPDATE billing
-      SET is_paid = true, paid_at = NOW()
-      WHERE uuid = ${uuid} AND is_paid = false
-      RETURNING uuid, is_paid, paid_at
-    `;
+    await sql`BEGIN`;
+    try {
+      const [billing] = await sql`
+        UPDATE billing
+        SET is_paid = true, paid_at = NOW()
+        WHERE uuid = ${uuid} AND is_paid = false
+        RETURNING uuid, is_paid, paid_at, consolidation_id
+      `;
 
-    if (rows.length === 0) {
-      throw new Error('Factura no encontrada o ya marcada como pagada.');
+      if (!billing) throw new Error('Factura no encontrada o ya marcada como pagada.');
+
+      // Mover paquetes de la consolidación a EN_TRAMITE
+      await sql`
+        UPDATE packages
+        SET status = 'EN_TRAMITE'
+        WHERE consolidation_id = ${billing.consolidation_id}
+          AND status = 'PANAMA'
+      `;
+
+      // Cerrar la consolidación
+      await sql`
+        UPDATE consolidations
+        SET status = 'CERRADO', updated_at = NOW()
+        WHERE id = ${billing.consolidation_id}
+          AND status = 'ABIERTO'
+      `;
+
+      await sql`COMMIT`;
+      return { uuid: billing.uuid, is_paid: billing.is_paid, paid_at: billing.paid_at };
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
     }
-
-    return rows[0];
   },
 };

@@ -6,9 +6,12 @@ import {
   Package,
   Consolidation,
   Billing,
+  CourierRate,
+  PreBilling,
+  PreBillingDetail,
+  DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { getSettings } from './settings.repo';
-import { DeliveryMethod } from '@/types/logistics/logistics.types';
 
 /**
  * Repository para el sistema de logística de couriers.
@@ -20,12 +23,153 @@ export const LogisticsRepository = {
    */
   createPackage: async (data: PackageInput): Promise<Partial<Package>> => {
     const addressId = data.address_id || null;
+    const courierCostUsd = data.courier_cost_usd ?? null;
+    const tcBanco = data.tc_banco ?? null;
+    const insuranceApplied = data.insurance_applied ?? true;
+    const courierRateId = data.courier_rate_id ?? null;
+    const status = data.status || PackageStatus.PANAMA;
     const rows = await sql`
-      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type, address_id)
-      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO}, ${addressId})
-      RETURNING uuid, tracking_number, status, created_at;
+      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type, status, address_id, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id)
+      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO}, ${status}, ${addressId}, ${courierCostUsd}, ${tcBanco}, ${insuranceApplied}, ${courierRateId})
+      RETURNING uuid, tracking_number, status, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id, created_at;
     `;
     return rows[0];
+  },
+
+  getCourierRates: async (): Promise<CourierRate[]> => {
+    const rows = await sql`
+      SELECT id, uuid, name, origin, package_type, rate_usd, insurance_usd, is_active, created_at
+      FROM courier_rates
+      WHERE is_active = true
+      ORDER BY name ASC
+    `;
+    return rows as CourierRate[];
+  },
+
+  generatePreBilling: async (
+    consolidationUuid: string,
+    deliveryMethod: DeliveryMethod,
+  ): Promise<Partial<PreBilling>> => {
+    const settings = await getSettings();
+    if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
+
+    const price_lb = Number(settings.price_per_lb);
+    const exchange = Number(settings.exchange_rate);
+    const min_lb   = Number(settings.min_weight);
+    const deliveryFee =
+      deliveryMethod === 'CORREOS_CR' ? Number(settings.correos_fee_crc ?? 4500) :
+      deliveryMethod === 'TRACOPA'    ? Number(settings.tracopa_fee_crc  ?? 3000) :
+      0;
+
+    const [c] = await sql`
+      SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
+    `;
+    if (!c) throw new Error('Consolidación no encontrada.');
+
+    const actualWeight  = Number(c.total_weight_lb);
+    const chargedWeight = Math.max(actualWeight, min_lb);
+    const flete         = chargedWeight * price_lb * exchange;
+    const estimatedCrc  = flete + deliveryFee;
+
+    const [existing] = await sql`
+      SELECT uuid FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
+    `;
+
+    if (existing) {
+      const [updated] = await sql`
+        UPDATE pre_billing
+        SET estimated_amount_crc = ${estimatedCrc},
+            delivery_method      = ${deliveryMethod},
+            delivery_fee_crc     = ${deliveryFee},
+            applied_rate_usd     = ${price_lb},
+            applied_exchange     = ${exchange},
+            total_weight_charged = ${chargedWeight},
+            updated_at           = NOW()
+        WHERE consolidation_id = ${c.id}
+        RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
+      `;
+      return updated;
+    }
+
+    const [pre] = await sql`
+      INSERT INTO pre_billing (
+        consolidation_id, estimated_amount_crc, delivery_method,
+        delivery_fee_crc, applied_rate_usd, applied_exchange, total_weight_charged
+      ) VALUES (
+        ${c.id}, ${estimatedCrc}, ${deliveryMethod},
+        ${deliveryFee}, ${price_lb}, ${exchange}, ${chargedWeight}
+      )
+      RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
+    `;
+    return pre;
+  },
+
+  confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {
+    const settings = await getSettings();
+    if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
+
+    try {
+      await sql`BEGIN`;
+
+      const [c] = await sql`
+        SELECT id, customer_id, total_weight_lb FROM consolidations WHERE uuid = ${consolidationUuid}
+      `;
+      if (!c) throw new Error('Consolidación no encontrada.');
+
+      const [pre] = await sql`
+        SELECT * FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
+      `;
+      if (!pre) throw new Error('No existe prefactura para esta consolidación.');
+      if (pre.is_confirmed) throw new Error('La prefactura ya fue confirmada.');
+
+      const [existingBill] = await sql`
+        SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
+      `;
+      if (existingBill) throw new Error('Esta consolidación ya tiene una factura generada.');
+
+      const [addressRow] = await sql`
+        SELECT exact_address FROM customer_addresses
+        WHERE customer_id = ${c.customer_id}
+        ORDER BY is_default DESC LIMIT 1
+      `;
+
+      const [bill] = await sql`
+        INSERT INTO billing (
+          consolidation_id, applied_rate_usd, applied_exchange, applied_fee_crc,
+          total_weight_charged, total_amount_crc, delivery_method,
+          delivery_fee_crc, delivery_address_snapshot
+        ) VALUES (
+          ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
+          ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
+          ${pre.delivery_fee_crc}, ${addressRow?.exact_address ?? null}
+        )
+        RETURNING uuid
+      `;
+
+      await sql`
+        UPDATE pre_billing SET is_confirmed = true, confirmed_at = NOW()
+        WHERE consolidation_id = ${c.id}
+      `;
+
+      await sql`COMMIT`;
+      return { billing_uuid: bill.uuid };
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
+  },
+
+  bulkUpdateStatus: async (
+    packageUuids: string[],
+    status: PackageStatus,
+  ): Promise<number> => {
+    const rows = await sql`
+      UPDATE packages
+      SET status = ${status}, updated_at = NOW()
+      WHERE uuid = ANY(${packageUuids})
+      RETURNING id
+    `;
+    return rows.length;
   },
 
   /**
@@ -40,14 +184,22 @@ export const LogisticsRepository = {
         p.weight_lb,
         p.internal_notes,
         p.evidence_url,
+        p.tc_banco,
         c.first_name,
         c.last_name,
         c.customer_code,
+        cr.name        AS courier_rate_name,
+        cr.rate_usd    AS courier_rate_usd,
+        cr.insurance_usd AS courier_insurance_usd,
         b.is_paid,
         b.paid_at,
         b.total_amount_crc,
         b.delivery_method,
         b.delivery_fee_crc,
+        b.applied_rate_usd,
+        b.applied_exchange,
+        b.total_weight_charged,
+        b.applied_fee_crc,
         COALESCE(
           (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
            FROM package_events ev WHERE ev.package_id = p.id),
@@ -56,8 +208,10 @@ export const LogisticsRepository = {
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
       LEFT JOIN consolidations con ON p.consolidation_id = con.id
+      LEFT JOIN courier_rates cr ON p.courier_rate_id = cr.id
       LEFT JOIN LATERAL (
-        SELECT is_paid, paid_at, total_amount_crc, delivery_method, delivery_fee_crc
+        SELECT is_paid, paid_at, total_amount_crc, delivery_method, delivery_fee_crc,
+               applied_rate_usd, applied_exchange, total_weight_charged, applied_fee_crc
         FROM billing
         WHERE consolidation_id = con.id
         ORDER BY created_at DESC
@@ -252,10 +406,9 @@ export const LogisticsRepository = {
       `;
       if (!c) throw new Error('Consolidación no encontrada.');
 
-      const validStatuses = ['CERRADO', 'DESPACHADO', 'ENTREGADO'];
-      if (!validStatuses.includes(c.status)) {
+      if (c.status !== 'CERRADO' && c.status !== 'ENTREGADO') {
         throw new Error(
-          `La consolidación debe estar en estado CERRADO o superior para facturar. Estado actual: ${c.status}`,
+          `La consolidación debe estar en estado CERRADO para facturar. Estado actual: ${c.status}`,
         );
       }
 

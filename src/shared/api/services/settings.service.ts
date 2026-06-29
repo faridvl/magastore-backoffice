@@ -8,12 +8,13 @@ export const updateSystemSettings = async (newData: any, userName: string) => {
   const { current } = await Repo.getSettingsWithHistory();
 
   const fields = [
-    { key: 'price_per_lb',    label: 'Precio por Libra (USD)' },
-    { key: 'exchange_rate',   label: 'Tipo de Cambio' },
-    { key: 'profit_per_lb',   label: 'Ganancia por Libra (USD)' },
-    { key: 'min_weight',      label: 'Peso Mínimo' },
-    { key: 'correos_fee_crc', label: 'Tarifa Correos CR' },
-    { key: 'tracopa_fee_crc', label: 'Tarifa Tracopa' },
+    { key: 'price_per_lb',          label: 'Precio por Libra (USD)' },
+    { key: 'exchange_rate',         label: 'Tipo de Cambio' },
+    { key: 'min_weight',            label: 'Peso Mínimo' },
+    { key: 'correos_fee_crc',       label: 'Tarifa Correos CR' },
+    { key: 'tracopa_fee_crc',       label: 'Tarifa Tracopa' },
+    { key: 'courier_rate_usd',      label: 'Tarifa Courier por Libra (USD)' },
+    { key: 'courier_insurance_usd', label: 'Seguro Courier (USD)' },
   ];
 
   for (const field of fields) {

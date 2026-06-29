@@ -8,6 +8,17 @@ import {
 import { PaginatedResponse } from '@/types/paginate.types';
 
 export const ConsolidationsRepository = {
+  getOpenConsolidationForCustomer: async (
+    customerUuid: string,
+  ): Promise<{ uuid: string } | null> => {
+    const [row] = await sql`
+      SELECT uuid FROM consolidations
+      WHERE customer_id = ${customerUuid} AND status = 'ABIERTO'
+      LIMIT 1
+    `;
+    return (row as { uuid: string } | undefined) ?? null;
+  },
+
   createConsolidation: async (
     customerUuid: string,
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
@@ -116,29 +127,83 @@ export const ConsolidationsRepository = {
             ) ORDER BY p.created_at DESC
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'::json
-        ) AS packages
+        ) AS packages,
+        pb.uuid AS pre_billing_uuid,
+        pb.estimated_amount_crc AS pre_billing_amount,
+        pb.delivery_method AS pre_billing_delivery_method,
+        pb.is_confirmed AS pre_billing_confirmed,
+        pb.confirmed_at AS pre_billing_confirmed_at,
+        b.uuid AS billing_uuid
       FROM consolidations con
       LEFT JOIN customers c ON c.id = con.customer_id
       LEFT JOIN packages p ON p.consolidation_id = con.id
+      LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
+      LEFT JOIN billing b ON b.consolidation_id = con.id
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
-               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email
+               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email,
+               pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at,
+               b.uuid
     `;
     return row ? (row as ConsolidationDetail) : null;
+  },
+
+  deleteConsolidation: async (uuid: string): Promise<void> => {
+    await sql`BEGIN`;
+    try {
+      const [row] = await sql`
+        SELECT status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
+      `;
+      if (!row) throw new Error('Consolidación no encontrada.');
+      if (row.status !== 'ABIERTO') throw new Error('Solo se pueden eliminar consolidaciones en estado ABIERTO.');
+
+      await sql`
+        UPDATE packages SET consolidation_id = NULL
+        WHERE consolidation_id = (SELECT id FROM consolidations WHERE uuid = ${uuid})
+      `;
+
+      await sql`
+        DELETE FROM pre_billing
+        WHERE consolidation_id = (SELECT id FROM consolidations WHERE uuid = ${uuid})
+      `;
+
+      await sql`DELETE FROM consolidations WHERE uuid = ${uuid}`;
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   },
 
   updateConsolidationStatus: async (
     uuid: string,
     status: ConsolidationStatus,
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
-    const [row] = await sql`
-      UPDATE consolidations
-      SET status = ${status}, updated_at = NOW()
-      WHERE uuid = ${uuid}
-      RETURNING uuid, status
-    `;
-    if (!row) throw new Error('Consolidación no encontrada.');
-    return row as { uuid: string; status: ConsolidationStatus };
+    await sql`BEGIN`;
+    try {
+      const [row] = await sql`
+        UPDATE consolidations
+        SET status = ${status}, updated_at = NOW()
+        WHERE uuid = ${uuid}
+        RETURNING uuid, id, status
+      `;
+      if (!row) throw new Error('Consolidación no encontrada.');
+
+      // Al marcar ENTREGADO, mover todos los paquetes a ENTREGADO también
+      if (status === ConsolidationStatus.ENTREGADO) {
+        await sql`
+          UPDATE packages SET status = 'ENTREGADO'
+          WHERE consolidation_id = ${row.id}
+            AND status != 'ENTREGADO'
+        `;
+      }
+
+      await sql`COMMIT`;
+      return { uuid: row.uuid, status: row.status };
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   },
 
   getAvailablePackagesForCustomer: async (

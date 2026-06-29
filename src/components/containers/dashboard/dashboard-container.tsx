@@ -11,10 +11,8 @@ const formatCRC = (amount: number) =>
   `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
 const STATUS_LABELS: Record<string, string> = {
-  [PackageStatus.MIAMI]: 'Miami',
-  [PackageStatus.TRANSITO]: 'En Tránsito',
-  [PackageStatus.ADUANA]: 'En Aduana',
-  [PackageStatus.BODEGA_CR]: 'Bodega CR',
+  [PackageStatus.PANAMA]: 'En Panamá',
+  [PackageStatus.EN_TRAMITE]: 'En Trámite',
   [PackageStatus.ENTREGADO]: 'Entregado',
 };
 

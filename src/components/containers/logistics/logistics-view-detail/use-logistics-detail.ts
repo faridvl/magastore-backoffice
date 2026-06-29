@@ -38,6 +38,16 @@ export const usePackageDetailContainer = (uuid?: string) => {
     totalFacturado: null as number | null,
     deliveryMethod: null as string | null,
     deliveryFeeCrc: null as number | null,
+    // Courier rate del paquete
+    courierRateName: null as string | null,
+    courierRateUsd: null as number | null,
+    courierInsuranceUsd: null as number | null,
+    tcBanco: null as number | null,
+    // Campos reales de billing (solo cuando hay factura)
+    appliedRateUsd: null as number | null,
+    appliedExchange: null as number | null,
+    totalWeightCharged: null as number | null,
+    appliedFeeCrc: null as number | null,
   });
 
   // Sincronizar datos del paquete + cliente
@@ -53,10 +63,18 @@ export const usePackageDetailContainer = (uuid?: string) => {
                           ? `${apiData.first_name} ${apiData.last_name}`
                           : prev.cliente,
         casillero:      apiData.customer_code || prev.casillero,
-        estadoPago:     apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
-        totalFacturado: apiData.total_amount_crc ?? null,
-        deliveryMethod: apiData.delivery_method ?? null,
-        deliveryFeeCrc: apiData.delivery_fee_crc ?? null,
+        estadoPago:          apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
+        totalFacturado:      apiData.total_amount_crc ?? null,
+        deliveryMethod:      apiData.delivery_method ?? null,
+        deliveryFeeCrc:      apiData.delivery_fee_crc ?? null,
+        courierRateName:     apiData.courier_rate_name ?? null,
+        courierRateUsd:      apiData.courier_rate_usd != null ? Number(apiData.courier_rate_usd) : null,
+        courierInsuranceUsd: apiData.courier_insurance_usd != null ? Number(apiData.courier_insurance_usd) : null,
+        tcBanco:             apiData.tc_banco != null ? Number(apiData.tc_banco) : null,
+        appliedRateUsd:      apiData.applied_rate_usd != null ? Number(apiData.applied_rate_usd) : null,
+        appliedExchange:     apiData.applied_exchange != null ? Number(apiData.applied_exchange) : null,
+        totalWeightCharged:  apiData.total_weight_charged != null ? Number(apiData.total_weight_charged) : null,
+        appliedFeeCrc:       apiData.applied_fee_crc != null ? Number(apiData.applied_fee_crc) : null,
       }));
     }
   }, [apiData]);
@@ -88,12 +106,15 @@ export const usePackageDetailContainer = (uuid?: string) => {
   }, [apiData]);
 
   const calculos = useMemo(() => {
-    const pesoNum  = Number(data.peso) || 0;
-    const fleteUSD = pesoNum * data.tarifaXLibre;
-    const totalPagar = fleteUSD * data.tipoCambio + data.costoEnvioCorreos;
+    const pesoNum    = Number(data.peso) || 0;
+    const tarifa     = data.courierRateUsd ?? data.tarifaXLibre;
+    const tc         = data.tcBanco ?? data.tipoCambio;
+    const seguro     = data.courierInsuranceUsd ?? 0;
+    const fleteUSD   = pesoNum * tarifa + seguro;
+    const totalPagar = Math.round(fleteUSD * tc);
 
-    return { fleteUSD, totalPagar };
-  }, [data.peso, data.tarifaXLibre, data.tipoCambio, data.costoEnvioCorreos]);
+    return { fleteUSD, totalPagar, tarifa, tc, seguro };
+  }, [data.peso, data.tarifaXLibre, data.tipoCambio, data.courierRateUsd, data.courierInsuranceUsd, data.tcBanco]);
 
   const updateField = (field: string, value: any) =>
     setData((prev) => ({ ...prev, [field]: value }));

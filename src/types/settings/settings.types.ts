@@ -1,11 +1,11 @@
 export type SystemSettings = {
   price_per_lb: number;
   exchange_rate: number;
-  /** Margen operativo por libra en USD — solo para reporting, NO va en factura al cliente */
-  profit_per_lb: number;
   min_weight: number;
   correos_fee_crc: number;
   tracopa_fee_crc: number;
+  courier_rate_usd: number;
+  courier_insurance_usd: number;
   updated_at: string;
 };
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Search, Package, Anchor, CheckCircle2, User, Calendar, Plus, Truck, Box } from 'lucide-react';
+import { Search, User, Calendar, Plus, Box } from 'lucide-react';
+import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
 
@@ -97,13 +98,18 @@ export const LogisticsContainer: React.FC = () => {
             accessor: 'status',
             render: (row) => {
                 const statusStyles: Record<string, string> = {
-                    'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
-                    'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                    'TRANSITO': 'bg-amber-50 text-amber-600 border-amber-100',
+                    'PANAMA':     'bg-amber-50 text-amber-600 border-amber-100',
+                    'EN_TRAMITE': 'bg-blue-50 text-blue-600 border-blue-100',
+                    'ENTREGADO':  'bg-emerald-50 text-emerald-600 border-emerald-100',
+                };
+                const statusLabels: Record<string, string> = {
+                    'PANAMA':     'En Panamá',
+                    'EN_TRAMITE': 'En Trámite',
+                    'ENTREGADO':  'Entregado',
                 };
                 return (
                     <span className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[row.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                        {row.status}
+                        {statusLabels[row.status] || row.status}
                     </span>
                 );
             }
@@ -140,103 +146,98 @@ export const LogisticsContainer: React.FC = () => {
                     /> */}
                 </div>
 
-                {/* Botón Primary - Nuevo Registro */}
-                <button
-                    onClick={() => router.push('/admin/logistics/create')}
-                    className="bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg active:scale-95"
-                >
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em]">Nuevo Registro</span>
-                    <div className="bg-white/20 p-2 rounded-full group-hover:bg-white/30 transition-colors">
-                        <Plus size={16} strokeWidth={3} />
+                <div className="flex items-center gap-3 flex-shrink-0">
+                    <button
+                        onClick={() => router.push('/admin/logistics/create')}
+                        className="bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg active:scale-95"
+                    >
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Nuevo Registro</span>
+                        <div className="bg-white/20 p-2 rounded-full group-hover:bg-white/30 transition-colors">
+                            <Plus size={16} strokeWidth={3} />
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            {/* TOOLBAR */}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                {/* Fila principal: toggle + search + período */}
+                <div className="flex items-center gap-3 p-4 border-b border-slate-50">
+                    {/* Toggle Activos / Historial */}
+                    <div className="flex gap-0.5 bg-slate-100/70 p-1 rounded-xl flex-shrink-0">
+                        <button
+                            onClick={() => setViewMode('activos')}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all whitespace-nowrap ${viewMode === 'activos'
+                                ? 'bg-white text-slate-800 shadow-sm'
+                                : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            Activos
+                        </button>
+                        <button
+                            onClick={() => setViewMode('historial')}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all whitespace-nowrap ${viewMode === 'historial'
+                                ? 'bg-white text-emerald-600 shadow-sm'
+                                : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            Historial
+                        </button>
                     </div>
-                </button>
-            </div>
 
-            {/* TOGGLE: ACTIVOS / HISTORIAL */}
-            <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-fit">
-                <button
-                    onClick={() => setViewMode('activos')}
-                    className={`px-5 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${viewMode === 'activos'
-                        ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
-                        : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                >
-                    ACTIVOS
-                </button>
-                <button
-                    onClick={() => setViewMode('historial')}
-                    className={`px-5 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${viewMode === 'historial'
-                        ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50'
-                        : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                >
-                    HISTORIAL
-                </button>
-            </div>
-
-            {/* TOOLBAR: BÚSQUEDA, FECHAS Y FILTROS */}
-            <div className="flex flex-col gap-3">
-                {/* Fila 1: búsqueda + fechas */}
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-                    <div className="relative w-full sm:w-72 flex-shrink-0">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-0">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                         <input
                             type="text"
                             placeholder="Tracking, código o nombre..."
-                            className="w-full bg-white border border-slate-100 pl-11 pr-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-amber-100 transition-all text-sm font-medium shadow-sm"
+                            className="w-full bg-slate-50 pl-9 pr-4 py-2.5 rounded-xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
                             onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-col gap-2 w-full sm:w-auto">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Desde</label>
-                                <input
-                                    type="date"
-                                    value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
-                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100 shadow-sm"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Hasta</label>
-                                <input
-                                    type="date"
-                                    value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
-                                    className="w-full bg-white border border-slate-100 px-3 py-3 rounded-2xl text-sm text-slate-700 outline-none focus:ring-2 focus:ring-amber-100 shadow-sm"
-                                />
-                            </div>
-                        </div>
-                        {(dateFrom || dateTo) && (
-                            <button
-                                onClick={() => { setDateFrom(''); setDateTo(''); }}
-                                className="w-full py-2 rounded-2xl text-[9px] font-black text-slate-400 hover:text-slate-600 border border-slate-100 bg-white shadow-sm transition-colors"
-                            >
-                                Limpiar fechas
-                            </button>
-                        )}
+
+                    {/* Período — solo desktop */}
+                    <div className="hidden sm:flex flex-shrink-0">
+                        <DateRangeFilter
+                            from={dateFrom} to={dateTo}
+                            onFromChange={setDateFrom} onToChange={setDateTo}
+                            onClear={() => { setDateFrom(''); setDateTo(''); }}
+                        />
                     </div>
                 </div>
-                {/* Fila 2: filtro de estado — solo en modo activos */}
+
+                {/* Fila de filtros de estado — solo en modo activos */}
                 {viewMode === 'activos' && (
-                    <div className="overflow-x-auto -mx-0.5 px-0.5">
-                        <div className="flex gap-1 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 w-max">
-                            {['ALL', 'MIAMI', 'TRANSITO', 'ADUANA', 'BODEGA_CR'].map((s) => (
+                    <div className="px-4 py-2.5 overflow-x-auto">
+                        <div className="flex gap-1">
+                            {[
+                                { value: 'PANAMA',     label: 'En Panamá' },
+                                { value: 'EN_TRAMITE', label: 'En Trámite' },
+                                { value: 'ALL',        label: 'Todos' },
+                            ].map(({ value, label }) => (
                                 <button
-                                    key={s}
-                                    onClick={() => setStatusFilter(s)}
-                                    className={`px-4 py-2 rounded-[1.5rem] text-[9px] font-black transition-all whitespace-nowrap ${statusFilter === s
-                                        ? 'bg-white text-amber-600 shadow-sm border border-slate-200/50'
-                                        : 'text-slate-400 hover:text-slate-600'
-                                        }`}
+                                    key={value}
+                                    onClick={() => setStatusFilter(value)}
+                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${statusFilter === value
+                                        ? 'bg-slate-900 text-white'
+                                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                                    }`}
                                 >
-                                    {s === 'ALL' ? 'TODOS' : s.replace('_', ' ')}
+                                    {label}
                                 </button>
                             ))}
                         </div>
                     </div>
                 )}
+
+                {/* Período mobile */}
+                <div className="sm:hidden px-4 pb-3">
+                    <DateRangeFilter
+                        from={dateFrom} to={dateTo}
+                        onFromChange={setDateFrom} onToChange={setDateTo}
+                        onClear={() => { setDateFrom(''); setDateTo(''); }}
+                    />
+                </div>
             </div>
 
             {/* CARDS (mobile) */}
@@ -247,9 +248,12 @@ export const LogisticsContainer: React.FC = () => {
                     ))
                 ) : packages.map((pkg) => {
                     const statusStyles: Record<string, string> = {
-                        'MIAMI': 'bg-amber-50 text-amber-600 border-amber-100',
-                        'ENTREGADO': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                        'TRANSITO': 'bg-amber-50 text-amber-600 border-amber-100',
+                        'PANAMA':     'bg-amber-50 text-amber-600 border-amber-100',
+                        'EN_TRAMITE': 'bg-blue-50 text-blue-600 border-blue-100',
+                        'ENTREGADO':  'bg-emerald-50 text-emerald-600 border-emerald-100',
+                    };
+                    const statusLabels: Record<string, string> = {
+                        'PANAMA': 'En Panamá', 'EN_TRAMITE': 'En Trámite', 'ENTREGADO': 'Entregado',
                     };
                     return (
                         <button
@@ -264,7 +268,7 @@ export const LogisticsContainer: React.FC = () => {
                             </div>
                             <div className="flex flex-col items-end gap-2 flex-shrink-0">
                                 <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                                    {pkg.status}
+                                    {statusLabels[pkg.status] || pkg.status}
                                 </span>
                                 <span className="text-[10px] font-mono text-amber-400 uppercase">{pkg.customer_code}</span>
                             </div>

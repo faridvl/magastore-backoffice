@@ -5,9 +5,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          {/* Brand Favicon */}
-          {/* <link rel="icon" type="image/png" sizes="32x32" href="/zynka-logo.png" /> */}
-          {/* TODO: Soportar favicon dinámico dark/light */}
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
           <link rel="manifest" href="/site.webmanifest" />
 

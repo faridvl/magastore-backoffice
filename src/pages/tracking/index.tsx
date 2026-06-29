@@ -30,22 +30,18 @@ interface TrackingResult {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-    MIAMI: 'En Miami',
-    TRANSITO: 'En Tránsito',
-    ADUANA: 'En Aduana',
-    BODEGA_CR: 'En Bodega CR',
+    PANAMA: 'En Panamá',
+    EN_TRAMITE: 'En Trámite de Envío',
     ENTREGADO: 'Entregado',
 };
 
 const LIFECYCLE: Array<{ status: string; label: string; location: string }> = [
-    { status: 'MIAMI', label: 'Recibido en Miami', location: 'Bodega Florida' },
-    { status: 'TRANSITO', label: 'En Tránsito', location: 'Logística Internacional' },
-    { status: 'ADUANA', label: 'En Aduana', location: 'San José, CR' },
-    { status: 'BODEGA_CR', label: 'En Bodega CR', location: 'Sucursal Magastore' },
+    { status: 'PANAMA', label: 'Recibido en Panamá', location: 'Bodega Panamá' },
+    { status: 'EN_TRAMITE', label: 'En Trámite de Envío', location: 'Costa Rica' },
     { status: 'ENTREGADO', label: 'Entregado al Cliente', location: 'Destino Final' },
 ];
 
-const STATUS_ORDER = ['MIAMI', 'TRANSITO', 'ADUANA', 'BODEGA_CR', 'ENTREGADO'];
+const STATUS_ORDER = ['PANAMA', 'EN_TRAMITE', 'ENTREGADO'];
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('es-CR', {

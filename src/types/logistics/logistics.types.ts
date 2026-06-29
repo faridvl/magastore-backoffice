@@ -1,21 +1,46 @@
 export enum PackageStatus {
-  MIAMI = 'MIAMI',
-  TRANSITO = 'TRANSITO',
-  ADUANA = 'ADUANA',
-  BODEGA_CR = 'BODEGA_CR',
+  PANAMA = 'PANAMA',
+  EN_TRAMITE = 'EN_TRAMITE',
   ENTREGADO = 'ENTREGADO',
 }
 
 export enum ConsolidationStatus {
   ABIERTO = 'ABIERTO',
   CERRADO = 'CERRADO',
-  DESPACHADO = 'DESPACHADO',
   ENTREGADO = 'ENTREGADO',
 }
 
 export enum PackageType {
   AEREO = 'AEREO',
   MARITIMO = 'MARITIMO',
+}
+
+export interface CourierRate {
+  id: number;
+  uuid: string;
+  name: string;
+  origin: string;
+  package_type: PackageType;
+  rate_usd: number;
+  insurance_usd: number;
+  is_active: boolean;
+  created_at: Date;
+}
+
+export interface PreBilling {
+  id: number;
+  uuid: string;
+  consolidation_id: number;
+  estimated_amount_crc: number;
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number;
+  applied_rate_usd: number;
+  applied_exchange: number;
+  total_weight_charged: number;
+  is_confirmed: boolean;
+  confirmed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export type EventType = 'INFO' | 'WARNING' | 'DAMAGE' | 'CRITICAL';
@@ -36,7 +61,10 @@ export interface Package {
   arrival_date: Date;
   created_at: Date;
   updated_at: Date;
-  // Propiedad virtual para el join de eventos
+  courier_cost_usd: number | null;
+  tc_banco: number | null;
+  insurance_applied: boolean;
+  courier_rate_id: number | null;
   events?: PackageEvent[];
 }
 
@@ -86,7 +114,12 @@ export interface PackageInput {
   tracking_number: string;
   weight_lb: number;
   package_type?: PackageType;
+  status?: PackageStatus;
   address_id?: string | null;
+  courier_cost_usd?: number | null;
+  tc_banco?: number | null;
+  insurance_applied?: boolean;
+  courier_rate_id?: number | null;
 }
 
 export interface IncidenceInput {
@@ -103,7 +136,7 @@ export interface LogisticsPackage {
   tracking_number: string;
   weight_lb: string;
   package_type: PackageType;
-  status: 'MIAMI' | 'TRANSITO' | 'ADUANA' | 'BODEGA_CR' | 'ENTREGADO';
+  status: 'PANAMA' | 'EN_TRAMITE' | 'ENTREGADO';
   internal_notes: string | null;
   evidence_url: string | null;
   arrival_date: string;
@@ -130,6 +163,14 @@ export type PackageDetail = {
   total_amount_crc: number | null;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number | null;
+  courier_rate_name: string | null;
+  courier_rate_usd: number | null;
+  courier_insurance_usd: number | null;
+  tc_banco: number | null;
+  applied_rate_usd: number | null;
+  applied_exchange: number | null;
+  total_weight_charged: number | null;
+  applied_fee_crc: number | null;
 };
 
 // --- Tipos para Billing ---
@@ -187,6 +228,30 @@ export interface GenerateInvoiceInput {
   deliveryMethod: DeliveryMethod;
 }
 
+export interface GeneratePreBillingInput {
+  consolidationUuid: string;
+  deliveryMethod: DeliveryMethod;
+}
+
+export interface PreBillingDetail {
+  uuid: string;
+  consolidation_uuid: string;
+  customer_name: string;
+  customer_code: string;
+  customer_email: string;
+  total_weight_lb: number;
+  total_weight_charged: number;
+  applied_rate_usd: number;
+  applied_exchange: number;
+  estimated_amount_crc: number;
+  delivery_method: DeliveryMethod | null;
+  delivery_fee_crc: number;
+  is_confirmed: boolean;
+  confirmed_at: string | null;
+  created_at: string;
+  package_trackings: string[];
+}
+
 export interface BillingMonthlyReport {
   month: string;
   total_invoiced_crc: number;
@@ -235,6 +300,12 @@ export interface ConsolidationDetail {
   created_at: string;
   updated_at: string;
   packages: ConsolidationPackage[];
+  pre_billing_uuid: string | null;
+  pre_billing_amount: number | null;
+  pre_billing_delivery_method: DeliveryMethod | null;
+  pre_billing_confirmed: boolean | null;
+  pre_billing_confirmed_at: string | null;
+  billing_uuid: string | null;
 }
 
 export interface AvailablePackage {
