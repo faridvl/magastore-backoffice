@@ -1,10 +1,11 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Search, User, Calendar, Plus, Box } from 'lucide-react';
+import { Search, User, Calendar, Plus, Box, PackageCheck } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
+import { LogisticsPackage } from '@/types/logistics/logistics.types';
 
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
@@ -35,20 +36,48 @@ export const LogisticsContainer: React.FC = () => {
         packages, isLoading, meta,
         handlePageChange, handleSearch,
         viewMode, setViewMode,
-        statusFilter, setStatusFilter,
+        consolidationFilter, setConsolidationFilter,
+        customers, customerUuid, setCustomerUuid,
         dateFrom, setDateFrom,
         dateTo, setDateTo,
+        selectedUuids, selectedCustomerId, handleToggleSelect, handleRowClick, clearSelection,
+        handleCreateOrder, isCreatingOrder,
     } = usePackages(PAGE_SIZE);
 
+    const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
+    const visibleSelectedCount = packages.filter((p) => selectedUuids.includes(p.uuid)).length;
+    const hiddenSelectedCount = selectedUuids.length - visibleSelectedCount;
+
     const columns: Column[] = [
+        ...(showSelection ? [{
+            header: '',
+            accessor: '__select',
+            render: (row: LogisticsPackage) => {
+                const isDisabled = !!selectedCustomerId && row.customer_id !== selectedCustomerId;
+                return (
+                    <input
+                        type="checkbox"
+                        checked={selectedUuids.includes(row.uuid)}
+                        disabled={isDisabled}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => handleToggleSelect(row)}
+                        className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                    />
+                );
+            },
+        } as Column] : []),
         {
             header: 'Tracking / ID',
             accessor: 'tracking_number',
             render: (row) => (
-                <div className="flex flex-col">
+                <button
+                    onClick={(e) => { e.stopPropagation(); router.push(`/admin/logistics/${row.uuid}`); }}
+                    className="flex flex-col text-left hover:underline decoration-amber-300 underline-offset-2"
+                    title="Ver detalle del paquete"
+                >
                     <span className="text-amber-600 italic font-black text-[10px]">#{row.id_paquete || row.id?.substring(0, 8)}</span>
                     <span className="font-mono text-slate-600 text-[11px] uppercase font-bold tracking-tight">{row.tracking_number}</span>
-                </div>
+                </button>
             )
         },
         {
@@ -113,7 +142,21 @@ export const LogisticsContainer: React.FC = () => {
                     </span>
                 );
             }
-        }
+        },
+        ...(viewMode === 'activos' && consolidationFilter === 'CON_ORDEN' ? [{
+            header: 'Orden',
+            accessor: 'consolidation_uuid',
+            render: (row: LogisticsPackage) => (
+                row.consolidation_uuid ? (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); router.push(`/admin/shipment-orders?uuid=${row.consolidation_uuid}`); }}
+                        className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition-colors"
+                    >
+                        {row.consolidation_status || 'Ver orden'}
+                    </button>
+                ) : <span className="text-slate-300 text-xs">—</span>
+            ),
+        } as Column] : []),
     ];
 
     return (
@@ -206,19 +249,18 @@ export const LogisticsContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Fila de filtros de estado — solo en modo activos */}
+                {/* Fila de filtros: Sin orden / Con orden + filtro por cliente — solo en modo activos */}
                 {viewMode === 'activos' && (
-                    <div className="px-4 py-2.5 overflow-x-auto">
-                        <div className="flex gap-1">
+                    <div className="px-4 py-2.5 flex flex-wrap items-center gap-2">
+                        <div className="flex gap-1 overflow-x-auto">
                             {[
-                                { value: 'PANAMA',     label: 'En Panamá' },
-                                { value: 'EN_TRAMITE', label: 'En Trámite' },
-                                { value: 'ALL',        label: 'Todos' },
+                                { value: 'SIN_ORDEN', label: 'Sin orden' },
+                                { value: 'CON_ORDEN', label: 'Con orden' },
                             ].map(({ value, label }) => (
                                 <button
                                     key={value}
-                                    onClick={() => setStatusFilter(value)}
-                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${statusFilter === value
+                                    onClick={() => setConsolidationFilter(value as 'SIN_ORDEN' | 'CON_ORDEN')}
+                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${consolidationFilter === value
                                         ? 'bg-slate-900 text-white'
                                         : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                                     }`}
@@ -227,6 +269,19 @@ export const LogisticsContainer: React.FC = () => {
                                 </button>
                             ))}
                         </div>
+
+                        <select
+                            value={customerUuid}
+                            onChange={(e) => setCustomerUuid(e.target.value)}
+                            className="bg-slate-50 px-3 py-1.5 rounded-lg border-none outline-none focus:ring-2 focus:ring-amber-100 text-[11px] font-bold text-slate-600 max-w-[220px]"
+                        >
+                            <option value="">Todos los clientes</option>
+                            {customers.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.first_name} {c.last_name} · {c.customer_code}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 )}
 
@@ -239,6 +294,38 @@ export const LogisticsContainer: React.FC = () => {
                     />
                 </div>
             </div>
+
+            {/* BARRA DE ACCIÓN: SELECCIÓN DE PAQUETES */}
+            {showSelection && selectedUuids.length > 0 && (
+                <div className="sticky top-2 z-10 flex items-center justify-between gap-4 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-lg">
+                    <div className="flex items-center gap-2">
+                        <PackageCheck size={16} />
+                        <span className="text-[11px] font-black uppercase tracking-wide">
+                            {selectedUuids.length} paquete{selectedUuids.length > 1 ? 's' : ''} seleccionado{selectedUuids.length > 1 ? 's' : ''}
+                            {hiddenSelectedCount > 0 && (
+                                <span className="text-slate-400 font-bold normal-case tracking-normal">
+                                    {' '}({hiddenSelectedCount} en otras páginas)
+                                </span>
+                            )}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={clearSelection}
+                            className="text-[10px] font-bold uppercase text-slate-300 hover:text-white px-3 py-2"
+                        >
+                            Limpiar
+                        </button>
+                        <button
+                            onClick={handleCreateOrder}
+                            disabled={isCreatingOrder}
+                            className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
+                        >
+                            {isCreatingOrder ? 'Creando...' : 'Crear orden de envío'}
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* CARDS (mobile) */}
             <div className="flex flex-col gap-3 md:hidden">
@@ -255,14 +342,34 @@ export const LogisticsContainer: React.FC = () => {
                     const statusLabels: Record<string, string> = {
                         'PANAMA': 'En Panamá', 'EN_TRAMITE': 'En Trámite', 'ENTREGADO': 'Entregado',
                     };
+                    const isDisabledForSelection = showSelection && !!selectedCustomerId && pkg.customer_id !== selectedCustomerId;
                     return (
-                        <button
+                        <div
                             key={pkg.uuid}
-                            onClick={() => router.push(`/admin/logistics/${pkg.uuid}`)}
-                            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
+                            onClick={() => { if (!isDisabledForSelection) handleRowClick(pkg, showSelection); }}
+                            className={`bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99] cursor-pointer ${isDisabledForSelection ? 'opacity-40' : ''}`}
                         >
+                            {showSelection && (
+                                <input
+                                    type="checkbox"
+                                    checked={selectedUuids.includes(pkg.uuid)}
+                                    disabled={isDisabledForSelection}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onChange={() => handleToggleSelect(pkg)}
+                                    className="h-4 w-4 flex-shrink-0 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                                />
+                            )}
                             <div className="flex-1 min-w-0">
-                                <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
+                                {showSelection ? (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); router.push(`/admin/logistics/${pkg.uuid}`); }}
+                                        className="font-mono text-slate-600 text-xs font-bold uppercase truncate hover:underline decoration-amber-300 underline-offset-2 text-left"
+                                    >
+                                        {pkg.tracking_number}
+                                    </button>
+                                ) : (
+                                    <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
+                                )}
                                 <p className="font-bold text-slate-800 text-sm mt-0.5 truncate">{pkg.first_name} {pkg.last_name}</p>
                                 <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR')} · {pkg.weight_lb} lb</p>
                             </div>
@@ -272,7 +379,7 @@ export const LogisticsContainer: React.FC = () => {
                                 </span>
                                 <span className="text-[10px] font-mono text-amber-400 uppercase">{pkg.customer_code}</span>
                             </div>
-                        </button>
+                        </div>
                     );
                 })}
                 {meta.totalPages > 1 && (
@@ -306,7 +413,16 @@ export const LogisticsContainer: React.FC = () => {
                     currentPage={meta.page}
                     totalPages={meta.totalPages}
                     onPageChange={handlePageChange}
-                    onRowClick={(item) => router.push(`/admin/logistics/${item.uuid}`)}
+                    onRowClick={(item: LogisticsPackage) => {
+                        const isDisabled = showSelection && !!selectedCustomerId && item.customer_id !== selectedCustomerId;
+                        if (isDisabled) return;
+                        handleRowClick(item, showSelection);
+                    }}
+                    rowClassName={(item: LogisticsPackage) =>
+                        showSelection && !!selectedCustomerId && item.customer_id !== selectedCustomerId
+                            ? 'opacity-40'
+                            : ''
+                    }
                     itemsPerPage={PAGE_SIZE}
                 />
             </div>

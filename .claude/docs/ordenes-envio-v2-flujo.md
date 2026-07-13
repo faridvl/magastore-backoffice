@@ -1,7 +1,7 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
 **Estado: EN IMPLEMENTACIÓN.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13.
+Última actualización: 2026-07-13 (Etapa 2 completada, sin commit/push todavía).
 
 ## Progreso
 
@@ -20,8 +20,29 @@
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo 2 warnings preexistentes de a11y en PDFs, no relacionados).
 - **Nota de arquitectura:** la capa de dominio conserva el nombre `consolidations` (tabla, repo, service) intencionalmente — solo la UI/hooks/rutas usan "shipment-orders". Ver commit fc2c1e4.
 
-### ⬜ Etapa 2 — Rediseño listado `/admin/logistics` (pendiente)
-### ⬜ Etapa 3 — Crear orden desde selección + página de detalle de orden (pendiente; el detalle sigue siendo modal por ahora, con el botón quitar-paquete ya funcional dentro de él)
+### ✅ Etapa 2 — Rediseño listado `/admin/logistics` (COMPLETADA 2026-07-13, sin commit/push)
+
+- Chips "En Panamá / En Trámite / Todos" eliminados de la toolbar. Reemplazados por `Sin orden` (default al entrar en modo Activos) / `Con orden`, derivados de `consolidation_id IS NULL/IS NOT NULL`. La columna "Estado" de la tabla se mantiene igual (PANAMA/EN_TRAMITE/ENTREGADO por fila) — solo se quitó el filtro de arriba.
+- `getPaginatedPackages` (`logistics.repo.ts`) extendido con `consolidationFilter` y `customerUuid`, con `LEFT JOIN consolidations` para exponer `consolidation_uuid`/`consolidation_status` por paquete. En la vista "Con orden" aparece una columna "Orden" con badge clickeable que lleva al detalle de esa orden.
+- Filtro por cliente nuevo (dropdown simple con `useCustomersQuery`, que ya trae todos los clientes en una sola llamada sin paginación).
+- Selección múltiple de paquetes en la vista "Sin orden": checkbox por fila (tabla) y por card (mobile). Candado de mismo-cliente aplicado en dos capas — **visual** (checkbox `disabled` + fila/card atenuada con `opacity-40` para los paquetes de otro cliente distinto al ya seleccionado, tanto en tabla/tablet como en cards mobile) y **defensivo** (`handleToggleSelect` en el hook bloquea igual con toast si se intentara forzar).
+- **Selección persiste entre páginas** (comportamiento confirmado con el dueño 2026-07-13): cambiar de página con "Siguiente/Anterior" NO limpia `selectedUuids`. La barra flotante de selección indica cuántos de los seleccionados no están en la página visible actual, ej. "5 paquetes seleccionados (3 en otras páginas)", para que no parezca que se perdieron. Sí se limpia la selección al cambiar de viewMode (Activos/Historial), de filtro Sin orden/Con orden, o de cliente — esos cambian el universo de paquetes visibles de raíz.
+- **Endpoint atómico nuevo** `createConsolidationWithPackages` (`consolidations.repo.ts`/`.service.ts`): una sola transacción crea la orden, valida mismo-cliente, asigna paquetes y recalcula peso. `POST /consolidations` acepta `packageUuids` opcional sin romper el flujo simple existente (crear orden vacía, usado en el modal viejo de `/admin/shipment-orders`).
+- Botón "Crear orden de envío" en la barra flotante de selección → crea la orden y redirige a `/admin/shipment-orders?uuid=<uuid>`. `use-shipment-orders.ts` ahora lee `router.query.uuid` al montar (`router.isReady`) para auto-abrir el panel de detalle — es un puente hasta que exista la página dedicada `/admin/shipment-orders/[uuid]` en Etapa 3.
+- Botón "Notificar por WhatsApp" en la barra de selección: **NO implementado a propósito** — es Etapa 4. El punto de extensión natural es esa misma barra flotante (`logistics-container.tsx`, junto al botón "Crear orden de envío").
+- **Fix UX post-entrega (2026-07-13):** en modo selección (Sin orden), click en la fila/card ya NO navega al detalle del paquete — solo marca/desmarca el checkbox. Esto se centralizó en `handleRowClick(pkg, selectionModeActive)` dentro de `use-logistics.tsx`, usado tanto por `onRowClick` de `NewTable` como por el `onClick` de las cards mobile. Para ver el detalle a propósito, el tracking number es ahora un botón/link explícito con `stopPropagation` (en la columna "Tracking / ID" de la tabla y en la card mobile cuando `showSelection` está activo).
+- **Persistencia de selección en `sessionStorage`** (clave `logistics:selectedUuids`, ver `use-logistics.tsx`): sobrevive a un "back" del navegador tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña. Se limpia sola cuando `selectedUuids` queda vacío (al limpiar selección o al crear la orden exitosamente). Si se toca este hook a futuro, tener presente que la lectura inicial usa lazy `useState(readStoredSelection)` — un SSR/hidratación mismatch no aplica aquí porque el componente es client-only vía `authorizeServerSidePage`, pero si se reutiliza este patrón en una página con SSR real hay que revisarlo.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo los 2 warnings preexistentes de a11y en PDFs).
+
+### ⬜ Etapa 3 — Crear orden desde selección + página de detalle de orden (pendiente)
+
+La parte "crear orden desde selección" del título ya quedó cubierta en la Etapa 2 (endpoint atómico + redirect). Lo que falta específicamente de Etapa 3:
+- Nueva ruta `/admin/shipment-orders/[uuid]` como página real (patrón `/admin/logistics/[id]`), reemplazando el panel/modal actual controlado por `selectedUuid` en `use-shipment-orders.ts`.
+- Mover a esa página: card prefactura/factura (generar, recalcular, confirmar, descargar PDFs), avance de estado (cerrar/despachar/entregar/reabrir), "Marcar como pagado", quitar-paquete (ya funcional, solo se traslada).
+- Al mover el redirect post-creación de Etapa 2, cambiar `/admin/shipment-orders?uuid=X` por la ruta dedicada `/admin/shipment-orders/X` y quitar el efecto de lectura de query string en `use-shipment-orders.ts` (queda obsoleto una vez exista la ruta propia).
+- Desaparecen de `/admin/shipment-orders` (lista): botón "Nueva Orden de Envío" + modal de elegir cliente, modal "Asignar Paquetes" — la creación ya vive en logística.
+- Nota de referencia: si la página de detalle nueva necesita algo similar a "click en fila selecciona en vez de navegar" (ej. selección de paquetes dentro de la orden para quitar varios a la vez), el patrón ya probado está en `use-logistics.tsx` → `handleRowClick`. No es necesario para Etapa 3 en sí, pero es el precedente a seguir si surge un caso parecido.
+
 ### ⬜ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtros pipeline de cobro (pendiente)
 ### ⬜ Etapa 5 — Detalle de cliente: split pendientes/histórico + botón WhatsApp (pendiente)
 

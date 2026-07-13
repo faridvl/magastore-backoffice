@@ -311,6 +311,8 @@ export const LogisticsRepository = {
     status?: string,
     dateFrom?: string,
     dateTo?: string,
+    consolidationFilter?: string,
+    customerUuid?: string,
   ): Promise<{ data: any[]; total: number }> => {
     const offset = (page - 1) * limit;
 
@@ -319,18 +321,26 @@ export const LogisticsRepository = {
     const statusTerm = status && status !== 'ALL' && !isActivos ? status : null;
     const fromDate = dateFrom || null;
     const toDate = dateTo || null;
+    const wantsSinOrden = consolidationFilter === 'SIN_ORDEN';
+    const wantsConOrden = consolidationFilter === 'CON_ORDEN';
+    const customerFilter = customerUuid || null;
 
     const [packages, countResult] = await Promise.all([
       sql`
-      SELECT p.*, c.first_name, c.last_name, c.customer_code
+      SELECT p.*, c.first_name, c.last_name, c.customer_code,
+        con.uuid AS consolidation_uuid, con.status AS consolidation_status
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN consolidations con ON p.consolidation_id = con.id
       WHERE
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
         AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
         AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
+        AND (NOT ${wantsSinOrden} OR p.consolidation_id IS NULL)
+        AND (NOT ${wantsConOrden} OR p.consolidation_id IS NOT NULL)
+        AND (${customerFilter}::text IS NULL OR p.customer_id = ${customerFilter}::uuid)
       ORDER BY p.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `,
@@ -344,6 +354,9 @@ export const LogisticsRepository = {
         AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
         AND (${fromDate}::date IS NULL OR p.created_at::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR p.created_at::date <= ${toDate}::date)
+        AND (NOT ${wantsSinOrden} OR p.consolidation_id IS NULL)
+        AND (NOT ${wantsConOrden} OR p.consolidation_id IS NOT NULL)
+        AND (${customerFilter}::text IS NULL OR p.customer_id = ${customerFilter}::uuid)
     `,
     ]);
 

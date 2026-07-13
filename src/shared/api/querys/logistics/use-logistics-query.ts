@@ -11,9 +11,14 @@ export function useLogisticsQuery(
   status: string = 'ALL',
   dateFrom?: string,
   dateTo?: string,
+  consolidationFilter?: string,
+  customerUuid?: string,
 ) {
   return useQuery<PaginatedResponse<LogisticsPackage>>({
-    queryKey: ['logistics', page, limit, search, status, dateFrom ?? '', dateTo ?? ''],
+    queryKey: [
+      'logistics', page, limit, search, status,
+      dateFrom ?? '', dateTo ?? '', consolidationFilter ?? '', customerUuid ?? '',
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -22,6 +27,8 @@ export function useLogisticsQuery(
         ...(status !== 'ALL' && { status }),
         ...(dateFrom && { dateFrom }),
         ...(dateTo && { dateTo }),
+        ...(consolidationFilter && { consolidationFilter }),
+        ...(customerUuid && { customerUuid }),
       });
 
       const response = await ApiServiceClient(env.API.BASE_URL).get(

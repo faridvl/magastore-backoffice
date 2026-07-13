@@ -27,6 +27,8 @@ export const LogisticsService = {
     status?: string,
     dateFrom?: string,
     dateTo?: string,
+    consolidationFilter?: string,
+    customerUuid?: string,
   ): Promise<PaginatedResponse<Package>> => {
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
@@ -39,6 +41,8 @@ export const LogisticsService = {
         status,
         dateFrom,
         dateTo,
+        consolidationFilter,
+        customerUuid,
       );
 
       const totalPages = Math.ceil(total / safeLimit);

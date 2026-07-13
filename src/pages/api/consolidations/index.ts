@@ -51,11 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST') {
-      const { customerUuid } = req.body;
+      const { customerUuid, packageUuids } = req.body;
       if (!customerUuid) {
         return res.status(400).json({ message: 'customerUuid es requerido.' });
       }
-      const consolidation = await ConsolidationsService.createConsolidation(customerUuid);
+      const consolidation = packageUuids?.length
+        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids)
+        : await ConsolidationsService.createConsolidation(customerUuid);
       return res.status(201).json({ data: consolidation });
     }
 

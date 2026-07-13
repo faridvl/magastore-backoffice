@@ -35,6 +35,53 @@ export const ConsolidationsRepository = {
     return row as { uuid: string; status: ConsolidationStatus };
   },
 
+  createConsolidationWithPackages: async (
+    customerUuid: string,
+    packageUuids: string[],
+  ): Promise<{ uuid: string; status: ConsolidationStatus; total_weight_lb: number }> => {
+    await sql`BEGIN`;
+    try {
+      const [customer] = await sql`
+        SELECT id FROM customers WHERE id = ${customerUuid} LIMIT 1
+      `;
+      if (!customer) throw new Error('Cliente no encontrado.');
+
+      const [mismatch] = await sql`
+        SELECT COUNT(*) AS mismatched
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND customer_id != ${customerUuid}
+      `;
+      if (parseInt(mismatch.mismatched, 10) > 0) {
+        throw new Error('Todos los paquetes seleccionados deben pertenecer al mismo cliente.');
+      }
+
+      const [created] = await sql`
+        INSERT INTO consolidations (customer_id, status, total_weight_lb)
+        VALUES (${customerUuid}, 'ABIERTO', 0)
+        RETURNING id, uuid, status
+      `;
+
+      await sql`
+        UPDATE packages SET consolidation_id = ${created.id}
+        WHERE uuid = ANY(${packageUuids})
+      `;
+
+      const [updated] = await sql`
+        UPDATE consolidations
+        SET total_weight_lb = COALESCE((SELECT SUM(weight_lb) FROM packages WHERE consolidation_id = ${created.id}), 0),
+            updated_at = NOW()
+        WHERE id = ${created.id}
+        RETURNING uuid, status, total_weight_lb
+      `;
+
+      await sql`COMMIT`;
+      return updated as { uuid: string; status: ConsolidationStatus; total_weight_lb: number };
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
+  },
+
   getPaginatedConsolidations: async (
     page: number,
     limit: number,

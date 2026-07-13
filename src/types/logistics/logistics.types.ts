@@ -148,6 +148,9 @@ export interface LogisticsPackage {
   first_name: string | null;
   last_name: string | null;
   customer_code: string | null;
+  // Campos del Join con Órdenes de Envío
+  consolidation_uuid: string | null;
+  consolidation_status: ConsolidationStatus | null;
 }
 
 export type PackageDetail = {
@@ -327,6 +330,11 @@ export interface AvailablePackage {
 
 export interface CreateConsolidationInput {
   customerUuid: string;
+}
+
+export interface CreateConsolidationWithPackagesInput {
+  customerUuid: string;
+  packageUuids: string[];
 }
 
 export interface UpdateConsolidationStatusInput {

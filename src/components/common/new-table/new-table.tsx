@@ -14,6 +14,7 @@ interface TableProps<T> {
     data: T[];
     isLoading?: boolean;
     onRowClick?: (item: T) => void;
+    rowClassName?: (item: T) => string;
     // Paginación vinculada al Meta del API
     totalRows: number;
     currentPage: number;
@@ -27,6 +28,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
     data,
     isLoading,
     onRowClick,
+    rowClassName,
     totalRows,
     currentPage,
     totalPages,
@@ -71,7 +73,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                                 <tr
                                     key={item.uuid || item.id || rowIndex}
                                     onClick={() => onRowClick?.(item)}
-                                    className={`transition-all duration-200 group ${onRowClick ? 'cursor-pointer hover:bg-amber-50/30' : ''}`}
+                                    className={`transition-all duration-200 group ${onRowClick ? 'cursor-pointer hover:bg-amber-50/30' : ''} ${rowClassName?.(item) ?? ''}`}
                                 >
                                     {columns.map((col, colIndex) => (
                                         <td key={colIndex} className={`px-3 py-3 md:px-6 md:py-4 ${col.align === 'right' ? 'text-right' : ''}`}>

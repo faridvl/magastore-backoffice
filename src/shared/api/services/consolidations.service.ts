@@ -15,6 +15,15 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.createConsolidation(customerUuid);
   },
 
+  createConsolidationWithPackages: async (customerUuid: string, packageUuids: string[]) => {
+    if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
+    if (!packageUuids || packageUuids.length === 0) {
+      throw new Error('Debe seleccionar al menos un paquete para crear la orden de envío.');
+    }
+
+    return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids);
+  },
+
   listConsolidations: async (
     page: number,
     limit: number,

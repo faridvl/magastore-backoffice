@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         // --- MÉTODOS GET ---
         if (req.method === 'GET') {
-            const { uuid, page, limit, search, status, dateFrom, dateTo, action: getAction } = req.query;
+            const { uuid, page, limit, search, status, dateFrom, dateTo, consolidationFilter, customerUuid, action: getAction } = req.query;
 
             if (getAction === 'courier-rates') {
                 const rates = await LogisticsService.getCourierRates();
@@ -42,8 +42,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const st = status as string | undefined;
             const df = dateFrom as string | undefined;
             const dt = dateTo as string | undefined;
+            const cf = consolidationFilter as string | undefined;
+            const cu = customerUuid as string | undefined;
 
-            const result = await LogisticsService.getAllPackages(p, l, s, st, df, dt);
+            const result = await LogisticsService.getAllPackages(p, l, s, st, df, dt, cf, cu);
             return res.status(200).json(result);
         }
 

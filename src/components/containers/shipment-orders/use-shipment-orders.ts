@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
@@ -20,6 +21,7 @@ export type ShipmentOrderStatusFilter = 'ALL' | 'PENDIENTES' | ConsolidationStat
 const PAGE_SIZE = 10;
 
 export const useShipmentOrders = () => {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -57,6 +59,14 @@ export const useShipmentOrders = () => {
     }, 400);
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const uuidFromQuery = router.query.uuid;
+    if (typeof uuidFromQuery === 'string' && uuidFromQuery) {
+      setSelectedUuid(uuidFromQuery);
+    }
+  }, [router.isReady, router.query.uuid]);
 
   const listQuery = useShipmentOrdersQuery(
     page,
