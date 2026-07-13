@@ -72,47 +72,69 @@ export const LogisticsRepository = {
       deliveryMethod === 'TRACOPA'    ? Number(settings.tracopa_fee_crc  ?? 3000) :
       0;
 
-    const [c] = await sql`
-      SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
-    `;
-    if (!c) throw new Error('Orden de envío no encontrada.');
+    try {
+      await sql`BEGIN`;
 
-    const actualWeight  = Number(c.total_weight_lb);
-    const chargedWeight = Math.max(actualWeight, min_lb);
-    const flete         = chargedWeight * price_lb * exchange;
-    const estimatedCrc  = flete + deliveryFee;
-
-    const [existing] = await sql`
-      SELECT uuid FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
-    `;
-
-    if (existing) {
-      const [updated] = await sql`
-        UPDATE pre_billing
-        SET estimated_amount_crc = ${estimatedCrc},
-            delivery_method      = ${deliveryMethod},
-            delivery_fee_crc     = ${deliveryFee},
-            applied_rate_usd     = ${price_lb},
-            applied_exchange     = ${exchange},
-            total_weight_charged = ${chargedWeight},
-            updated_at           = NOW()
-        WHERE consolidation_id = ${c.id}
-        RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
+      const [c] = await sql`
+        SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
-      return updated;
-    }
+      if (!c) throw new Error('Orden de envío no encontrada.');
 
-    const [pre] = await sql`
-      INSERT INTO pre_billing (
-        consolidation_id, estimated_amount_crc, delivery_method,
-        delivery_fee_crc, applied_rate_usd, applied_exchange, total_weight_charged
-      ) VALUES (
-        ${c.id}, ${estimatedCrc}, ${deliveryMethod},
-        ${deliveryFee}, ${price_lb}, ${exchange}, ${chargedWeight}
-      )
-      RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
-    `;
-    return pre;
+      if (c.status === 'DESPACHADO' || c.status === 'ENTREGADO') {
+        throw new Error('No se puede generar el estimado: la orden de envío ya fue despachada.');
+      }
+
+      const actualWeight  = Number(c.total_weight_lb);
+      const chargedWeight = Math.max(actualWeight, min_lb);
+      const flete         = chargedWeight * price_lb * exchange;
+      const estimatedCrc  = flete + deliveryFee;
+
+      const [existing] = await sql`
+        SELECT uuid FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
+      `;
+
+      let result: Partial<PreBilling>;
+      if (existing) {
+        const [updated] = await sql`
+          UPDATE pre_billing
+          SET estimated_amount_crc = ${estimatedCrc},
+              delivery_method      = ${deliveryMethod},
+              delivery_fee_crc     = ${deliveryFee},
+              applied_rate_usd     = ${price_lb},
+              applied_exchange     = ${exchange},
+              total_weight_charged = ${chargedWeight},
+              updated_at           = NOW()
+          WHERE consolidation_id = ${c.id}
+          RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
+        `;
+        result = updated;
+      } else {
+        const [pre] = await sql`
+          INSERT INTO pre_billing (
+            consolidation_id, estimated_amount_crc, delivery_method,
+            delivery_fee_crc, applied_rate_usd, applied_exchange, total_weight_charged
+          ) VALUES (
+            ${c.id}, ${estimatedCrc}, ${deliveryMethod},
+            ${deliveryFee}, ${price_lb}, ${exchange}, ${chargedWeight}
+          )
+          RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
+        `;
+        result = pre;
+      }
+
+      // Generar el estimado "cierra" la orden: deja de aceptar más paquetes
+      // y pasa a la cola de cobro. Solo aplica la primera vez (ABIERTO); si ya
+      // está CERRADO (recalculando el estimado) no hay transición que hacer.
+      if (c.status === 'ABIERTO') {
+        await sql`UPDATE consolidations SET status = 'CERRADO', updated_at = NOW() WHERE id = ${c.id}`;
+      }
+
+      await sql`COMMIT`;
+      return result;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   },
 
   confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {

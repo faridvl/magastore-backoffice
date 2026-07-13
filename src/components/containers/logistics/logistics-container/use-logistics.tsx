@@ -128,7 +128,7 @@ export const usePackages = (pageSize = 7) => {
             toast.success('Orden de envío creada correctamente');
             setSelectedUuids([]);
             const uuid = (result as any)?.data?.uuid;
-            router.push(uuid ? `/admin/shipment-orders?uuid=${uuid}` : '/admin/shipment-orders');
+            router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
         }

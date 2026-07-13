@@ -1,8 +1,11 @@
 import { ConsolidationsRepository } from '../repositories/consolidations.repo';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
 
+// ABIERTO → CERRADO ya no es una transición manual: ocurre automáticamente al
+// generar el estimado (ver LogisticsRepository.generatePreBilling). Desde ABIERTO
+// no hay avance manual posible.
 const STATUS_TRANSITIONS: Record<ConsolidationStatus, ConsolidationStatus | null> = {
-  [ConsolidationStatus.ABIERTO]: ConsolidationStatus.CERRADO,
+  [ConsolidationStatus.ABIERTO]: null,
   [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
   [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
   [ConsolidationStatus.ENTREGADO]: null,

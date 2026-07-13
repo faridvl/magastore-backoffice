@@ -149,7 +149,7 @@ export const LogisticsContainer: React.FC = () => {
             render: (row: LogisticsPackage) => (
                 row.consolidation_uuid ? (
                     <button
-                        onClick={(e) => { e.stopPropagation(); router.push(`/admin/shipment-orders?uuid=${row.consolidation_uuid}`); }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/admin/shipment-orders/${row.consolidation_uuid}`); }}
                         className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition-colors"
                     >
                         {row.consolidation_status || 'Ver orden'}

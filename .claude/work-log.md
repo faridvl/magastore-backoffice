@@ -9001,3 +9001,952 @@ RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/share
 ?? public/icon-512.png
 ?? public/logo/
 ?? public/og-image.png
+
+=== 2026-07-12 23:55 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+?? propuesta-sociedad.md
+?? public/logo/magastore-perfil-transparent.png
+?? test-pdf-render.js
+
+=== 2026-07-12 23:57 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:03 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-perfil-sidebar.png
+?? public/logo/magastore-perfil-transparent.png
+?? scripts/008-shipment-orders-v2.sql
+
+=== 2026-07-13 00:09 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? scripts/008-shipment-orders-v2.sql
+?? src/shared/api/mutations/shipment-orders/use-unassign-package-mutation.ts
+
+=== 2026-07-13 00:10 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? scripts/008-shipment-orders-v2.sql
+?? src/shared/api/mutations/shipment-orders/use-unassign-package-mutation.ts
+
+=== 2026-07-13 00:11 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? scripts/008-shipment-orders-v2.sql
+?? src/shared/api/mutations/shipment-orders/use-unassign-package-mutation.ts
+
+=== 2026-07-13 00:11 ===
+--- recent commits ---
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+--- status ---
+M  .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+A  scripts/008-shipment-orders-v2.sql
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+M  src/components/containers/logistics/create-package-container.tsx
+M  src/components/containers/logistics/use-package-calculator.ts
+M  src/components/containers/shipment-orders/shipment-orders-container.tsx
+M  src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+M  src/pages/api/consolidations/index.ts
+A  src/shared/api/mutations/shipment-orders/use-unassign-package-mutation.ts
+M  src/shared/api/repositories/consolidations.repo.ts
+M  src/shared/api/repositories/logistics.repo.ts
+M  src/shared/api/services/consolidations.service.ts
+M  src/shared/api/services/logistics.service.ts
+M  src/types/logistics/logistics.types.ts
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:12 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:12 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:12 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:13 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:16 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:16 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:17 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:24 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:24 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:24 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 00:29 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:30 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:35 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:41 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:45 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:46 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:54 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:54 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:58 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:58 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 00:59 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 01:01 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 01:04 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 01:06 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 01:07 ===
+--- recent commits ---
+d2c6839 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+fc2c1e4 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/querys/logistics/use-logistics-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+?? src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+
+=== 2026-07-13 01:31 ===
+--- recent commits ---
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+053b1bb chore: lint clean, docs actualizados y worktrees eliminados
+2156f1a feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+--- status ---
+ M .claude/work-log.md
+ D make-logo-transparent.js
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M tailwind.config.js
+ M yarn.lock
+?? .claude/docs/customer-code-warehouse-plan.md
+?? propuesta-sociedad.md
+?? public/logo/magastore-icon.png
+?? public/logo/magastore-perfil-transparent.png
+
+=== 2026-07-13 01:35 ===
+--- recent commits ---
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+053b1bb chore: lint clean, docs actualizados y worktrees eliminados
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-13 01:37 ===
+--- recent commits ---
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+053b1bb chore: lint clean, docs actualizados y worktrees eliminados
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-13 01:41 ===
+--- recent commits ---
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+053b1bb chore: lint clean, docs actualizados y worktrees eliminados
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-13 01:42 ===
+--- recent commits ---
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+053b1bb chore: lint clean, docs actualizados y worktrees eliminados
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md

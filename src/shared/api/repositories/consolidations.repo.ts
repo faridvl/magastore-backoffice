@@ -235,6 +235,30 @@ export const ConsolidationsRepository = {
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
     await sql`BEGIN`;
     try {
+      const [current] = await sql`
+        SELECT id, status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
+      `;
+      if (!current) throw new Error('Orden de envío no encontrada.');
+
+      // Reabrir (CERRADO → ABIERTO): el estimado generado quedó ligado al peso/paquetes
+      // de ese momento. Si aún no fue confirmado por el cliente, se descarta — el operador
+      // deberá generarlo de nuevo tras editar. Si ya fue confirmado o existe factura, no
+      // se puede reabrir: haría falso el snapshot que el cliente ya aceptó/pagó.
+      if (status === ConsolidationStatus.ABIERTO && current.status === ConsolidationStatus.CERRADO) {
+        const [pre] = await sql`
+          SELECT is_confirmed FROM pre_billing WHERE consolidation_id = ${current.id} LIMIT 1
+        `;
+        const [bill] = await sql`
+          SELECT uuid FROM billing WHERE consolidation_id = ${current.id} LIMIT 1
+        `;
+        if (bill || pre?.is_confirmed) {
+          throw new Error('No se puede reabrir: esta orden de envío ya tiene una prefactura confirmada o una factura generada.');
+        }
+        if (pre) {
+          await sql`DELETE FROM pre_billing WHERE consolidation_id = ${current.id}`;
+        }
+      }
+
       const [row] = await sql`
         UPDATE consolidations
         SET status = ${status}, updated_at = NOW()
