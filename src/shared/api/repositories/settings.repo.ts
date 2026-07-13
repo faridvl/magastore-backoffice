@@ -30,6 +30,7 @@ export const updateSettings = async (data: any) => {
       tracopa_fee_crc       = ${data.tracopa_fee_crc},
       courier_rate_usd      = ${data.courier_rate_usd},
       courier_insurance_usd = ${data.courier_insurance_usd},
+      kg_per_lb             = ${data.kg_per_lb},
       updated_at      = NOW()
     WHERE id = ${SETTINGS_ID}
     RETURNING *

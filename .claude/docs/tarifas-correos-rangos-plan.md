@@ -1,9 +1,21 @@
 # Tarifas de envío por Correos CR — rangos configurables (análisis y plan)
 
-**Estado: EN IMPLEMENTACIÓN — Etapa 1 completada.** Decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 1 — Direcciones estructuradas — completada, sin commit/push todavía).
+**Estado: EN IMPLEMENTACIÓN — Etapa 2 completada.** Decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (Etapa 2 — Modelo de datos + CRUD de tarifas — completada, sin commit/push todavía).
 
 ## Progreso
+
+### ✅ Etapa 2 — Modelo de datos + CRUD de tarifas (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Migración `scripts/010-delivery-rates.sql`** aplicada en Neon: tabla `delivery_rates` (`delivery_method`, `zone` nullable, `min_weight_kg`, `max_weight_kg`, `fee_crc`, `cost_crc` nullable = "por confirmar", `is_active`) + `system_settings.kg_per_lb` (default `0.453592`, el valor real de conversión, para no afectar nada si queda sin editar). Usa `gen_random_uuid()` (extensión `pgcrypto`, confirmada como la que ya usa el resto del esquema — no `uuid_generate_v4()`).
+- **Backend nuevo dominio** `delivery-rates`: tipo `DeliveryRate`/`DeliveryRateInput`/`DeliveryZone` (`logistics.types.ts`), `DeliveryRatesRepository` (`delivery-rates.repo.ts`) con `getAll`/`create`/`update`/`toggleActive`, `DeliveryRatesService` (`delivery-rates.service.ts`), endpoint `GET/POST/PATCH /api/delivery-rates`.
+- **Validación de solapamiento de rangos (prohibida, tal como se confirmó):** `create`/`update` en el repo verifican que `[min_weight_kg, max_weight_kg]` no se solape con ninguna otra fila **activa** del mismo `delivery_method` + `zone` (incluyendo el caso `zone IS NULL` para métodos sin distinción de zona) antes de escribir — si hay conflicto, rechaza con el rango y el id de la fila que choca. Motivo: sin esto, dos rangos solapados matchearían el mismo peso en el lookup que hará `generatePreBilling` en la Etapa 3, y el monto facturado dependería del orden interno de la consulta SQL en vez de una regla de negocio.
+- **`system_settings`**: `SystemSettings` type + `updateSettings` (repo) + array `fields` de `settings.service.ts` extendidos con `kg_per_lb` — queda con historial de auditoría igual que los demás parámetros.
+- **Frontend** — `use-delivery-rates-query.ts` + `use-delivery-rate-mutations.ts` (create/update/toggle, todas invalidan `DELIVERY_RATES_KEY`). Nuevo hook `use-delivery-rates.ts` (co-ubicado en `settings-container/`) maneja el estado de **edición inline** (draft por fila, se guarda al confirmar con ✓, no en cada tecla) tanto para editar una fila existente como para dar de alta una nueva.
+- **UI**: en `settings-container.tsx`, los 2 `SettingInput` fijos de `correos_fee_crc`/`tracopa_fee_crc` (Card "Entrega local") se reemplazaron por un input de conversión "Kg por libra" + una card nueva con tabla de tarifas por rango (Método, Zona, Rango kg, Cobro cliente, Costo real, Activo/Inactivo con toggle, Editar). Fila de alta con el mismo componente `DeliveryRateRow` que la edición. El sidebar de "Simulación" ya no muestra `correos_fee_crc`/`tracopa_fee_crc` como monto fijo (ya no lo son) — muestra el conteo de tarifas activas.
+- **Nota importante:** `correos_fee_crc`/`tracopa_fee_crc` **no se eliminaron** de `system_settings` — siguen existiendo en el tipo/tabla/service para servir de fallback en `generatePreBilling` cuando un método no tenga ninguna fila en `delivery_rates` (decisión ya acordada en el plan). Simplemente dejaron de tener UI de edición directa; ya no son la fuente de verdad del cobro cuando hay tarifas por rango cargadas.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Nota para Etapa 3**: el motor de cálculo (`generatePreBilling` en `logistics.repo.ts`) todavía usa `correos_fee_crc`/`tracopa_fee_crc` fijos — el lookup por rango contra `delivery_rates` es el siguiente paso. El mapeo cantón→zona GAM/Resto (para poder derivar `zone` automáticamente de la dirección de la orden) tampoco existe todavía.
 
 ### ✅ Etapa 1 — Direcciones estructuradas (COMPLETADA 2026-07-13, sin commit/push)
 
@@ -17,8 +29,6 @@
 - **Migración de datos existentes**: los 10 registros reales en `customer_addresses` fueron normalizados contra el catálogo oficial (7 con mapeo "mejor esfuerzo" a la combinación válida más cercana — ej. "Sabana/Nunciatura" → San José/San José/Mata Redonda, "Guadalupe" como cantón → San José/Goicoechea/Guadalupe; 3 filas vacías → San José/San José/Carmen como default). Aplicado directamente en Neon vía script puntual (no versionado, mismo patrón usado en sesiones anteriores).
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 - **Nota para Etapa 2**: el mapeo cantón→zona GAM/Resto sigue sin existir — es el siguiente paso, ahora con la garantía de que todo cantón nuevo que se capture (desde hoy en adelante) viene del catálogo oficial, no de texto libre arbitrario.
-
----
 
 ---
 
@@ -69,11 +79,11 @@ Huecos de la fuente (el volante dice "algunos de los aumentos"): falta el rango 
 
 ## Etapas propuestas
 
-### ⬜ Etapa 1 — Direcciones estructuradas
+### ✅ Etapa 1 — Direcciones estructuradas (completada — ver Progreso arriba)
 Dropdowns provincia→cantón→distrito (dataset oficial CR estático en el repo) en crear cliente, editar dirección e import. Estrategia para datos existentes en texto libre (normalización o zona "desconocida" con confirmación manual). Vale por sí sola como mejora de calidad de datos.
 
-### ⬜ Etapa 2 — Modelo de datos + CRUD de tarifas
-Migración `delivery_rates` + campo de conversión kg/lb en `system_settings` (+ historial). Reemplazar el input fijo "Correos de Costa Rica" en `settings-container.tsx` por una tabla editable (alta/edición/activar-desactivar, ambas columnas de tarifa, `cost_crc` vacío permitido). Mapeo estático cantón→GAM.
+### ✅ Etapa 2 — Modelo de datos + CRUD de tarifas (completada — ver Progreso arriba)
+Migración `delivery_rates` + campo de conversión kg/lb en `system_settings` (+ historial). Reemplazar el input fijo "Correos de Costa Rica" en `settings-container.tsx` por una tabla editable (alta/edición/activar-desactivar, ambas columnas de tarifa, `cost_crc` vacío permitido). **Pendiente todavía dentro del alcance original de esta etapa:** el mapeo estático cantón→GAM no se implementó — se dejó para la Etapa 3, ya que solo tiene sentido junto con el lookup real en `generatePreBilling` que lo va a consumir.
 
 ### ⬜ Etapa 3 — Motor de cálculo
 Lookup por rango en `generatePreBilling` (`logistics.repo.ts`) — **un solo punto**: la vía duplicada `generateBilling` fue eliminada en el cierre de facturación paralela (commit 289dc39). Cuidados:

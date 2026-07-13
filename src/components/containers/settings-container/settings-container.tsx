@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
-import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package } from 'lucide-react';
+import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useSettings } from './use-settings';
+import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
 import { SettingsHistory } from '@/types/settings/settings.types';
+import { DeliveryRate, DeliveryMethod, DeliveryZone } from '@/types/logistics/logistics.types';
+
+const DELIVERY_METHOD_OPTIONS: { value: DeliveryMethod; label: string }[] = [
+    { value: 'CORREOS_CR', label: 'Correos CR' },
+    { value: 'TRACOPA', label: 'Tracopa' },
+];
+
+const ZONE_OPTIONS: { value: DeliveryZone | ''; label: string }[] = [
+    { value: '', label: 'Sin zona' },
+    { value: 'GAM', label: 'GAM' },
+    { value: 'RESTO', label: 'Resto' },
+];
 
 // Input con sufijo de unidad integrado
 function SettingInput({
@@ -54,6 +67,27 @@ export const SettingsContainer: React.FC = () => {
         isLoading,
         isSaving
     } = useSettings();
+
+    const {
+        rates,
+        isLoading: isLoadingRates,
+        editingUuid,
+        editDraft,
+        startEdit,
+        cancelEdit,
+        updateEditDraft,
+        saveEdit,
+        isUpdating,
+        showNewRow,
+        newDraft,
+        openNewRow,
+        cancelNewRow,
+        updateNewDraft,
+        saveNewRow,
+        isCreating,
+        handleToggleActive,
+        isToggling,
+    } = useDeliveryRates();
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -225,7 +259,7 @@ export const SettingsContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Card 3 — Entrega local */}
+                {/* Card 3 — Entrega local: conversión kg/lb */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
                         <div className="p-2 bg-emerald-50 rounded-xl">
@@ -233,26 +267,115 @@ export const SettingsContainer: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-sm font-bold text-slate-800">Entrega local — Costa Rica</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">Tarifa fija por método de envío. Se guarda como snapshot en cada factura</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Correos CR cobra por kg; el sistema pesa en libras</p>
                         </div>
                     </div>
                     <div className="px-5 py-4 flex flex-col sm:flex-row sm:flex-wrap gap-4">
                         <SettingInput
-                            label="Correos de Costa Rica"
-                            hint="Tarifa fija por envío vía Correos CR"
-                            unit="CRC"
-                            value={Number(settings.correos_fee_crc)}
+                            label="Kg por libra"
+                            hint="Factor de conversión: 1 lb = X kg"
+                            unit="kg/lb"
+                            step="0.000001"
+                            value={Number(settings.kg_per_lb)}
                             accentClass="focus-within:border-emerald-400 focus-within:ring-emerald-400/20"
-                            onChange={(v) => handleUpdateSetting('correos_fee_crc', v)}
+                            onChange={(v) => handleUpdateSetting('kg_per_lb', v)}
                         />
-                        <SettingInput
-                            label="Tracopa / Encomienda"
-                            hint="Tarifa fija por envío vía Tracopa"
-                            unit="CRC"
-                            value={Number(settings.tracopa_fee_crc)}
-                            accentClass="focus-within:border-emerald-400 focus-within:ring-emerald-400/20"
-                            onChange={(v) => handleUpdateSetting('tracopa_fee_crc', v)}
-                        />
+                    </div>
+                </div>
+
+                {/* Card 4 — Tarifas por rango de peso (delivery_rates) */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-50 rounded-xl">
+                                <Truck size={15} className="text-emerald-500" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">Tarifas por rango de peso</p>
+                                <p className="text-[11px] text-slate-400 mt-0.5">Cobro al cliente y costo real por método, zona y rango (kg)</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={openNewRow}
+                            disabled={showNewRow}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[11px] font-bold hover:bg-emerald-100 transition-all disabled:opacity-40"
+                        >
+                            <Plus size={13} /> Agregar
+                        </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-slate-100">
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Método</th>
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Zona</th>
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Rango (kg)</th>
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Cobro cliente</th>
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Costo real</th>
+                                    <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase tracking-wider">Activo</th>
+                                    <th className="px-4 py-2.5"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {showNewRow && (
+                                    <DeliveryRateRow
+                                        draft={newDraft}
+                                        onChange={updateNewDraft}
+                                        onSave={saveNewRow}
+                                        onCancel={cancelNewRow}
+                                        isSaving={isCreating}
+                                    />
+                                )}
+                                {isLoadingRates ? (
+                                    <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400 text-xs">Cargando...</td></tr>
+                                ) : rates.length === 0 && !showNewRow ? (
+                                    <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400 text-xs">Sin tarifas configuradas. Usa &quot;Agregar&quot; para crear la primera.</td></tr>
+                                ) : rates.map((rate) => (
+                                    editingUuid === rate.uuid ? (
+                                        <DeliveryRateRow
+                                            key={rate.uuid}
+                                            draft={editDraft}
+                                            onChange={updateEditDraft}
+                                            onSave={saveEdit}
+                                            onCancel={cancelEdit}
+                                            isSaving={isUpdating}
+                                        />
+                                    ) : (
+                                        <tr key={rate.uuid} className={!rate.is_active ? 'opacity-40' : ''}>
+                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-700">
+                                                {DELIVERY_METHOD_OPTIONS.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
+                                            </td>
+                                            <td className="px-4 py-2.5 text-xs text-slate-500">{rate.zone ?? '—'}</td>
+                                            <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</td>
+                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</td>
+                                            <td className="px-4 py-2.5 text-xs text-slate-500">
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `₡${Number(rate.cost_crc).toLocaleString()}`}
+                                            </td>
+                                            <td className="px-4 py-2.5">
+                                                <button
+                                                    onClick={() => handleToggleActive(rate)}
+                                                    disabled={isToggling}
+                                                    title={rate.is_active ? 'Desactivar' : 'Activar'}
+                                                    className={`p-1.5 rounded-lg transition-colors ${rate.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 hover:bg-slate-50'}`}
+                                                >
+                                                    <Power size={13} />
+                                                </button>
+                                            </td>
+                                            <td className="px-4 py-2.5 text-right">
+                                                <button
+                                                    onClick={() => startEdit(rate)}
+                                                    className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Pencil size={13} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -347,13 +470,10 @@ export const SettingsContainer: React.FC = () => {
                         <div className="border-t border-slate-100 pt-4 space-y-2">
                             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Envío local</p>
                             <div className="flex items-center justify-between">
-                                <span className="text-[12px] text-slate-600">Correos CR</span>
-                                <span className="text-[12px] font-bold text-slate-800">₡{Number(settings.correos_fee_crc).toLocaleString()}</span>
+                                <span className="text-[12px] text-slate-600">Tarifas activas</span>
+                                <span className="text-[12px] font-bold text-slate-800">{rates.filter((r) => r.is_active).length}</span>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-[12px] text-slate-600">Tracopa</span>
-                                <span className="text-[12px] font-bold text-slate-800">₡{Number(settings.tracopa_fee_crc).toLocaleString()}</span>
-                            </div>
+                            <p className="text-[10px] text-slate-400">Varía por método, zona y rango de peso — ver tabla de tarifas.</p>
                         </div>
                     </div>
                 </div>
@@ -361,3 +481,78 @@ export const SettingsContainer: React.FC = () => {
         </div>
     );
 };
+
+// Fila editable inline — usada tanto para editar una tarifa existente como para
+// dar de alta una nueva. El solapamiento de rango se valida en el backend al guardar.
+function DeliveryRateRow({
+    draft,
+    onChange,
+    onSave,
+    onCancel,
+    isSaving,
+}: {
+    draft: DeliveryRateDraft;
+    onChange: (field: keyof DeliveryRateDraft, value: string) => void;
+    onSave: () => void;
+    onCancel: () => void;
+    isSaving: boolean;
+}) {
+    const cellInputClass = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
+
+    return (
+        <tr className="bg-emerald-50/30">
+            <td className="px-4 py-2">
+                <select
+                    value={draft.delivery_method}
+                    onChange={(e) => onChange('delivery_method', e.target.value)}
+                    className={cellInputClass}
+                >
+                    {DELIVERY_METHOD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+            </td>
+            <td className="px-4 py-2">
+                <select
+                    value={draft.zone ?? ''}
+                    onChange={(e) => onChange('zone', e.target.value)}
+                    className={cellInputClass}
+                >
+                    {ZONE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+            </td>
+            <td className="px-4 py-2">
+                <div className="flex items-center gap-1">
+                    <input type="number" step="0.01" min="0" value={draft.min_weight_kg} onChange={(e) => onChange('min_weight_kg', e.target.value)} placeholder="Min" className={`${cellInputClass} w-16`} />
+                    <span className="text-slate-300 text-xs">–</span>
+                    <input type="number" step="0.01" min="0" value={draft.max_weight_kg} onChange={(e) => onChange('max_weight_kg', e.target.value)} placeholder="Max" className={`${cellInputClass} w-16`} />
+                </div>
+            </td>
+            <td className="px-4 py-2">
+                <input type="number" step="1" min="0" value={draft.fee_crc} onChange={(e) => onChange('fee_crc', e.target.value)} placeholder="CRC" className={`${cellInputClass} w-24`} />
+            </td>
+            <td className="px-4 py-2">
+                <input type="number" step="1" min="0" value={draft.cost_crc} onChange={(e) => onChange('cost_crc', e.target.value)} placeholder="Por confirmar" className={`${cellInputClass} w-28`} />
+            </td>
+            <td className="px-4 py-2"></td>
+            <td className="px-4 py-2">
+                <div className="flex items-center justify-end gap-1.5">
+                    <button
+                        onClick={onSave}
+                        disabled={isSaving}
+                        title="Guardar"
+                        className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
+                    >
+                        <Check size={14} />
+                    </button>
+                    <button
+                        onClick={onCancel}
+                        disabled={isSaving}
+                        title="Cancelar"
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-40"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+}

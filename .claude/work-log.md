@@ -10456,3 +10456,22 @@ cb15d59 cambios en UX de ordenes de envio
  M src/shared/api/services/customers.service.ts
 ?? src/components/common/location-select-fields/
 ?? src/shared/constants/costa-rica-locations.ts
+
+=== 2026-07-13 16:10 ===
+--- recent commits ---
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+--- status ---
+
+=== 2026-07-13 16:24 ===
+--- recent commits ---
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+--- status ---
+ M .claude/work-log.md

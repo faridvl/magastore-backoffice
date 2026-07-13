@@ -15,6 +15,7 @@ export const updateSystemSettings = async (newData: any, userName: string) => {
     { key: 'tracopa_fee_crc',       label: 'Tarifa Tracopa' },
     { key: 'courier_rate_usd',      label: 'Tarifa Courier por Libra (USD)' },
     { key: 'courier_insurance_usd', label: 'Seguro Courier (USD)' },
+    { key: 'kg_per_lb',             label: 'Conversión kg por libra' },
   ];
 
   for (const field of fields) {

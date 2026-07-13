@@ -28,6 +28,31 @@ export interface CourierRate {
   created_at: Date;
 }
 
+export type DeliveryZone = 'GAM' | 'RESTO';
+
+export interface DeliveryRate {
+  id: number;
+  uuid: string;
+  delivery_method: DeliveryMethod;
+  zone: DeliveryZone | null;
+  min_weight_kg: number;
+  max_weight_kg: number;
+  fee_crc: number;
+  cost_crc: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeliveryRateInput {
+  delivery_method: DeliveryMethod;
+  zone: DeliveryZone | null;
+  min_weight_kg: number;
+  max_weight_kg: number;
+  fee_crc: number;
+  cost_crc: number | null;
+}
+
 export interface PreBilling {
   id: number;
   uuid: string;

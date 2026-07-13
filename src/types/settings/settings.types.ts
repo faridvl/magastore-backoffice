@@ -6,6 +6,7 @@ export type SystemSettings = {
   tracopa_fee_crc: number;
   courier_rate_usd: number;
   courier_insurance_usd: number;
+  kg_per_lb: number;
   updated_at: string;
 };
 
