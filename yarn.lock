@@ -313,13 +313,6 @@
   resolved "https://registry.npmjs.org/@date-fns/tz/-/tz-1.5.0.tgz"
   integrity sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==
 
-"@emnapi/runtime@^1.11.1":
-  version "1.11.2"
-  resolved "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.2.tgz"
-  integrity sha512-kyOl3X0DuTiT1h2ft8r2fYO8JYtU9a9Xis/zBSiGArNaagCOWx90N1k2wxp18czFDH+OgcWGb5ZP/XMt3dcyPA==
-  dependencies:
-    tslib "^2.4.0"
-
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.4.0"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz"
@@ -421,16 +414,6 @@
   version "2.0.3"
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
-
-"@img/colour@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/@img/colour/-/colour-1.1.0.tgz"
-  integrity sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==
-
-"@img/sharp-win32-x64@0.35.3":
-  version "0.35.3"
-  resolved "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.35.3.tgz"
-  integrity sha512-D4y1vNeZrIIJCN+uHaWVtH86B+aCrdMYYjicy9pXHvbGZeGYLLSd3wdVuC37FxVXlU1ARsk84eKWfWMXGYEqvA==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -1689,11 +1672,6 @@ define-properties@^1.1.3, define-properties@^1.2.0, define-properties@^1.2.1:
     define-data-property "^1.0.1"
     has-property-descriptors "^1.0.0"
     object-keys "^1.1.1"
-
-detect-libc@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz"
-  integrity sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==
 
 dfa@^1.2.0:
   version "1.2.0"
@@ -4042,10 +4020,10 @@ semver@^6.3.1:
   resolved "https://registry.npmjs.org/semver/-/semver-6.3.1.tgz"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.5.3, semver@^7.5.4, semver@^7.8.5:
-  version "7.8.5"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz"
-  integrity sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==
+semver@^7.5.3, semver@^7.5.4:
+  version "7.6.2"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.6.2.tgz"
+  integrity sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w==
 
 set-function-length@^1.2.1:
   version "1.2.2"
@@ -4068,41 +4046,6 @@ set-function-name@^2.0.1, set-function-name@^2.0.2:
     es-errors "^1.3.0"
     functions-have-names "^1.2.3"
     has-property-descriptors "^1.0.2"
-
-sharp@*:
-  version "0.35.3"
-  resolved "https://registry.npmjs.org/sharp/-/sharp-0.35.3.tgz"
-  integrity sha512-ej0zVHuZGHCiABXcNxeYhpRnPNPAcvbG8RMdBAhDAxLKkCRVSpK3Iyu7qbqw3JMzoj0REeM6f3tJLtVwl0023Q==
-  dependencies:
-    "@img/colour" "^1.1.0"
-    detect-libc "^2.1.2"
-    semver "^7.8.5"
-  optionalDependencies:
-    "@img/sharp-darwin-arm64" "0.35.3"
-    "@img/sharp-darwin-x64" "0.35.3"
-    "@img/sharp-freebsd-wasm32" "0.35.3"
-    "@img/sharp-libvips-darwin-arm64" "1.3.2"
-    "@img/sharp-libvips-darwin-x64" "1.3.2"
-    "@img/sharp-libvips-linux-arm" "1.3.2"
-    "@img/sharp-libvips-linux-arm64" "1.3.2"
-    "@img/sharp-libvips-linux-ppc64" "1.3.2"
-    "@img/sharp-libvips-linux-riscv64" "1.3.2"
-    "@img/sharp-libvips-linux-s390x" "1.3.2"
-    "@img/sharp-libvips-linux-x64" "1.3.2"
-    "@img/sharp-libvips-linuxmusl-arm64" "1.3.2"
-    "@img/sharp-libvips-linuxmusl-x64" "1.3.2"
-    "@img/sharp-linux-arm" "0.35.3"
-    "@img/sharp-linux-arm64" "0.35.3"
-    "@img/sharp-linux-ppc64" "0.35.3"
-    "@img/sharp-linux-riscv64" "0.35.3"
-    "@img/sharp-linux-s390x" "0.35.3"
-    "@img/sharp-linux-x64" "0.35.3"
-    "@img/sharp-linuxmusl-arm64" "0.35.3"
-    "@img/sharp-linuxmusl-x64" "0.35.3"
-    "@img/sharp-webcontainers-wasm32" "0.35.3"
-    "@img/sharp-win32-arm64" "0.35.3"
-    "@img/sharp-win32-ia32" "0.35.3"
-    "@img/sharp-win32-x64" "0.35.3"
 
 shebang-command@^2.0.0:
   version "2.0.0"

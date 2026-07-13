@@ -5,7 +5,7 @@ import fs from 'fs';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
 
 const LOGO_BUFFER = fs.readFileSync(
-  path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-dark.png'),
+  path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-transparent.png'),
 );
 
 const fmtCRC = (n: number | string) =>

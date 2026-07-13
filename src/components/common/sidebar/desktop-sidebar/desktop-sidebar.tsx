@@ -105,28 +105,29 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
     <div className="flex h-full w-64 max-h-screen flex-col bg-white border-r border-slate-100 dark:bg-background dark:border-slate-800">
 
       {/* Logo */}
-      <div className="flex h-[92px] items-center px-6 mb-1 shrink-0">
+      <div className="flex flex-col px-6 pt-4 pb-3 mb-1 shrink-0">
         <Link href={routesPrivate.admin.dashboard} className="flex items-center gap-2.5 group">
           <Image
-            src="/logo/magastore-logo-dark.png"
+            src="/logo/magastore-icon.png"
             alt="Magastore"
-            width={72}
-            height={72}
-            className="h-[72px] w-[72px] object-contain transition-transform duration-300 group-hover:scale-105"
+            width={48}
+            height={48}
+            className="h-[48px] w-[48px] object-contain group-hover:animate-spin-once"
             priority
           />
           <div className="flex flex-col">
             <Typography
               variant={TypographyVariant.BODY_BOLD}
-              className="text-slate-900 dark:text-white text-[15px] tracking-tighter leading-none"
+              className="text-slate-900 dark:text-white text-[16px] tracking-tighter leading-none whitespace-nowrap"
             >
               MAGA<span className="text-primary font-black">STORE</span>
             </Typography>
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.08em] mt-1 whitespace-nowrap">
               Logística & Envíos
             </span>
           </div>
         </Link>
+        <div className="h-[3px] w-full bg-teal-400 rounded-full mt-3" />
       </div>
 
       {/* Navigation */}
