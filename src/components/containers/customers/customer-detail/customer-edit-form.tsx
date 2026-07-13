@@ -3,7 +3,11 @@ import { Plus, MapPin, Loader2 } from 'lucide-react';
 
 const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { LocationSelectFields } from '@/components/common/location-select-fields/location-select-fields';
 import { CustomerUpdateInput, CustomerAddressUpdateInput, IdType } from '@/types/customer/customer.types';
+
+const LOCATION_SELECT_CLASSNAME = 'w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed';
+const LOCATION_LABEL_CLASSNAME = 'text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest';
 
 const ID_TYPES: { value: IdType; label: string }[] = [
   { value: 'FISICA', label: 'Física' },
@@ -157,9 +161,14 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FieldInput label="Provincia" value={addr.province} onChange={(v) => onAddressChange(index, 'province', v)} />
-              <FieldInput label="Cantón" value={addr.canton} onChange={(v) => onAddressChange(index, 'canton', v)} />
-              <FieldInput label="Distrito" value={addr.district} onChange={(v) => onAddressChange(index, 'district', v)} />
+              <LocationSelectFields
+                province={addr.province}
+                canton={addr.canton}
+                district={addr.district}
+                onChange={(field, value) => onAddressChange(index, field, value)}
+                selectClassName={LOCATION_SELECT_CLASSNAME}
+                labelClassName={LOCATION_LABEL_CLASSNAME}
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FieldInput label="Dirección Exacta" value={addr.exact_address} onChange={(v) => onAddressChange(index, 'exact_address', v)} />

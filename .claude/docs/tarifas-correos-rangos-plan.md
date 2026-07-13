@@ -1,7 +1,24 @@
 # Tarifas de envío por Correos CR — rangos configurables (análisis y plan)
 
-**Estado: ANÁLISIS COMPLETO, SIN IMPLEMENTAR.** Decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (reanálisis posterior al cierre de órdenes de envío v2, etapas 1-5).
+**Estado: EN IMPLEMENTACIÓN — Etapa 1 completada.** Decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (Etapa 1 — Direcciones estructuradas — completada, sin commit/push todavía).
+
+## Progreso
+
+### ✅ Etapa 1 — Direcciones estructuradas (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Dataset oficial** `src/shared/constants/costa-rica-locations.ts` (nuevo): 7 provincias, ~130 cantones/distritos de la división territorial de Costa Rica, con `getCantons()`, `getDistricts()`, y `resolveLocation()` (matching case/tilde-insensitive que devuelve los nombres oficiales exactos o `null`).
+- **Componente compartido** `src/components/common/location-select-fields/location-select-fields.tsx`: 3 `<select>` encadenados (provincia → cantón → distrito). Cambiar provincia resetea cantón/distrito; cambiar cantón resetea distrito. Recibe `selectClassName`/`labelClassName` para adaptarse al estilo visual de cada formulario sin duplicar la lógica de encadenamiento.
+- **Integrado en 2 formularios** (reemplazando los `<input>` de texto libre que existían):
+  - Crear cliente (`create-customer-container.tsx` + `use-create-customer.ts` — `handleAddressChange` ahora resetea cantón/distrito en cascada).
+  - Editar cliente (`customer-edit-form.tsx` + `use-customer-detail.ts` — mismo reset en cascada en `handleEditAddress`).
+- **Import masivo** (`use-import-customers.ts` + `customers.service.ts`): la validación de "no vacío" se reemplazó por `resolveLocation()` — fila con combinación provincia/cantón/distrito que no matchea el catálogo oficial se rechaza con mensaje explícito señalando la fila. Los valores se normalizan al nombre oficial exacto (corrige mayúsculas/tildes) antes de insertar.
+- **Validación backend agregada donde no existía ninguna**: `registerCustomer` y `editCustomer` (`customers.service.ts`) ahora validan y normalizan cada dirección contra el dataset vía `validateAndNormalizeAddress()` — antes no había ninguna validación de contenido de dirección en crear/editar cliente individual (solo en import).
+- **Migración de datos existentes**: los 10 registros reales en `customer_addresses` fueron normalizados contra el catálogo oficial (7 con mapeo "mejor esfuerzo" a la combinación válida más cercana — ej. "Sabana/Nunciatura" → San José/San José/Mata Redonda, "Guadalupe" como cantón → San José/Goicoechea/Guadalupe; 3 filas vacías → San José/San José/Carmen como default). Aplicado directamente en Neon vía script puntual (no versionado, mismo patrón usado en sesiones anteriores).
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Nota para Etapa 2**: el mapeo cantón→zona GAM/Resto sigue sin existir — es el siguiente paso, ahora con la garantía de que todo cantón nuevo que se capture (desde hoy en adelante) viene del catálogo oficial, no de texto libre arbitrario.
+
+---
 
 ---
 

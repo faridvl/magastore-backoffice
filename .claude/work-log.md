@@ -10379,3 +10379,80 @@ a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_
 --- status ---
  M .claude/docs/customer-code-warehouse-plan.md
  M .claude/work-log.md
+
+=== 2026-07-13 14:27 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+
+=== 2026-07-13 14:40 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 14:45 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 14:58 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 16:06 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+ M .claude/docs/tarifas-correos-rangos-plan.md
+ M .claude/work-log.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/customers/import/use-import-customers.ts
+ M src/shared/api/services/customers.service.ts
+?? src/components/common/location-select-fields/
+?? src/shared/constants/costa-rica-locations.ts
+
+=== 2026-07-13 16:08 ===
+--- recent commits ---
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+--- status ---
+ M .claude/docs/tarifas-correos-rangos-plan.md
+ M .claude/work-log.md
+ M src/components/containers/customers/create-customer/create-customer-container.tsx
+ M src/components/containers/customers/create-customer/use-create-customer.ts
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/customers/import/use-import-customers.ts
+ M src/shared/api/services/customers.service.ts
+?? src/components/common/location-select-fields/
+?? src/shared/constants/costa-rica-locations.ts

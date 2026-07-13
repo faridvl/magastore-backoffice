@@ -1,6 +1,10 @@
 import React from 'react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { LocationSelectFields } from '@/components/common/location-select-fields/location-select-fields';
 import { useCreateCustomer } from './use-create-customer';
+
+const LOCATION_SELECT_CLASSNAME = 'w-full bg-slate-50 border border-transparent rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 shadow-sm text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed';
+const LOCATION_LABEL_CLASSNAME = 'text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest';
 
 const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 
@@ -99,9 +103,14 @@ export const CreateCustomerContainer: React.FC = () => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <FormInput label="Provincia" value={addr.province} onChange={(e: any) => handleAddressChange(addr.id, 'province', e.target.value)} placeholder="Ej. San José" />
-                                <FormInput label="Cantón" value={addr.canton} onChange={(e: any) => handleAddressChange(addr.id, 'canton', e.target.value)} placeholder="Ej. Escazú" />
-                                <FormInput label="Distrito" value={addr.district} onChange={(e: any) => handleAddressChange(addr.id, 'district', e.target.value)} placeholder="Ej. San Rafael" />
+                                <LocationSelectFields
+                                    province={addr.province}
+                                    canton={addr.canton}
+                                    district={addr.district}
+                                    onChange={(field, value) => handleAddressChange(addr.id, field, value)}
+                                    selectClassName={LOCATION_SELECT_CLASSNAME}
+                                    labelClassName={LOCATION_LABEL_CLASSNAME}
+                                />
                                 <div className="col-span-1 md:col-span-2">
                                     <FormInput label="Dirección Exacta" value={addr.exact_address} onChange={(e: any) => handleAddressChange(addr.id, 'exact_address', e.target.value)} placeholder="Detalles de la ubicación..." />
                                 </div>

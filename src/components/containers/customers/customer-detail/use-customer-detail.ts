@@ -74,7 +74,11 @@ export const useCustomerDetail = (customerId: string) => {
     setEditForm((prev) => {
       if (!prev || !prev.addresses) return prev;
       const updated = prev.addresses.map((a, i) => {
-        if (i === index) return { ...a, [field]: value };
+        if (i === index) {
+          if (field === 'province') return { ...a, province: value as string, canton: '', district: '' };
+          if (field === 'canton') return { ...a, canton: value as string, district: '' };
+          return { ...a, [field]: value };
+        }
         if (field === 'is_default' && value === true) return { ...a, is_default: false };
         return a;
       });

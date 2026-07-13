@@ -127,7 +127,11 @@ export const useCreateCustomer = () => {
   const handleAddressChange = (id: string, field: string, value: string | boolean) => {
     setAddresses((prev) =>
       prev.map((a) => {
-        if (a.id === id) return { ...a, [field]: value };
+        if (a.id === id) {
+          if (field === 'province') return { ...a, province: value as string, canton: '', district: '' };
+          if (field === 'canton') return { ...a, canton: value as string, district: '' };
+          return { ...a, [field]: value };
+        }
         if (field === 'is_default' && value === true) return { ...a, is_default: false };
         return a;
       })

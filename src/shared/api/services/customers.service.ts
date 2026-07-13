@@ -1,6 +1,17 @@
-import { Customer, CustomerInput, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
 import { PaginatedResponse } from '@/types/paginate.types';
+import { resolveLocation } from '@/shared/constants/costa-rica-locations';
+
+function validateAndNormalizeAddress<T extends CustomerAddressInput | CustomerAddressUpdateInput>(addr: T): T {
+  const resolved = resolveLocation(addr.province, addr.canton, addr.district);
+  if (!resolved) {
+    throw new Error(
+      `La combinación provincia/cantón/distrito "${addr.province} / ${addr.canton} / ${addr.district}" no coincide con la división territorial de Costa Rica.`,
+    );
+  }
+  return { ...addr, ...resolved };
+}
 
 /**
  * Servicio para la gestión de clientes
@@ -13,6 +24,8 @@ export const CustomerService = {
     if (!data.addresses || data.addresses.length === 0) {
       throw new Error('El cliente debe tener al menos una dirección registrada.');
     }
+
+    data.addresses = data.addresses.map(validateAndNormalizeAddress);
 
     const hasDefault = data.addresses.some((addr) => addr.is_default);
     if (!hasDefault) {
@@ -82,6 +95,13 @@ export const CustomerService = {
       if (!row.province?.trim() || !row.canton?.trim() || !row.district?.trim() || !row.exact_address?.trim()) {
         throw new Error(`Fila con cédula ${row.id_card}: todos los campos de dirección son requeridos.`);
       }
+      const resolved = resolveLocation(row.province, row.canton, row.district);
+      if (!resolved) {
+        throw new Error(`Fila con cédula ${row.id_card}: la combinación provincia/cantón/distrito "${row.province} / ${row.canton} / ${row.district}" no coincide con la división territorial de Costa Rica.`);
+      }
+      row.province = resolved.province;
+      row.canton = resolved.canton;
+      row.district = resolved.district;
 
       if (seen.has(row.id_card)) {
         const prev = seen.get(row.id_card)!;
@@ -119,6 +139,10 @@ export const CustomerService = {
     if (data.id_card) {
       const idCardTaken = await CustomerRepo.checkExistingCustomerByIdCardExcluding(data.id_card, id);
       if (idCardTaken) throw new Error('Esta cédula ya está registrada en otro cliente.');
+    }
+
+    if (data.addresses) {
+      data.addresses = data.addresses.map(validateAndNormalizeAddress);
     }
 
     try {

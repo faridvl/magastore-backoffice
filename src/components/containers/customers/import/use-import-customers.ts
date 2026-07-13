@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 import { useImportCustomersMutation } from '@/shared/api/mutations/use-import-customers-mutation';
 import { IdType } from '@/types/customer/customer.types';
+import { resolveLocation } from '@/shared/constants/costa-rica-locations';
 
 const VALID_ID_TYPES: IdType[] = ['FISICA', 'JURIDICA', 'DIMEX', 'PASAPORTE'];
 
@@ -64,6 +65,12 @@ export const useImportCustomers = (onClose: () => void) => {
           if (!phone) { rowErrors.push(`Fila ${rowNum}: teléfono vacío.`); return; }
           if (!province || !canton || !district || !exactAddress) { rowErrors.push(`Fila ${rowNum}: campos de dirección incompletos.`); return; }
 
+          const resolvedLocation = resolveLocation(province, canton, district);
+          if (!resolvedLocation) {
+            rowErrors.push(`Fila ${rowNum}: la combinación provincia/cantón/distrito "${province} / ${canton} / ${district}" no coincide con la división territorial de Costa Rica.`);
+            return;
+          }
+
           rows.push({
             id_card: idCard,
             id_type: idTypeRaw,
@@ -72,9 +79,9 @@ export const useImportCustomers = (onClose: () => void) => {
             email,
             phone,
             customer_code: customerCode || undefined,
-            province,
-            canton,
-            district,
+            province: resolvedLocation.province,
+            canton: resolvedLocation.canton,
+            district: resolvedLocation.district,
             exact_address: exactAddress,
             address_label: addressLabel,
             is_default: isDefault,
