@@ -13,7 +13,7 @@ cómo funciona el sistema, sus reglas, sus pantallas y sus flujos de operación.
 | `01-sistema-general.md` | Qué es Magastore, para qué sirve, quiénes lo usan, flujo general |
 | `02-gestion-clientes.md` | Clientes: casillero, tipos de ID, direcciones, import masivo, restricciones |
 | `03-gestion-paquetes.md` | Paquetes: registro, estados, tipos de envío, historial, restricciones de peso |
-| `04-consolidaciones.md` | Consolidaciones: agrupación de paquetes, estados, UI de gestión |
+| `04-ordenes-de-envio.md` | Órdenes de Envío: agrupación de paquetes, estados, UI de gestión |
 | `05-facturacion-cobros.md` | Fórmula de cobro, método de entrega, proceso de facturación, estados de pago |
 | `06-configuracion-tarifas.md` | Tarifas configurables (flete y entrega local), historial de cambios, impacto |
 | `07-rastreo-publico.md` | Página de rastreo para clientes, eventos, tipos |
@@ -58,7 +58,7 @@ Puedes preguntarle a Claude cosas como:
 - "¿Cómo genero una factura?"
 - "¿Qué información necesito para crear un cliente?"
 - "¿Cómo importo clientes desde Excel?"
-- "¿Cómo creo una consolidación?"
+- "¿Cómo creo una orden de envío?"
 - "¿Qué ve el cliente cuando rastrea su paquete?"
 - "¿Qué pasa si un paquete llega dañado?"
 - "¿Cuándo debo actualizar el tipo de cambio?"

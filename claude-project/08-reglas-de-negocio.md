@@ -24,21 +24,21 @@ Este documento reúne todas las restricciones, validaciones y comportamientos au
 | R7 | El peso del paquete debe ser un número **entero** mayor o igual a 1 | El sistema bloquea decimales en el input y aplica un mínimo de 1 |
 | R8 | Todo paquete debe tener un cliente asignado | El campo cliente es obligatorio |
 | R9 | Todo paquete debe tener un número de tracking | El campo es obligatorio |
-| R10 | Un paquete solo puede pertenecer a una consolidación a la vez | No se puede agregar a una segunda consolidación |
+| R10 | Un paquete solo puede pertenecer a una orden de envío a la vez | No se puede agregar a una segunda orden de envío |
 | R11 | Los estados del paquete siguen el ciclo: MIAMI → TRANSITO → ADUANA → BODEGA_CR → ENTREGADO | El sistema no impide saltar estados, pero es la secuencia correcta |
 | R12 | Las notas internas y la URL de evidencia se sobrescriben en cada actualización | No hay historial de notas — solo se guarda la última |
 
 ---
 
-## Reglas de consolidaciones
+## Reglas de órdenes de envío
 
 | # | Regla | Qué pasa si se viola |
 |---|---|---|
-| R13 | Una consolidación en estado CERRADO, DESPACHADO o ENTREGADO no acepta nuevos paquetes | Error al intentar agregar |
-| R14 | El peso total de la consolidación se recalcula automáticamente al agregar paquetes | Automático — no requiere acción del operador |
-| R15 | Solo se puede generar una factura por consolidación | Error: "Ya existe una factura para esta consolidación" |
-| R16 | Solo se pueden facturar consolidaciones en estado CERRADO, DESPACHADO o ENTREGADO | Error si la consolidación está ABIERTA |
-| R17 | No se puede cerrar una consolidación que no tiene paquetes asignados | El botón de cerrar queda deshabilitado si la consolidación está vacía |
+| R13 | Una orden de envío en estado CERRADO, DESPACHADO o ENTREGADO no acepta nuevos paquetes | Error al intentar agregar |
+| R14 | El peso total de la orden de envío se recalcula automáticamente al agregar paquetes | Automático — no requiere acción del operador |
+| R15 | Solo se puede generar una factura por orden de envío | Error: "Ya existe una factura para esta orden de envío" |
+| R16 | Solo se pueden facturar órdenes de envío en estado CERRADO, DESPACHADO o ENTREGADO | Error si la orden de envío está ABIERTA |
+| R17 | No se puede cerrar una orden de envío que no tiene paquetes asignados | El botón de cerrar queda deshabilitado si la orden de envío está vacía |
 
 ---
 
@@ -46,7 +46,7 @@ Este documento reúne todas las restricciones, validaciones y comportamientos au
 
 | # | Regla | Qué pasa si se viola |
 |---|---|---|
-| R18 | El peso mínimo cobrable es 1 libra (configurable) | Si el paquete/consolidación pesa menos, se cobra el peso mínimo |
+| R18 | El peso mínimo cobrable es 1 libra (configurable) | Si el paquete/orden de envío pesa menos, se cobra el peso mínimo |
 | R19 | Las tarifas se toman del sistema al momento de generar la factura y se guardan en la factura | Las tarifas se "fotografían" — cambios futuros no afectan facturas ya emitidas |
 | R20 | Al generar una factura se debe seleccionar un método de entrega (Correos CR / Tracopa / Retiro) | Campo obligatorio al facturar |
 | R21 | Una factura marcada como pagada no puede desmarcarse | No hay botón para "desmarcar" un pago |
@@ -93,7 +93,7 @@ Estos comportamientos ocurren sin intervención del operador:
 | **Asignación de dirección principal** | Si ninguna dirección se marca como principal, el sistema asigna la primera |
 | **Creación del primer evento de rastreo** | Al registrar un paquete (estado MIAMI, tipo INFO) |
 | **Creación de evento de seguimiento** | Cada vez que se actualiza el estado de un paquete |
-| **Recálculo del peso total** | Cada vez que se agrega un paquete a una consolidación |
+| **Recálculo del peso total** | Cada vez que se agrega un paquete a una orden de envío |
 | **Registro en historial de tarifas** | Cada vez que se guarda un cambio en la configuración |
 | **Registro de fecha de pago** | Cuando se marca una factura como pagada |
 | **Truncado de decimales en peso** | Si se intenta ingresar un decimal en el campo de peso, el sistema aplica Math.floor y fuerza mínimo 1 |

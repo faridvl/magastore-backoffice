@@ -1,6 +1,12 @@
 import React from 'react';
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
+import path from 'path';
+import fs from 'fs';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
+
+const LOGO_BUFFER = fs.readFileSync(
+  path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-dark.png'),
+);
 
 const fmtCRC = (n: number | string) =>
   `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
@@ -19,8 +25,8 @@ const s = StyleSheet.create({
     backgroundColor: '#0f1a2e', flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'flex-start', paddingTop: 20, paddingBottom: 20, paddingLeft: 32, paddingRight: 32,
   },
-  brandName: { fontFamily: 'Helvetica-Bold', fontSize: 22, color: '#f0c040', letterSpacing: 2 },
-  brandSub: { fontSize: 8, color: '#93c5fd', marginTop: 2, letterSpacing: 1 },
+  brandBlock: { flexDirection: 'row', alignItems: 'center' },
+  brandLogo: { width: 110, height: 110 },
   headerMeta: { flexDirection: 'column', alignItems: 'flex-end' },
   headerMetaRow: { flexDirection: 'row', marginBottom: 4 },
   headerMetaLabel: { fontSize: 8, color: '#93c5fd', marginRight: 6, fontFamily: 'Helvetica-Bold' },
@@ -110,9 +116,8 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
       <Page size="A4" style={s.page}>
 
         <View style={s.header}>
-          <View>
-            <Text style={s.brandName}>MAGASTORE</Text>
-            <Text style={s.brandSub}>Correos por Internet · Courier</Text>
+          <View style={s.brandBlock}>
+            <Image style={s.brandLogo} src={LOGO_BUFFER} />
           </View>
           <View style={s.headerMeta}>
             <View style={s.headerMetaRow}>

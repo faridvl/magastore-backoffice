@@ -51,10 +51,10 @@ export const NAV_GROUPS: NavGroup[] = [
         route: routesPrivate.admin.logistics.index,
       },
       {
-        menuKey: 'consolidations',
+        menuKey: 'shipment-orders',
         icon: Boxes,
-        labelKey: 'Consolidaciones',
-        route: routesPrivate.admin.consolidations.index,
+        labelKey: 'Órdenes de Envío',
+        route: routesPrivate.admin.shipmentOrders.index,
       },
       {
         menuKey: 'customers',

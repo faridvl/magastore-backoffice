@@ -2,7 +2,7 @@
 
 ## ¿Cómo se cobra una importación?
 
-El cobro se calcula en base al **peso de la consolidación** aplicando las tarifas configuradas en el sistema más la tarifa de entrega local seleccionada. La factura se emite en **colones costarricenses (CRC)**.
+El cobro se calcula en base al **peso de la orden de envío** aplicando las tarifas configuradas en el sistema más la tarifa de entrega local seleccionada. La factura se emite en **colones costarricenses (CRC)**.
 
 ---
 
@@ -23,7 +23,7 @@ Total CRC      = Flete CRC + Tarifa de entrega local (CRC)
 | **Tracopa / Encomienda** | ₡2,500 CRC |
 | **Retiro en bodega** | ₡0 |
 
-### Ejemplo: consolidación de 3 libras por Correos CR
+### Ejemplo: orden de envío de 3 libras por Correos CR
 
 Tarifas vigentes:
 - Precio por libra: **$6.00 USD**
@@ -38,7 +38,7 @@ Flete CRC      = $18.00 × ₡480 = ₡8,640
 Total CRC      = ₡8,640 + ₡2,900 = ₡11,540
 ```
 
-### Ejemplo: consolidación de 1 libra con retiro en bodega
+### Ejemplo: orden de envío de 1 libra con retiro en bodega
 
 ```
 Peso cobrable  = MÁXIMO(1, 1) = 1 lb
@@ -65,10 +65,10 @@ Total CRC      = ₡2,880 + ₡0 = ₡2,880
 
 ## Proceso para generar una factura
 
-1. Los paquetes del cliente deben estar en una **consolidación**
-2. La consolidación debe estar en estado **CERRADO** o superior
+1. Los paquetes del cliente deben estar en una **orden de envío**
+2. La orden de envío debe estar en estado **CERRADO** o superior
 3. El operador va a la pantalla de **Cobros** (`/admin/billing`), tab **"Por Facturar"**
-4. Hace clic en la consolidación y selecciona **"Generar Factura"**
+4. Hace clic en la orden de envío y selecciona **"Generar Factura"**
 5. Selecciona el **método de entrega** (Correos CR, Tracopa o Retiro en bodega)
 6. El sistema crea la factura usando las tarifas actuales del sistema
 7. La factura queda en estado **Pendiente de pago**
@@ -96,7 +96,7 @@ La pantalla de cobros permite:
 - Buscar por nombre de cliente o código de casillero
 - Ver el detalle de cada factura (peso, tarifas aplicadas, método de entrega, total)
 - **Marcar una factura como pagada** (botón "Cobrar Ahora")
-- Ver consolidaciones que aún no tienen factura generada (tab "Por Facturar")
+- Ver órdenes de envío que aún no tienen factura generada (tab "Por Facturar")
 - **Descargar PDF** de la factura
 
 ### Métricas que muestra la pantalla
@@ -115,20 +115,20 @@ La pantalla de cobros permite:
 Al registrar un nuevo paquete, el sistema muestra un **cálculo estimado** del cobro usando las tarifas actuales. Este preview:
 - Se calcula en tiempo real mientras se ingresa el peso
 - Usa las tarifas configuradas en `Configuración`
-- Es solo una **estimación** — la factura real se genera al momento de facturar la consolidación y depende también del método de entrega elegido
+- Es solo una **estimación** — la factura real se genera al momento de facturar la orden de envío y depende también del método de entrega elegido
 
 ---
 
 ## Preguntas frecuentes sobre facturación
 
-**¿Se puede generar una factura para un paquete suelto (sin consolidación)?**
-El modelo de negocio de Magastore factura por consolidación, no por paquete individual. Todos los paquetes deben estar en una consolidación antes de facturar.
+**¿Se puede generar una factura para un paquete suelto (sin orden de envío)?**
+El modelo de negocio de Magastore factura por orden de envío, no por paquete individual. Todos los paquetes deben estar en una orden de envío antes de facturar.
 
 **¿Qué pasa si el peso del paquete es menor al mínimo?**
 Se cobra el peso mínimo (1 libra). Ejemplo: un paquete de 1 lb (mínimo posible) se cobra normalmente.
 
-**¿Puedo generar dos facturas para la misma consolidación?**
-No. El sistema solo permite una factura por consolidación.
+**¿Puedo generar dos facturas para la misma orden de envío?**
+No. El sistema solo permite una factura por orden de envío.
 
 **¿Las tarifas cambian automáticamente en las facturas ya emitidas?**
 No. Cada factura guarda una "fotografía" de las tarifas del momento en que fue generada.

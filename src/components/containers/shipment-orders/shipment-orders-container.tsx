@@ -21,7 +21,7 @@ import {
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
-import { useConsolidations, ConsolidationStatusFilter } from './use-consolidations';
+import { useShipmentOrders, ShipmentOrderStatusFilter } from './use-shipment-orders';
 import {
   ConsolidationListItem,
   ConsolidationDetail,
@@ -45,7 +45,7 @@ const STATUS_COLORS: Record<ConsolidationStatus, string> = {
 };
 
 const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
-  ABIERTO: 'Cerrar consolidación',
+  ABIERTO: 'Cerrar orden de envío',
   CERRADO: 'Marcar como Entregado',
   ENTREGADO: null,
 };
@@ -56,7 +56,7 @@ const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   RETIRO: 'Retiro en oficina',
 };
 
-const STATUS_FILTERS: { value: ConsolidationStatusFilter; label: string }[] = [
+const STATUS_FILTERS: { value: ShipmentOrderStatusFilter; label: string }[] = [
   { value: ConsolidationStatus.ABIERTO, label: 'Abiertos' },
   { value: ConsolidationStatus.CERRADO, label: 'Cerrados' },
   { value: ConsolidationStatus.ENTREGADO, label: 'Entregados' },
@@ -65,17 +65,17 @@ const STATUS_FILTERS: { value: ConsolidationStatusFilter; label: string }[] = [
 
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
 
-export const ConsolidationsContainer: React.FC = () => {
+export const ShipmentOrdersContainer: React.FC = () => {
   const {
     page, setPage,
     search, setSearch,
     statusFilter, handleStatusFilterChange,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
-    consolidations, listMeta, isLoadingList,
+    shipmentOrders, listMeta, isLoadingList,
 
     selectedUuid, setSelectedUuid,
-    consolidationDetail, isLoadingDetail,
+    shipmentOrderDetail, isLoadingDetail,
 
     handleAdvanceStatus, isUpdating,
 
@@ -96,7 +96,7 @@ export const ConsolidationsContainer: React.FC = () => {
     isAssigning,
 
     handleSelectRow,
-    openConsolidationCheck,
+    openShipmentOrderCheck,
 
     showPreBillingModal, setShowPreBillingModal,
     preBillingDeliveryMethod, setPreBillingDeliveryMethod,
@@ -112,7 +112,7 @@ export const ConsolidationsContainer: React.FC = () => {
 
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
-  } = useConsolidations();
+  } = useShipmentOrders();
 
   const listColumns: Column<ConsolidationListItem>[] = [
     {
@@ -182,7 +182,7 @@ export const ConsolidationsContainer: React.FC = () => {
             <button
               onClick={(e) => { e.stopPropagation(); setDeleteUuid(row.uuid); }}
               className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-              title="Eliminar consolidación"
+              title="Eliminar orden de envío"
             >
               <Trash2 size={14} />
             </button>
@@ -240,7 +240,7 @@ export const ConsolidationsContainer: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm whitespace-nowrap flex-shrink-0"
           >
             <Plus size={15} />
-            <span className="hidden sm:inline">Nueva Consolidación</span>
+            <span className="hidden sm:inline">Nueva Orden de Envío</span>
             <span className="sm:hidden">Nueva</span>
           </button>
         </div>
@@ -280,17 +280,17 @@ export const ConsolidationsContainer: React.FC = () => {
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
           ))
-        ) : consolidations.length === 0 ? (
+        ) : shipmentOrders.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
             <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
               <Boxes size={24} className="text-slate-300" />
             </div>
-            <p className="font-black text-slate-400 text-sm">Sin consolidaciones</p>
+            <p className="font-black text-slate-400 text-sm">Sin órdenes de envío</p>
             <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
-              No hay consolidaciones que coincidan con los filtros
+              No hay órdenes de envío que coincidan con los filtros
             </p>
           </div>
-        ) : consolidations.map((row) => (
+        ) : shipmentOrders.map((row) => (
           <button
             key={row.uuid}
             onClick={() => handleSelectRow(row)}
@@ -335,7 +335,7 @@ export const ConsolidationsContainer: React.FC = () => {
       {/* TABLE (tablet+) */}
       <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <NewTable
-          data={consolidations}
+          data={shipmentOrders}
           columns={listColumns}
           isLoading={isLoadingList}
           totalRows={listMeta.total}
@@ -347,17 +347,17 @@ export const ConsolidationsContainer: React.FC = () => {
         />
       </div>
 
-      {/* MODAL: DETALLE DE CONSOLIDACIÓN */}
+      {/* MODAL: DETALLE DE ORDEN DE ENVÍO */}
       {selectedUuid && (
         <DetailModal
-          detail={consolidationDetail}
+          detail={shipmentOrderDetail}
           isLoading={isLoadingDetail}
           isUpdating={isUpdating}
           isAssigning={isAssigning}
           isConfirmingPreBilling={isConfirmingPreBilling}
           onClose={() => setSelectedUuid(null)}
           onAdvanceStatus={handleAdvanceStatus}
-          onReopen={() => consolidationDetail && setQuickActionTarget({ uuid: consolidationDetail.uuid, action: 'reopen' })}
+          onReopen={() => shipmentOrderDetail && setQuickActionTarget({ uuid: shipmentOrderDetail.uuid, action: 'reopen' })}
           onOpenAssignModal={handleOpenAssignModal}
           onOpenPreBillingModal={() => setShowPreBillingModal(true)}
           onConfirmPreBilling={handleConfirmPreBilling}
@@ -380,7 +380,7 @@ export const ConsolidationsContainer: React.FC = () => {
                 <Trash2 size={18} className="text-red-500" />
               </div>
               <div>
-                <p className="font-bold text-slate-800 text-sm">¿Eliminar consolidación?</p>
+                <p className="font-bold text-slate-800 text-sm">¿Eliminar orden de envío?</p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
                   Los paquetes asignados quedarán disponibles nuevamente. Esta acción no se puede deshacer.
                 </p>
@@ -426,12 +426,12 @@ export const ConsolidationsContainer: React.FC = () => {
               </div>
               <div>
                 <p className="font-bold text-slate-800 text-sm">
-                  {quickActionTarget.action === 'reopen' ? '¿Volver a abrir esta consolidación?' : '¿Marcar como despachada?'}
+                  {quickActionTarget.action === 'reopen' ? '¿Volver a abrir esta orden de envío?' : '¿Marcar como despachada?'}
                 </p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
                   {quickActionTarget.action === 'reopen'
-                    ? 'La consolidación volverá a estado ABIERTO y podrás seguir editándola.'
-                    : 'La consolidación pasará a estado ENTREGADO.'
+                    ? 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.'
+                    : 'La orden de envío pasará a estado ENTREGADO.'
                   }
                 </p>
               </div>
@@ -457,7 +457,7 @@ export const ConsolidationsContainer: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: CREAR CONSOLIDACIÓN */}
+      {/* MODAL: CREAR ORDEN DE ENVÍO */}
       {showCreateModal && (
         <div
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -472,7 +472,7 @@ export const ConsolidationsContainer: React.FC = () => {
                 <Boxes size={18} className="text-slate-600" />
               </div>
               <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Nueva Consolidación
+                Nueva Orden de Envío
               </Typography>
             </div>
 
@@ -519,13 +519,13 @@ export const ConsolidationsContainer: React.FC = () => {
               )}
             </div>
 
-            {openConsolidationCheck?.hasOpen && (
+            {openShipmentOrderCheck?.hasOpen && (
               <div className="mb-4 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
                 <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-black text-amber-800">Este cliente ya tiene una consolidación abierta</p>
+                  <p className="text-sm font-black text-amber-800">Este cliente ya tiene una orden de envío abierta</p>
                   <p className="text-xs text-amber-700 mt-1">
-                    ID: <span className="font-mono font-black">#{openConsolidationCheck.uuid?.slice(-5).toUpperCase()}</span>.
+                    ID: <span className="font-mono font-black">#{openShipmentOrderCheck.uuid?.slice(-5).toUpperCase()}</span>.
                     {' '}Ciérrala antes de crear una nueva, o selecciona otro cliente.
                   </p>
                 </div>
@@ -541,10 +541,10 @@ export const ConsolidationsContainer: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirmCreate}
-                disabled={!createCustomerUuid || isCreating || !!openConsolidationCheck?.hasOpen}
+                disabled={!createCustomerUuid || isCreating || !!openShipmentOrderCheck?.hasOpen}
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
-                {isCreating ? 'Creando...' : 'Crear Consolidación'}
+                {isCreating ? 'Creando...' : 'Crear Orden de Envío'}
               </button>
             </div>
           </div>
@@ -585,7 +585,7 @@ export const ConsolidationsContainer: React.FC = () => {
               <div className="text-center py-8">
                 <Package size={32} className="text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 text-sm">No hay paquetes disponibles para este cliente.</p>
-                <p className="text-slate-400 text-xs mt-1">Los paquetes ya asignados a otra consolidación no aparecen aquí.</p>
+                <p className="text-slate-400 text-xs mt-1">Los paquetes ya asignados a otra orden de envío no aparecen aquí.</p>
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
@@ -871,7 +871,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
                 <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-black text-emerald-800">Factura generada</p>
-                  <p className="text-[10px] text-emerald-600 mt-0.5">Esta consolidación ya tiene factura</p>
+                  <p className="text-[10px] text-emerald-600 mt-0.5">Esta orden de envío ya tiene factura</p>
                 </div>
               </div>
             )}
@@ -879,7 +879,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
             {/* Packages list */}
             <div className="flex-1 overflow-y-auto mb-6">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                Paquetes en esta consolidación
+                Paquetes en esta orden de envío
               </p>
               {detail.packages.length === 0 ? (
                 <div className="text-center py-6 text-slate-400 text-sm">
@@ -968,4 +968,4 @@ const PackageTable: React.FC<{ packages: ConsolidationPackage[] }> = ({ packages
   </div>
 );
 
-export default ConsolidationsContainer;
+export default ShipmentOrdersContainer;

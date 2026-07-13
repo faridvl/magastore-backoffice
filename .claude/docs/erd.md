@@ -140,14 +140,14 @@ One customer owns zero or more packages. A package always belongs to exactly one
 ---
 
 ### `customers` → `consolidations` (1 : N)
-One customer can have zero or more consolidations. The `customer_id` FK is present in the `Consolidation` type but there is no JOIN query in the codebase that uses it directly.
+One customer can have zero or more orders (shipment orders). The `customer_id` FK is present in the `Consolidation` type but there is no JOIN query in the codebase that uses it directly.
 
 **Evidence:** `logistics.types.ts:52` (`customer_id: string` in `Consolidation`)
 
 ---
 
 ### `packages` → `consolidations` (N : 0..1)
-Many packages can belong to one consolidation, or a package can have no consolidation (`consolidation_id IS NULL`). A package joins a consolidation via `UPDATE packages SET consolidation_id = ...`. There is no code to remove a package from a consolidation.
+Many packages can belong to one shipment order, or a package can have no shipment order (`consolidation_id IS NULL`). A package joins a shipment order via `UPDATE packages SET consolidation_id = ...`. There is no code to remove a package from a shipment order.
 
 **Evidence:** `logistics.repo.ts:105-109` (UPDATE) and `logistics.repo.ts:111-116` (weight recalculation)
 
@@ -167,8 +167,8 @@ A single package can have zero or one billing record when invoiced individually.
 
 ---
 
-### `consolidations` → `billing` (1 : 0..1) [consolidation path]
-A consolidation can have zero or one billing record. `billing.consolidation_id` is set; `billing.package_id` is null.
+### `consolidations` → `billing` (1 : 0..1) [shipment order path]
+A shipment order can have zero or one billing record. `billing.consolidation_id` is set; `billing.package_id` is null.
 
 **Evidence:** `logistics.repo.ts:169` (`consolidation_id: type === 'CONSOLIDATION' ? targetId : null`)
 
@@ -216,7 +216,7 @@ system_settings  (read-only by use-package-calculator.ts for cost preview)
 | `weight_lb > 0` | Service layer (`logistics.service.ts:73`) |
 | Unique `id_card` and `email` per customer | Service check before INSERT + implied DB UNIQUE constraint |
 | `system_settings` always has exactly one row | Application always UPDATEs, never INSERTs |
-| Consolidation weight = `SUM(packages.weight_lb)` | Recalculated on every consolidation operation |
+| Shipment order weight = `SUM(packages.weight_lb)` | Recalculated on every shipment order operation |
 
 ---
 
@@ -224,9 +224,9 @@ system_settings  (read-only by use-package-calculator.ts for cost preview)
 
 ### 1. What business does this database currently model?
 
-A **Costa Rica package import courier service**. Customers ship goods from the United States (received at a Miami warehouse) and the courier tracks each parcel through a defined status chain — Miami intake → international transit → Costa Rican customs → local warehouse → final delivery. The business charges customers by weight (minimum 1 lb), converts to Costa Rican colones using an exchange rate, adds a fixed fee, and issues invoices per package or per consolidated shipment.
+A **Costa Rica package import courier service**. Customers ship goods from the United States (received at a Miami warehouse) and the courier tracks each parcel through a defined status chain — Miami intake → international transit → Costa Rican customs → local warehouse → final delivery. The business charges customers by weight (minimum 1 lb), converts to Costa Rican colones using an exchange rate, adds a fixed fee, and issues invoices per package or per shipment order.
 
-The database models the core operational loop: **customer registry → package intake → status tracking → consolidation → invoicing**.
+The database models the core operational loop: **customer registry → package intake → status tracking → shipment order → invoicing**.
 
 ---
 
@@ -237,7 +237,7 @@ The database models the core operational loop: **customer registry → package i
 | Customer list (name, ID, address) | `customers` + `customer_addresses` |
 | Package intake log (tracking#, weight, type, date) | `packages` |
 | Package status tracker | `packages.status` + `package_events` (read-only currently) |
-| Shipment manifest / grouping | `consolidations` + `packages.consolidation_id` |
+| Shipment order / grouping | `consolidations` + `packages.consolidation_id` |
 | Invoice log (amount, rates, weight) | `billing` with all rate snapshots |
 | Rate configuration sheet | `system_settings` |
 | Rate change audit log | `settings_history` |
@@ -281,6 +281,6 @@ These are gaps identified from the analysis above. No implementation is proposed
 | `customers` | Already models the client registry. Extend with additional contact fields if needed; do not create a parallel customer table. |
 | `packages` | The core parcel entity. New features (e.g., sender info, customs value) should add columns here, not create a shadow table. |
 | `billing` | The invoice record. Extend with `payment_method`, `receipt_number` columns rather than creating a separate invoice table. |
-| `consolidations` | Already models shipment grouping. Reuse for any bulk-shipping scenario. |
+| `consolidations` | Already models shipment order grouping. Reuse for any bulk-shipping scenario. |
 | `system_settings` | Extend with additional rate fields (e.g., per-type rates) before creating a new configuration table. |
 | `settings_history` | Already provides field-level audit for settings changes; reuse the pattern for other auditable entities. |

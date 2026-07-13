@@ -3,23 +3,23 @@ import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { CreateConsolidationInput } from '@/types/logistics/logistics.types';
-import { CONSOLIDATIONS_LIST_KEY } from '../../querys/consolidations/use-consolidations-query';
+import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
 
-export function useCreateConsolidationMutation() {
+export function useCreateShipmentOrderMutation() {
   const queryClient = useQueryClient();
 
-  const { mutateAsync: createConsolidation, isPending, error, reset } = useApiMutation<
+  const { mutateAsync: createShipmentOrder, isPending, error, reset } = useApiMutation<
     { data: { uuid: string } },
     CreateConsolidationInput,
     Error
   >({
-    mutationKey: ['createConsolidation'],
+    mutationKey: ['createShipmentOrder'],
     mutationFn: ({ customerUuid }: CreateConsolidationInput) =>
       ApiServiceClient(env.API.BASE_URL).post('/consolidations', { customerUuid }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CONSOLIDATIONS_LIST_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
     },
   });
 
-  return { createConsolidation, isPending, error, reset };
+  return { createShipmentOrder, isPending, error, reset };
 }

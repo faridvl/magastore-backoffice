@@ -141,27 +141,27 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 
 ---
 
-## Gestión de Consolidaciones (`/admin/consolidations`)
+## Gestión de Órdenes de Envío (`/admin/shipment-orders`)
 
 **Quién accede:** Operadores autenticados.
 
 **Qué muestra:**
-- Lista de todas las consolidaciones (tabla en desktop, cards en mobile)
+- Lista de todas las órdenes de envío (tabla en desktop, cards en mobile)
 - Columnas: cliente, casillero, estado, peso total, cantidad de paquetes, fecha
-- Empty state cuando no hay consolidaciones que coincidan con los filtros
+- Empty state cuando no hay órdenes de envío que coincidan con los filtros
 
 **Filtros disponibles:**
 - Búsqueda por nombre de cliente o casillero
 - Filtro por estado: Todos / Abiertos / Cerrados / Despachados / Entregados
 - Filtro de fechas: Desde y Hasta (cada uno en su propia fila)
 
-*En mobile, el toolbar se organiza en filas: búsqueda → botón nueva consolidación → filtros de estado → fecha Desde → fecha Hasta.*
+*En mobile, el toolbar se organiza en filas: búsqueda → botón nueva orden de envío → filtros de estado → fecha Desde → fecha Hasta.*
 
 **Acciones disponibles:**
-- Crear nueva consolidación (seleccionar cliente)
-- Ver detalle de una consolidación (panel lateral/modal)
-- Asignar paquetes a una consolidación abierta
-- Avanzar el estado de la consolidación
+- Crear nueva orden de envío (seleccionar cliente)
+- Ver detalle de una orden de envío (panel lateral/modal)
+- Asignar paquetes a una orden de envío abierta
+- Avanzar el estado de la orden de envío
 
 **Modal de detalle:**
 - Muestra cliente, estado, peso total y lista de paquetes asignados
@@ -178,14 +178,14 @@ Descripción de cada pantalla del sistema Magastore: qué muestra, qué acciones
 - Lista de todas las facturas generadas
 - Estado de cada factura (pagada / pendiente)
 - Métricas: total por cobrar, facturas pagadas, pendientes, eficiencia de cobro
-- Tab "Por Facturar": consolidaciones que aún no tienen factura
+- Tab "Por Facturar": órdenes de envío que aún no tienen factura
 
 **Acciones disponibles:**
 - Buscar facturas por nombre de cliente o casillero
 - Filtrar por estado de pago (todas / pagadas / pendientes)
 - Ver detalle de una factura
 - Marcar una factura como pagada ("Cobrar Ahora")
-- Generar factura para una consolidación pendiente (seleccionando método de entrega)
+- Generar factura para una orden de envío pendiente (seleccionando método de entrega)
 - Descargar PDF de la factura
 
 ---

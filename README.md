@@ -1,6 +1,6 @@
 # Magastore Backoffice
 
-Sistema de gestión interna para una empresa de courier que importa paquetes desde Panamá hacia Costa Rica. Los operadores usan este backoffice para registrar paquetes al llegar, darles seguimiento durante el tránsito, agruparlos en consolidaciones por cliente, generar pre-facturas y facturas finales en colones, y notificar al cliente cuando su paquete está listo.
+Sistema de gestión interna para una empresa de courier que importa paquetes desde Panamá hacia Costa Rica. Los operadores usan este backoffice para registrar paquetes al llegar, darles seguimiento durante el tránsito, agruparlos en órdenes de envío por cliente, generar pre-facturas y facturas finales en colones, y notificar al cliente cuando su paquete está listo.
 
 El cliente final tiene acceso a una página pública de tracking (`/tracking`) donde puede ver el estado de su paquete con su número de guía, sin necesidad de login.
 
@@ -47,8 +47,8 @@ EMAIL_LOGO_URL=https://tudominio.com/logo.png   # opcional
 
 1. **Registro de paquete** — el operador registra un paquete cuando llega: tracking number, peso, tipo (aéreo/marítimo), tarifa courier, cliente dueño, dirección de entrega.
 2. **Cambio de estados** — el paquete avanza por: `PANAMA → EN_TRAMITE → ENTREGADO`. Cada cambio registra un evento en la bitácora con tipo (`INFO`, `WARNING`, `DAMAGE`, `CRITICAL`), descripción y ubicación opcional.
-3. **Consolidación** — los paquetes de un mismo cliente se agrupan en una consolidación. El peso total se recalcula automáticamente al asignar/quitar paquetes.
-4. **Pre-factura** — antes de emitir la factura final se genera una pre-factura con estimación de costos (precio/lb desde `system_settings`, tipo de cambio, método de entrega). El operador la confirma con el cliente.
+3. **Orden de Envío** — los paquetes de un mismo cliente se agrupan en una orden de envío. El peso total se recalcula automáticamente al asignar/quitar paquetes.
+4. **Pre-factura** — antes de emitir la factura final se genera una pre-factura con estimación de costos (precio/lb desde `system_settings`, tipo de cambio, método de entrega) para la orden de envío. El operador la confirma con el cliente.
 5. **Factura final** — al confirmar la pre-factura se genera la factura definitiva con snapshot de tarifas vigentes. El monto queda fijo en el momento de facturar.
 6. **Cobro** — el operador marca la factura como pagada. El cliente puede descargar el PDF desde la página de tracking.
 7. **Notificaciones** — se envía email al cliente cuando su paquete es entregado y cuando se genera su factura, usando Resend con templates HTML.
@@ -65,7 +65,7 @@ EMAIL_LOGO_URL=https://tudominio.com/logo.png   # opcional
 | `/admin/customers` | Lista de clientes con importación masiva desde Excel, empty state, paginación. |
 | `/admin/customers/[id]` | Detalle de cliente: historial de paquetes, direcciones, edición de cédula. |
 | `/admin/customers/create` | Registro de nuevo cliente con validación de duplicados. |
-| `/admin/consolidations` | Gestión de consolidaciones: crear, asignar paquetes, pre-factura, cambio de estado, eliminar. |
+| `/admin/shipment-orders` | Gestión de órdenes de envío: crear, asignar paquetes, pre-factura, cambio de estado, eliminar. |
 | `/admin/billing` | Lista de facturas generadas: marcar pagado, descargar PDF. |
 | `/admin/billing/reports` | Reporte mensual de facturación: ingresos, pagado, pendiente, ganancia. |
 | `/admin/settings` | Tarifas del sistema: precio/lb, tipo de cambio, costos de entrega. Historial de cambios paginado. |
@@ -92,7 +92,7 @@ Tokens JWT almacenados en cookies via `CookiesManager`. El cliente API los lee a
 
 ### Billing
 
-La factura parte de una **pre-factura** (estimación confirmable) que el operador genera al cerrar una consolidación. Al confirmar, se genera la **factura final** con snapshot de tarifas — precio/lb, tipo de cambio, método de entrega, fee de envío local. Esos valores quedan fijos en la fila de `billing`; facturas pasadas no cambian si se actualizan las tarifas.
+La factura parte de una **pre-factura** (estimación confirmable) que el operador genera al cerrar una orden de envío. Al confirmar, se genera la **factura final** con snapshot de tarifas — precio/lb, tipo de cambio, método de entrega, fee de envío local. Esos valores quedan fijos en la fila de `billing`; facturas pasadas no cambian si se actualizan las tarifas.
 
 Las tarifas vienen todas de `system_settings` — no hay constantes hardcodeadas en el repositorio.
 

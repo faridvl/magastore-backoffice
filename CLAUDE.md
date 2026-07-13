@@ -166,7 +166,7 @@ Tailwind-only. No CSS modules. Use the `tailwind()` utility from `src/utils/tail
 
 ## Domain Knowledge
 
-This is a **package import and logistics backoffice** for a courier service operating in Costa Rica. Operators manage incoming packages from Panama, track their transit, consolidate shipments per customer, generate pre-invoices and final invoices in CRC, and notify customers by email.
+This is a **package import and logistics backoffice** for a courier service operating in Costa Rica. Operators manage incoming packages from Panama, track their transit, group shipments per customer into shipment orders, generate pre-invoices and final invoices in CRC, and notify customers by email.
 
 ### Main Entities
 
@@ -175,7 +175,7 @@ This is a **package import and logistics backoffice** for a courier service oper
 | Package | `packages` | `uuid`, `tracking_number`, `weight_lb`, `status`, `consolidation_id`, `customer_id`, `package_type`, `internal_notes`, `evidence_url`, `address_id`, `courier_cost_usd`, `tc_banco`, `insurance_applied`, `courier_rate_id` | `types/logistics/logistics.types.ts` `Package` |
 | Customer | `customers` | `id` (UUID string), `id_card`, `id_type`, `customer_code`, `is_active` | `types/customer/customer.types.ts` `Customer` |
 | Customer Address | `customer_addresses` | `customer_id`, `province`, `canton`, `district`, `exact_address`, `address_label`, `is_default` | `types/customer/customer.types.ts` `CustomerAddress`; SQL in `customers.repo.ts` |
-| Consolidation | `consolidations` | `uuid`, `customer_id`, `total_weight_lb`, `status` | `types/logistics/logistics.types.ts` `Consolidation` |
+| Shipment Order | `consolidations` | `uuid`, `customer_id`, `total_weight_lb`, `status` | `types/logistics/logistics.types.ts` `Consolidation` |
 | Pre-Billing | `pre_billing` | `uuid`, `consolidation_id`, `estimated_amount_crc`, `delivery_method`, `delivery_fee_crc`, `applied_rate_usd`, `applied_exchange`, `is_confirmed` | `types/logistics/logistics.types.ts` `PreBilling` |
 | Billing | `billing` | `uuid`, `consolidation_id`, `applied_rate_usd`, `applied_exchange`, `applied_fee_crc`, `total_weight_charged`, `total_amount_crc`, `is_paid`, `paid_at`, `delivery_method`, `delivery_fee_crc`, `delivery_address_snapshot` | `types/logistics/logistics.types.ts` `Billing` |
 | Package Event | `package_events` | `package_id`, `status`, `event_type`, `description`, `location` | `types/logistics/logistics.types.ts` `PackageEvent` |
@@ -191,7 +191,7 @@ PANAMA → EN_TRAMITE → ENTREGADO
 
 Defined in `PackageStatus` enum — `types/logistics/logistics.types.ts:1-5`. No state machine is enforced: status can be set to any value regardless of current state. When status is set to `ENTREGADO`, `logistics.service.ts` calls `sendDeliveryNotification` via Resend — this sends a real email to the customer.
 
-### Consolidation Status Lifecycle
+### Shipment Order Status Lifecycle
 
 ```
 ABIERTO → CERRADO → ENTREGADO
@@ -245,7 +245,7 @@ JWT tokens expire in `12h` — `auth.service.ts`. The fallback secret is the har
 | Package registration | `use-package-calculator.ts`, `logistics.service.ts`, `logistics.repo.ts:createPackage` | Preview reads `system_settings`; actual billing is generated at pre-billing confirmation — rates may change between registration and invoicing |
 | Generate pre-billing | `logistics.service.ts`, `logistics.repo.ts:generatePreBilling` | Reads `system_settings` at call time; snapshot stored in `pre_billing` row |
 | Confirm pre-billing / generate invoice | `logistics.service.ts`, `logistics.repo.ts:generateBilling` | Transactional; triggers `sendInvoiceNotification` — requires `RESEND_API_KEY` |
-| Consolidate packages | `logistics.service.ts`, `logistics.repo.ts:consolidatePackages` | Transactional — a mid-transaction failure leaves `packages.consolidation_id` partially updated |
+| Group packages into a shipment order | `logistics.service.ts`, `logistics.repo.ts:consolidatePackages` | Transactional — a mid-transaction failure leaves `packages.consolidation_id` partially updated |
 | Update system settings | `settings.service.ts`, `settings.repo.ts` | History is logged field-by-field; a missing field in `newData` silently skips its history entry |
 | Customer creation | `customers.service.ts`, `customers.repo.ts:createCustomerWithAddresses` | SQL CTE — customer and all addresses are inserted atomically; failure rolls back both |
 

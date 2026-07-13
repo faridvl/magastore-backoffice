@@ -162,7 +162,7 @@ This automatically writes a row to `package_events` on every status change. The 
 |---|---|---|---|
 | `id` | INTEGER | NOT NULL | PK, auto-increment (SERIAL) |
 | `uuid` | UUID | NOT NULL | External identifier; unique |
-| `consolidation_id` | INTEGER | NULLABLE | FK → `consolidations.id`; null until package is consolidated |
+| `consolidation_id` | INTEGER | NULLABLE | FK → `consolidations.id`; null until package is added to a shipment order |
 | `customer_id` | UUID | NOT NULL | FK → `customers.id` |
 | `tracking_number` | TEXT | NOT NULL | Carrier tracking number |
 | `weight_lb` | DECIMAL | NOT NULL | Must be > 0 (enforced in service) |
@@ -185,7 +185,7 @@ This automatically writes a row to `package_events` on every status change. The 
 - FK index on `customer_id`
 - FK index on `consolidation_id`
 
-**Business meaning:** Represents a single physical parcel. Its lifecycle is tracked from entry in Miami through customs (`ADUANA`), Costa Rica warehouse (`BODEGA_CR`), to final delivery (`ENTREGADO`). Can belong to a consolidation or be invoiced individually.
+**Business meaning:** Represents a single physical parcel. Its lifecycle is tracked from entry in Miami through customs (`ADUANA`), Costa Rica warehouse (`BODEGA_CR`), to final delivery (`ENTREGADO`). Can belong to a shipment order or be invoiced individually.
 
 ---
 
@@ -220,7 +220,7 @@ This automatically writes a row to `package_events` on every status change. The 
 
 ### `consolidations`
 
-**Purpose:** Groups multiple packages into a single shipment for bulk handling and invoicing.
+**Purpose:** Groups multiple packages into a single shipment order for bulk handling and invoicing.
 
 **Primary key:** `id` — `INTEGER` [inferred from `Consolidation.id: number`]
 
@@ -232,7 +232,7 @@ This automatically writes a row to `package_events` on every status change. The 
 | `uuid` | UUID | NOT NULL | External identifier; unique |
 | `customer_id` | UUID | NOT NULL | FK → `customers.id` [inferred; Consolidation type has `customer_id: string`] |
 | `status` | TEXT | NOT NULL | `'ABIERTO'`, `'CERRADO'`, `'DESPACHADO'`, `'ENTREGADO'` |
-| `total_weight_lb` | DECIMAL | NOT NULL | Recalculated as `SUM(packages.weight_lb)` on every consolidation operation |
+| `total_weight_lb` | DECIMAL | NOT NULL | Recalculated as `SUM(packages.weight_lb)` on every shipment order operation |
 | `created_at` | TIMESTAMPTZ | NOT NULL | |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Updated to `NOW()` on weight recalculation |
 
@@ -243,13 +243,13 @@ This automatically writes a row to `package_events` on every status change. The 
 - UNIQUE on `uuid` — queried as primary lookup: `SELECT id FROM consolidations WHERE uuid = ${uuid}` (`logistics.repo.ts:102`)
 - FK index on `customer_id`
 
-**Business meaning:** A consolidation is a container that groups multiple packages from (presumably) the same customer into one shipment, reducing handling cost. Its total weight drives billing when invoiced at the consolidation level.
+**Business meaning:** A shipment order is a container that groups multiple packages from (presumably) the same customer into one shipment, reducing handling cost. Its total weight drives billing when invoiced at the shipment order level.
 
 ---
 
 ### `billing`
 
-**Purpose:** Financial records (invoices) for packages or consolidations. Append-only in practice — no UPDATE or DELETE exists in application code.
+**Purpose:** Financial records (invoices) for packages or shipment orders. Append-only in practice — no UPDATE or DELETE exists in application code.
 
 **Primary key:** `id` — `INTEGER` [inferred from `Billing.id: number`]
 
@@ -260,7 +260,7 @@ This automatically writes a row to `package_events` on every status change. The 
 | `id` | INTEGER | NOT NULL | PK, auto-increment |
 | `uuid` | UUID | NOT NULL | External identifier |
 | `package_id` | INTEGER | NULLABLE | FK → `packages.id`; set when invoicing a single package |
-| `consolidation_id` | INTEGER | NULLABLE | FK → `consolidations.id`; set when invoicing a consolidation |
+| `consolidation_id` | INTEGER | NULLABLE | FK → `consolidations.id`; set when invoicing a shipment order |
 | `applied_rate_usd` | DECIMAL | NOT NULL | USD rate per lb at invoice time (snapshot) |
 | `applied_exchange` | DECIMAL | NOT NULL | USD→CRC exchange rate at invoice time (snapshot) |
 | `applied_fee_crc` | DECIMAL | NOT NULL | Fixed fee in CRC at invoice time (snapshot) |

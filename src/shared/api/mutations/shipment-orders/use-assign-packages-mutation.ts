@@ -3,9 +3,9 @@ import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { AssignPackagesToConsolidationInput } from '@/types/logistics/logistics.types';
-import { CONSOLIDATIONS_LIST_KEY } from '../../querys/consolidations/use-consolidations-query';
-import { CONSOLIDATION_DETAIL_KEY } from '../../querys/consolidations/use-consolidation-detail-query';
-import { AVAILABLE_PACKAGES_KEY } from '../../querys/consolidations/use-available-packages-query';
+import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
+import { SHIPMENT_ORDER_DETAIL_KEY } from '../../querys/shipment-orders/use-shipment-order-detail-query';
+import { AVAILABLE_PACKAGES_KEY } from '../../querys/shipment-orders/use-available-packages-query';
 
 export function useAssignPackagesMutation() {
   const queryClient = useQueryClient();
@@ -22,8 +22,8 @@ export function useAssignPackagesMutation() {
         packageUuids,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [CONSOLIDATIONS_LIST_KEY] });
-      queryClient.invalidateQueries({ queryKey: [CONSOLIDATION_DETAIL_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
+      queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY] });
       queryClient.invalidateQueries({ queryKey: [AVAILABLE_PACKAGES_KEY] });
     },
   });

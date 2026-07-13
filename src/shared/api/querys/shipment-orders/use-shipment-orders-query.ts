@@ -5,9 +5,9 @@ import { env } from '../../config';
 import { useApiQuery, UseAPIQueryOptions, UseAPIQueryResult } from '../use-api-query-hook';
 import { useApiQueryClient } from '../../query-hooks/use-api-client-query';
 
-export const CONSOLIDATIONS_LIST_KEY = 'consolidationsList';
+export const SHIPMENT_ORDERS_LIST_KEY = 'shipmentOrdersList';
 
-async function fetchConsolidations(
+async function fetchShipmentOrders(
   page: number,
   limit: number,
   search?: string,
@@ -23,7 +23,7 @@ async function fetchConsolidations(
   return ApiServiceClient(env.API.BASE_URL).get(`/consolidations?${params.toString()}`);
 }
 
-export function useConsolidationsQuery(
+export function useShipmentOrdersQuery(
   page: number,
   limit: number,
   search?: string,
@@ -37,8 +37,8 @@ export function useConsolidationsQuery(
     options?: UseAPIQueryOptions,
   ): UseAPIQueryResult<PaginatedResponse<ConsolidationListItem>> => {
     return useApiQuery({
-      queryKey: [CONSOLIDATIONS_LIST_KEY, page, limit, search ?? '', status ?? 'ALL', dateFrom ?? '', dateTo ?? ''],
-      queryFn: () => fetchConsolidations(page, limit, search, status, dateFrom, dateTo),
+      queryKey: [SHIPMENT_ORDERS_LIST_KEY, page, limit, search ?? '', status ?? 'ALL', dateFrom ?? '', dateTo ?? ''],
+      queryFn: () => fetchShipmentOrders(page, limit, search, status, dateFrom, dateTo),
       staleTime: 1000 * 60 * 5,
       placeholderData: (prev: unknown) => prev,
       ...options,
@@ -46,7 +46,7 @@ export function useConsolidationsQuery(
   };
 
   async function invalidate() {
-    await apiQueryClient.invalidateQueries({ queryKey: [CONSOLIDATIONS_LIST_KEY] });
+    await apiQueryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
   }
 
   return { useQuery, invalidate };

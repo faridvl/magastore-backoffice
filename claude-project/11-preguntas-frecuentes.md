@@ -38,7 +38,7 @@ No. El sistema solo acepta libras como números enteros (1, 2, 3...). Si el paqu
 1 libra. El sistema bloquea valores menores.
 
 **¿Qué pasa si ingreso mal el peso de un paquete?**
-Puedes corregirlo editando el paquete desde su vista de detalle. Si ya se generó una factura para la consolidación que contiene ese paquete, el cambio de peso no afectará la factura ya emitida.
+Puedes corregirlo editando el paquete desde su vista de detalle. Si ya se generó una factura para la orden de envío que contiene ese paquete, el cambio de peso no afectará la factura ya emitida.
 
 **¿Puedo cambiar el cliente de un paquete?**
 No está disponible. El cliente se asigna al crear el paquete y no puede modificarse.
@@ -46,8 +46,8 @@ No está disponible. El cliente se asigna al crear el paquete y no puede modific
 **¿Cuántos paquetes puede importar un cliente al mismo tiempo?**
 No hay límite en el sistema.
 
-**¿Un paquete puede estar en dos consolidaciones?**
-No. Un paquete solo puede pertenecer a una consolidación a la vez.
+**¿Un paquete puede estar en dos órdenes de envío?**
+No. Un paquete solo puede pertenecer a una orden de envío a la vez.
 
 **¿Puedo ver el historial de cambios de estado de un paquete?**
 Sí. En el detalle del paquete se muestra el historial de eventos con fechas y descripciones.
@@ -57,25 +57,25 @@ Ve el estado actual, el historial de eventos (fechas, ubicaciones, descripciones
 
 ---
 
-## Sobre consolidaciones
+## Sobre órdenes de envío
 
-**¿Tengo que consolidar todos los paquetes para facturar?**
-Sí, en el modelo de Magastore la facturación se hace a nivel de consolidación. Los paquetes deben agruparse antes de generar una factura.
+**¿Tengo que agrupar todos los paquetes para facturar?**
+Sí, en el modelo de Magastore la facturación se hace a nivel de orden de envío. Los paquetes deben agruparse antes de generar una factura.
 
-**¿Puedo consolidar paquetes de diferentes clientes?**
-Técnicamente el sistema lo permite pero es un error — siempre consolide paquetes del mismo cliente.
+**¿Puedo agrupar paquetes de diferentes clientes en una misma orden de envío?**
+Técnicamente el sistema lo permite pero es un error — siempre agrupe paquetes del mismo cliente.
 
-**¿Puedo agregar un paquete a una consolidación cerrada?**
-No. Solo se pueden agregar paquetes a consolidaciones en estado ABIERTO.
+**¿Puedo agregar un paquete a una orden de envío cerrada?**
+No. Solo se pueden agregar paquetes a órdenes de envío en estado ABIERTO.
 
-**¿Puedo cerrar una consolidación sin paquetes?**
-No. El botón de cerrar está deshabilitado si la consolidación no tiene paquetes asignados.
+**¿Puedo cerrar una orden de envío sin paquetes?**
+No. El botón de cerrar está deshabilitado si la orden de envío no tiene paquetes asignados.
 
-**¿Puedo remover un paquete de una consolidación?**
-No está disponible en la interfaz actual. Una vez asignado, el paquete no se puede remover de la consolidación.
+**¿Puedo remover un paquete de una orden de envío?**
+No está disponible en la interfaz actual. Una vez asignado, el paquete no se puede remover de la orden de envío.
 
-**¿Puedo eliminar una consolidación?**
-No está disponible. Las consolidaciones son permanentes una vez creadas.
+**¿Puedo eliminar una orden de envío?**
+No está disponible. Las órdenes de envío son permanentes una vez creadas.
 
 ---
 
@@ -93,7 +93,7 @@ Dos razones: (1) las tarifas pueden haber cambiado entre el registro del paquete
 - Retiro en bodega: ₡0 (gratis)
 
 **¿Puedo generar la factura antes de que el paquete llegue a Costa Rica?**
-Técnicamente sí, pero la práctica recomendada es facturar cuando la consolidación esté en estado CERRADO o superior.
+Técnicamente sí, pero la práctica recomendada es facturar cuando la orden de envío esté en estado CERRADO o superior.
 
 **¿Puedo modificar el monto de una factura?**
 No. Una vez generada, el monto no se puede cambiar.

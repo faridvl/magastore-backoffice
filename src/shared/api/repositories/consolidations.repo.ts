@@ -154,8 +154,8 @@ export const ConsolidationsRepository = {
       const [row] = await sql`
         SELECT status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
       `;
-      if (!row) throw new Error('Consolidación no encontrada.');
-      if (row.status !== 'ABIERTO') throw new Error('Solo se pueden eliminar consolidaciones en estado ABIERTO.');
+      if (!row) throw new Error('Orden de envío no encontrada.');
+      if (row.status !== 'ABIERTO') throw new Error('Solo se pueden eliminar órdenes de envío en estado ABIERTO.');
 
       await sql`
         UPDATE packages SET consolidation_id = NULL
@@ -187,7 +187,7 @@ export const ConsolidationsRepository = {
         WHERE uuid = ${uuid}
         RETURNING uuid, id, status
       `;
-      if (!row) throw new Error('Consolidación no encontrada.');
+      if (!row) throw new Error('Orden de envío no encontrada.');
 
       // Al marcar ENTREGADO, mover todos los paquetes a ENTREGADO también
       if (status === ConsolidationStatus.ENTREGADO) {

@@ -14,7 +14,7 @@ export const ConsolidationsService = {
     const existing = await ConsolidationsRepository.getOpenConsolidationForCustomer(customerUuid);
     if (existing) {
       throw new Error(
-        `Este cliente ya tiene una consolidación abierta (#${existing.uuid.slice(-5).toUpperCase()}). Ciérrala antes de crear una nueva.`,
+        `Este cliente ya tiene una orden de envío abierta (#${existing.uuid.slice(-5).toUpperCase()}). Ciérrala antes de crear una nueva.`,
       );
     }
 
@@ -33,9 +33,9 @@ export const ConsolidationsService = {
   },
 
   getConsolidationDetail: async (uuid: string) => {
-    if (!uuid) throw new Error('Se requiere el UUID de la consolidación.');
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     const detail = await ConsolidationsRepository.getConsolidationDetail(uuid);
-    if (!detail) throw new Error('Consolidación no encontrada.');
+    if (!detail) throw new Error('Orden de envío no encontrada.');
     return detail;
   },
 
@@ -48,10 +48,10 @@ export const ConsolidationsService = {
     const isReopen = currentStatus === ConsolidationStatus.CERRADO && newStatus === ConsolidationStatus.ABIERTO;
     if (isReopen) {
       const consolidation = await ConsolidationsRepository.getConsolidationDetail(uuid);
-      if (!consolidation) throw new Error('Consolidación no encontrada.');
+      if (!consolidation) throw new Error('Orden de envío no encontrada.');
       const existing = await ConsolidationsRepository.getOpenConsolidationForCustomer(consolidation.customer_id);
       if (existing) {
-        throw new Error('Este cliente ya tiene una consolidación abierta. Ciérrala antes de reabrir esta.');
+        throw new Error('Este cliente ya tiene una orden de envío abierta. Ciérrala antes de reabrir esta.');
       }
     }
     if (!isReopen) {
@@ -66,7 +66,7 @@ export const ConsolidationsService = {
   },
 
   deleteConsolidation: async (uuid: string) => {
-    if (!uuid) throw new Error('Se requiere el UUID de la consolidación.');
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.deleteConsolidation(uuid);
   },
 

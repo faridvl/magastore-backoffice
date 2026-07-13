@@ -225,7 +225,7 @@ After resolving the consolidation's internal `id`, check for an existing billing
 SELECT id FROM billing WHERE consolidation_id = ${cons.id} LIMIT 1
 ```
 
-If a row is found, throw `new Error('Ya existe una factura para esta consolidación.')`.
+If a row is found, throw `new Error('Ya existe una factura para esta orden de envío.')`.
 
 This is a defense-in-depth guard alongside the DB UNIQUE constraint from §1.2.
 
@@ -234,7 +234,7 @@ This is a defense-in-depth guard alongside the DB UNIQUE constraint from §1.2.
 After resolving the consolidation, check:
 ```
 if (status NOT IN ('CERRADO', 'DESPACHADO', 'ENTREGADO')) {
-  throw new Error('Solo se puede facturar una consolidación en estado CERRADO, DESPACHADO o ENTREGADO.');
+  throw new Error('Solo se puede facturar una orden de envío en estado CERRADO, DESPACHADO o ENTREGADO.');
 }
 ```
 
@@ -560,7 +560,7 @@ Container component. Consumes `useBilling()`. Renders:
   Created date, Action.
 - Action column: "Generar Factura" button per row. Calls `handleGenerateInvoice(row.uuid)`.
   Disabled while `isGenerating`.
-- Empty state: "No hay consolidaciones pendientes de facturación."
+- Empty state: "No hay órdenes de envío pendientes de facturación."
 
 **Detail modal (rendered conditionally from `selectedBillingUuid`):**
 - Triggered by row click in the "Registros" tab.

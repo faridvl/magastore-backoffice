@@ -4,21 +4,21 @@ import { env } from '../../config';
 import { useApiQuery, UseAPIQueryOptions, UseAPIQueryResult } from '../use-api-query-hook';
 import { useApiQueryClient } from '../../query-hooks/use-api-client-query';
 
-export const CONSOLIDATION_DETAIL_KEY = 'consolidationDetail';
+export const SHIPMENT_ORDER_DETAIL_KEY = 'shipmentOrderDetail';
 
-async function fetchConsolidationDetail(uuid: string): Promise<{ data: ConsolidationDetail }> {
+async function fetchShipmentOrderDetail(uuid: string): Promise<{ data: ConsolidationDetail }> {
   return ApiServiceClient(env.API.BASE_URL).get(`/consolidations?uuid=${uuid}`);
 }
 
-export function useConsolidationDetailQuery(uuid: string) {
+export function useShipmentOrderDetailQuery(uuid: string) {
   const apiQueryClient = useApiQueryClient();
 
   const useQuery = (
     options?: UseAPIQueryOptions,
   ): UseAPIQueryResult<{ data: ConsolidationDetail }> => {
     return useApiQuery({
-      queryKey: [CONSOLIDATION_DETAIL_KEY, uuid],
-      queryFn: () => fetchConsolidationDetail(uuid),
+      queryKey: [SHIPMENT_ORDER_DETAIL_KEY, uuid],
+      queryFn: () => fetchShipmentOrderDetail(uuid),
       staleTime: 1000 * 60 * 5,
       enabled: !!uuid,
       ...options,
@@ -26,7 +26,7 @@ export function useConsolidationDetailQuery(uuid: string) {
   };
 
   async function invalidate() {
-    await apiQueryClient.invalidateQueries({ queryKey: [CONSOLIDATION_DETAIL_KEY, uuid] });
+    await apiQueryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY, uuid] });
   }
 
   return { useQuery, invalidate };

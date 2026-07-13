@@ -55,7 +55,7 @@ export const BillingService = {
       return await BillingRepository.getPendingConsolidations();
     } catch (error: unknown) {
       console.error('[BillingService.getPendingConsolidations]:', error);
-      throw new Error('Error al obtener las consolidaciones pendientes de facturar.');
+      throw new Error('Error al obtener las órdenes de envío pendientes de facturar.');
     }
   },
 

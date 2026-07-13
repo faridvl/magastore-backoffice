@@ -3070,3 +3070,5934 @@ ee3f4e8 fix: fechas Desde/Hasta en filas separadas en mobile (consolidaciones y 
  M src/components/containers/logistics/create-package-container.tsx
  M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
  M src/components/containers/logistics/use-package-calculator.ts
+
+=== 2026-06-27 13:00 ===
+--- recent commits ---
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+--- status ---
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 13:10 ===
+--- recent commits ---
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-27 13:18 ===
+--- recent commits ---
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/section-header/section-header.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-27 13:19 ===
+--- recent commits ---
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+8f35eae fix: libras solo enteros >= 1 en inputs de peso de paquetes
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/header/header.tsx
+ M src/components/common/section-header/section-header.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+
+=== 2026-06-27 13:21 ===
+--- recent commits ---
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 14:35 ===
+--- recent commits ---
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+7a84e29 feat: responsive mobile + paleta de colores unificada (slate-900 + amber)
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 14:40 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 14:40 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 15:23 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+
+=== 2026-06-27 15:27 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? SCAFFOLD.md
+
+=== 2026-06-27 15:42 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/dashboard/dashboard-container.tsx
+?? SCAFFOLD.md
+?? public/landing.html
+
+=== 2026-06-27 15:43 ===
+--- recent commits ---
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+2ea1ecd refactor: paleta de texto unificada ÔÇö neutral/gray ÔåÆ slate, green ÔåÆ emerald, acentos sueltos ÔåÆ amber
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/dashboard/dashboard-container.tsx
+?? SCAFFOLD.md
+?? public/landing.html
+
+=== 2026-06-27 15:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? SCAFFOLD.md
+
+=== 2026-06-27 18:26 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? SCAFFOLD.md
+
+=== 2026-06-27 18:31 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? SCAFFOLD.md
+
+=== 2026-06-28 21:36 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? SCAFFOLD.md
+
+=== 2026-06-28 21:39 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:00 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:08 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:15 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:20 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:22 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:26 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:35 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:40 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:44 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:44 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:47 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 22:54 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:06 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:17 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:20 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:24 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:38 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:40 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:42 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:52 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:55 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-28 23:57 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:01 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:07 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:07 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:08 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:09 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:10 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:10 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:11 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+
+=== 2026-06-29 00:22 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:27 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:29 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:33 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:34 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:36 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:39 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:45 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:48 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:54 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 00:57 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:00 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:05 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:07 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:09 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:11 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:12 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:13 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:34 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:36 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:38 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:39 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:42 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:45 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:47 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:48 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:50 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:52 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:54 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 01:56 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:01 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:04 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:07 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:09 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:13 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:15 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:48 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:54 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 02:59 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:01 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:03 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:09 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:21 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:23 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:36 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:40 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:41 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:44 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:46 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:47 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 03:52 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:16 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:20 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:28 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:30 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:32 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:34 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:39 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:40 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 12:40 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 13:23 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 14:42 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 14:44 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 14:45 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 14:49 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 14:55 ===
+--- recent commits ---
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+d80feee fix: responsive mobile ÔÇö botones detalle paquete y filtros fecha en columnas
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/customer-edit-form.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/customers.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/customer/customer.types.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/pages/api/customers/[id]/packages.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/customers/use-customer-packages-query.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 16:36 ===
+--- recent commits ---
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+d6b03b0 chore: ajustes UI clientes y paquetes + docs actualizados
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M package-lock.json
+ M package.json
+ M src/components/common/new-table/new-table.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/consolidations/consolidations-container.tsx
+ M src/components/containers/consolidations/use-consolidations.ts
+ M src/components/containers/dashboard/dashboard-container.tsx
+ M src/components/containers/login-container/login-container.tsx
+ M src/components/containers/logistics/create-package-container.tsx
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+ M src/components/containers/logistics/logistics-view-detail/use-logistics-detail.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/packages/packages-container.tsx
+ M src/components/containers/settings-container/settings-container.tsx
+ M src/components/containers/settings-container/use-settings.ts
+ M src/pages/_document.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/pages/tracking/index.tsx
+ M src/shared/api/api-service-client.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/repositories/settings.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/api/services/settings.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/types/logistics/logistics.types.ts
+ M src/types/settings/settings.types.ts
+ M yarn.lock
+?? SCAFFOLD.md
+?? propuesta-sociedad.md
+?? public/favicon.svg
+?? src/components/common/date-range-filter/
+?? src/components/pdf/pre-billing-invoice.tsx
+?? src/pages/api/billing/pre-billing-pdf.ts
+?? src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts
+?? src/shared/api/querys/logistics/use-courier-rates-query.ts
+
+=== 2026-06-29 16:46 ===
+--- recent commits ---
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? propuesta-sociedad.md
+
+=== 2026-06-29 16:57 ===
+--- recent commits ---
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+?? propuesta-sociedad.md
+
+=== 2026-06-29 17:48 ===
+--- recent commits ---
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M CLAUDE.md
+ M README.md
+?? propuesta-sociedad.md
+
+=== 2026-06-29 17:48 ===
+--- recent commits ---
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+--- status ---
+ M .claude/work-log.md
+ m .claude/worktrees/agent-a43f2102b14d0ada2
+ m .claude/worktrees/agent-a53a8184271ff7bdb
+ m .claude/worktrees/agent-a6b300cc304ef2f8a
+ m .claude/worktrees/agent-ae240763ab4823133
+ M CLAUDE.md
+ M README.md
+?? propuesta-sociedad.md
+
+=== 2026-06-29 17:52 ===
+--- recent commits ---
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+1686d4b fix: ajustes responsive mobile ÔÇö filtros, modals y header
+--- status ---
+ M .claude/work-log.md
+ D .claude/worktrees/agent-a43f2102b14d0ada2
+ D .claude/worktrees/agent-a53a8184271ff7bdb
+ D .claude/worktrees/agent-a6b300cc304ef2f8a
+ D .claude/worktrees/agent-ae240763ab4823133
+ M CLAUDE.md
+ M README.md
+ M src/components/containers/customers/list-customers/use-customers.ts
+ M src/components/containers/logistics/use-package-calculator.ts
+?? propuesta-sociedad.md
+
+=== 2026-06-29 17:52 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-06-30 16:44 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:11 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:11 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:13 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:14 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:16 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:17 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:17 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:19 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:21 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:22 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:25 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:25 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:28 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:44 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-01 14:47 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-02 22:31 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-02 23:13 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+?? propuesta-sociedad.md
+
+=== 2026-07-04 15:49 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+ D public/favicon.svg
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-04 17:36 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+ D public/favicon.svg
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-08 21:24 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+ D public/favicon.svg
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-08 21:26 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+ D public/favicon.svg
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-08 21:29 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/work-log.md
+ D public/favicon.svg
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-08 21:56 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-08 21:58 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:07 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:08 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:09 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:13 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:13 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:14 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:15 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:19 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:19 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:27 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:31 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:32 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:37 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:47 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? .claude/docs/ordenes-envio-v2-flujo.md
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png
+
+=== 2026-07-12 23:51 ===
+--- recent commits ---
+49100a8 chore: lint clean, docs actualizados y worktrees eliminados
+46d728e feat: acumulado de etapas ÔÇö consolidaciones, billing, courier rates, PDF, tracking, UI general
+ed7d09d feat: paquetes en detalle de cliente + c├®dula editable
+2e83801 feat: landing page para clientes + banner en dashboard
+5ce6b40 feat: toggle Activos/Historial en log├¡stica
+--- status ---
+ M .claude/docs/billing-v1-plan.md
+ M .claude/docs/database-spec.md
+ M .claude/docs/erd.md
+ M .claude/work-log.md
+ M CLAUDE.md
+ M README.md
+ M claude-project/00-indice.md
+ M claude-project/01-sistema-general.md
+ M claude-project/03-gestion-paquetes.md
+RM claude-project/04-consolidaciones.md -> claude-project/04-ordenes-de-envio.md
+ M claude-project/05-facturacion-cobros.md
+ M claude-project/08-reglas-de-negocio.md
+ M claude-project/09-pantallas-guia.md
+ M claude-project/10-escenarios-operacion.md
+ M claude-project/11-preguntas-frecuentes.md
+ M claude-project/12-glosario.md
+ D public/favicon.svg
+ M public/landing.html
+ M public/site.webmanifest
+ D public/zynka-logo.png
+ M src/components/common/button/button.tsx
+ M src/components/common/sidebar/desktop-sidebar/desktop-sidebar.tsx
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/login-container/login-container.tsx
+RM src/components/containers/consolidations/consolidations-container.tsx -> src/components/containers/shipment-orders/shipment-orders-container.tsx
+RM src/components/containers/consolidations/use-consolidations.ts -> src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/_app.tsx
+ M src/pages/_document.tsx
+RM src/pages/admin/consolidations/index.tsx -> src/pages/admin/shipment-orders/index.tsx
+RM src/shared/api/mutations/consolidations/use-assign-packages-mutation.ts -> src/shared/api/mutations/shipment-orders/use-assign-packages-mutation.ts
+RM src/shared/api/mutations/consolidations/use-create-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-delete-consolidation-mutation.ts -> src/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation.ts
+RM src/shared/api/mutations/consolidations/use-update-consolidation-status-mutation.ts -> src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+R  src/shared/api/querys/consolidations/use-available-packages-query.ts -> src/shared/api/querys/shipment-orders/use-available-packages-query.ts
+RM src/shared/api/querys/consolidations/use-consolidation-detail-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-order-detail-query.ts
+RM src/shared/api/querys/consolidations/use-consolidations-query.ts -> src/shared/api/querys/shipment-orders/use-shipment-orders-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/shared/constants/sidebar.ts
+ M src/shared/navigation/routes.ts
+ M src/types/logistics/logistics.types.ts
+ M tailwind.config.js
+ D tailwind.config.ts
+?? .claude/docs/ordenes-envio-v2-flujo.md
+?? propuesta-sociedad.md
+?? public/apple-touch-icon.png
+?? public/favicon-16.png
+?? public/favicon-32.png
+?? public/favicon-48.png
+?? public/icon-192.png
+?? public/icon-512.png
+?? public/logo/
+?? public/og-image.png

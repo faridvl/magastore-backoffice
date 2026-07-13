@@ -366,7 +366,7 @@ export const BillingContainer: React.FC = () => {
                 <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
               </div>
             ) : pendingConsolidations.length === 0 ? (
-              <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center text-slate-400 text-sm">No hay consolidaciones por facturar.</div>
+              <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center text-slate-400 text-sm">No hay órdenes de envío por facturar.</div>
             ) : (
               pendingConsolidations.map((row) => {
                 const rate = settings?.current.price_per_lb ?? 0;

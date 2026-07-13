@@ -2,8 +2,8 @@ import React from 'react';
 import { tailwind } from '@/utils/tailwind-utils';
 
 export enum ButtonVariant {
-    PRIMARY = 'PRIMARY',   // Azul - Acciones principales / CTA
-    ACCENT = 'ACCENT',     // Dorado - Compra / Destacados
+    PRIMARY = 'PRIMARY',   // Verde - Acciones principales / CTA
+    ACCENT = 'ACCENT',     // Amarillo - Compra / Destacados
     DANGER = 'DANGER',     // Rojo - Eliminar / Destructivo
     ALERT = 'ALERT',       // Naranja - Avisos
     CANCEL = 'CANCEL',     // Gris - Cancelar / Volver
@@ -44,7 +44,7 @@ export function Button({
             className: `${baseStyle} bg-primary text-white hover:bg-primary-dark focus:ring-primary/40 shadow-primary-button`,
         },
         [ButtonVariant.ACCENT]: {
-            className: `${baseStyle} bg-accent text-white hover:bg-accent-dark focus:ring-accent/40 shadow-glow`,
+            className: `${baseStyle} bg-accent text-neutral-900 hover:bg-accent-dark focus:ring-accent/40 shadow-glow`,
         },
         [ButtonVariant.DANGER]: {
             className: `${baseStyle} bg-danger text-white hover:bg-danger-dark focus:ring-danger/40`,

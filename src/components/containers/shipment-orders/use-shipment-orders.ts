@@ -3,32 +3,32 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { useConsolidationsQuery } from '@/shared/api/querys/consolidations/use-consolidations-query';
-import { useConsolidationDetailQuery } from '@/shared/api/querys/consolidations/use-consolidation-detail-query';
-import { useAvailablePackagesQuery } from '@/shared/api/querys/consolidations/use-available-packages-query';
-import { useCreateConsolidationMutation } from '@/shared/api/mutations/consolidations/use-create-consolidation-mutation';
-import { useUpdateConsolidationStatusMutation } from '@/shared/api/mutations/consolidations/use-update-consolidation-status-mutation';
-import { useAssignPackagesMutation } from '@/shared/api/mutations/consolidations/use-assign-packages-mutation';
-import { useDeleteConsolidationMutation } from '@/shared/api/mutations/consolidations/use-delete-consolidation-mutation';
+import { useShipmentOrdersQuery } from '@/shared/api/querys/shipment-orders/use-shipment-orders-query';
+import { useShipmentOrderDetailQuery } from '@/shared/api/querys/shipment-orders/use-shipment-order-detail-query';
+import { useAvailablePackagesQuery } from '@/shared/api/querys/shipment-orders/use-available-packages-query';
+import { useCreateShipmentOrderMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-mutation';
+import { useUpdateShipmentOrderStatusMutation } from '@/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation';
+import { useAssignPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-assign-packages-mutation';
+import { useDeleteShipmentOrderMutation } from '@/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation';
 import { ConsolidationListItem, ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
 import { Customer } from '@/types/customer/customer.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
-export type ConsolidationStatusFilter = 'ALL' | ConsolidationStatus;
+export type ShipmentOrderStatusFilter = 'ALL' | ConsolidationStatus;
 
 const PAGE_SIZE = 10;
 
-export const useConsolidations = () => {
+export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ConsolidationStatusFilter>(ConsolidationStatus.ABIERTO);
+  const [statusFilter, setStatusFilter] = useState<ShipmentOrderStatusFilter>(ConsolidationStatus.ABIERTO);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
 
-  // Modal: crear consolidación
+  // Modal: crear orden de envío
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createCustomerUuid, setCreateCustomerUuid] = useState('');
   const [createCustomerSearch, setCreateCustomerSearch] = useState('');
@@ -57,7 +57,7 @@ export const useConsolidations = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const listQuery = useConsolidationsQuery(
+  const listQuery = useShipmentOrdersQuery(
     page,
     PAGE_SIZE,
     debouncedSearch || undefined,
@@ -67,7 +67,7 @@ export const useConsolidations = () => {
   );
   const { data: listData, isLoading: isLoadingList } = listQuery.useQuery();
 
-  const detailQuery = useConsolidationDetailQuery(selectedUuid ?? '');
+  const detailQuery = useShipmentOrderDetailQuery(selectedUuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
 
   const availableQuery = useAvailablePackagesQuery(
@@ -82,8 +82,8 @@ export const useConsolidations = () => {
     enabled: showCreateModal,
   });
 
-  const { data: openConsolidationCheck } = useQuery<{ hasOpen: boolean; uuid?: string }>({
-    queryKey: ['consolidations', 'check-open', createCustomerUuid],
+  const { data: openShipmentOrderCheck } = useQuery<{ hasOpen: boolean; uuid?: string }>({
+    queryKey: ['shipment-orders', 'check-open', createCustomerUuid],
     queryFn: () =>
       ApiServiceClient(env.API.BASE_URL).get(
         `/consolidations?action=check-open&customerUuid=${createCustomerUuid}`,
@@ -104,20 +104,20 @@ export const useConsolidations = () => {
     );
   }, [customersData, createCustomerSearch]);
 
-  const { createConsolidation, isPending: isCreating } = useCreateConsolidationMutation();
-  const { updateStatus, isPending: isUpdating } = useUpdateConsolidationStatusMutation();
+  const { createShipmentOrder, isPending: isCreating } = useCreateShipmentOrderMutation();
+  const { updateStatus, isPending: isUpdating } = useUpdateShipmentOrderStatusMutation();
   const { assignPackages, isPending: isAssigning } = useAssignPackagesMutation();
-  const { deleteConsolidation, isPending: isDeleting } = useDeleteConsolidationMutation();
+  const { deleteShipmentOrder, isPending: isDeleting } = useDeleteShipmentOrderMutation();
 
   const handleConfirmDelete = async () => {
     if (!deleteUuid) return;
     try {
-      await deleteConsolidation({ uuid: deleteUuid });
+      await deleteShipmentOrder({ uuid: deleteUuid });
       setDeleteUuid(null);
       if (selectedUuid === deleteUuid) setSelectedUuid(null);
-      toast.success('Consolidación eliminada');
+      toast.success('Orden de envío eliminada');
     } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo eliminar la consolidación.');
+      toast.error(err?.message ?? 'No se pudo eliminar la orden de envío.');
     }
   };
 
@@ -127,10 +127,10 @@ export const useConsolidations = () => {
     try {
       if (action === 'reopen') {
         await updateStatus({ consolidationUuid: uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
-        toast.success('Consolidación reabierta');
+        toast.success('Orden de envío reabierta');
       } else {
         await updateStatus({ consolidationUuid: uuid, status: ConsolidationStatus.ENTREGADO, currentStatus: ConsolidationStatus.CERRADO });
-        toast.success('Consolidación marcada como entregada');
+        toast.success('Orden de envío marcada como entregada');
       }
       setQuickActionTarget(null);
     } catch (err: any) {
@@ -138,7 +138,7 @@ export const useConsolidations = () => {
     }
   };
 
-  const handleStatusFilterChange = (val: ConsolidationStatusFilter) => {
+  const handleStatusFilterChange = (val: ShipmentOrderStatusFilter) => {
     setStatusFilter(val);
     setPage(1);
   };
@@ -157,13 +157,13 @@ export const useConsolidations = () => {
   const handleConfirmCreate = async () => {
     if (!createCustomerUuid) return;
     try {
-      await createConsolidation({ customerUuid: createCustomerUuid });
+      await createShipmentOrder({ customerUuid: createCustomerUuid });
       setShowCreateModal(false);
       setCreateCustomerUuid('');
       setCreateCustomerSearch('');
-      toast.success('Consolidación creada');
+      toast.success('Orden de envío creada');
     } catch (err: any) {
-      toast.error('No se pudo crear la consolidación. Intenta de nuevo.');
+      toast.error('No se pudo crear la orden de envío. Intenta de nuevo.');
     }
   };
 
@@ -179,7 +179,7 @@ export const useConsolidations = () => {
     if (!next) return;
     try {
       await updateStatus({ consolidationUuid: uuid, status: next, currentStatus: status });
-      // Al despachar la consolidación, despachar también todos sus paquetes
+      // Al despachar la orden de envío, despachar también todos sus paquetes
       if (next === ConsolidationStatus.ENTREGADO) {
         const packageUuids = detailResponse.data.packages.map((p) => p.uuid);
         if (packageUuids.length > 0) {
@@ -193,7 +193,7 @@ export const useConsolidations = () => {
       await listQuery.invalidate();
       toast.success(`Estado actualizado a ${next}`);
     } catch (err: any) {
-      toast.error('No se pudo avanzar el estado de la consolidación. Intenta de nuevo.');
+      toast.error('No se pudo avanzar el estado de la orden de envío. Intenta de nuevo.');
     }
   };
 
@@ -219,7 +219,7 @@ export const useConsolidations = () => {
       await availableQuery.invalidate();
       toast.success('Paquetes asignados correctamente');
     } catch (err: any) {
-      toast.error('No se pudieron asignar los paquetes. Verifica que pertenezcan al cliente de esta consolidación.');
+      toast.error('No se pudieron asignar los paquetes. Verifica que pertenezcan al cliente de esta orden de envío.');
     }
   };
 
@@ -282,13 +282,13 @@ export const useConsolidations = () => {
     statusFilter, handleStatusFilterChange,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
-    consolidations: listData?.data ?? [],
+    shipmentOrders: listData?.data ?? [],
     listMeta: listData?.meta ?? { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 },
     isLoadingList,
 
     // Detail panel
     selectedUuid, setSelectedUuid,
-    consolidationDetail: detailResponse?.data ?? null,
+    shipmentOrderDetail: detailResponse?.data ?? null,
     isLoadingDetail,
 
     // Status advance
@@ -314,7 +314,7 @@ export const useConsolidations = () => {
 
     // Customers dropdown (for create modal)
     filteredCustomers,
-    openConsolidationCheck,
+    openShipmentOrderCheck,
 
     // Row click
     handleSelectRow,

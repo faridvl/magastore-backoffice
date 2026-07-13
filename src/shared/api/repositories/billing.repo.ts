@@ -176,7 +176,7 @@ export const BillingRepository = {
 
       if (!billing) throw new Error('Factura no encontrada o ya marcada como pagada.');
 
-      // Mover paquetes de la consolidación a EN_TRAMITE
+      // Mover paquetes de la orden de envío a EN_TRAMITE
       await sql`
         UPDATE packages
         SET status = 'EN_TRAMITE'
@@ -184,7 +184,7 @@ export const BillingRepository = {
           AND status = 'PANAMA'
       `;
 
-      // Cerrar la consolidación
+      // Cerrar la orden de envío
       await sql`
         UPDATE consolidations
         SET status = 'CERRADO', updated_at = NOW()

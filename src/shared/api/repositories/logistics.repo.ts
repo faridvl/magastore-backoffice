@@ -64,7 +64,7 @@ export const LogisticsRepository = {
     const [c] = await sql`
       SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
     `;
-    if (!c) throw new Error('Consolidación no encontrada.');
+    if (!c) throw new Error('Orden de envío no encontrada.');
 
     const actualWeight  = Number(c.total_weight_lb);
     const chargedWeight = Math.max(actualWeight, min_lb);
@@ -114,18 +114,18 @@ export const LogisticsRepository = {
       const [c] = await sql`
         SELECT id, customer_id, total_weight_lb FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
-      if (!c) throw new Error('Consolidación no encontrada.');
+      if (!c) throw new Error('Orden de envío no encontrada.');
 
       const [pre] = await sql`
         SELECT * FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
       `;
-      if (!pre) throw new Error('No existe prefactura para esta consolidación.');
+      if (!pre) throw new Error('No existe prefactura para esta orden de envío.');
       if (pre.is_confirmed) throw new Error('La prefactura ya fue confirmada.');
 
       const [existingBill] = await sql`
         SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
       `;
-      if (existingBill) throw new Error('Esta consolidación ya tiene una factura generada.');
+      if (existingBill) throw new Error('Esta orden de envío ya tiene una factura generada.');
 
       const [addressRow] = await sql`
         SELECT exact_address FROM customer_addresses
@@ -353,7 +353,7 @@ export const LogisticsRepository = {
       await sql`BEGIN`;
 
       const [cons] = await sql`SELECT id FROM consolidations WHERE uuid = ${consolidationUuid}`;
-      if (!cons) throw new Error('Consolidación no encontrada.');
+      if (!cons) throw new Error('Orden de envío no encontrada.');
 
       await sql`
         UPDATE packages 
@@ -378,7 +378,7 @@ export const LogisticsRepository = {
   },
 
   /**
-   * 5. GENERATE BILLING: Crea el snapshot financiero de una consolidación.
+   * 5. GENERATE BILLING: Crea el snapshot financiero de una orden de envío.
    * Lee tarifas vigentes de system_settings. Valida estado y duplicados.
    * El costo de envío local (delivery_fee_crc) se elige en el momento de facturar.
    * profit_per_lb es solo una métrica de reporting y NO se incluye en la factura.
@@ -404,18 +404,18 @@ export const LogisticsRepository = {
       const [c] = await sql`
         SELECT id, customer_id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
-      if (!c) throw new Error('Consolidación no encontrada.');
+      if (!c) throw new Error('Orden de envío no encontrada.');
 
       if (c.status !== 'CERRADO' && c.status !== 'ENTREGADO') {
         throw new Error(
-          `La consolidación debe estar en estado CERRADO para facturar. Estado actual: ${c.status}`,
+          `La orden de envío debe estar en estado CERRADO para facturar. Estado actual: ${c.status}`,
         );
       }
 
       const [existing] = await sql`
         SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
       `;
-      if (existing) throw new Error('Esta consolidación ya tiene una factura generada.');
+      if (existing) throw new Error('Esta orden de envío ya tiene una factura generada.');
 
       const [addressRow] = await sql`
         SELECT exact_address FROM customer_addresses
@@ -544,7 +544,7 @@ export const LogisticsRepository = {
 
   /**
    * 9. VALIDATE PACKAGES BELONG TO CONSOLIDATION CUSTOMER: Verifica que todos los paquetes
-   * a asignar pertenezcan al mismo cliente que la consolidación.
+   * a asignar pertenezcan al mismo cliente que la orden de envío.
    * Retorna el conteo de paquetes que NO coinciden.
    */
   countMismatchedPackages: async (

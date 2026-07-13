@@ -78,7 +78,7 @@ export const useBilling = () => {
       setActiveTab('registros');
       toast.success('Factura generada correctamente');
     } catch (err: any) {
-      toast.error('No se pudo generar la factura. Verifica que la consolidación esté cerrada y sin factura previa.');
+      toast.error('No se pudo generar la factura. Verifica que la orden de envío esté cerrada y sin factura previa.');
     }
   };
 

@@ -79,35 +79,35 @@ Flujos completos de las operaciones más comunes en Magastore.
 
 ---
 
-## Escenario 5: Consolidar paquetes de un cliente
+## Escenario 5: Agrupar paquetes de un cliente en una orden de envío
 
 **Situación:** Un cliente tiene 3 paquetes en bodega de Costa Rica y hay que agruparlos para cobrarlos juntos.
 
 **Pasos:**
 
-1. Ir a **Consolidaciones** (`/admin/consolidations`)
-2. Hacer clic en **"Nueva Consolidación"**
+1. Ir a **Órdenes de Envío** (`/admin/shipment-orders`)
+2. Hacer clic en **"Nueva Orden de Envío"**
 3. Buscar y seleccionar el cliente
-4. Confirmar — la consolidación se crea en estado ABIERTO con peso 0
-5. Hacer clic en la consolidación recién creada para abrir el detalle
+4. Confirmar — la orden de envío se crea en estado ABIERTO con peso 0
+5. Hacer clic en la orden de envío recién creada para abrir el detalle
 6. Hacer clic en **"Asignar Paquetes"**
 7. Seleccionar los 3 paquetes del cliente y confirmar
 8. El sistema recalcula automáticamente el peso total (suma de los 3)
-9. Cuando esté lista para facturar, hacer clic en **"Cerrar consolidación"** → pasa a CERRADO
+9. Cuando esté lista para facturar, hacer clic en **"Cerrar orden de envío"** → pasa a CERRADO
 
-**Resultado:** Los 3 paquetes quedan agrupados en una sola consolidación, con el peso total calculado. Lista para generar la factura.
+**Resultado:** Los 3 paquetes quedan agrupados en una sola orden de envío, con el peso total calculado. Lista para generar la factura.
 
 ---
 
 ## Escenario 6: Generar una factura y registrar el pago
 
-**Situación:** El cliente tiene una consolidación en estado CERRADO y hay que cobrarle.
+**Situación:** El cliente tiene una orden de envío en estado CERRADO y hay que cobrarle.
 
 **Pasos:**
 
 1. Ir a **Cobros** (`/admin/billing`)
 2. Ir al tab **"Por Facturar"**
-3. Encontrar la consolidación del cliente
+3. Encontrar la orden de envío del cliente
 4. Hacer clic en **"Generar Factura"**
 5. Seleccionar el **método de entrega**:
    - **Correos de Costa Rica** (₡2,900)

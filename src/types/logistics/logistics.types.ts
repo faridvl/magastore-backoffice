@@ -266,7 +266,7 @@ export interface MarkPaidInput {
   billingUuid: string;
 }
 
-// --- Tipos para Consolidaciones (gestión) ---
+// --- Tipos para Órdenes de Envío (gestión) ---
 
 export interface ConsolidationListItem {
   uuid: string;

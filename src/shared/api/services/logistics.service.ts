@@ -169,7 +169,7 @@ export const LogisticsService = {
     const mismatched = await LogisticsRepository.countMismatchedPackages(consolidationUuid, packageUuids);
     if (mismatched > 0) {
       throw new Error(
-        `${mismatched} paquete(s) no pertenecen al cliente de esta consolidación.`,
+        `${mismatched} paquete(s) no pertenecen al cliente de esta orden de envío.`,
       );
     }
 
@@ -177,12 +177,12 @@ export const LogisticsService = {
       return await LogisticsRepository.consolidatePackages(consolidationUuid, packageUuids);
     } catch (error: any) {
       console.error('[LogisticsService.processConsolidation]:', error);
-      throw new Error(error.message || 'Error al procesar la consolidación.');
+      throw new Error(error.message || 'Error al procesar la orden de envío.');
     }
   },
 
   /**
-   * Genera la factura para una consolidación (snapshot de tarifas + envío local).
+   * Genera la factura para una orden de envío (snapshot de tarifas + envío local).
    */
   createInvoice: async (
     consolidationUuid: string,

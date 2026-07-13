@@ -3,16 +3,16 @@ import Head from 'next/head';
 import { authorizeServerSidePage } from '@/hocs/auth';
 import { DashboardLayout } from '@/components/common/layout/dashboard-layout';
 import { BoxedLayoutStyle } from '@/components/common/layout/boxed-container/boxed-container';
-import { ConsolidationsContainer } from '@/components/containers/consolidations/consolidations-container';
+import { ShipmentOrdersContainer } from '@/components/containers/shipment-orders/shipment-orders-container';
 
-const ConsolidationsPage: React.FC = () => {
+const ShipmentOrdersPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Consolidaciones | Magastore</title>
+        <title>Órdenes de Envío | Magastore</title>
       </Head>
-      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Gestión de Consolidaciones">
-        <ConsolidationsContainer />
+      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Gestión de Órdenes de Envío">
+        <ShipmentOrdersContainer />
       </DashboardLayout>
     </>
   );
@@ -20,4 +20,4 @@ const ConsolidationsPage: React.FC = () => {
 
 export const getServerSideProps = authorizeServerSidePage();
 
-export default ConsolidationsPage;
+export default ShipmentOrdersPage;

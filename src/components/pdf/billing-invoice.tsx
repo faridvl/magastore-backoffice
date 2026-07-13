@@ -1,6 +1,12 @@
 import React from 'react';
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
+import path from 'path';
+import fs from 'fs';
 import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
+
+const LOGO_BUFFER = fs.readFileSync(
+  path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-dark.png'),
+);
 
 const fmtCRC = (n: number | string) =>
   `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
@@ -34,19 +40,12 @@ const s = StyleSheet.create({
     paddingRight: 32,
   },
   brandBlock: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  brandName: {
-    fontFamily: 'Helvetica-Bold',
-    fontSize: 22,
-    color: '#f0c040',
-    letterSpacing: 2,
-  },
-  brandSub: {
-    fontSize: 8,
-    color: '#93c5fd',
-    marginTop: 2,
-    letterSpacing: 1,
+  brandLogo: {
+    width: 110,
+    height: 110,
   },
   headerMeta: {
     flexDirection: 'column',
@@ -95,7 +94,7 @@ const s = StyleSheet.create({
     paddingRight: 32,
   },
 
-  // Nota de consolidacion
+  // Nota de orden de envío
   note: {
     fontSize: 8,
     color: '#3b82f6',
@@ -249,8 +248,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
         {/* ── Header oscuro ── */}
         <View style={s.header}>
           <View style={s.brandBlock}>
-            <Text style={s.brandName}>MAGASTORE</Text>
-            <Text style={s.brandSub}>Correos por Internet · Courier</Text>
+            <Image style={s.brandLogo} src={LOGO_BUFFER} />
           </View>
           <View style={s.headerMeta}>
             <View style={s.headerMetaRow}>

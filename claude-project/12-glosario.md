@@ -11,7 +11,7 @@ Definición de los términos técnicos y de negocio usados en el sistema Magasto
 | **Casillero** | Código único asignado a cada cliente de Magastore. Formato: `MG-XXXXXX-N`. Es la referencia principal del cliente. |
 | **Importación** | El proceso de traer mercancía comprada en el exterior (típicamente EEUU) hacia Costa Rica a través de Magastore. |
 | **Tracking / Número de rastreo** | Código alfanumérico del transportista (UPS, FedEx, Amazon, etc.) que identifica un paquete específico. |
-| **Consolidación** | Agrupación de varios paquetes de un mismo cliente para efectos de un solo envío y una sola factura. |
+| **Orden de Envío** | Agrupación de varios paquetes de un mismo cliente para efectos de un solo envío y una sola factura. |
 | **Flete** | Costo del transporte calculado por peso. |
 | **Cargo fijo** | Monto fijo en colones que se cobra en cada factura, independientemente del peso. |
 | **Peso mínimo cobrable** | El peso mínimo que se cobra aunque el paquete pese menos. Actualmente: 1 libra. |
@@ -31,11 +31,11 @@ Definición de los términos técnicos y de negocio usados en el sistema Magasto
 
 ---
 
-## Estados de consolidaciones
+## Estados de órdenes de envío
 
 | Estado | Significado |
 |---|---|
-| **ABIERTO** | La consolidación está activa y puede recibir más paquetes |
+| **ABIERTO** | La orden de envío está activa y puede recibir más paquetes |
 | **CERRADO** | Lista para facturar, no acepta más paquetes |
 | **DESPACHADO** | En proceso de entrega al cliente |
 | **ENTREGADO** | Todos los paquetes fueron entregados |

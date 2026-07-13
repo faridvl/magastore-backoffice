@@ -12,7 +12,7 @@ El sistema tiene dos partes:
 
 ## ¿Quiénes usan el sistema?
 
-**Operadores (rol ADMIN):** Personal interno de Magastore. Tienen acceso completo al backoffice. Registran paquetes, actualizan estados, crean consolidaciones y gestionan cobros.
+**Operadores (rol ADMIN):** Personal interno de Magastore. Tienen acceso completo al backoffice. Registran paquetes, actualizan estados, crean órdenes de envío y gestionan cobros.
 
 **Clientes:** Importadores que envían mercancía desde Estados Unidos. No tienen cuenta en el sistema; solo pueden consultar el estado de su paquete en la página pública de rastreo usando su número de tracking.
 
@@ -33,7 +33,7 @@ El sistema tiene dos partes:
        ↓
 6. Paquete pasa aduana y llega a la bodega de Magastore en CR (status: BODEGA_CR)
        ↓
-7. Operador consolida paquetes del mismo cliente (opcional)
+7. Operador agrupa paquetes del mismo cliente en una orden de envío (opcional)
        ↓
 8. Se genera la factura (cobro por peso)
        ↓
@@ -48,7 +48,7 @@ El sistema tiene dos partes:
 |---|---|
 | **Clientes** | Registro y gestión de clientes importadores. Cada cliente tiene un casillero único (ej: MG-ABCD12-5) |
 | **Logística / Paquetes** | Registro de paquetes, actualización de estados, seguimiento de tracking |
-| **Consolidaciones** | Agrupación de múltiples paquetes de un mismo cliente en un solo envío para facturación conjunta |
+| **Órdenes de Envío** | Agrupación de múltiples paquetes de un mismo cliente en un solo envío para facturación conjunta |
 | **Cobros / Facturación** | Generación de facturas por peso, registro de pagos |
 | **Configuración** | Tarifas del servicio: precio por libra, tipo de cambio, cargo fijo, peso mínimo |
 | **Rastreo público** | Página que el cliente consulta con su número de tracking para ver en qué estado está su paquete |

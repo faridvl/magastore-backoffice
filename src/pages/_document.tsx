@@ -5,12 +5,15 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+          <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+          <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
           <link rel="manifest" href="/site.webmanifest" />
 
-          {/* Brand Theme Color (alineado a Tailwind background) */}
-          <meta name="theme-color" content="#ffffff" />
+          {/* Brand Theme Color (alineado a paleta Magastore) */}
+          <meta name="theme-color" content="#111111" />
 
           {/* Preconnect para performance si usas Google Fonts */}
           {/* <link rel="preconnect" href="https://fonts.googleapis.com" /> */}

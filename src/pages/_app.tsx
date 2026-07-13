@@ -27,19 +27,35 @@ const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
   return (
     <>
       <Head>
-        {/* Favicon */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/zynka-logo.png" />
-        {/* TODO: Soportar favicon dark/light o SVG adaptable */}
-
-        {/* Brand Theme Color (alineado a background del Tailwind config) */}
-        <meta name="theme-color" content="#ffffff" />
-        {/* TODO: Cambiar dinámicamente si implementamos modo claro */}
+        {/* Brand Theme Color (alineado a paleta Magastore) */}
+        <meta name="theme-color" content="#111111" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {/* Base SEO Identity */}
-        <title>🧪 ScentStack | Ecommerce de Perfumería Real</title>
-        {/* TODO: Agregar OpenGraph y Twitter meta tags alineados al brandbook */}
+        <title>Magastore | Courier & Logística</title>
+        <meta
+          name="description"
+          content="Backoffice de Magastore: importación de paquetes, órdenes de envío, facturación y seguimiento de envíos desde Panamá a Costa Rica."
+        />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="Magastore | Courier & Logística" />
+        <meta
+          property="og:description"
+          content="Backoffice de Magastore: importación de paquetes, órdenes de envío, facturación y seguimiento de envíos desde Panamá a Costa Rica."
+        />
+        <meta property="og:image" content="/og-image.png" />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Magastore | Courier & Logística" />
+        <meta
+          name="twitter:description"
+          content="Backoffice de Magastore: importación de paquetes, órdenes de envío, facturación y seguimiento de envíos desde Panamá a Costa Rica."
+        />
+        <meta name="twitter:image" content="/og-image.png" />
       </Head>
 
       {/* 

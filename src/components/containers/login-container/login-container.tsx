@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Info, AlertCircle } from 'lucide-react';
 import { useLogin } from './use-login';
 
@@ -22,13 +23,14 @@ export const LoginContainer: React.FC = () => {
                     <div className="relative z-10">
                         {/* Logo Magastore */}
                         <div className="flex flex-col items-center mb-10">
-                            <div className="h-16 w-16 bg-amber-600 rounded-2xl flex items-center justify-center text-white font-black text-3xl mb-4 shadow-xl shadow-amber-200 rotate-3 hover:rotate-0 transition-transform duration-300">
-                                M
-                            </div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tight">MAGASTORE</h1>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                Control de Logística
-                            </p>
+                            <Image
+                                src="/logo/magastore-perfil.png"
+                                alt="Magastore"
+                                width={220}
+                                height={220}
+                                className="h-56 w-56 object-contain"
+                                priority
+                            />
                         </div>
 
                         {error && (

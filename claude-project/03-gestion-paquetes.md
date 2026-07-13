@@ -92,7 +92,7 @@ Antes de guardar un paquete, el sistema muestra un cálculo estimado del cobro a
 - Las tarifas actuales configuradas en el sistema (precio/libra, tipo de cambio)
 - El peso mínimo cobrable (si el paquete pesa menos del mínimo, se cobra el mínimo)
 
-Este preview es una **estimación**. La factura real se genera cuando se crea la consolidación y se factura.
+Este preview es una **estimación**. La factura real se genera cuando se crea la orden de envío y se factura.
 
 ---
 
@@ -110,8 +110,8 @@ No está disponible en la interfaz actual. El cliente se asigna al registrar el 
 **¿Qué pasa si dos paquetes tienen el mismo número de tracking?**
 El sistema no impide actualmente registrar dos paquetes con el mismo tracking number. Es responsabilidad del operador evitar duplicados.
 
-**¿Puede un paquete pertenecer a más de una consolidación?**
-No. Un paquete solo puede pertenecer a una consolidación a la vez. Una vez consolidado, no se puede mover a otra consolidación.
+**¿Puede un paquete pertenecer a más de una orden de envío?**
+No. Un paquete solo puede pertenecer a una orden de envío a la vez. Una vez agregado, no se puede mover a otra orden de envío.
 
 **¿Cómo sabe el cliente el estado de su paquete?**
 El cliente puede ir a la página pública de rastreo e ingresar su número de tracking para ver el estado actual y el historial de eventos.
