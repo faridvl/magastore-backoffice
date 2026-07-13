@@ -4,6 +4,25 @@
 
 ---
 
+## Re-análisis post-órdenes-de-envío (2026-07-13, commit 289dc39) — LISTO PARA ARRANCAR
+
+El bloqueo original ("esperar Etapa 3 de órdenes de envío") está satisfecho: Etapas 1–4 + extras del rediseño de órdenes de envío están completadas y commiteadas (`d13b2d2` → `289dc39`). Solo queda pendiente su Etapa 5 con **alcance reducido** (módulo de plantillas editables + mejoras menores). **Este plan ya puede arrancar en su propio worktree.**
+
+### Qué cambió respecto al relevamiento original
+
+1. **La página de detalle de orden ya existe**: `/admin/shipment-orders/[uuid]` con `shipment-order-detail.tsx` + `use-shipment-order-detail.ts`. El nombre de archivo del PDF descargado (`estimado-<customerCode>-...pdf`) y el display del código en el detalle **se mudaron ahí**: `use-shipment-order-detail.ts:123,131` y `shipment-order-detail.tsx:144,248,278`. Las referencias viejas a `use-shipment-orders.ts:259,267` quedan obsoletas.
+2. **Los filtros de búsqueda ILIKE siguen en los mismos 3 repos, líneas nuevas**: `consolidations.repo.ts:155,178`, `billing.repo.ts:43,60`, `logistics.repo.ts:361,377`. El patrón no cambió — el JOIN nuevo aplica igual.
+3. **`MAILBOXES`/`MailboxCard` sigue intacto** en `customer-detail-container.tsx:5-37` (uso en `:253-256`, display del código en `:109`), a pesar del rediseño de paquetes en el detalle de cliente (extra post-Etapa 4). El plan de reemplazarlo sigue vigente tal cual.
+4. **Los PDFs no cambiaron**: `billing-invoice.tsx:264`, `pre-billing-invoice.tsx:87,133`, `pre-billing-pdf.ts` — las referencias del relevamiento siguen válidas. Tampoco cambió la página `/tracking` ni el listado de clientes. `billing-container.tsx` fue reescrito pero sigue mostrando `customer_code` solo como display (`:55,243,299`).
+5. **La fórmula de generación en `customers.repo.ts` no cambió** (solo se agregó un JOIN a consolidations en `getPackagesByCustomer`, irrelevante para este plan).
+6. **Sinergia nueva disponible**: ya existe `src/shared/constants/whatsapp-templates.ts` (Etapa 4 de órdenes de envío) con `interpolate()`, `buildWhatsAppUrl()` y plantillas con placeholders `{{var}}`. El mensaje de bienvenida del casillero (sección 5 de este plan) debe implementarse como una plantilla más ahí — el mecanismo ya está resuelto. También existe `src/hooks/use-notify-packages-available.ts` como patrón de referencia para un botón WhatsApp con bitácora.
+7. **Picker de registro de paquete**: filtro por código movido a `use-package-calculator.ts:68`; `use-customers.ts:32` sin cambios.
+8. **Coordinación con Etapa 5 de órdenes de envío (pendiente)**: su alcance reducido tocaría `whatsapp-templates.ts` (plantillas editables), no `customer-detail-container.tsx` — riesgo de choque bajo. Si van en paralelo, la plantilla de bienvenida de casillero se suma después de (o coordinada con) esa migración.
+
+**Sigue pendiente antes de tocar código:** reconciliar el catálogo real de rutas (las 4 en `MAILBOXES`: USA Aéreo, USA Marítimo, China, Colombia vs. las 2 mencionadas originalmente: Miami, China) — ver pregunta abierta #6.
+
+---
+
 ## Contexto / problema actual
 
 Hoy `customer_code` se genera en `customers.repo.ts:43` (y su equivalente en `importCustomers`, línea ~283) así:
@@ -180,3 +199,4 @@ Dado el impacto medido arriba, este cambio deja de ser "solo tocar la fórmula S
 3. **Nombre final de la tabla/entidad** (`warehouse_routes` es tentativo — podría alinearse mejor con el vocabulario del negocio, ej. `casilleros`).
 4. **¿El `current_counter` arranca en 0 o en 1 para la ruta Miami/Aéreo?**
 5. **Migración de `customers.customer_code` existente:** ¿se elimina la columna una vez migrado a `customer_warehouse_codes`, o se mantiene como campo derivado/cache para no tocar todos los lugares que hoy leen `customer.customer_code` directamente (listados, PDFs de facturación, tracking)?
+6. **Catálogo real de rutas:** reconciliar las 4 rutas ya anticipadas en `MAILBOXES` (USA Aéreo, USA Marítimo, China, Colombia) contra las 2 mencionadas originalmente por el usuario (Miami, China) — ¿cuáles son realmente activas/planeadas y con qué prefijo cada una?

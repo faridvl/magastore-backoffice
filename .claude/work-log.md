@@ -10329,3 +10329,53 @@ d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quic
  M src/shared/api/services/billing.service.ts
  M src/shared/api/services/logistics.service.ts
  M src/types/logistics/logistics.types.ts
+
+=== 2026-07-13 14:03 ===
+--- recent commits ---
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+--- status ---
+
+=== 2026-07-13 14:07 ===
+--- recent commits ---
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 14:09 ===
+--- recent commits ---
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 14:17 ===
+--- recent commits ---
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 14:18 ===
+--- recent commits ---
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+--- status ---
+ M .claude/docs/customer-code-warehouse-plan.md
+ M .claude/work-log.md

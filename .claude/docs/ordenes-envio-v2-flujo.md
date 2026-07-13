@@ -1,11 +1,11 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
-**Estado: EN IMPLEMENTACIÓN.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 4 completada + rediseño de paquetes en detalle de cliente + cierre de ruta de facturación paralela, sin commit/push todavía).
+**Estado: EN IMPLEMENTACIÓN — Etapas 1–4 completadas y commiteadas.** Documento de decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (todo commiteado hasta `289dc39`; solo queda Etapa 5 con alcance reducido).
 
 ## Progreso
 
-### ✅ Etapa 1 — Backend quick wins (COMPLETADA 2026-07-13)
+### ✅ Etapa 1 — Backend quick wins (COMPLETADA 2026-07-13, commit d13b2d2)
 
 - Migración `scripts/008-shipment-orders-v2.sql` aplicada en Neon: `packages.store_name`, `pre_billing.notified_at`, índice único `packages_tracking_number_key` (verificado sin duplicados previos).
 - `ConsolidationStatus` (`logistics.types.ts`) ahora incluye `DESPACHADO`. El CHECK constraint de `consolidations.status` en DB ya lo soportaba de antes.
@@ -20,7 +20,7 @@
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo 2 warnings preexistentes de a11y en PDFs, no relacionados).
 - **Nota de arquitectura:** la capa de dominio conserva el nombre `consolidations` (tabla, repo, service) intencionalmente — solo la UI/hooks/rutas usan "shipment-orders". Ver commit fc2c1e4.
 
-### ✅ Etapa 2 — Rediseño listado `/admin/logistics` (COMPLETADA 2026-07-13, sin commit/push)
+### ✅ Etapa 2 — Rediseño listado `/admin/logistics` (COMPLETADA 2026-07-13, commit 7d7e193)
 
 - Chips "En Panamá / En Trámite / Todos" eliminados de la toolbar. Reemplazados por `Sin orden` (default al entrar en modo Activos) / `Con orden`, derivados de `consolidation_id IS NULL/IS NOT NULL`. La columna "Estado" de la tabla se mantiene igual (PANAMA/EN_TRAMITE/ENTREGADO por fila) — solo se quitó el filtro de arriba.
 - `getPaginatedPackages` (`logistics.repo.ts`) extendido con `consolidationFilter` y `customerUuid`, con `LEFT JOIN consolidations` para exponer `consolidation_uuid`/`consolidation_status` por paquete. En la vista "Con orden" aparece una columna "Orden" con badge clickeable que lleva al detalle de esa orden.
@@ -34,7 +34,7 @@
 - **Persistencia de selección en `sessionStorage`** (clave `logistics:selectedUuids`, ver `use-logistics.tsx`): sobrevive a un "back" del navegador tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña. Se limpia sola cuando `selectedUuids` queda vacío (al limpiar selección o al crear la orden exitosamente). Si se toca este hook a futuro, tener presente que la lectura inicial usa lazy `useState(readStoredSelection)` — un SSR/hidratación mismatch no aplica aquí porque el componente es client-only vía `authorizeServerSidePage`, pero si se reutiliza este patrón en una página con SSR real hay que revisarlo.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo los 2 warnings preexistentes de a11y en PDFs).
 
-### ✅ Etapa 3 — Página de detalle de orden + simplificación del flujo de cierre (COMPLETADA 2026-07-13, sin commit/push)
+### ✅ Etapa 3 — Página de detalle de orden + simplificación del flujo de cierre (COMPLETADA 2026-07-13, commit cb15d59)
 
 - Nueva ruta `/admin/shipment-orders/[uuid]` como página real (patrón `/admin/logistics/[id]`), reemplazando el panel/modal `DetailModal` controlado por `selectedUuid`. Container + hook dedicados en `src/components/containers/shipment-orders/shipment-order-detail/`.
 - Movido a la página nueva: card prefactura/factura (generar, recalcular, confirmar, descargar PDF), avance de estado (despachar/entregar/reabrir), quitar-paquete. `/admin/shipment-orders` (lista) recortado: sin botón "Nueva Orden de Envío" ni modal de elegir cliente, sin modal "Asignar Paquetes" (la creación ya vive en logística desde Etapa 2). `use-shipment-orders.ts` quedó solo con estado de lista; el efecto de lectura de `router.query.uuid` se eliminó junto con `selectedUuid`.
@@ -47,7 +47,7 @@
 - Limpieza de código huérfano causado por el recorte del listado: eliminados `use-create-shipment-order-mutation.ts`, `use-assign-packages-mutation.ts`, `use-available-packages-query.ts` y su import residual en `use-unassign-package-mutation.ts`.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo los 2 warnings preexistentes de a11y en PDFs).
 
-### ✅ Extra post-Etapa 3 — Dirección de entrega por orden (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 3 — Dirección de entrega por orden (COMPLETADO 2026-07-13, commit 9406650)
 
 Hallazgo durante revisión del detalle de orden: el sistema no mostraba a qué dirección se entrega el envío, y `confirmPreBilling` tomaba la dirección `is_default` del cliente **en el momento de confirmar** — no necesariamente la que el cliente pidió para esa orden específica.
 
@@ -59,7 +59,7 @@ Hallazgo durante revisión del detalle de orden: el sistema no mostraba a qué d
 - Tipos: `CreateConsolidationWithPackagesInput.deliveryAddressId?` y los 5 campos `delivery_*` nuevos en `ConsolidationDetail`.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 
-### ✅ Extra post-Etapa 3 (2) — Copy y columnas de pago (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 3 (2) — Copy y columnas de pago (COMPLETADO 2026-07-13, commit 9406650)
 
 Feedback del dueño tras probar el flujo: el `status` logístico (ABIERTO/CERRADO/DESPACHADO/ENTREGADO) no dice nada sobre si el cliente ya pagó, y el botón "Confirmar y Facturar" sonaba como si el pago ya hubiera ocurrido cuando en realidad solo emite la factura (pendiente de pago).
 
@@ -72,7 +72,7 @@ Feedback del dueño tras probar el flujo: el `status` logístico (ABIERTO/CERRAD
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 - **Resuelto en el extra (3) siguiente:** agregar/quitar paquetes desde el detalle de la orden ya está implementado — ver abajo.
 
-### ✅ Extra post-Etapa 3 (3) — Filtros por pago, agregar/quitar paquetes, limpieza de datos de prueba (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 3 (3) — Filtros por pago, agregar/quitar paquetes, limpieza de datos de prueba (COMPLETADO 2026-07-13, commit 9406650)
 
 - **Filtros del listado `/admin/shipment-orders` reemplazados**: de status logístico (Pendientes/Abiertos/Cerrados/Despachados/Entregados/Todos) a filtros por pago — **Pendientes de pago / Pagadas / Entregadas / Todas** (`ShipmentOrderPaymentFilter` enum en `use-shipment-orders.ts`). `getPaginatedConsolidations` reescrito para filtrar por `billing.is_paid`/`consolidations.status = ENTREGADO` en vez de por `status` logístico crudo. **Nota:** el alcance de "Pendientes de pago" se amplió después (ver Extra (4) abajo) para incluir también las órdenes sin factura generada.
 - **`ConsolidationPaymentStatus` y `ShipmentOrderPaymentFilter` convertidos a `enum`** (antes `type` unions/string literals) — consistente con `ConsolidationStatus`/`PackageStatus`.
@@ -82,7 +82,7 @@ Feedback del dueño tras probar el flujo: el `status` logístico (ABIERTO/CERRAD
 - **Limpieza de datos de prueba en Neon** (ambiente sin producción activa): eliminadas 3 órdenes que quedaron en estados imposibles con el flujo actual (factura sin prefactura previa, CERRADO sin ningún estimado, DESPACHADO sin haber facturado nunca) — paquetes liberados, `billing`/`pre_billing` asociados eliminados. Quedan 5 órdenes válidas.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 
-### ✅ Extra post-Etapa 3 (4) — Reabrir con factura sin pagar + 3 chips de pago (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 3 (4) — Reabrir con factura sin pagar + 3 chips de pago (COMPLETADO 2026-07-13, commit 9406650)
 
 Pedido del dueño: una orden "Pendiente de pago" (ya facturada, sin cobrar) no se podía reabrir para agregar/quitar paquetes — el guard de la Etapa 3 bloqueaba el reabrir en cuanto existía `billing`, sin importar si estaba pagada o no.
 
@@ -91,7 +91,7 @@ Pedido del dueño: una orden "Pendiente de pago" (ya facturada, sin cobrar) no s
 - **`ConsolidationPaymentStatus` ahora tiene 4 valores** (antes 3): `SIN_ESTIMADO` (nada generado) / `ESTIMADO_PENDIENTE` (prefactura sin confirmar, nuevo) / `PENDIENTE_PAGO` (factura sin pagar) / `PAGADO`. El chip "Pago" en el listado ahora distingue las 3 etapas previas al pago, no solo 2.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 
-### ✅ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtro pipeline de cobro (COMPLETADA 2026-07-13, sin commit/push)
+### ✅ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtro pipeline de cobro (COMPLETADA 2026-07-13, commit 9406650)
 
 - **Módulo de plantillas** `src/shared/constants/whatsapp-templates.ts` (nuevo, no existía nada similar en el proyecto): `interpolate()`, `buildWhatsAppUrl(phone, message)` (limpia el teléfono guardado en formato `+506 XXXX-XXXX`, antepone `506` si falta, arma el link `wa.me`), constantes `WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE`/`WHATSAPP_TEMPLATE_PREBILLING_READY` con los textos ya acordados, y builders `buildPackagesAvailableMessage`/`buildPreBillingReadyMessage` que arman el mensaje final a partir de los datos reales.
 - **Hook compartido** `src/hooks/use-notify-packages-available.ts`: dado un cliente, consulta `GET /consolidations?availablePackages=<id>` (endpoint ya existente de Etapa 2/3), arma el mensaje de plantilla 1 con TODOS los paquetes sin orden del cliente (no solo un subconjunto — regla ya acordada), abre `wa.me`, y llama a `POST /logistics?action=log-notified` para dejar bitácora. Reutilizado en las 3 ubicaciones de la plantilla 1.
@@ -106,7 +106,7 @@ Pedido del dueño: una orden "Pendiente de pago" (ya facturada, sin cobrar) no s
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 - **Pendiente de aprobación del dueño (no implementado, solo el mecanismo está listo):** el texto exacto de la Plantilla 2 sigue siendo el borrador ya redactado — falta que el dueño lo apruebe y decida si agrega datos de pago (SINPE/cuenta).
 
-### ✅ Extra post-Etapa 4 — Rediseño de paquetes en detalle de cliente (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 4 — Rediseño de paquetes en detalle de cliente (COMPLETADO 2026-07-13, commit 289dc39)
 
 Feedback del dueño: el bloque único "Paquetes Activos" mezclaba paquetes sin orden con paquetes ya asignados a una orden en curso, sin mostrar a cuál orden pertenecían — y no permitía seleccionar/crear una orden desde ahí (a diferencia de `/admin/logistics`).
 
@@ -117,7 +117,7 @@ Feedback del dueño: el bloque único "Paquetes Activos" mezclaba paquetes sin o
 - El bloque "Historial de Paquetes" (entregados) no cambió.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 
-### ✅ Extra post-Etapa 4 (2) — Auditoría end-to-end + cierre de la ruta de facturación paralela (COMPLETADO 2026-07-13, sin commit/push)
+### ✅ Extra post-Etapa 4 (2) — Auditoría end-to-end + cierre de la ruta de facturación paralela (COMPLETADO 2026-07-13, commit 289dc39)
 
 Pedido del dueño: análisis completo end-to-end de logística/órdenes/detalle de orden/clientes para detectar inconsistencias antes de seguir. Hallazgo más grave: **`/admin/billing` tenía una pestaña "Por Facturar" que generaba facturas por fuera del flujo de estimado**, saltándose `pre_billing` por completo — contradecía el invariante "el motor de prefactura/factura no se toca". Como la orden se auto-cierra (`CERRADO`) al generar el estimado, toda orden con estimado recién generado y sin confirmar aparecía también ahí, y el botón "Facturar" de esa pestaña recalculaba tarifas frescas (ignorando el monto ya congelado/compartido) y usaba la dirección `is_default` del cliente en vez de `delivery_address_id` de la orden (el mismo bug ya corregido en `confirmPreBilling`, sin arreglar en esta segunda ruta).
 
