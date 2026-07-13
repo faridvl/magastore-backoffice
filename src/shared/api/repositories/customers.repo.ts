@@ -183,6 +183,7 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
 };
 
 export const getPackagesByCustomer = async (customerId: string): Promise<{
+  uuid: string;
   tracking_number: string;
   weight_lb: string;
   status: string;
@@ -190,18 +191,24 @@ export const getPackagesByCustomer = async (customerId: string): Promise<{
   courier_rate_name: string | null;
   courier_cost_usd: string | null;
   insurance_applied: boolean;
+  consolidation_uuid: string | null;
+  consolidation_status: string | null;
 }[]> => {
   const rows = await sql`
     SELECT
+      p.uuid,
       p.tracking_number,
       p.weight_lb,
       p.status,
       p.arrival_date,
       p.courier_cost_usd,
       p.insurance_applied,
-      cr.name AS courier_rate_name
+      cr.name AS courier_rate_name,
+      con.uuid AS consolidation_uuid,
+      con.status AS consolidation_status
     FROM packages p
     LEFT JOIN courier_rates cr ON p.courier_rate_id = cr.id
+    LEFT JOIN consolidations con ON p.consolidation_id = con.id
     WHERE p.customer_id = ${customerId}
     ORDER BY p.created_at DESC
   `;

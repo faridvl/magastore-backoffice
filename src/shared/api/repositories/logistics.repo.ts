@@ -5,7 +5,6 @@ import {
   PackageInput,
   Package,
   Consolidation,
-  Billing,
   CourierRate,
   PreBilling,
   PreBillingDetail,
@@ -433,86 +432,6 @@ export const LogisticsRepository = {
    * El costo de envío local (delivery_fee_crc) se elige en el momento de facturar.
    * profit_per_lb es solo una métrica de reporting y NO se incluye en la factura.
    */
-  generateBilling: async (
-    consolidationUuid: string,
-    deliveryMethod: DeliveryMethod,
-  ): Promise<Partial<Billing>> => {
-    const settings = await getSettings();
-    if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
-
-    const price_lb  = Number(settings.price_per_lb);
-    const exchange  = Number(settings.exchange_rate);
-    const min_lb    = Number(settings.min_weight);
-    const deliveryFee =
-      deliveryMethod === 'CORREOS_CR' ? Number(settings.correos_fee_crc ?? 4500) :
-      deliveryMethod === 'TRACOPA'    ? Number(settings.tracopa_fee_crc  ?? 3000) :
-      0; // RETIRO — sin costo de envío
-
-    try {
-      await sql`BEGIN`;
-
-      const [c] = await sql`
-        SELECT id, customer_id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
-      `;
-      if (!c) throw new Error('Orden de envío no encontrada.');
-
-      if (c.status !== 'CERRADO' && c.status !== 'ENTREGADO') {
-        throw new Error(
-          `La orden de envío debe estar en estado CERRADO para facturar. Estado actual: ${c.status}`,
-        );
-      }
-
-      const [existing] = await sql`
-        SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
-      `;
-      if (existing) throw new Error('Esta orden de envío ya tiene una factura generada.');
-
-      const [addressRow] = await sql`
-        SELECT exact_address FROM customer_addresses
-        WHERE customer_id = ${c.customer_id}
-        ORDER BY is_default DESC
-        LIMIT 1
-      `;
-      const deliveryAddressSnapshot = addressRow?.exact_address ?? null;
-
-      const actualWeight  = Number(c.total_weight_lb);
-      const chargedWeight = Math.max(actualWeight, min_lb);
-      const flete         = chargedWeight * price_lb * exchange;
-      const totalCrc      = flete + deliveryFee;
-
-      const [bill] = await sql`
-        INSERT INTO billing (
-          consolidation_id,
-          applied_rate_usd,
-          applied_exchange,
-          applied_fee_crc,
-          total_weight_charged,
-          total_amount_crc,
-          delivery_method,
-          delivery_fee_crc,
-          delivery_address_snapshot
-        ) VALUES (
-          ${c.id},
-          ${price_lb},
-          ${exchange},
-          ${deliveryFee},
-          ${chargedWeight},
-          ${totalCrc},
-          ${deliveryMethod},
-          ${deliveryFee},
-          ${deliveryAddressSnapshot}
-        )
-        RETURNING uuid, total_amount_crc, delivery_method, delivery_fee_crc, created_at;
-      `;
-
-      await sql`COMMIT`;
-      return bill;
-    } catch (error) {
-      await sql`ROLLBACK`;
-      throw error;
-    }
-  },
-
   /**
    * 5b. UPDATE PACKAGE WEIGHT: Actualiza solo el peso registrado.
    */

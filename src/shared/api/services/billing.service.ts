@@ -3,7 +3,6 @@ import {
   BillingListItem,
   BillingDetail,
   BillingMonthlyReport,
-  PendingConsolidation,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -48,15 +47,6 @@ export const BillingService = {
     if (!detail) throw new Error(`No se encontró la factura con UUID: ${uuid}`);
 
     return detail;
-  },
-
-  getPendingConsolidations: async (): Promise<PendingConsolidation[]> => {
-    try {
-      return await BillingRepository.getPendingConsolidations();
-    } catch (error: unknown) {
-      console.error('[BillingService.getPendingConsolidations]:', error);
-      throw new Error('Error al obtener las órdenes de envío pendientes de facturar.');
-    }
   },
 
   getBillingReports: async (from: string, to: string): Promise<BillingMonthlyReport[]> => {

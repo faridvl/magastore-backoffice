@@ -10233,3 +10233,99 @@ d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quic
 ?? src/hooks/use-notify-packages-available.ts
 ?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
 ?? src/shared/constants/whatsapp-templates.ts
+
+=== 2026-07-13 09:31 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+
+=== 2026-07-13 11:50 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/customers.repo.ts
+
+=== 2026-07-13 11:58 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/customers.repo.ts
+
+=== 2026-07-13 12:01 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/customers.repo.ts
+
+=== 2026-07-13 12:04 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/customers.repo.ts
+
+=== 2026-07-13 14:01 ===
+--- recent commits ---
+9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/billing/use-billing.ts
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/pages/api/billing/index.ts
+ M src/pages/api/logistics/index.tsx
+ D src/shared/api/mutations/billing/use-generate-invoice-mutation.ts
+ M src/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation.ts
+ D src/shared/api/querys/billing/use-pending-consolidations-query.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/billing.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts

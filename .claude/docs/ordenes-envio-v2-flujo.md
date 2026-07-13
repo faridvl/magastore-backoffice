@@ -1,7 +1,7 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
 **Estado: EN IMPLEMENTACIÓN.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 4 completada, sin commit/push todavía).
+Última actualización: 2026-07-13 (Etapa 4 completada + rediseño de paquetes en detalle de cliente + cierre de ruta de facturación paralela, sin commit/push todavía).
 
 ## Progreso
 
@@ -105,6 +105,36 @@ Pedido del dueño: una orden "Pendiente de pago" (ya facturada, sin cobrar) no s
 - **Filtro "Sin notificar"** agregado a `ShipmentOrderPaymentFilter` (ahora 5 valores: `SIN_NOTIFICAR`, `PENDIENTE_PAGO`, `PAGADO`, `ENTREGADO`, `ALL`) — derivado de `pre_billing.uuid IS NOT NULL AND pre_billing.notified_at IS NULL`. `getPaginatedConsolidations` extendido con el JOIN a `pre_billing` también en la query de `COUNT(*)` (antes solo estaba en la query principal).
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
 - **Pendiente de aprobación del dueño (no implementado, solo el mecanismo está listo):** el texto exacto de la Plantilla 2 sigue siendo el borrador ya redactado — falta que el dueño lo apruebe y decida si agrega datos de pago (SINPE/cuenta).
+
+### ✅ Extra post-Etapa 4 — Rediseño de paquetes en detalle de cliente (COMPLETADO 2026-07-13, sin commit/push)
+
+Feedback del dueño: el bloque único "Paquetes Activos" mezclaba paquetes sin orden con paquetes ya asignados a una orden en curso, sin mostrar a cuál orden pertenecían — y no permitía seleccionar/crear una orden desde ahí (a diferencia de `/admin/logistics`).
+
+- **Backend:** `getPackagesByCustomer` (`customers.repo.ts`) extendido con `LEFT JOIN consolidations` — expone `uuid`, `consolidation_uuid`, `consolidation_status` por paquete (antes no traía ni el `uuid` del paquete). Tipo `CustomerPackage` actualizado con los mismos campos.
+- **Bloque único dividido en dos**, ambos derivados client-side de `activePackages` (status != ENTREGADO) filtrando por `consolidation_uuid`:
+  - **"Paquetes Sin Orden"**: seleccionables (checkbox), con barra de selección "Crear orden de envío" que aparece al tildar 1+. Reutiliza el mismo endpoint atómico de la Etapa 2 (`createConsolidationWithPackages`) y el mismo flujo de selección de dirección de entrega (modal si el cliente tiene 2+ direcciones) ya construido en `/admin/logistics` — literalmente el mismo patrón, sin el candado de mismo-cliente (aquí no hace falta, ya se sabe de qué cliente se trata). Al crear, redirige al detalle de la orden nueva.
+  - **"En Órdenes Activas"**: solo lectura, cada fila muestra un badge clickeable con el status de su orden que navega a `/admin/shipment-orders/<uuid>`.
+- El bloque "Historial de Paquetes" (entregados) no cambió.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+
+### ✅ Extra post-Etapa 4 (2) — Auditoría end-to-end + cierre de la ruta de facturación paralela (COMPLETADO 2026-07-13, sin commit/push)
+
+Pedido del dueño: análisis completo end-to-end de logística/órdenes/detalle de orden/clientes para detectar inconsistencias antes de seguir. Hallazgo más grave: **`/admin/billing` tenía una pestaña "Por Facturar" que generaba facturas por fuera del flujo de estimado**, saltándose `pre_billing` por completo — contradecía el invariante "el motor de prefactura/factura no se toca". Como la orden se auto-cierra (`CERRADO`) al generar el estimado, toda orden con estimado recién generado y sin confirmar aparecía también ahí, y el botón "Facturar" de esa pestaña recalculaba tarifas frescas (ignorando el monto ya congelado/compartido) y usaba la dirección `is_default` del cliente en vez de `delivery_address_id` de la orden (el mismo bug ya corregido en `confirmPreBilling`, sin arreglar en esta segunda ruta).
+
+**Decisión del dueño:** eliminar solo la pestaña "Por Facturar" (y todo lo que la sostenía); la pestaña "Registros" (única ahora) se mantiene intacta como panel de facturación — ver qué falta cobrar, filtrar por pago, descargar PDF, detalle de factura, "Marcar como pagado". Se agregó, además, distinción visual: **columna "Orden" nueva** en la tabla de Registros con badge de status de la orden (mismos colores que `/admin/shipment-orders`) y link directo a su detalle.
+
+- **Eliminado (frontend):** pestaña/tabs de `billing-container.tsx`, modal "Método de Entrega", `pendingColumns`, `useGenerateInvoiceMutation`, `usePendingConsolidationsQuery`, tipo `ActiveBillingTab`. `use-billing.ts` reescrito sin `activeTab`/`invoiceTarget`/`pendingConsolidations`.
+- **Eliminado (backend):** `BillingRepository.getPendingConsolidations`, `BillingService.getPendingConsolidations`, rama `pending=true` de `GET /api/billing`, `LogisticsRepository.generateBilling`, `LogisticsService.createInvoice`, rama `case 'invoice'` de `POST /api/logistics`. Tipo `PendingConsolidation` eliminado (sin más consumidores). `PENDING_CONSOLIDATIONS_KEY` quitado de la invalidación en `useUpdateShipmentOrderStatusMutation` (Etapa 3).
+- **Agregado:** `getPaginatedBilling` (`billing.repo.ts`) extendido con `con.status AS consolidation_status` — `BillingListItem` ahora incluye `consolidation_status`. Columna "Orden" en la tabla (desktop) y badge en las cards (mobile) de `/admin/billing`, con link a `/admin/shipment-orders/<uuid>`.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Otros hallazgos de la auditoría, documentados pero NO corregidos en este cambio** (fuera del alcance pedido — solo se cerró la ruta paralela de facturación):
+  - Invalidación de cache incompleta: generar/confirmar estimado y despachar (en `use-shipment-order-detail.ts`) solo invalidan el detalle de la orden, no el listado de órdenes ni el listado de logística — pueden quedar datos viejos en pantalla sin refresh manual.
+  - Editar peso/status de un paquete no invalida el detalle de la orden a la que pertenece.
+  - `markBillingAsPaid` (`billing.repo.ts`) tiene un `UPDATE consolidations SET status='CERRADO' WHERE status='ABIERTO'` que nunca aplica en el flujo nuevo (la orden ya está `CERRADO` mucho antes de pagar) — no-op inofensivo, remanente del modelo viejo.
+  - Filtro default "Pendientes de pago" en `/admin/shipment-orders` incluye órdenes sin ningún estimado generado (`SIN_ESTIMADO`) — puede confundir a un operador nuevo.
+  - Badges de status de orden en el detalle de cliente y en logística no traducían/coloreaban el status (mostraban el enum crudo) — **no corregido en este cambio**, sigue pendiente ahí (solo se corrigió/agregó en la columna nueva de `/admin/billing`).
+  - Código muerto ya identificado y no tocado: `getOpenConsolidationForCustomer`/endpoint `check-open`, `consolidatePackages`/`countMismatchedPackages`/`processConsolidation`/`case 'consolidate'` (sistema viejo orden-céntrico).
+  - Duplicación de lógica: el flujo "crear orden + elegir dirección" está copiado línea por línea entre `use-logistics.tsx` y `use-customer-detail.ts` — candidato a extraer a un hook compartido.
 
 ### ⬜ Etapa 5 — Detalle de cliente: mejoras adicionales + módulo de plantillas editables (pendiente, alcance reducido)
 

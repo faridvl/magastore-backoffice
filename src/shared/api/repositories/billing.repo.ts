@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { BillingListItem, BillingDetail, BillingMonthlyReport, PendingConsolidation } from '@/types/logistics/logistics.types';
+import { BillingListItem, BillingDetail, BillingMonthlyReport } from '@/types/logistics/logistics.types';
 
 export const BillingRepository = {
   getPaginatedBilling: async (
@@ -21,6 +21,7 @@ export const BillingRepository = {
         SELECT
           b.uuid,
           con.uuid AS consolidation_uuid,
+          con.status AS consolidation_status,
           c.first_name || ' ' || c.last_name AS customer_name,
           c.customer_code,
           b.total_weight_charged,
@@ -102,33 +103,6 @@ export const BillingRepository = {
     `;
 
     return (rows[0] as BillingDetail) || null;
-  },
-
-  getPendingConsolidations: async (): Promise<PendingConsolidation[]> => {
-    const rows = await sql`
-      SELECT
-        con.uuid,
-        con.customer_id,
-        c.first_name || ' ' || c.last_name AS customer_name,
-        c.customer_code,
-        con.total_weight_lb,
-        con.status,
-        con.created_at,
-        COUNT(p.id)::int AS package_count
-      FROM consolidations con
-      JOIN customers c ON con.customer_id = c.id
-      LEFT JOIN packages p ON p.consolidation_id = con.id
-      WHERE con.status IN ('CERRADO', 'ENTREGADO')
-        AND NOT EXISTS (
-          SELECT 1 FROM billing b WHERE b.consolidation_id = con.id
-        )
-      GROUP BY
-        con.id, con.uuid, con.customer_id, con.total_weight_lb, con.status, con.created_at,
-        c.first_name, c.last_name, c.customer_code
-      ORDER BY con.created_at DESC
-    `;
-
-    return rows as PendingConsolidation[];
   },
 
   getBillingReports: async (

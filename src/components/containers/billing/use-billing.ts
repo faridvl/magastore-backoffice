@@ -1,20 +1,14 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useBillingListQuery } from '@/shared/api/querys/billing/use-billing-list-query';
-import { usePendingConsolidationsQuery } from '@/shared/api/querys/billing/use-pending-consolidations-query';
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
-import { useGenerateInvoiceMutation } from '@/shared/api/mutations/billing/use-generate-invoice-mutation';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
-import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
-import { DeliveryMethod, PendingConsolidation } from '@/types/logistics/logistics.types';
 
 export type PaidFilterValue = 'all' | 'paid' | 'pending';
-export type ActiveBillingTab = 'registros' | 'por-facturar';
 
 const PAGE_SIZE = 10;
 
 export const useBilling = () => {
-  const [activeTab, setActiveTab] = useState<ActiveBillingTab>('registros');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -22,10 +16,6 @@ export const useBilling = () => {
   const [selectedBillingUuid, setSelectedBillingUuid] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  // Estado para el modal de generación de factura
-  const [invoiceTarget, setInvoiceTarget] = useState<PendingConsolidation | null>(null);
-  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod>('CORREOS_CR');
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -47,39 +37,14 @@ export const useBilling = () => {
   );
   const { data: listData, isLoading: isLoadingList } = billingListQuery.useQuery();
 
-  const pendingQuery = usePendingConsolidationsQuery();
-  const { data: pendingData, isLoading: isLoadingPending } = pendingQuery.useQuery();
-
   const detailQuery = useBillingDetailQuery(selectedBillingUuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
 
-  const { generateInvoice, isPending: isGenerating } = useGenerateInvoiceMutation();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
-  const { data: settingsData } = useSettingsQuery();
 
   const handlePaidFilterChange = (val: PaidFilterValue) => {
     setPaidFilter(val);
     setPage(1);
-  };
-
-  const handleOpenInvoiceModal = (consolidation: PendingConsolidation) => {
-    setInvoiceTarget(consolidation);
-    setSelectedDeliveryMethod('CORREOS_CR');
-  };
-
-  const handleConfirmInvoice = async () => {
-    if (!invoiceTarget) return;
-    try {
-      await generateInvoice({
-        consolidationUuid: invoiceTarget.uuid,
-        deliveryMethod: selectedDeliveryMethod,
-      });
-      setInvoiceTarget(null);
-      setActiveTab('registros');
-      toast.success('Factura generada correctamente');
-    } catch (err: any) {
-      toast.error('No se pudo generar la factura. Verifica que la orden de envío esté cerrada y sin factura previa.');
-    }
   };
 
   const handleMarkAsPaid = async () => {
@@ -119,34 +84,20 @@ export const useBilling = () => {
   };
 
   return {
-    activeTab, setActiveTab,
     page, setPage,
     search, setSearch,
     paidFilter, handlePaidFilterChange,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     selectedBillingUuid, setSelectedBillingUuid,
-    // Invoice modal
-    invoiceTarget, setInvoiceTarget,
-    selectedDeliveryMethod, setSelectedDeliveryMethod,
-    handleOpenInvoiceModal,
-    handleConfirmInvoice,
-    // List
     billingList: listData?.data ?? [],
     listMeta: listData?.meta ?? { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 },
     isLoadingList,
-    // Pending
-    pendingConsolidations: pendingData?.data ?? [],
-    isLoadingPending,
-    // Detail
     billingDetail: detailResponse?.data ?? null,
     isLoadingDetail,
-    // Mutations
-    isGenerating,
     handleMarkAsPaid,
     isMarkingPaid,
     handleDownloadPdf,
     isDownloadingPdf,
-    settings: settingsData ?? null,
   };
 };

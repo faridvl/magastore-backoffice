@@ -4,7 +4,6 @@ import {
   PackageInput,
   Package,
   Consolidation,
-  Billing,
   CourierRate,
   PreBilling,
   DeliveryMethod,
@@ -193,35 +192,6 @@ export const LogisticsService = {
     } catch (error: any) {
       console.error('[LogisticsService.processConsolidation]:', error);
       throw new Error(error.message || 'Error al procesar la orden de envío.');
-    }
-  },
-
-  /**
-   * Genera la factura para una orden de envío (snapshot de tarifas + envío local).
-   */
-  createInvoice: async (
-    consolidationUuid: string,
-    deliveryMethod: DeliveryMethod,
-  ): Promise<Partial<Billing>> => {
-    try {
-      const billing = await LogisticsRepository.generateBilling(consolidationUuid, deliveryMethod);
-
-      const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
-      if (customerInfo && billing.uuid && billing.total_amount_crc) {
-        sendInvoiceNotification({
-          to: customerInfo.email,
-          firstName: customerInfo.first_name,
-          totalAmountCRC: Number(billing.total_amount_crc),
-          billingUuid: billing.uuid as string,
-        }).catch((err) =>
-          console.error('[Email] Error enviando notificación de factura:', err),
-        );
-      }
-
-      return billing;
-    } catch (error: any) {
-      console.error('[LogisticsService.createInvoice]:', error);
-      throw new Error(error.message || 'Error al generar la facturación.');
     }
   },
 

@@ -19,16 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, pending, page, limit, search, isPaid, dateFrom, dateTo } = req.query;
+      const { uuid, page, limit, search, isPaid, dateFrom, dateTo } = req.query;
 
       if (uuid) {
         const detail = await BillingService.getBillingDetail(uuid as string);
         return res.status(200).json({ data: detail });
-      }
-
-      if (pending === 'true') {
-        const consolidations = await BillingService.getPendingConsolidations();
-        return res.status(200).json({ data: consolidations });
       }
 
       const p = parseInt(page as string) || 1;

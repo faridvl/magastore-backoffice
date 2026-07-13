@@ -1,5 +1,6 @@
 import React from 'react';
-import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, Package, Clock, Loader2, MessageCircle } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, CheckCircle, Package, Clock, Loader2, MessageCircle, CheckSquare, Square, Boxes, ChevronRight } from 'lucide-react';
 
 const MAILBOXES = [
   { label: 'USA Aéreo', suffix: 'A', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
@@ -42,18 +43,30 @@ import { CustomerHistoryTab } from './customer-history-tab';
 import { CustomerEditForm } from './customer-edit-form';
 
 export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
+    const router = useRouter();
     const {
         customer,
         isLoading,
         initials,
         metrics,
         seasonalityData,
-        activePackages,
+        unassignedPackages,
+        assignedPackages,
         filteredHistory,
         loadingPackages,
         setSearchTerm,
         handleNotifyWhatsApp,
         isNotifying,
+        selectedPackageUuids,
+        handleTogglePackage,
+        clearSelection,
+        handleCreateOrder,
+        isCreatingOrder,
+        addressModalTarget,
+        setAddressModalTarget,
+        selectedAddressId,
+        setSelectedAddressId,
+        handleConfirmCreateOrderWithAddress,
         handleBack,
         activeTab,
         setActiveTab,
@@ -282,12 +295,12 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         <div className="flex justify-center py-20"><Loader2 className="animate-spin text-amber-500" /></div>
                                     ) : (
                                         <>
-                                            {/* Paquetes Activos */}
+                                            {/* Paquetes Sin Orden — seleccionables para crear orden de envío */}
                                             <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <div className="p-1.5 bg-amber-50 rounded-lg"><Package size={14} className="text-amber-600" /></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>Paquetes Activos</Typography>
-                                                    <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{activePackages.length}</span>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>Paquetes Sin Orden</Typography>
+                                                    <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{unassignedPackages.length}</span>
                                                     <button
                                                         onClick={handleNotifyWhatsApp}
                                                         disabled={isNotifying}
@@ -298,12 +311,77 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                         {isNotifying ? 'Abriendo...' : 'WhatsApp'}
                                                     </button>
                                                 </div>
-                                                {activePackages.length === 0 ? (
-                                                    <p className="text-sm text-slate-400 text-center py-6">Sin paquetes activos</p>
+                                                {unassignedPackages.length === 0 ? (
+                                                    <p className="text-sm text-slate-400 text-center py-6">Sin paquetes disponibles</p>
                                                 ) : (
                                                     <div className="space-y-2">
-                                                        {activePackages.map((pkg) => (
-                                                            <div key={pkg.tracking_number} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                        {unassignedPackages.map((pkg) => {
+                                                            const selected = selectedPackageUuids.includes(pkg.uuid);
+                                                            return (
+                                                                <button
+                                                                    key={pkg.uuid}
+                                                                    onClick={() => handleTogglePackage(pkg.uuid)}
+                                                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border text-left transition-all ${
+                                                                        selected ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-transparent hover:border-slate-200'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        {selected
+                                                                            ? <CheckSquare size={16} className="text-amber-600 flex-shrink-0" />
+                                                                            : <Square size={16} className="text-slate-300 flex-shrink-0" />
+                                                                        }
+                                                                        <div>
+                                                                            <p className="text-xs font-mono font-black text-slate-800">{pkg.tracking_number}</p>
+                                                                            <p className="text-[10px] text-slate-400">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full ${
+                                                                        pkg.status === 'PANAMA' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                                                                    }`}>
+                                                                        {pkg.status === 'PANAMA' ? 'Panamá' : 'En Trámite'}
+                                                                    </span>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                {selectedPackageUuids.length > 0 && (
+                                                    <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
+                                                        <span className="text-[11px] font-bold text-slate-500">
+                                                            {selectedPackageUuids.length} paquete{selectedPackageUuids.length > 1 ? 's' : ''} seleccionado{selectedPackageUuids.length > 1 ? 's' : ''}
+                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={clearSelection}
+                                                                className="text-[10px] font-bold uppercase text-slate-400 hover:text-slate-600 px-3 py-2"
+                                                            >
+                                                                Limpiar
+                                                            </button>
+                                                            <button
+                                                                onClick={handleCreateOrder}
+                                                                disabled={isCreatingOrder}
+                                                                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
+                                                            >
+                                                                {isCreatingOrder ? 'Creando...' : 'Crear orden de envío'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Paquetes en órdenes activas — solo lectura, badge a la orden */}
+                                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className="p-1.5 bg-blue-50 rounded-lg"><Boxes size={14} className="text-blue-600" /></div>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>En Órdenes Activas</Typography>
+                                                    <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{assignedPackages.length}</span>
+                                                </div>
+                                                {assignedPackages.length === 0 ? (
+                                                    <p className="text-sm text-slate-400 text-center py-6">Sin paquetes en órdenes activas</p>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {assignedPackages.map((pkg) => (
+                                                            <div key={pkg.uuid} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                                                 <div className="flex items-center gap-3">
                                                                     <Package size={14} className="text-slate-400" />
                                                                     <div>
@@ -311,11 +389,13 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                                         <p className="text-[10px] text-slate-400">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
                                                                     </div>
                                                                 </div>
-                                                                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full ${
-                                                                    pkg.status === 'PANAMA' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
-                                                                }`}>
-                                                                    {pkg.status === 'PANAMA' ? 'Panamá' : 'En Trámite'}
-                                                                </span>
+                                                                <button
+                                                                    onClick={() => router.push(`/admin/shipment-orders/${pkg.consolidation_uuid}`)}
+                                                                    className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-1 rounded-full bg-white text-blue-700 border border-blue-200 hover:bg-blue-50 transition-colors"
+                                                                >
+                                                                    {pkg.consolidation_status ?? 'Ver orden'}
+                                                                    <ChevronRight size={11} />
+                                                                </button>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -365,6 +445,68 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                     )}
                 </main>
             </div>
+
+            {/* MODAL: ELEGIR DIRECCIÓN DE ENTREGA (cliente con 2+ direcciones) */}
+            {addressModalTarget && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => setAddressModalTarget(null)}
+                >
+                    <div
+                        className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-slate-100 rounded-xl">
+                                <MapPin size={18} className="text-slate-600" />
+                            </div>
+                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                                ¿A cuál dirección se entrega este envío?
+                            </Typography>
+                        </div>
+
+                        <div className="space-y-2 mb-6">
+                            {addressModalTarget.addresses.map((addr) => (
+                                <button
+                                    key={addr.id}
+                                    onClick={() => setSelectedAddressId(addr.id)}
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                                        selectedAddressId === addr.id
+                                            ? 'bg-slate-900 text-white border-slate-900'
+                                            : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                                    }`}
+                                >
+                                    <div>
+                                        <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                                        <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                                            {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                                        </p>
+                                    </div>
+                                    {selectedAddressId === addr.id && (
+                                        <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setAddressModalTarget(null)}
+                                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmCreateOrderWithAddress}
+                                disabled={!selectedAddressId || isCreatingOrder}
+                                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+                            >
+                                {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

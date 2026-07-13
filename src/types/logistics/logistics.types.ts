@@ -184,6 +184,7 @@ export type PackageDetail = {
 export interface BillingListItem {
   uuid: string;
   consolidation_uuid: string;
+  consolidation_status: ConsolidationStatus;
   customer_name: string;
   customer_code: string;
   total_weight_charged: number;
@@ -216,17 +217,6 @@ export interface BillingDetail {
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
   delivery_address_snapshot: string | null;
-}
-
-export interface PendingConsolidation {
-  uuid: string;
-  customer_id: string;
-  customer_name: string;
-  customer_code: string;
-  total_weight_lb: number;
-  package_count: number;
-  status: ConsolidationStatus;
-  created_at: string;
 }
 
 export interface GenerateInvoiceInput {

@@ -4,8 +4,11 @@ import { toast } from 'sonner';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
 import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-customer-packages-query';
+import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
-import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
+import { ApiServiceClient } from '@/shared/api/api-service-client';
+import { env } from '@/shared/api/config';
+import { CustomerUpdateInput, CustomerAddressUpdateInput, CustomerAddress } from '@/types/customer/customer.types';
 
 export const useCustomerDetail = (customerId: string) => {
   const router = useRouter();
@@ -13,16 +16,24 @@ export const useCustomerDetail = (customerId: string) => {
   const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [selectedPackageUuids, setSelectedPackageUuids] = useState<string[]>([]);
+
+  // Modal: elegir dirección de entrega — solo aparece si el cliente tiene 2+ direcciones
+  const [addressModalTarget, setAddressModalTarget] = useState<{ packageUuids: string[]; addresses: CustomerAddress[] } | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
 
   const { data: customer, isLoading } = useCustomerProfile(customerId);
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
   const { data: packagesRes, isLoading: loadingPackages } = useCustomerPackagesQuery(customerId);
   const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
+  const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
 
   const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
 
   const allPackages = packagesRes?.data ?? [];
   const activePackages = allPackages.filter((p) => p.status !== 'ENTREGADO');
+  const unassignedPackages = activePackages.filter((p) => !p.consolidation_uuid);
+  const assignedPackages = activePackages.filter((p) => !!p.consolidation_uuid);
   const historyPackages = allPackages.filter((p) => p.status === 'ENTREGADO');
 
   const enterEditMode = () => {
@@ -118,6 +129,51 @@ export const useCustomerDetail = (customerId: string) => {
     await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
   };
 
+  const handleTogglePackage = (packageUuid: string) => {
+    setSelectedPackageUuids((prev) =>
+      prev.includes(packageUuid) ? prev.filter((u) => u !== packageUuid) : [...prev, packageUuid],
+    );
+  };
+
+  const clearSelection = () => setSelectedPackageUuids([]);
+
+  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId?: string) => {
+    try {
+      const result = await createShipmentOrderWithPackages({ customerUuid: customerId, packageUuids, deliveryAddressId });
+      toast.success('Orden de envío creada correctamente');
+      setSelectedPackageUuids([]);
+      const uuid = (result as any)?.data?.uuid;
+      router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+    }
+  };
+
+  const handleCreateOrder = async () => {
+    if (selectedPackageUuids.length === 0) return;
+    try {
+      const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
+        .get<{ data: CustomerAddress[] }>(`/customers/${customerId}/addresses`);
+
+      if (addresses.length > 1) {
+        setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0].id);
+        setAddressModalTarget({ packageUuids: selectedPackageUuids, addresses });
+        return;
+      }
+
+      await createOrderAndRedirect(selectedPackageUuids);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+    }
+  };
+
+  const handleConfirmCreateOrderWithAddress = async () => {
+    if (!addressModalTarget || !selectedAddressId) return;
+    await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId);
+    setAddressModalTarget(null);
+    setSelectedAddressId('');
+  };
+
   return {
     customer,
     isLoading,
@@ -125,12 +181,24 @@ export const useCustomerDetail = (customerId: string) => {
     metrics,
     seasonalityData,
     activePackages,
+    unassignedPackages,
+    assignedPackages,
     filteredHistory,
     loadingPackages,
     searchTerm,
     setSearchTerm,
     handleNotifyWhatsApp,
     isNotifying,
+    selectedPackageUuids,
+    handleTogglePackage,
+    clearSelection,
+    handleCreateOrder,
+    isCreatingOrder,
+    addressModalTarget,
+    setAddressModalTarget,
+    selectedAddressId,
+    setSelectedAddressId,
+    handleConfirmCreateOrderWithAddress,
     handleBack: () => router.back(),
     activeTab,
     setActiveTab,

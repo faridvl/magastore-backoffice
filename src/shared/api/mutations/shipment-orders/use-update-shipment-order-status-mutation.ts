@@ -5,7 +5,6 @@ import { env } from '../../config';
 import { UpdateConsolidationStatusInput } from '@/types/logistics/logistics.types';
 import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
 import { SHIPMENT_ORDER_DETAIL_KEY } from '../../querys/shipment-orders/use-shipment-order-detail-query';
-import { PENDING_CONSOLIDATIONS_KEY } from '../../querys/billing/use-pending-consolidations-query';
 
 export function useUpdateShipmentOrderStatusMutation() {
   const queryClient = useQueryClient();
@@ -25,7 +24,6 @@ export function useUpdateShipmentOrderStatusMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY] });
-      queryClient.invalidateQueries({ queryKey: [PENDING_CONSOLIDATIONS_KEY] });
     },
   });
 

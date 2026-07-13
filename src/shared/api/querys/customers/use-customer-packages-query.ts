@@ -3,6 +3,7 @@ import { ApiServiceClient } from '../../api-service-client';
 import { env } from '../../config';
 
 export interface CustomerPackage {
+  uuid: string;
   tracking_number: string;
   weight_lb: string;
   status: string;
@@ -10,6 +11,8 @@ export interface CustomerPackage {
   courier_rate_name: string | null;
   courier_cost_usd: string | null;
   insurance_applied: boolean;
+  consolidation_uuid: string | null;
+  consolidation_status: string | null;
 }
 
 export function useCustomerPackagesQuery(customerId?: string) {
