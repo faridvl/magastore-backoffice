@@ -10,11 +10,12 @@ import { useCreateShipmentOrderMutation } from '@/shared/api/mutations/shipment-
 import { useUpdateShipmentOrderStatusMutation } from '@/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation';
 import { useAssignPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-assign-packages-mutation';
 import { useDeleteShipmentOrderMutation } from '@/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation';
+import { useUnassignPackageMutation } from '@/shared/api/mutations/shipment-orders/use-unassign-package-mutation';
 import { ConsolidationListItem, ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
 import { Customer } from '@/types/customer/customer.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
-export type ShipmentOrderStatusFilter = 'ALL' | ConsolidationStatus;
+export type ShipmentOrderStatusFilter = 'ALL' | 'PENDIENTES' | ConsolidationStatus;
 
 const PAGE_SIZE = 10;
 
@@ -22,7 +23,7 @@ export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ShipmentOrderStatusFilter>(ConsolidationStatus.ABIERTO);
+  const [statusFilter, setStatusFilter] = useState<ShipmentOrderStatusFilter>('PENDIENTES');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -82,16 +83,6 @@ export const useShipmentOrders = () => {
     enabled: showCreateModal,
   });
 
-  const { data: openShipmentOrderCheck } = useQuery<{ hasOpen: boolean; uuid?: string }>({
-    queryKey: ['shipment-orders', 'check-open', createCustomerUuid],
-    queryFn: () =>
-      ApiServiceClient(env.API.BASE_URL).get(
-        `/consolidations?action=check-open&customerUuid=${createCustomerUuid}`,
-      ),
-    enabled: showCreateModal && !!createCustomerUuid,
-    staleTime: 0,
-  });
-
   const filteredCustomers = useMemo(() => {
     const all = customersData?.data ?? [];
     if (!createCustomerSearch) return all;
@@ -108,6 +99,19 @@ export const useShipmentOrders = () => {
   const { updateStatus, isPending: isUpdating } = useUpdateShipmentOrderStatusMutation();
   const { assignPackages, isPending: isAssigning } = useAssignPackagesMutation();
   const { deleteShipmentOrder, isPending: isDeleting } = useDeleteShipmentOrderMutation();
+  const { unassignPackage, isPending: isUnassigning } = useUnassignPackageMutation();
+
+  const handleUnassignPackage = async (packageUuid: string) => {
+    try {
+      await unassignPackage({ packageUuid });
+      await detailQuery.invalidate();
+      await listQuery.invalidate();
+      await availableQuery.invalidate();
+      toast.success('Paquete removido de la orden de envío');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo quitar el paquete de la orden de envío.');
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!deleteUuid) return;
@@ -129,8 +133,8 @@ export const useShipmentOrders = () => {
         await updateStatus({ consolidationUuid: uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
         toast.success('Orden de envío reabierta');
       } else {
-        await updateStatus({ consolidationUuid: uuid, status: ConsolidationStatus.ENTREGADO, currentStatus: ConsolidationStatus.CERRADO });
-        toast.success('Orden de envío marcada como entregada');
+        await updateStatus({ consolidationUuid: uuid, status: ConsolidationStatus.DESPACHADO, currentStatus: ConsolidationStatus.CERRADO });
+        toast.success('Orden de envío marcada como despachada');
       }
       setQuickActionTarget(null);
     } catch (err: any) {
@@ -172,7 +176,8 @@ export const useShipmentOrders = () => {
     const { uuid, status } = detailResponse.data;
     const nextMap: Record<ConsolidationStatus, ConsolidationStatus | null> = {
       [ConsolidationStatus.ABIERTO]: ConsolidationStatus.CERRADO,
-      [ConsolidationStatus.CERRADO]: ConsolidationStatus.ENTREGADO,
+      [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
+      [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
       [ConsolidationStatus.ENTREGADO]: null,
     };
     const next = nextMap[status];
@@ -294,6 +299,9 @@ export const useShipmentOrders = () => {
     // Status advance
     handleAdvanceStatus, isUpdating,
 
+    // Quitar paquete de la orden
+    handleUnassignPackage, isUnassigning,
+
     // Create modal
     showCreateModal, setShowCreateModal,
     createCustomerUuid, setCreateCustomerUuid,
@@ -314,7 +322,6 @@ export const useShipmentOrders = () => {
 
     // Customers dropdown (for create modal)
     filteredCustomers,
-    openShipmentOrderCheck,
 
     // Row click
     handleSelectRow,

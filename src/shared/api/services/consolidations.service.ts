@@ -3,20 +3,14 @@ import { ConsolidationStatus } from '@/types/logistics/logistics.types';
 
 const STATUS_TRANSITIONS: Record<ConsolidationStatus, ConsolidationStatus | null> = {
   [ConsolidationStatus.ABIERTO]: ConsolidationStatus.CERRADO,
-  [ConsolidationStatus.CERRADO]: ConsolidationStatus.ENTREGADO,
+  [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
+  [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
   [ConsolidationStatus.ENTREGADO]: null,
 };
 
 export const ConsolidationsService = {
   createConsolidation: async (customerUuid: string) => {
     if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
-
-    const existing = await ConsolidationsRepository.getOpenConsolidationForCustomer(customerUuid);
-    if (existing) {
-      throw new Error(
-        `Este cliente ya tiene una orden de envío abierta (#${existing.uuid.slice(-5).toUpperCase()}). Ciérrala antes de crear una nueva.`,
-      );
-    }
 
     return ConsolidationsRepository.createConsolidation(customerUuid);
   },
@@ -46,14 +40,6 @@ export const ConsolidationsService = {
   ) => {
     // Reabrir es la única transición inversa permitida
     const isReopen = currentStatus === ConsolidationStatus.CERRADO && newStatus === ConsolidationStatus.ABIERTO;
-    if (isReopen) {
-      const consolidation = await ConsolidationsRepository.getConsolidationDetail(uuid);
-      if (!consolidation) throw new Error('Orden de envío no encontrada.');
-      const existing = await ConsolidationsRepository.getOpenConsolidationForCustomer(consolidation.customer_id);
-      if (existing) {
-        throw new Error('Este cliente ya tiene una orden de envío abierta. Ciérrala antes de reabrir esta.');
-      }
-    }
     if (!isReopen) {
       const allowed = STATUS_TRANSITIONS[currentStatus];
       if (allowed !== newStatus) {
@@ -78,5 +64,25 @@ export const ConsolidationsService = {
   getAvailablePackages: async (customerUuid: string) => {
     if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
     return ConsolidationsRepository.getAvailablePackagesForCustomer(customerUuid);
+  },
+
+  /**
+   * Quita un paquete de su orden de envío. Solo permitido si la orden sigue ABIERTO
+   * y no tiene factura final. Si existe una prefactura, se elimina (snapshot obsoleto
+   * por el cambio de peso) — el operador debe regenerarla.
+   */
+  unassignPackage: async (packageUuid: string) => {
+    if (!packageUuid) throw new Error('Se requiere el UUID del paquete.');
+
+    const consolidation = await ConsolidationsRepository.getConsolidationByPackageUuid(packageUuid);
+    if (!consolidation) throw new Error('El paquete no pertenece a ninguna orden de envío.');
+    if (consolidation.status !== ConsolidationStatus.ABIERTO) {
+      throw new Error('Solo se pueden quitar paquetes de una orden de envío en estado ABIERTO.');
+    }
+    if (consolidation.billing_uuid) {
+      throw new Error('No se puede quitar el paquete: la orden de envío ya tiene una factura generada.');
+    }
+
+    return ConsolidationsRepository.unassignPackage(packageUuid, consolidation.id);
   },
 };

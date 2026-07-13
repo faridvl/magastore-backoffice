@@ -27,13 +27,24 @@ export const LogisticsRepository = {
     const tcBanco = data.tc_banco ?? null;
     const insuranceApplied = data.insurance_applied ?? true;
     const courierRateId = data.courier_rate_id ?? null;
+    const storeName = data.store_name?.trim() || null;
     const status = data.status || PackageStatus.PANAMA;
     const rows = await sql`
-      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type, status, address_id, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id)
-      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO}, ${status}, ${addressId}, ${courierCostUsd}, ${tcBanco}, ${insuranceApplied}, ${courierRateId})
-      RETURNING uuid, tracking_number, status, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id, created_at;
+      INSERT INTO packages (customer_id, tracking_number, weight_lb, package_type, status, address_id, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id, store_name)
+      VALUES (${data.customer_id}, ${data.tracking_number}, ${data.weight_lb}, ${data.package_type || PackageType.AEREO}, ${status}, ${addressId}, ${courierCostUsd}, ${tcBanco}, ${insuranceApplied}, ${courierRateId}, ${storeName})
+      RETURNING uuid, tracking_number, status, courier_cost_usd, tc_banco, insurance_applied, courier_rate_id, store_name, created_at;
     `;
     return rows[0];
+  },
+
+  /**
+   * Verifica si ya existe un paquete con el mismo tracking_number.
+   */
+  existsByTrackingNumber: async (trackingNumber: string): Promise<boolean> => {
+    const [row] = await sql`
+      SELECT 1 FROM packages WHERE tracking_number = ${trackingNumber} LIMIT 1
+    `;
+    return !!row;
   },
 
   getCourierRates: async (): Promise<CourierRate[]> => {

@@ -1,7 +1,29 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
-**Estado: EN DISEÑO — NO IMPLEMENTAR AÚN.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-12.
+**Estado: EN IMPLEMENTACIÓN.** Documento de decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13.
+
+## Progreso
+
+### ✅ Etapa 1 — Backend quick wins (COMPLETADA 2026-07-13)
+
+- Migración `scripts/008-shipment-orders-v2.sql` aplicada en Neon: `packages.store_name`, `pre_billing.notified_at`, índice único `packages_tracking_number_key` (verificado sin duplicados previos).
+- `ConsolidationStatus` (`logistics.types.ts`) ahora incluye `DESPACHADO`. El CHECK constraint de `consolidations.status` en DB ya lo soportaba de antes.
+- `STATUS_TRANSITIONS` en `consolidations.service.ts`: `ABIERTO → CERRADO → DESPACHADO → ENTREGADO`.
+- Candado "una orden ABIERTO por cliente" eliminado (`createConsolidation`, reabrir). Endpoint `check-open` y UI de warning removidos del modal de creación.
+- Validación de tracking duplicado: chequeo previo en `logistics.service.ts` (`existsByTrackingNumber`) + fallback al código de error `23505` de Postgres (el índice único es el candado real).
+- Endpoint "quitar paquete de orden": `DELETE /api/consolidations` con `{ action: 'unassign-package', packageUuid }`. Bloqueado si la orden no está ABIERTO o ya tiene factura. Elimina la prefactura asociada (snapshot obsoleto por cambio de peso) — decisión tomada: eliminar, no dejarla desactualizada.
+- Filtro `PENDIENTES` (ABIERTO + CERRADO) en el listado de órdenes — ahora es el filtro default al entrar a `/admin/shipment-orders`, cumpliendo el pedido del dueño.
+- Campo `store_name` (Tienda/Proveedor) agregado al formulario de registro de paquete, tipos, repo y query de disponibles/detalle de orden.
+- Bug corregido de paso: el botón "Marcar como despachado" en la lista de órdenes llamaba a `ConsolidationStatus.ENTREGADO` en vez de `DESPACHADO` (arrastre de cuando el estado no existía). Ya corregido en `use-shipment-orders.ts`.
+- UI: `STATUS_LABELS`/`STATUS_COLORS`/`NEXT_STATUS_LABEL`/`STATUS_FILTERS` actualizados con 4 estados; botón "Quitar paquete" (ícono X) visible en el detalle de la orden cuando `status === ABIERTO && !hasBilling`.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo 2 warnings preexistentes de a11y en PDFs, no relacionados).
+- **Nota de arquitectura:** la capa de dominio conserva el nombre `consolidations` (tabla, repo, service) intencionalmente — solo la UI/hooks/rutas usan "shipment-orders". Ver commit fc2c1e4.
+
+### ⬜ Etapa 2 — Rediseño listado `/admin/logistics` (pendiente)
+### ⬜ Etapa 3 — Crear orden desde selección + página de detalle de orden (pendiente; el detalle sigue siendo modal por ahora, con el botón quitar-paquete ya funcional dentro de él)
+### ⬜ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtros pipeline de cobro (pendiente)
+### ⬜ Etapa 5 — Detalle de cliente: split pendientes/histórico + botón WhatsApp (pendiente)
 
 ---
 

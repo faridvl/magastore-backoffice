@@ -7,6 +7,7 @@ export enum PackageStatus {
 export enum ConsolidationStatus {
   ABIERTO = 'ABIERTO',
   CERRADO = 'CERRADO',
+  DESPACHADO = 'DESPACHADO',
   ENTREGADO = 'ENTREGADO',
 }
 
@@ -65,6 +66,7 @@ export interface Package {
   tc_banco: number | null;
   insurance_applied: boolean;
   courier_rate_id: number | null;
+  store_name: string | null;
   events?: PackageEvent[];
 }
 
@@ -120,6 +122,7 @@ export interface PackageInput {
   tc_banco?: number | null;
   insurance_applied?: boolean;
   courier_rate_id?: number | null;
+  store_name?: string | null;
 }
 
 export interface IncidenceInput {
@@ -287,6 +290,7 @@ export interface ConsolidationPackage {
   package_type: PackageType;
   status: PackageStatus;
   arrival_date: string;
+  store_name: string | null;
 }
 
 export interface ConsolidationDetail {
@@ -295,6 +299,7 @@ export interface ConsolidationDetail {
   customer_name: string;
   customer_code: string;
   customer_email: string;
+  customer_phone: string;
   status: ConsolidationStatus;
   total_weight_lb: number;
   created_at: string;
@@ -305,7 +310,9 @@ export interface ConsolidationDetail {
   pre_billing_delivery_method: DeliveryMethod | null;
   pre_billing_confirmed: boolean | null;
   pre_billing_confirmed_at: string | null;
+  pre_billing_notified_at: string | null;
   billing_uuid: string | null;
+  billing_is_paid: boolean | null;
 }
 
 export interface AvailablePackage {
@@ -315,6 +322,7 @@ export interface AvailablePackage {
   package_type: PackageType;
   status: PackageStatus;
   arrival_date: string;
+  store_name: string | null;
 }
 
 export interface CreateConsolidationInput {
@@ -329,4 +337,8 @@ export interface UpdateConsolidationStatusInput {
 export interface AssignPackagesToConsolidationInput {
   consolidationUuid: string;
   packageUuids: string[];
+}
+
+export interface UnassignPackageInput {
+  packageUuid: string;
 }

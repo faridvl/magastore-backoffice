@@ -26,6 +26,7 @@ export const usePackageCalculator = () => {
     status: PackageStatus.PANAMA,
     tc_banco: 0,
     insurance_applied: true,
+    store_name: '',
   });
 
   const settings = settingsRes?.current;
@@ -130,6 +131,7 @@ export const usePackageCalculator = () => {
         tc_banco: formData.tc_banco || null,
         insurance_applied: formData.insurance_applied,
         courier_rate_id: selectedCourierRate?.id ?? null,
+        store_name: formData.store_name.trim() || null,
       });
       setFormData((prev) => ({
         tracking_number: '',
@@ -140,6 +142,7 @@ export const usePackageCalculator = () => {
         status: PackageStatus.PANAMA,
         tc_banco: prev.tc_banco,
         insurance_applied: true,
+        store_name: '',
       }));
       setSearchTerm('');
       toast.success('Paquete registrado');

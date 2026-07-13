@@ -115,6 +115,17 @@ export const CreatePackageContainer: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* TIENDA / PROVEEDOR */}
+                    <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Tienda / Proveedor (opcional)</label>
+                        <input
+                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:bg-white focus:border-amber-200 transition-all outline-none"
+                            placeholder="Ej: Amazon, Shein, Best Buy..."
+                            value={formData.store_name}
+                            onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
+                        />
+                    </div>
+
                     {/* COURIER RATE + TC BANCO */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>

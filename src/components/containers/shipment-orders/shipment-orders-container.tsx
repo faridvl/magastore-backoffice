@@ -12,7 +12,6 @@ import {
   FileText,
   CheckCircle,
   Download,
-  AlertTriangle,
   Trash2,
   Loader2,
   RotateCcw,
@@ -35,18 +34,21 @@ import { Customer } from '@/types/customer/customer.types';
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
   CERRADO: 'Cerrado',
+  DESPACHADO: 'Despachado',
   ENTREGADO: 'Entregado',
 };
 
 const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
   CERRADO: 'bg-blue-50 text-blue-600 border-blue-100',
+  DESPACHADO: 'bg-violet-50 text-violet-600 border-violet-100',
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
 const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
   ABIERTO: 'Cerrar orden de envío',
-  CERRADO: 'Marcar como Entregado',
+  CERRADO: 'Marcar como Despachado',
+  DESPACHADO: 'Marcar como Entregado',
   ENTREGADO: null,
 };
 
@@ -57,8 +59,10 @@ const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
 };
 
 const STATUS_FILTERS: { value: ShipmentOrderStatusFilter; label: string }[] = [
+  { value: 'PENDIENTES', label: 'Pendientes' },
   { value: ConsolidationStatus.ABIERTO, label: 'Abiertos' },
   { value: ConsolidationStatus.CERRADO, label: 'Cerrados' },
+  { value: ConsolidationStatus.DESPACHADO, label: 'Despachados' },
   { value: ConsolidationStatus.ENTREGADO, label: 'Entregados' },
   { value: 'ALL', label: 'Todos' },
 ];
@@ -79,6 +83,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
 
     handleAdvanceStatus, isUpdating,
 
+    handleUnassignPackage, isUnassigning,
+
     showCreateModal, setShowCreateModal,
     createCustomerUuid, setCreateCustomerUuid,
     createCustomerSearch, setCreateCustomerSearch,
@@ -96,7 +102,6 @@ export const ShipmentOrdersContainer: React.FC = () => {
     isAssigning,
 
     handleSelectRow,
-    openShipmentOrderCheck,
 
     showPreBillingModal, setShowPreBillingModal,
     preBillingDeliveryMethod, setPreBillingDeliveryMethod,
@@ -355,6 +360,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
           isUpdating={isUpdating}
           isAssigning={isAssigning}
           isConfirmingPreBilling={isConfirmingPreBilling}
+          isUnassigning={isUnassigning}
           onClose={() => setSelectedUuid(null)}
           onAdvanceStatus={handleAdvanceStatus}
           onReopen={() => shipmentOrderDetail && setQuickActionTarget({ uuid: shipmentOrderDetail.uuid, action: 'reopen' })}
@@ -362,6 +368,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
           onOpenPreBillingModal={() => setShowPreBillingModal(true)}
           onConfirmPreBilling={handleConfirmPreBilling}
           onDownloadPreBillingPDF={handleDownloadPreBillingPDF}
+          onUnassignPackage={handleUnassignPackage}
         />
       )}
 
@@ -519,19 +526,6 @@ export const ShipmentOrdersContainer: React.FC = () => {
               )}
             </div>
 
-            {openShipmentOrderCheck?.hasOpen && (
-              <div className="mb-4 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-                <AlertTriangle size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-black text-amber-800">Este cliente ya tiene una orden de envío abierta</p>
-                  <p className="text-xs text-amber-700 mt-1">
-                    ID: <span className="font-mono font-black">#{openShipmentOrderCheck.uuid?.slice(-5).toUpperCase()}</span>.
-                    {' '}Ciérrala antes de crear una nueva, o selecciona otro cliente.
-                  </p>
-                </div>
-              </div>
-            )}
-
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -541,7 +535,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirmCreate}
-                disabled={!createCustomerUuid || isCreating || !!openShipmentOrderCheck?.hasOpen}
+                disabled={!createCustomerUuid || isCreating}
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isCreating ? 'Creando...' : 'Crear Orden de Envío'}
@@ -606,7 +600,9 @@ export const ShipmentOrdersContainer: React.FC = () => {
                         : <Square size={18} className="text-slate-300 flex-shrink-0" />
                       }
                       <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm font-bold text-slate-800 truncate">{pkg.tracking_number}</p>
+                        <p className="font-mono text-sm font-bold text-slate-800 truncate">
+                          {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
+                        </p>
                         <p className="text-[10px] text-slate-400">
                           {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
                         </p>
@@ -707,6 +703,7 @@ type DetailModalProps = {
   isUpdating: boolean;
   isAssigning: boolean;
   isConfirmingPreBilling: boolean;
+  isUnassigning: boolean;
   onClose: () => void;
   onAdvanceStatus: () => void;
   onReopen: () => void;
@@ -714,6 +711,7 @@ type DetailModalProps = {
   onOpenPreBillingModal: () => void;
   onConfirmPreBilling: () => void;
   onDownloadPreBillingPDF: (uuid: string, customerCode: string) => void;
+  onUnassignPackage: (packageUuid: string) => void;
 };
 
 const DetailModal: React.FC<DetailModalProps> = ({
@@ -722,6 +720,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
   isUpdating,
   isAssigning,
   isConfirmingPreBilling,
+  isUnassigning,
   onClose,
   onAdvanceStatus,
   onReopen,
@@ -729,6 +728,7 @@ const DetailModal: React.FC<DetailModalProps> = ({
   onOpenPreBillingModal,
   onConfirmPreBilling,
   onDownloadPreBillingPDF,
+  onUnassignPackage,
 }) => {
   const hasBilling = !!detail?.billing_uuid;
   const hasPreBilling = !!detail?.pre_billing_uuid;
@@ -886,7 +886,12 @@ const DetailModal: React.FC<DetailModalProps> = ({
                   Sin paquetes asignados aún.
                 </div>
               ) : (
-                <PackageTable packages={detail.packages} />
+                <PackageTable
+                  packages={detail.packages}
+                  canUnassign={detail.status === ConsolidationStatus.ABIERTO && !hasBilling}
+                  isUnassigning={isUnassigning}
+                  onUnassign={onUnassignPackage}
+                />
               )}
             </div>
 
@@ -946,7 +951,12 @@ const DetailModal: React.FC<DetailModalProps> = ({
   );
 };
 
-const PackageTable: React.FC<{ packages: ConsolidationPackage[] }> = ({ packages }) => (
+const PackageTable: React.FC<{
+  packages: ConsolidationPackage[];
+  canUnassign: boolean;
+  isUnassigning: boolean;
+  onUnassign: (packageUuid: string) => void;
+}> = ({ packages, canUnassign, isUnassigning, onUnassign }) => (
   <div className="space-y-2">
     {packages.map((pkg) => (
       <div
@@ -957,12 +967,22 @@ const PackageTable: React.FC<{ packages: ConsolidationPackage[] }> = ({ packages
         <div className="flex-1 min-w-0">
           <p className="font-mono text-sm font-bold text-slate-800 truncate">{pkg.tracking_number}</p>
           <p className="text-[10px] text-slate-400">
-            {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type}
+            {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type}{pkg.store_name ? ` · ${pkg.store_name}` : ''}
           </p>
         </div>
         <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg">
           {pkg.status}
         </span>
+        {canUnassign && (
+          <button
+            onClick={() => onUnassign(pkg.uuid)}
+            disabled={isUnassigning}
+            title="Quitar de la orden de envío"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 flex-shrink-0"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
     ))}
   </div>

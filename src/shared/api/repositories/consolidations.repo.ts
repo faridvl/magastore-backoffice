@@ -45,7 +45,8 @@ export const ConsolidationsRepository = {
   ): Promise<PaginatedResponse<ConsolidationListItem>> => {
     const offset = (page - 1) * limit;
     const searchTerm = search ? `%${search}%` : null;
-    const statusTerm = status && status !== 'ALL' ? status : null;
+    const isPendientes = status === 'PENDIENTES';
+    const statusTerm = status && status !== 'ALL' && !isPendientes ? status : null;
     const fromDate = dateFrom || null;
     const toDate = dateTo || null;
 
@@ -71,6 +72,7 @@ export const ConsolidationsRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
           AND (${statusTerm}::text IS NULL OR con.status = ${statusTerm})
+          AND (NOT ${isPendientes} OR con.status IN ('ABIERTO', 'CERRADO'))
           AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
         GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb, con.created_at, con.updated_at,
@@ -89,6 +91,7 @@ export const ConsolidationsRepository = {
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
           AND (${statusTerm}::text IS NULL OR con.status = ${statusTerm})
+          AND (NOT ${isPendientes} OR con.status IN ('ABIERTO', 'CERRADO'))
           AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
       `,
@@ -115,6 +118,7 @@ export const ConsolidationsRepository = {
         c.first_name || ' ' || c.last_name AS customer_name,
         c.customer_code,
         c.email AS customer_email,
+        c.phone AS customer_phone,
         COALESCE(
           json_agg(
             json_build_object(
@@ -123,7 +127,8 @@ export const ConsolidationsRepository = {
               'weight_lb', p.weight_lb,
               'package_type', p.package_type,
               'status', p.status,
-              'arrival_date', p.arrival_date
+              'arrival_date', p.arrival_date,
+              'store_name', p.store_name
             ) ORDER BY p.created_at DESC
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'::json
@@ -133,7 +138,9 @@ export const ConsolidationsRepository = {
         pb.delivery_method AS pre_billing_delivery_method,
         pb.is_confirmed AS pre_billing_confirmed,
         pb.confirmed_at AS pre_billing_confirmed_at,
-        b.uuid AS billing_uuid
+        pb.notified_at AS pre_billing_notified_at,
+        b.uuid AS billing_uuid,
+        b.is_paid AS billing_is_paid
       FROM consolidations con
       LEFT JOIN customers c ON c.id = con.customer_id
       LEFT JOIN packages p ON p.consolidation_id = con.id
@@ -141,9 +148,9 @@ export const ConsolidationsRepository = {
       LEFT JOIN billing b ON b.consolidation_id = con.id
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
-               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email,
-               pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at,
-               b.uuid
+               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
+               pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
+               b.uuid, b.is_paid
     `;
     return row ? (row as ConsolidationDetail) : null;
   },
@@ -216,12 +223,53 @@ export const ConsolidationsRepository = {
         p.weight_lb,
         p.package_type,
         p.status,
-        p.arrival_date
+        p.arrival_date,
+        p.store_name
       FROM packages p
       WHERE p.customer_id = ${customerUuid}
         AND p.consolidation_id IS NULL
       ORDER BY p.created_at DESC
     `;
     return rows as AvailablePackage[];
+  },
+
+  getConsolidationByPackageUuid: async (
+    packageUuid: string,
+  ): Promise<{ id: number; uuid: string; status: ConsolidationStatus; billing_uuid: string | null } | null> => {
+    const [row] = await sql`
+      SELECT con.id, con.uuid, con.status, b.uuid AS billing_uuid
+      FROM packages p
+      JOIN consolidations con ON con.id = p.consolidation_id
+      LEFT JOIN billing b ON b.consolidation_id = con.id
+      WHERE p.uuid = ${packageUuid}
+      LIMIT 1
+    `;
+    return (row as { id: number; uuid: string; status: ConsolidationStatus; billing_uuid: string | null } | undefined) ?? null;
+  },
+
+  unassignPackage: async (packageUuid: string, consolidationId: number): Promise<void> => {
+    await sql`BEGIN`;
+    try {
+      await sql`
+        UPDATE packages SET consolidation_id = NULL
+        WHERE uuid = ${packageUuid}
+      `;
+
+      await sql`
+        UPDATE consolidations
+        SET total_weight_lb = COALESCE((SELECT SUM(weight_lb) FROM packages WHERE consolidation_id = ${consolidationId}), 0),
+            updated_at = NOW()
+        WHERE id = ${consolidationId}
+      `;
+
+      await sql`
+        DELETE FROM pre_billing WHERE consolidation_id = ${consolidationId}
+      `;
+
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   },
 };

@@ -73,7 +73,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'DELETE') {
-      const { uuid } = req.body;
+      const { uuid, action, packageUuid } = req.body;
+
+      if (action === 'unassign-package') {
+        if (!packageUuid) return res.status(400).json({ message: 'packageUuid es requerido.' });
+        await ConsolidationsService.unassignPackage(packageUuid);
+        return res.status(200).json({ data: { unassigned: true } });
+      }
+
       if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
       await ConsolidationsService.deleteConsolidation(uuid);
       return res.status(200).json({ data: { deleted: true } });

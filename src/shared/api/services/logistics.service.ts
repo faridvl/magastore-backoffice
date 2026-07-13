@@ -80,12 +80,23 @@ export const LogisticsService = {
     if (data.weight_lb <= 0) {
       throw new Error('El peso del paquete debe ser mayor a 0.');
     }
+    if (!data.tracking_number?.trim()) {
+      throw new Error('El número de tracking es requerido.');
+    }
+
+    const exists = await LogisticsRepository.existsByTrackingNumber(data.tracking_number.trim());
+    if (exists) {
+      throw new Error(`Ya existe un paquete registrado con el tracking ${data.tracking_number.trim()}.`);
+    }
 
     try {
       return await LogisticsRepository.createPackage(data);
     } catch (error: any) {
       console.error('[LogisticsService.registerIncomingPackage] data:', JSON.stringify(data));
       console.error('[LogisticsService.registerIncomingPackage] error:', error?.message ?? error);
+      if (error?.code === '23505') {
+        throw new Error(`Ya existe un paquete registrado con el tracking ${data.tracking_number.trim()}.`);
+      }
       throw new Error('No se pudo registrar el paquete. Verifique los datos.');
     }
   },
