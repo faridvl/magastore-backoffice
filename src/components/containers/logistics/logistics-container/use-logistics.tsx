@@ -1,10 +1,14 @@
 import { useLogisticsQuery } from '@/shared/api/querys/logistics/use-logistics-query';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
+import { ApiServiceClient } from '@/shared/api/api-service-client';
+import { env } from '@/shared/api/config';
+import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { LogisticsPackage } from '@/types/logistics/logistics.types';
+import { CustomerAddress } from '@/types/customer/customer.types';
 
 export type ViewMode = 'activos' | 'historial';
 export type ConsolidationFilter = 'SIN_ORDEN' | 'CON_ORDEN';
@@ -32,6 +36,14 @@ export const usePackages = (pageSize = 7) => {
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [selectedUuids, setSelectedUuids] = useState<string[]>(readStoredSelection);
+
+    // Modal: elegir dirección de entrega — solo aparece si el cliente tiene 2+ direcciones
+    const [addressModalTarget, setAddressModalTarget] = useState<{
+        customerUuid: string;
+        packageUuids: string[];
+        addresses: CustomerAddress[];
+    } | null>(null);
+    const [selectedAddressId, setSelectedAddressId] = useState('');
 
     // Persiste la selección en sessionStorage — sobrevive a un "back" del navegador
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
@@ -65,6 +77,7 @@ export const usePackages = (pageSize = 7) => {
     const customers = customersData?.data ?? [];
 
     const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
+    const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
 
     const packages: LogisticsPackage[] = useMemo(() => data?.data || [], [data]);
 
@@ -118,12 +131,12 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const handleCreateOrder = async () => {
-        if (selectedUuids.length === 0 || !selectedCustomerId) return;
+    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId?: string) => {
         try {
             const result = await createShipmentOrderWithPackages({
-                customerUuid: selectedCustomerId,
-                packageUuids: selectedUuids,
+                customerUuid,
+                packageUuids,
+                deliveryAddressId,
             });
             toast.success('Orden de envío creada correctamente');
             setSelectedUuids([]);
@@ -132,6 +145,41 @@ export const usePackages = (pageSize = 7) => {
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
         }
+    };
+
+    const handleCreateOrder = async () => {
+        if (selectedUuids.length === 0 || !selectedCustomerId) return;
+        try {
+            const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
+                .get<{ data: CustomerAddress[] }>(`/customers/${selectedCustomerId}/addresses`);
+
+            if (addresses.length > 1) {
+                setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0].id);
+                setAddressModalTarget({ customerUuid: selectedCustomerId, packageUuids: selectedUuids, addresses });
+                return;
+            }
+
+            await createOrderAndRedirect(selectedUuids, selectedCustomerId);
+        } catch (err: any) {
+            toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+        }
+    };
+
+    const handleConfirmCreateOrderWithAddress = async () => {
+        if (!addressModalTarget || !selectedAddressId) return;
+        await createOrderAndRedirect(addressModalTarget.packageUuids, addressModalTarget.customerUuid, selectedAddressId);
+        setAddressModalTarget(null);
+        setSelectedAddressId('');
+    };
+
+    // Notifica al cliente de la selección actual sobre TODOS sus paquetes sin orden
+    // (no solo los tildados) — la selección solo sirve para identificar de qué cliente
+    // se trata.
+    const handleNotifyWhatsApp = async () => {
+        if (!selectedCustomerId) return;
+        const customer = customers.find((c) => c.id === selectedCustomerId);
+        if (!customer) return;
+        await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
     };
 
     return {
@@ -161,5 +209,14 @@ export const usePackages = (pageSize = 7) => {
         clearSelection,
         handleCreateOrder,
         isCreatingOrder,
+        handleNotifyWhatsApp,
+        isNotifying,
+
+        // Modal: elegir dirección de entrega (solo si el cliente tiene 2+ direcciones)
+        addressModalTarget,
+        setAddressModalTarget,
+        selectedAddressId,
+        setSelectedAddressId,
+        handleConfirmCreateOrderWithAddress,
     };
 };

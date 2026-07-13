@@ -4,10 +4,13 @@ import { toast } from 'sonner';
 import { useShipmentOrderDetailQuery } from '@/shared/api/querys/shipment-orders/use-shipment-order-detail-query';
 import { useUpdateShipmentOrderStatusMutation } from '@/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation';
 import { useUnassignPackageMutation } from '@/shared/api/mutations/shipment-orders/use-unassign-package-mutation';
+import { useAssignPackagesToOrderMutation } from '@/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { buildWhatsAppUrl, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
+import { CustomerAddress } from '@/types/customer/customer.types';
 
 export const useShipmentOrderDetail = (uuid?: string) => {
   const router = useRouter();
@@ -18,12 +21,26 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isConfirmingPreBilling, setIsConfirmingPreBilling] = useState(false);
   const [quickActionTarget, setQuickActionTarget] = useState<'reopen' | 'dispatch' | null>(null);
 
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressOptions, setAddressOptions] = useState<CustomerAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [availablePackages, setAvailablePackages] = useState<AvailablePackage[]>([]);
+  const [selectedPackageUuids, setSelectedPackageUuids] = useState<string[]>([]);
+  const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
+
+  const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
+
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
 
   const { updateStatus, isPending: isUpdating } = useUpdateShipmentOrderStatusMutation();
   const { unassignPackage, isPending: isUnassigning } = useUnassignPackageMutation();
+  const { assignPackagesToOrder, isPending: isAssigning } = useAssignPackagesToOrderMutation();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
   const handleBack = () => router.push('/admin/shipment-orders');
@@ -147,6 +164,104 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  const handleOpenAddressModal = async () => {
+    if (!detail) return;
+    setIsLoadingAddresses(true);
+    try {
+      const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
+        .get<{ data: CustomerAddress[] }>(`/customers/${detail.customer_id}/addresses`);
+      setAddressOptions(addresses);
+      setSelectedAddressId(detail.delivery_address_id ?? addresses.find((a: CustomerAddress) => a.is_default)?.id ?? '');
+      setShowAddressModal(true);
+    } catch {
+      toast.error('No se pudieron cargar las direcciones del cliente.');
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
+
+  const handleConfirmAddressChange = async () => {
+    if (!uuid || !selectedAddressId) return;
+    setIsSavingAddress(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-delivery-address',
+        consolidationUuid: uuid,
+        addressId: selectedAddressId,
+      });
+      await detailQuery.invalidate();
+      toast.success('Dirección de entrega actualizada');
+      setShowAddressModal(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo actualizar la dirección de entrega.');
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  const handleOpenAssignModal = async () => {
+    if (!detail) return;
+    setSelectedPackageUuids([]);
+    setIsLoadingAvailable(true);
+    try {
+      const { data: packages } = await ApiServiceClient(env.API.BASE_URL)
+        .get<{ data: AvailablePackage[] }>(`/consolidations?availablePackages=${detail.customer_id}`);
+      setAvailablePackages(packages);
+      setShowAssignModal(true);
+    } catch {
+      toast.error('No se pudieron cargar los paquetes disponibles del cliente.');
+    } finally {
+      setIsLoadingAvailable(false);
+    }
+  };
+
+  const handleTogglePackage = (packageUuid: string) => {
+    setSelectedPackageUuids((prev) =>
+      prev.includes(packageUuid) ? prev.filter((u) => u !== packageUuid) : [...prev, packageUuid],
+    );
+  };
+
+  const handleConfirmAssign = async () => {
+    if (!uuid || selectedPackageUuids.length === 0) return;
+    try {
+      await assignPackagesToOrder({ consolidationUuid: uuid, packageUuids: selectedPackageUuids });
+      await detailQuery.invalidate();
+      toast.success('Paquetes agregados a la orden de envío');
+      setShowAssignModal(false);
+      setSelectedPackageUuids([]);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudieron agregar los paquetes.');
+    }
+  };
+
+  const handleNotifyPreBilling = async () => {
+    if (!uuid || !detail) return;
+    if (!detail.customer_phone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    setIsNotifyingPreBilling(true);
+    try {
+      const message = buildPreBillingReadyMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        weightLb: Number(detail.total_weight_lb),
+        deliveryMethod: detail.pre_billing_delivery_method,
+      });
+      window.open(buildWhatsAppUrl(detail.customer_phone, message), '_blank');
+
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'notify-pre-billing',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo registrar la notificación.');
+    } finally {
+      setIsNotifyingPreBilling(false);
+    }
+  };
+
   return {
     detail,
     isLoadingDetail,
@@ -167,5 +282,25 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     handleDownloadPreBillingPDF,
 
     handleMarkAsPaid, isMarkingPaid,
+
+    showAddressModal, setShowAddressModal,
+    addressOptions,
+    selectedAddressId, setSelectedAddressId,
+    isLoadingAddresses,
+    handleOpenAddressModal,
+    handleConfirmAddressChange,
+    isSavingAddress,
+
+    showAssignModal, setShowAssignModal,
+    availablePackages,
+    isLoadingAvailable,
+    selectedPackageUuids,
+    handleOpenAssignModal,
+    handleTogglePackage,
+    handleConfirmAssign,
+    isAssigning,
+
+    handleNotifyPreBilling,
+    isNotifyingPreBilling,
   };
 };

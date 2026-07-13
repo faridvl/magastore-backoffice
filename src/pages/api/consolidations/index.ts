@@ -51,18 +51,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST') {
-      const { customerUuid, packageUuids } = req.body;
+      const { customerUuid, packageUuids, deliveryAddressId } = req.body;
       if (!customerUuid) {
         return res.status(400).json({ message: 'customerUuid es requerido.' });
       }
       const consolidation = packageUuids?.length
-        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids)
+        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId)
         : await ConsolidationsService.createConsolidation(customerUuid);
       return res.status(201).json({ data: consolidation });
     }
 
     if (req.method === 'PATCH') {
-      const { consolidationUuid, newStatus, currentStatus } = req.body;
+      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids } = req.body;
+
+      if (action === 'set-delivery-address') {
+        if (!consolidationUuid || !addressId) {
+          return res.status(400).json({ message: 'consolidationUuid y addressId son requeridos.' });
+        }
+        await ConsolidationsService.setDeliveryAddress(consolidationUuid, addressId);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'assign-packages') {
+        if (!consolidationUuid || !packageUuids?.length) {
+          return res.status(400).json({ message: 'consolidationUuid y packageUuids son requeridos.' });
+        }
+        await ConsolidationsService.assignPackages(consolidationUuid, packageUuids);
+        return res.status(200).json({ data: { assigned: true } });
+      }
+
+      if (action === 'notify-pre-billing') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markPreBillingNotified(consolidationUuid);
+        return res.status(200).json({ data: { notified: true } });
+      }
+
       if (!consolidationUuid || !newStatus || !currentStatus) {
         return res.status(400).json({ message: 'consolidationUuid, newStatus y currentStatus son requeridos.' });
       }

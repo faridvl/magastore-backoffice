@@ -100,6 +100,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const updated = await LogisticsService.bulkUpdateStatus(bulkUuids, bulkStatus);
                     return res.status(200).json({ updated });
 
+                case 'log-notified':
+                    const { packageUuids: notifiedUuids } = req.body;
+                    if (!notifiedUuids?.length) {
+                        return res.status(400).json({ message: 'packageUuids es requerido.' });
+                    }
+                    await LogisticsService.logPackagesNotified(notifiedUuids);
+                    return res.status(200).json({ data: { logged: true } });
+
                 default:
                     return res.status(400).json({ message: 'Acción no reconocida' });
             }

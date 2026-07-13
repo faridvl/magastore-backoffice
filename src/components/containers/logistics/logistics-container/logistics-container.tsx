@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { Search, User, Calendar, Plus, Box, PackageCheck } from 'lucide-react';
+import { Search, User, Calendar, Plus, Box, PackageCheck, MapPin, CheckCircle, MessageCircle } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
@@ -42,6 +42,9 @@ export const LogisticsContainer: React.FC = () => {
         dateTo, setDateTo,
         selectedUuids, selectedCustomerId, handleToggleSelect, handleRowClick, clearSelection,
         handleCreateOrder, isCreatingOrder,
+        handleNotifyWhatsApp, isNotifying,
+        addressModalTarget, setAddressModalTarget, selectedAddressId, setSelectedAddressId,
+        handleConfirmCreateOrderWithAddress,
     } = usePackages(PAGE_SIZE);
 
     const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
@@ -317,6 +320,15 @@ export const LogisticsContainer: React.FC = () => {
                             Limpiar
                         </button>
                         <button
+                            onClick={handleNotifyWhatsApp}
+                            disabled={isNotifying}
+                            title="Notifica al cliente de TODOS sus paquetes disponibles, no solo los seleccionados"
+                            className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
+                        >
+                            <MessageCircle size={13} />
+                            {isNotifying ? 'Abriendo...' : 'Notificar por WhatsApp'}
+                        </button>
+                        <button
                             onClick={handleCreateOrder}
                             disabled={isCreatingOrder}
                             className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
@@ -426,6 +438,68 @@ export const LogisticsContainer: React.FC = () => {
                     itemsPerPage={PAGE_SIZE}
                 />
             </div>
+
+            {/* MODAL: ELEGIR DIRECCIÓN DE ENTREGA (cliente con 2+ direcciones) */}
+            {addressModalTarget && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={() => setAddressModalTarget(null)}
+                >
+                    <div
+                        className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-slate-100 rounded-xl">
+                                <MapPin size={18} className="text-slate-600" />
+                            </div>
+                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                                ¿A cuál dirección se entrega este envío?
+                            </Typography>
+                        </div>
+
+                        <div className="space-y-2 mb-6">
+                            {addressModalTarget.addresses.map((addr) => (
+                                <button
+                                    key={addr.id}
+                                    onClick={() => setSelectedAddressId(addr.id)}
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                                        selectedAddressId === addr.id
+                                            ? 'bg-slate-900 text-white border-slate-900'
+                                            : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                                    }`}
+                                >
+                                    <div>
+                                        <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                                        <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                                            {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                                        </p>
+                                    </div>
+                                    {selectedAddressId === addr.id && (
+                                        <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setAddressModalTarget(null)}
+                                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmCreateOrderWithAddress}
+                                disabled={!selectedAddressId || isCreatingOrder}
+                                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+                            >
+                                {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

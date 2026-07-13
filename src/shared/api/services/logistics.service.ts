@@ -282,6 +282,18 @@ export const LogisticsService = {
     }
   },
 
+  logPackagesNotified: async (packageUuids: string[]): Promise<void> => {
+    if (!packageUuids || packageUuids.length === 0) {
+      throw new Error('Debe indicar al menos un paquete.');
+    }
+    try {
+      await LogisticsRepository.logPackagesNotified(packageUuids);
+    } catch (error: any) {
+      console.error('[LogisticsService.logPackagesNotified]:', error);
+      throw new Error(error.message || 'Error al registrar la notificación.');
+    }
+  },
+
   updateStatus: async (
     uuid: string,
     status: PackageStatus,

@@ -3,9 +3,15 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useShipmentOrdersQuery } from '@/shared/api/querys/shipment-orders/use-shipment-orders-query';
 import { useDeleteShipmentOrderMutation } from '@/shared/api/mutations/shipment-orders/use-delete-shipment-order-mutation';
-import { ConsolidationListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { ConsolidationListItem } from '@/types/logistics/logistics.types';
 
-export type ShipmentOrderStatusFilter = 'ALL' | 'PENDIENTES' | ConsolidationStatus;
+export enum ShipmentOrderPaymentFilter {
+  ALL = 'ALL',
+  SIN_NOTIFICAR = 'SIN_NOTIFICAR',
+  PENDIENTE_PAGO = 'PENDIENTE_PAGO',
+  PAGADO = 'PAGADO',
+  ENTREGADO = 'ENTREGADO',
+}
 
 const PAGE_SIZE = 10;
 
@@ -14,7 +20,7 @@ export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ShipmentOrderStatusFilter>('PENDIENTES');
+  const [paymentFilter, setPaymentFilter] = useState<ShipmentOrderPaymentFilter>(ShipmentOrderPaymentFilter.PENDIENTE_PAGO);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -33,7 +39,7 @@ export const useShipmentOrders = () => {
     page,
     PAGE_SIZE,
     debouncedSearch || undefined,
-    statusFilter,
+    paymentFilter,
     dateFrom || undefined,
     dateTo || undefined,
   );
@@ -52,8 +58,8 @@ export const useShipmentOrders = () => {
     }
   };
 
-  const handleStatusFilterChange = (val: ShipmentOrderStatusFilter) => {
-    setStatusFilter(val);
+  const handlePaymentFilterChange = (val: ShipmentOrderPaymentFilter) => {
+    setPaymentFilter(val);
     setPage(1);
   };
 
@@ -65,7 +71,7 @@ export const useShipmentOrders = () => {
     // List
     page, setPage,
     search, setSearch,
-    statusFilter, handleStatusFilterChange,
+    paymentFilter, handlePaymentFilterChange,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     shipmentOrders: listData?.data ?? [],

@@ -18,24 +18,24 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.createConsolidation(customerUuid);
   },
 
-  createConsolidationWithPackages: async (customerUuid: string, packageUuids: string[]) => {
+  createConsolidationWithPackages: async (customerUuid: string, packageUuids: string[], deliveryAddressId?: string) => {
     if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
     if (!packageUuids || packageUuids.length === 0) {
       throw new Error('Debe seleccionar al menos un paquete para crear la orden de envío.');
     }
 
-    return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids);
+    return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId);
   },
 
   listConsolidations: async (
     page: number,
     limit: number,
     search?: string,
-    status?: string,
+    paymentFilter?: string,
     dateFrom?: string,
     dateTo?: string,
   ) => {
-    return ConsolidationsRepository.getPaginatedConsolidations(page, limit, search, status, dateFrom, dateTo);
+    return ConsolidationsRepository.getPaginatedConsolidations(page, limit, search, paymentFilter, dateFrom, dateTo);
   },
 
   getConsolidationDetail: async (uuid: string) => {
@@ -94,7 +94,33 @@ export const ConsolidationsService = {
     if (consolidation.billing_uuid) {
       throw new Error('No se puede quitar el paquete: la orden de envío ya tiene una factura generada.');
     }
+    if (consolidation.package_count <= 1) {
+      throw new Error('No se puede quitar el único paquete de la orden de envío. Para vaciarla, elimina la orden completa.');
+    }
 
     return ConsolidationsRepository.unassignPackage(packageUuid, consolidation.id);
+  },
+
+  setDeliveryAddress: async (uuid: string, addressId: string) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    if (!addressId) throw new Error('Se requiere el UUID de la dirección.');
+    return ConsolidationsRepository.setDeliveryAddress(uuid, addressId);
+  },
+
+  /**
+   * Agrega paquetes sueltos del mismo cliente a una orden existente. Solo mientras
+   * ABIERTO. Espejo de unassignPackage: invalida la prefactura si existía.
+   */
+  assignPackages: async (consolidationUuid: string, packageUuids: string[]) => {
+    if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    if (!packageUuids || packageUuids.length === 0) {
+      throw new Error('Debe seleccionar al menos un paquete para agregar.');
+    }
+    return ConsolidationsRepository.assignPackages(consolidationUuid, packageUuids);
+  },
+
+  markPreBillingNotified: async (consolidationUuid: string) => {
+    if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.markPreBillingNotified(consolidationUuid);
   },
 };

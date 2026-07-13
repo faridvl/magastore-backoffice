@@ -145,7 +145,7 @@ export const LogisticsRepository = {
       await sql`BEGIN`;
 
       const [c] = await sql`
-        SELECT id, customer_id, total_weight_lb FROM consolidations WHERE uuid = ${consolidationUuid}
+        SELECT id, customer_id, total_weight_lb, delivery_address_id FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
       if (!c) throw new Error('Orden de envío no encontrada.');
 
@@ -160,11 +160,15 @@ export const LogisticsRepository = {
       `;
       if (existingBill) throw new Error('Esta orden de envío ya tiene una factura generada.');
 
-      const [addressRow] = await sql`
-        SELECT exact_address FROM customer_addresses
-        WHERE customer_id = ${c.customer_id}
-        ORDER BY is_default DESC LIMIT 1
-      `;
+      // La dirección snapshot usa la fijada en la orden (delivery_address_id), no la
+      // is_default del cliente — pueden diferir si el operador la cambió para este envío.
+      const [addressRow] = c.delivery_address_id
+        ? await sql`SELECT exact_address FROM customer_addresses WHERE id = ${c.delivery_address_id}`
+        : await sql`
+            SELECT exact_address FROM customer_addresses
+            WHERE customer_id = ${c.customer_id}
+            ORDER BY is_default DESC LIMIT 1
+          `;
 
       const [bill] = await sql`
         INSERT INTO billing (
@@ -524,6 +528,22 @@ export const LogisticsRepository = {
     `;
     if (rows.length === 0) throw new Error('Paquete no encontrado.');
     return rows[0];
+  },
+
+  /**
+   * Registra en la bitácora de cada paquete que el cliente fue notificado de su
+   * disponibilidad por WhatsApp. No cambia el status del paquete.
+   */
+  logPackagesNotified: async (packageUuids: string[]): Promise<void> => {
+    const rows = await sql`
+      SELECT id, status FROM packages WHERE uuid = ANY(${packageUuids})
+    `;
+    for (const row of rows) {
+      await sql`
+        INSERT INTO package_events (package_id, status, event_type, description)
+        VALUES (${row.id}, ${row.status}, 'INFO', 'Cliente notificado de disponibilidad por WhatsApp')
+      `;
+    }
   },
 
   /**

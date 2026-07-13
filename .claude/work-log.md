@@ -9950,3 +9950,286 @@ d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quic
 --- status ---
  M .claude/work-log.md
 ?? propuesta-sociedad.md
+
+=== 2026-07-13 02:20 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+
+=== 2026-07-13 07:33 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+
+=== 2026-07-13 07:33 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+
+=== 2026-07-13 07:49 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+
+=== 2026-07-13 07:51 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+
+=== 2026-07-13 07:57 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+
+=== 2026-07-13 07:58 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+
+=== 2026-07-13 07:58 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+
+=== 2026-07-13 08:20 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
+
+=== 2026-07-13 08:22 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
+
+=== 2026-07-13 08:33 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
+
+=== 2026-07-13 08:58 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+?? src/hooks/use-notify-packages-available.ts
+?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
+?? src/shared/constants/whatsapp-templates.ts
+
+=== 2026-07-13 09:17 ===
+--- recent commits ---
+cb15d59 cambios en UX de ordenes de envio
+a81c302 chore: rebranding logo transparente + plan de redise├▒o de customer_code por casillero
+7d7e193 feat: etapa 2 del redise├▒o de ├│rdenes de env├¡o ÔÇö listado paquete-c├®ntrico en log├¡stica
+d13b2d2 feat: etapa 1 del redise├▒o de ├│rdenes de env├¡o ÔÇö quick wins de backend
+943be56 feat: renombrar consolidaciones a ├│rdenes de env├¡o, branding Magastore y docs de dominio actualizados
+--- status ---
+ M .claude/docs/ordenes-envio-v2-flujo.md
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/components/containers/logistics/use-package-calculator.ts
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/containers/shipment-orders/shipment-orders-container.tsx
+ M src/components/containers/shipment-orders/use-shipment-orders.ts
+ M src/pages/api/consolidations/index.ts
+ M src/pages/api/logistics/index.tsx
+ M src/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/shared/api/services/logistics.service.ts
+ M src/types/logistics/logistics.types.ts
+?? scripts/009-consolidation-delivery-address.sql
+?? src/hooks/use-notify-packages-available.ts
+?? src/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation.ts
+?? src/shared/constants/whatsapp-templates.ts

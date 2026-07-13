@@ -14,8 +14,8 @@ export function useCreateShipmentOrderWithPackagesMutation() {
     Error
   >({
     mutationKey: ['createShipmentOrderWithPackages'],
-    mutationFn: ({ customerUuid, packageUuids }: CreateConsolidationWithPackagesInput) =>
-      ApiServiceClient(env.API.BASE_URL).post('/consolidations', { customerUuid, packageUuids }),
+    mutationFn: ({ customerUuid, packageUuids, deliveryAddressId }: CreateConsolidationWithPackagesInput) =>
+      ApiServiceClient(env.API.BASE_URL).post('/consolidations', { customerUuid, packageUuids, deliveryAddressId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: ['logistics'] });

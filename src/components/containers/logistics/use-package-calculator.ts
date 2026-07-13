@@ -6,6 +6,7 @@ import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-q
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useCustomerAddressesQuery } from '@/shared/api/querys/customers/use-customer-addresses-query';
 import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
+import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
 
 const TC_BANCO_KEY = 'magastore_tc_banco';
 
@@ -14,6 +15,7 @@ export const usePackageCalculator = () => {
   const { data: settingsRes, isLoading: loadingSettings } = useSettingsQuery();
   const { data: courierRates, isLoading: loadingRates } = useCourierRatesQuery();
   const { executeCreate, isPending: isSaving } = useCreatePackageMutation();
+  const { notify: notifyPackagesAvailable } = useNotifyPackagesAvailable();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -119,6 +121,7 @@ export const usePackageCalculator = () => {
     }
     // Persistir TC banco para el próximo paquete
     localStorage.setItem(TC_BANCO_KEY, String(formData.tc_banco));
+    const notifiedCustomer = selectedCustomer;
     try {
       await executeCreate({
         tracking_number: formData.tracking_number,
@@ -145,7 +148,14 @@ export const usePackageCalculator = () => {
         store_name: '',
       }));
       setSearchTerm('');
-      toast.success('Paquete registrado');
+      toast.success('Paquete registrado', {
+        action: notifiedCustomer
+          ? {
+              label: 'WhatsApp',
+              onClick: () => notifyPackagesAvailable(notifiedCustomer.id, notifiedCustomer.first_name, notifiedCustomer.phone),
+            }
+          : undefined,
+      });
     } catch {
       toast.error('No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
     }

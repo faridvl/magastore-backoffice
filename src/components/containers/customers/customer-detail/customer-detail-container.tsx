@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, Package, Clock, Loader2 } from 'lucide-react';
+import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, Package, Clock, Loader2, MessageCircle } from 'lucide-react';
 
 const MAILBOXES = [
   { label: 'USA Aéreo', suffix: 'A', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
@@ -52,6 +52,8 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         filteredHistory,
         loadingPackages,
         setSearchTerm,
+        handleNotifyWhatsApp,
+        isNotifying,
         handleBack,
         activeTab,
         setActiveTab,
@@ -285,7 +287,16 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <div className="p-1.5 bg-amber-50 rounded-lg"><Package size={14} className="text-amber-600" /></div>
                                                     <Typography variant={TypographyVariant.BODY_BOLD}>Paquetes Activos</Typography>
-                                                    <span className="ml-auto text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{activePackages.length}</span>
+                                                    <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{activePackages.length}</span>
+                                                    <button
+                                                        onClick={handleNotifyWhatsApp}
+                                                        disabled={isNotifying}
+                                                        title="Notifica de sus paquetes sin orden de envío"
+                                                        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
+                                                    >
+                                                        <MessageCircle size={12} />
+                                                        {isNotifying ? 'Abriendo...' : 'WhatsApp'}
+                                                    </button>
                                                 </div>
                                                 {activePackages.length === 0 ? (
                                                     <p className="text-sm text-slate-400 text-center py-6">Sin paquetes activos</p>

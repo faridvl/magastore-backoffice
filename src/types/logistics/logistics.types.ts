@@ -274,6 +274,13 @@ export interface MarkPaidInput {
 
 // --- Tipos para Órdenes de Envío (gestión) ---
 
+export enum ConsolidationPaymentStatus {
+  SIN_ESTIMADO = 'SIN_ESTIMADO',
+  ESTIMADO_PENDIENTE = 'ESTIMADO_PENDIENTE',
+  PENDIENTE_PAGO = 'PENDIENTE_PAGO',
+  PAGADO = 'PAGADO',
+}
+
 export interface ConsolidationListItem {
   uuid: string;
   customer_id: string;
@@ -284,6 +291,10 @@ export interface ConsolidationListItem {
   package_count: number;
   created_at: string;
   updated_at: string;
+  payment_status: ConsolidationPaymentStatus;
+  // Monto de la factura si ya existe; si no, el estimado de la prefactura; si no hay ninguno, null.
+  display_amount_crc: number | null;
+  is_billing_amount: boolean;
 }
 
 export interface ConsolidationPackage {
@@ -316,6 +327,12 @@ export interface ConsolidationDetail {
   pre_billing_notified_at: string | null;
   billing_uuid: string | null;
   billing_is_paid: boolean | null;
+  delivery_address_id: string | null;
+  delivery_address_label: string | null;
+  delivery_exact_address: string | null;
+  delivery_district: string | null;
+  delivery_canton: string | null;
+  delivery_province: string | null;
 }
 
 export interface AvailablePackage {
@@ -335,6 +352,9 @@ export interface CreateConsolidationInput {
 export interface CreateConsolidationWithPackagesInput {
   customerUuid: string;
   packageUuids: string[];
+  // Requerido solo si el cliente tiene más de una dirección registrada; con una sola
+  // dirección el backend la asigna automáticamente sin necesidad de enviarla.
+  deliveryAddressId?: string;
 }
 
 export interface UpdateConsolidationStatusInput {

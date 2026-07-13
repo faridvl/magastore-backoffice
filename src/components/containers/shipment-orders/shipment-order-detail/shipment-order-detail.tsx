@@ -12,6 +12,12 @@ import {
   SendHorizonal,
   AlertCircle,
   Wallet,
+  MapPin,
+  Pencil,
+  Plus,
+  Square,
+  CheckSquare,
+  MessageCircle,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
@@ -19,6 +25,7 @@ import {
   ConsolidationStatus,
   ConsolidationPackage,
   DeliveryMethod,
+  AvailablePackage,
 } from '@/types/logistics/logistics.types';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
@@ -75,6 +82,26 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleDownloadPreBillingPDF,
 
     handleMarkAsPaid, isMarkingPaid,
+
+    showAddressModal, setShowAddressModal,
+    addressOptions,
+    selectedAddressId, setSelectedAddressId,
+    isLoadingAddresses,
+    handleOpenAddressModal,
+    handleConfirmAddressChange,
+    isSavingAddress,
+
+    showAssignModal, setShowAssignModal,
+    availablePackages,
+    isLoadingAvailable,
+    selectedPackageUuids,
+    handleOpenAssignModal,
+    handleTogglePackage,
+    handleConfirmAssign,
+    isAssigning,
+
+    handleNotifyPreBilling,
+    isNotifyingPreBilling,
   } = useShipmentOrderDetail(resolvedUuid);
 
   if (isLoadingDetail || !resolvedUuid) {
@@ -142,6 +169,40 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         </div>
       </div>
 
+      {/* DIRECCIÓN DE ENTREGA */}
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
+            <MapPin size={16} className="text-slate-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dirección de entrega</p>
+            {detail.delivery_exact_address ? (
+              <>
+                <p className="text-sm font-bold text-slate-800">
+                  {detail.delivery_address_label || 'Dirección'}
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-400 italic">Sin dirección asignada</p>
+            )}
+          </div>
+        </div>
+        {detail.status === ConsolidationStatus.ABIERTO && (
+          <button
+            onClick={handleOpenAddressModal}
+            disabled={isLoadingAddresses}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
+          >
+            <Pencil size={12} />
+            Cambiar
+          </button>
+        )}
+      </div>
+
       {/* PRE-BILLING / BILLING CARD */}
       {!hasBilling && (
         <div>
@@ -173,13 +234,24 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
-              >
-                <Download size={13} />
-                PDF
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleNotifyPreBilling}
+                  disabled={isNotifyingPreBilling}
+                  title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}` : 'Enviar aviso de cobro por WhatsApp'}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all disabled:opacity-40"
+                >
+                  <MessageCircle size={13} />
+                  {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
+                </button>
+                <button
+                  onClick={() => handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
+                  className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
+                >
+                  <Download size={13} />
+                  PDF
+                </button>
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-[2rem] border border-amber-100 shadow-sm p-5">
@@ -193,6 +265,15 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleNotifyPreBilling}
+                    disabled={isNotifyingPreBilling}
+                    title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}` : 'Enviar aviso de cobro por WhatsApp'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all disabled:opacity-40"
+                  >
+                    <MessageCircle size={12} />
+                    {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
+                  </button>
                   <button
                     onClick={() => handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
@@ -218,7 +299,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-xs hover:bg-amber-500 transition-all disabled:opacity-40"
                 >
                   <CheckCircle size={14} />
-                  {isConfirmingPreBilling ? 'Confirmando...' : 'Confirmar y Facturar'}
+                  {isConfirmingPreBilling ? 'Confirmando...' : 'Confirmar Estimado'}
                 </button>
               </div>
               <div className="flex items-start gap-2 pt-3 border-t border-amber-100/70">
@@ -260,26 +341,45 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
       {/* PACKAGES LIST */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
-          Paquetes en esta orden de envío
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            Paquetes en esta orden de envío
+          </p>
+          {detail.status === ConsolidationStatus.ABIERTO && (
+            <button
+              onClick={handleOpenAssignModal}
+              disabled={isLoadingAvailable}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
+            >
+              <Plus size={12} />
+              Agregar paquetes
+            </button>
+          )}
+        </div>
         {detail.packages.length === 0 ? (
           <div className="text-center py-6 text-slate-400 text-sm">
             Sin paquetes asignados aún.
           </div>
         ) : (
-          <PackageTable
-            packages={detail.packages}
-            canUnassign={detail.status === ConsolidationStatus.ABIERTO && !hasBilling}
-            isUnassigning={isUnassigning}
-            onUnassign={handleUnassignPackage}
-          />
+          <>
+            <PackageTable
+              packages={detail.packages}
+              canUnassign={detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length > 1}
+              isUnassigning={isUnassigning}
+              onUnassign={handleUnassignPackage}
+            />
+            {detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length === 1 && (
+              <p className="text-[11px] text-slate-400 mt-3 text-center">
+                Es el único paquete de la orden — no se puede quitar. Para vaciarla, elimina la orden completa desde el listado.
+              </p>
+            )}
+          </>
         )}
       </div>
 
       {/* ACTIONS */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {detail.status === ConsolidationStatus.CERRADO && (
+        {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
           <button
             onClick={() => setQuickActionTarget('reopen')}
             disabled={isUpdating}
@@ -324,9 +424,11 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
                   {quickActionTarget === 'reopen'
-                    ? (hasPreBilling && !preBillingConfirmed
-                        ? 'La orden volverá a ABIERTO y el estimado generado se eliminará (quedó calculado con el peso/paquetes actuales). Deberás generarlo de nuevo tras editar.'
-                        : 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.')
+                    ? (hasBilling
+                        ? 'La orden volverá a ABIERTO y la factura generada se eliminará (quedó calculada con el peso/paquetes actuales). Deberás generar el estimado y confirmarlo de nuevo tras editar.'
+                        : hasPreBilling
+                          ? 'La orden volverá a ABIERTO y el estimado generado se eliminará (quedó calculado con el peso/paquetes actuales). Deberás generarlo de nuevo tras editar.'
+                          : 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.')
                     : 'La orden de envío pasará a estado DESPACHADO.'
                   }
                 </p>
@@ -409,6 +511,159 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CAMBIAR DIRECCIÓN DE ENTREGA */}
+      {showAddressModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowAddressModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <MapPin size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Cambiar dirección de entrega
+              </Typography>
+            </div>
+
+            {addressOptions.length === 0 ? (
+              <p className="text-slate-400 text-sm text-center py-6">Este cliente no tiene direcciones registradas.</p>
+            ) : (
+              <div className="space-y-2 mb-6">
+                {addressOptions.map((addr) => (
+                  <button
+                    key={addr.id}
+                    onClick={() => setSelectedAddressId(addr.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                      selectedAddressId === addr.id
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                      <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                        {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                      </p>
+                    </div>
+                    {selectedAddressId === addr.id && (
+                      <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowAddressModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAddressChange}
+                disabled={!selectedAddressId || isSavingAddress}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isSavingAddress ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: AGREGAR PAQUETES */}
+      {showAssignModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowAssignModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-100 rounded-xl">
+                  <Package size={18} className="text-slate-600" />
+                </div>
+                <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                  Agregar Paquetes
+                </Typography>
+              </div>
+              {selectedPackageUuids.length > 0 && (
+                <span className="bg-amber-600 text-white text-xs font-black px-3 py-1 rounded-full">
+                  {selectedPackageUuids.length} seleccionado(s)
+                </span>
+              )}
+            </div>
+
+            {isLoadingAvailable ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              </div>
+            ) : availablePackages.length === 0 ? (
+              <div className="text-center py-8">
+                <Package size={32} className="text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 text-sm">No hay paquetes disponibles para este cliente.</p>
+                <p className="text-slate-400 text-xs mt-1">Los paquetes ya asignados a otra orden de envío no aparecen aquí.</p>
+              </div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
+                {availablePackages.map((pkg: AvailablePackage) => {
+                  const selected = selectedPackageUuids.includes(pkg.uuid);
+                  return (
+                    <button
+                      key={pkg.uuid}
+                      onClick={() => handleTogglePackage(pkg.uuid)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
+                        selected
+                          ? 'bg-amber-50 border-amber-200'
+                          : 'bg-slate-50 border-transparent hover:border-slate-200'
+                      }`}
+                    >
+                      {selected
+                        ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
+                        : <Square size={18} className="text-slate-300 flex-shrink-0" />
+                      }
+                      <div className="flex-1 min-w-0">
+                        <p className="font-mono text-sm font-bold text-slate-800 truncate">
+                          {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                          {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowAssignModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAssign}
+                disabled={selectedPackageUuids.length === 0 || isAssigning}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isAssigning ? 'Agregando...' : `Agregar ${selectedPackageUuids.length || ''}`}
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
 import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-customer-packages-query';
+import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
 import { CustomerUpdateInput, CustomerAddressUpdateInput } from '@/types/customer/customer.types';
 
 export const useCustomerDetail = (customerId: string) => {
@@ -16,6 +17,7 @@ export const useCustomerDetail = (customerId: string) => {
   const { data: customer, isLoading } = useCustomerProfile(customerId);
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
   const { data: packagesRes, isLoading: loadingPackages } = useCustomerPackagesQuery(customerId);
+  const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
 
   const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
 
@@ -111,6 +113,11 @@ export const useCustomerDetail = (customerId: string) => {
     return historyPackages.filter((p) => p.tracking_number.toLowerCase().includes(query));
   }, [historyPackages, searchTerm]);
 
+  const handleNotifyWhatsApp = async () => {
+    if (!customer) return;
+    await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
+  };
+
   return {
     customer,
     isLoading,
@@ -122,6 +129,8 @@ export const useCustomerDetail = (customerId: string) => {
     loadingPackages,
     searchTerm,
     setSearchTerm,
+    handleNotifyWhatsApp,
+    isNotifying,
     handleBack: () => router.back(),
     activeTab,
     setActiveTab,

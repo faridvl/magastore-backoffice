@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
-import { useShipmentOrders, ShipmentOrderStatusFilter } from './use-shipment-orders';
-import { ConsolidationListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { useShipmentOrders, ShipmentOrderPaymentFilter } from './use-shipment-orders';
+import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus } from '@/types/logistics/logistics.types';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -25,20 +25,35 @@ const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
-const STATUS_FILTERS: { value: ShipmentOrderStatusFilter; label: string }[] = [
-  { value: 'PENDIENTES', label: 'Pendientes' },
-  { value: ConsolidationStatus.ABIERTO, label: 'Abiertos' },
-  { value: ConsolidationStatus.CERRADO, label: 'Cerrados' },
-  { value: ConsolidationStatus.DESPACHADO, label: 'Despachados' },
-  { value: ConsolidationStatus.ENTREGADO, label: 'Entregados' },
-  { value: 'ALL', label: 'Todos' },
+const PAYMENT_LABELS: Record<ConsolidationPaymentStatus, string> = {
+  SIN_ESTIMADO: 'Sin estimado',
+  ESTIMADO_PENDIENTE: 'Estimado pendiente',
+  PENDIENTE_PAGO: 'Pendiente de pago',
+  PAGADO: 'Pagado',
+};
+
+const PAYMENT_COLORS: Record<ConsolidationPaymentStatus, string> = {
+  SIN_ESTIMADO: 'bg-slate-50 text-slate-400 border-slate-200',
+  ESTIMADO_PENDIENTE: 'bg-blue-50 text-blue-600 border-blue-100',
+  PENDIENTE_PAGO: 'bg-amber-50 text-amber-600 border-amber-100',
+  PAGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+};
+
+const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
+
+const PAYMENT_FILTERS: { value: ShipmentOrderPaymentFilter; label: string }[] = [
+  { value: ShipmentOrderPaymentFilter.PENDIENTE_PAGO, label: 'Pendientes de pago' },
+  { value: ShipmentOrderPaymentFilter.SIN_NOTIFICAR, label: 'Sin notificar' },
+  { value: ShipmentOrderPaymentFilter.PAGADO, label: 'Pagadas' },
+  { value: ShipmentOrderPaymentFilter.ENTREGADO, label: 'Entregadas' },
+  { value: ShipmentOrderPaymentFilter.ALL, label: 'Todas' },
 ];
 
 export const ShipmentOrdersContainer: React.FC = () => {
   const {
     page, setPage,
     search, setSearch,
-    statusFilter, handleStatusFilterChange,
+    paymentFilter, handlePaymentFilterChange,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
     shipmentOrders, listMeta, isLoadingList,
@@ -76,6 +91,30 @@ export const ShipmentOrdersContainer: React.FC = () => {
       render: (row) => (
         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${STATUS_COLORS[row.status]}`}>
           {STATUS_LABELS[row.status]}
+        </span>
+      ),
+    },
+    {
+      header: 'Monto',
+      accessor: 'display_amount_crc',
+      align: 'center',
+      render: (row) => (
+        row.display_amount_crc != null ? (
+          <div className="flex flex-col items-center">
+            <span className="font-black text-slate-700 text-sm">{formatCRC(row.display_amount_crc)}</span>
+            <span className="text-[9px] text-slate-400 uppercase font-bold">{row.is_billing_amount ? 'Factura' : 'Estimado'}</span>
+          </div>
+        ) : (
+          <span className="text-slate-300 text-xs">—</span>
+        )
+      ),
+    },
+    {
+      header: 'Pago',
+      accessor: 'payment_status',
+      render: (row) => (
+        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
+          {PAYMENT_LABELS[row.payment_status]}
         </span>
       ),
     },
@@ -155,15 +194,15 @@ export const ShipmentOrdersContainer: React.FC = () => {
           </div>
         </div>
 
-        {/* Filtros de estado */}
+        {/* Filtros por estado de pago */}
         <div className="px-4 py-2.5 overflow-x-auto">
           <div className="flex gap-1">
-            {STATUS_FILTERS.map((f) => (
+            {PAYMENT_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => handleStatusFilterChange(f.value)}
+                onClick={() => handlePaymentFilterChange(f.value)}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${
-                  statusFilter === f.value
+                  paymentFilter === f.value
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
                 }`}
@@ -212,10 +251,21 @@ export const ShipmentOrdersContainer: React.FC = () => {
               <p className="text-xs text-slate-400 mt-1">
                 {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paquete(s)
               </p>
+              {row.display_amount_crc != null && (
+                <p className="text-xs font-bold text-slate-600 mt-1">
+                  {formatCRC(row.display_amount_crc)}
+                  <span className="text-[9px] text-slate-400 uppercase font-bold ml-1">
+                    {row.is_billing_amount ? 'Factura' : 'Estimado'}
+                  </span>
+                </p>
+              )}
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
               <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${STATUS_COLORS[row.status]}`}>
                 {STATUS_LABELS[row.status]}
+              </span>
+              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
+                {PAYMENT_LABELS[row.payment_status]}
               </span>
               <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
             </div>

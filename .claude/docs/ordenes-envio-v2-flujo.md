@@ -1,7 +1,7 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
 **Estado: EN IMPLEMENTACIÓN.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 2 completada, sin commit/push todavía).
+Última actualización: 2026-07-13 (Etapa 4 completada, sin commit/push todavía).
 
 ## Progreso
 
@@ -34,17 +34,81 @@
 - **Persistencia de selección en `sessionStorage`** (clave `logistics:selectedUuids`, ver `use-logistics.tsx`): sobrevive a un "back" del navegador tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña. Se limpia sola cuando `selectedUuids` queda vacío (al limpiar selección o al crear la orden exitosamente). Si se toca este hook a futuro, tener presente que la lectura inicial usa lazy `useState(readStoredSelection)` — un SSR/hidratación mismatch no aplica aquí porque el componente es client-only vía `authorizeServerSidePage`, pero si se reutiliza este patrón en una página con SSR real hay que revisarlo.
 - Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo los 2 warnings preexistentes de a11y en PDFs).
 
-### ⬜ Etapa 3 — Crear orden desde selección + página de detalle de orden (pendiente)
+### ✅ Etapa 3 — Página de detalle de orden + simplificación del flujo de cierre (COMPLETADA 2026-07-13, sin commit/push)
 
-La parte "crear orden desde selección" del título ya quedó cubierta en la Etapa 2 (endpoint atómico + redirect). Lo que falta específicamente de Etapa 3:
-- Nueva ruta `/admin/shipment-orders/[uuid]` como página real (patrón `/admin/logistics/[id]`), reemplazando el panel/modal actual controlado por `selectedUuid` en `use-shipment-orders.ts`.
-- Mover a esa página: card prefactura/factura (generar, recalcular, confirmar, descargar PDFs), avance de estado (cerrar/despachar/entregar/reabrir), "Marcar como pagado", quitar-paquete (ya funcional, solo se traslada).
-- Al mover el redirect post-creación de Etapa 2, cambiar `/admin/shipment-orders?uuid=X` por la ruta dedicada `/admin/shipment-orders/X` y quitar el efecto de lectura de query string en `use-shipment-orders.ts` (queda obsoleto una vez exista la ruta propia).
-- Desaparecen de `/admin/shipment-orders` (lista): botón "Nueva Orden de Envío" + modal de elegir cliente, modal "Asignar Paquetes" — la creación ya vive en logística.
-- Nota de referencia: si la página de detalle nueva necesita algo similar a "click en fila selecciona en vez de navegar" (ej. selección de paquetes dentro de la orden para quitar varios a la vez), el patrón ya probado está en `use-logistics.tsx` → `handleRowClick`. No es necesario para Etapa 3 en sí, pero es el precedente a seguir si surge un caso parecido.
+- Nueva ruta `/admin/shipment-orders/[uuid]` como página real (patrón `/admin/logistics/[id]`), reemplazando el panel/modal `DetailModal` controlado por `selectedUuid`. Container + hook dedicados en `src/components/containers/shipment-orders/shipment-order-detail/`.
+- Movido a la página nueva: card prefactura/factura (generar, recalcular, confirmar, descargar PDF), avance de estado (despachar/entregar/reabrir), quitar-paquete. `/admin/shipment-orders` (lista) recortado: sin botón "Nueva Orden de Envío" ni modal de elegir cliente, sin modal "Asignar Paquetes" (la creación ya vive en logística desde Etapa 2). `use-shipment-orders.ts` quedó solo con estado de lista; el efecto de lectura de `router.query.uuid` se eliminó junto con `selectedUuid`.
+- Redirects actualizados: `use-logistics.tsx` (post-creación) y `logistics-container.tsx` (badge "Orden" en vista Con orden) apuntan a `/admin/shipment-orders/<uuid>` en vez de `?uuid=`.
+- **Cambio de flujo acordado con el dueño (fricción detectada: "cerrar" + "generar prefactura" eran 2 clicks separados sin razón real, porque `generatePreBilling` nunca validó `status`):** generar el estimado ahora **auto-cierra la orden `ABIERTO → CERRADO`** en la misma transacción (`LogisticsRepository.generatePreBilling`, `logistics.repo.ts`). Se elimina el botón manual "Cerrar orden de envío"; `STATUS_TRANSITIONS['ABIERTO']` pasa a `null` en `consolidations.service.ts`. La generación de prefactura bloquea si la orden ya está `DESPACHADO`/`ENTREGADO`.
+- Flujo resultante: **Generar Estimado (auto: CERRADO) → cliente paga → Marcar como pagado → Marcar como Despachado → Marcar como Entregado.**
+- **Reabrir seguro:** al reabrir (`CERRADO → ABIERTO`, `ConsolidationsRepository.updateConsolidationStatus`), si existe una prefactura sin confirmar se elimina automáticamente (quedó calculada con el peso/paquetes de ese momento); si ya existe factura o la prefactura está confirmada, el reabrir se bloquea con error — evita invalidar un snapshot que el cliente ya aceptó o pagó.
+- **"Marcar como pagado"** agregado al detalle de la orden (además de `/admin/billing`), reutilizando `useMarkPaidMutation` sin cambios.
+- **Aviso de vigencia del estimado:** la card de prefactura pendiente de confirmación muestra un texto explicando que el monto se calculó con las tarifas vigentes al generarlo y que hay que "Recalcular" si las tarifas cambiaron y el PDF ya se compartió con el cliente — el PDF de prefactura no se cachea, se renderiza en vivo desde `pre_billing` en cada descarga (`pages/api/billing/pre-billing-pdf.ts`), así que nunca queda desactualizado por caché, pero sí puede quedar desactualizado el PDF ya enviado si no se recalcula antes de reenviarlo.
+- Limpieza de código huérfano causado por el recorte del listado: eliminados `use-create-shipment-order-mutation.ts`, `use-assign-packages-mutation.ts`, `use-available-packages-query.ts` y su import residual en `use-unassign-package-mutation.ts`.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio (solo los 2 warnings preexistentes de a11y en PDFs).
 
-### ⬜ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtros pipeline de cobro (pendiente)
-### ⬜ Etapa 5 — Detalle de cliente: split pendientes/histórico + botón WhatsApp (pendiente)
+### ✅ Extra post-Etapa 3 — Dirección de entrega por orden (COMPLETADO 2026-07-13, sin commit/push)
+
+Hallazgo durante revisión del detalle de orden: el sistema no mostraba a qué dirección se entrega el envío, y `confirmPreBilling` tomaba la dirección `is_default` del cliente **en el momento de confirmar** — no necesariamente la que el cliente pidió para esa orden específica.
+
+- **Migración `scripts/009-consolidation-delivery-address.sql`** aplicada en Neon: `consolidations.delivery_address_id` (FK a `customer_addresses`, nullable, `ON DELETE SET NULL`).
+- **Al crear la orden** (`createConsolidationWithPackages`): si el cliente tiene una sola dirección registrada, se asigna automáticamente sin preguntar. Si tiene 2+, el frontend (`use-logistics.tsx` → `handleCreateOrder`) consulta `/api/customers/[id]/addresses` antes de crear y abre un modal para que el operador elija — la creación queda bloqueada (`deliveryAddressId` requerido) hasta que se elige una.
+- **Editable solo mientras `ABIERTO`**: nuevo endpoint `PATCH /api/consolidations` con `action: 'set-delivery-address'` (`ConsolidationsRepository.setDeliveryAddress`) — bloquea el cambio si la orden ya está `CERRADO`+ (coherente con que generar el estimado es la "foto final" del flujo). Card "Dirección de entrega" + botón "Cambiar" en la página de detalle, con el mismo selector reutilizado.
+- **`getConsolidationDetail`** extendido con JOIN a `customer_addresses` — expone `delivery_address_id`, `delivery_address_label`, `delivery_exact_address`, `delivery_district`, `delivery_canton`, `delivery_province` en `ConsolidationDetail`.
+- **`confirmPreBilling`** (`logistics.repo.ts`) ahora usa `consolidation.delivery_address_id` para el snapshot de `billing.delivery_address_snapshot`, con fallback a la dirección `is_default` del cliente solo si la orden no tiene ninguna asignada (no debería pasar en órdenes nuevas, pero cubre órdenes creadas antes de este cambio).
+- Tipos: `CreateConsolidationWithPackagesInput.deliveryAddressId?` y los 5 campos `delivery_*` nuevos en `ConsolidationDetail`.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+
+### ✅ Extra post-Etapa 3 (2) — Copy y columnas de pago (COMPLETADO 2026-07-13, sin commit/push)
+
+Feedback del dueño tras probar el flujo: el `status` logístico (ABIERTO/CERRADO/DESPACHADO/ENTREGADO) no dice nada sobre si el cliente ya pagó, y el botón "Confirmar y Facturar" sonaba como si el pago ya hubiera ocurrido cuando en realidad solo emite la factura (pendiente de pago).
+
+- **Copy corregido:** el botón naranja en el detalle de la orden pasa de "Confirmar y Facturar" a **"Confirmar Estimado"** (`shipment-order-detail.tsx`) — deja claro que ese paso emite la factura oficial a partir del estimado ya aceptado, sin insinuar que ya se cobró.
+- **Listado `/admin/shipment-orders` — 2 columnas nuevas** (adelantadas de lo que iba a ser parte del pipeline de cobro de Etapa 4, porque comparten el mismo JOIN):
+  - **Monto:** muestra el monto de la factura si ya existe; si no, el de la prefactura; si no hay ninguno, `—`. Etiqueta chica indica si es "Factura" o "Estimado".
+  - **Pago:** badge derivado — `Sin estimado` (no hay pre_billing ni billing) / `Pendiente de pago` (hay billing, `is_paid = false`) / `Pagado` (`is_paid = true`).
+  - `getPaginatedConsolidations` (`consolidations.repo.ts`) extendido con `LEFT JOIN pre_billing` + `LEFT JOIN billing` (relación 1:1 por `consolidation_id`, sin fan-out con el `COUNT(p.id)` de paquetes).
+  - Tipo `ConsolidationListItem` extendido con `payment_status: ConsolidationPaymentStatus`, `display_amount_crc`, `is_billing_amount`.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Resuelto en el extra (3) siguiente:** agregar/quitar paquetes desde el detalle de la orden ya está implementado — ver abajo.
+
+### ✅ Extra post-Etapa 3 (3) — Filtros por pago, agregar/quitar paquetes, limpieza de datos de prueba (COMPLETADO 2026-07-13, sin commit/push)
+
+- **Filtros del listado `/admin/shipment-orders` reemplazados**: de status logístico (Pendientes/Abiertos/Cerrados/Despachados/Entregados/Todos) a filtros por pago — **Pendientes de pago / Pagadas / Entregadas / Todas** (`ShipmentOrderPaymentFilter` enum en `use-shipment-orders.ts`). `getPaginatedConsolidations` reescrito para filtrar por `billing.is_paid`/`consolidations.status = ENTREGADO` en vez de por `status` logístico crudo. **Nota:** el alcance de "Pendientes de pago" se amplió después (ver Extra (4) abajo) para incluir también las órdenes sin factura generada.
+- **`ConsolidationPaymentStatus` y `ShipmentOrderPaymentFilter` convertidos a `enum`** (antes `type` unions/string literals) — consistente con `ConsolidationStatus`/`PackageStatus`.
+- **No se puede quitar el único paquete de una orden** (`unassignPackage` en `consolidations.service.ts`): si `package_count <= 1`, error explícito indicando usar "Eliminar orden" en su lugar. UI: botón "Quitar" oculto cuando queda 1 paquete, con nota explicativa.
+- **Agregar paquetes desde el detalle de la orden** (reintroducido, existía antes de Etapa 3 y se había quitado): nuevo método `ConsolidationsRepository.assignPackages` — valida mismo cliente + paquete sin orden previa, recalcula `total_weight_lb`, invalida la prefactura si existía (mismo criterio que quitar). Endpoint `PATCH /api/consolidations` con `action: 'assign-packages'`. Botón "Agregar paquetes" + modal en la página de detalle, visible solo si `status === ABIERTO`.
+- **Copy corregido**: el botón naranja "Confirmar y Facturar" en el detalle de la orden pasa a **"Confirmar Estimado"** — el paso emite la factura pendiente de pago, no confirma que ya se cobró.
+- **Limpieza de datos de prueba en Neon** (ambiente sin producción activa): eliminadas 3 órdenes que quedaron en estados imposibles con el flujo actual (factura sin prefactura previa, CERRADO sin ningún estimado, DESPACHADO sin haber facturado nunca) — paquetes liberados, `billing`/`pre_billing` asociados eliminados. Quedan 5 órdenes válidas.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+
+### ✅ Extra post-Etapa 3 (4) — Reabrir con factura sin pagar + 3 chips de pago (COMPLETADO 2026-07-13, sin commit/push)
+
+Pedido del dueño: una orden "Pendiente de pago" (ya facturada, sin cobrar) no se podía reabrir para agregar/quitar paquetes — el guard de la Etapa 3 bloqueaba el reabrir en cuanto existía `billing`, sin importar si estaba pagada o no.
+
+- **`updateConsolidationStatus`** (`consolidations.repo.ts`): reabrir ahora solo se bloquea si la factura ya está **pagada** (`billing.is_paid = true`). Si existe factura sin pagar, se elimina (junto con la prefactura) al reabrir — mismo criterio de snapshot-obsoleto ya usado en el resto del flujo. UI: botón "Volver a abrir" oculto si `isPaid`; el texto del modal de confirmación distingue si se perderá una factura o solo un estimado.
+- **Filtro "Pendientes de pago" ampliado**: antes solo incluía órdenes con `billing` sin pagar; ahora agrupa **todo lo que el operador debe seguir moviendo hacia el cobro** — `ABIERTO` sin nada generado, `CERRADO` con estimado sin confirmar, `CERRADO` con factura sin pagar (excluye `ENTREGADO`). Esto es necesario para que una orden recién reabierta (que vuelve a `ABIERTO` sin estimado) no desaparezca del filtro default.
+- **`ConsolidationPaymentStatus` ahora tiene 4 valores** (antes 3): `SIN_ESTIMADO` (nada generado) / `ESTIMADO_PENDIENTE` (prefactura sin confirmar, nuevo) / `PENDIENTE_PAGO` (factura sin pagar) / `PAGADO`. El chip "Pago" en el listado ahora distingue las 3 etapas previas al pago, no solo 2.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+
+### ✅ Etapa 4 — WhatsApp: plantillas, botones, bitácora, filtro pipeline de cobro (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Módulo de plantillas** `src/shared/constants/whatsapp-templates.ts` (nuevo, no existía nada similar en el proyecto): `interpolate()`, `buildWhatsAppUrl(phone, message)` (limpia el teléfono guardado en formato `+506 XXXX-XXXX`, antepone `506` si falta, arma el link `wa.me`), constantes `WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE`/`WHATSAPP_TEMPLATE_PREBILLING_READY` con los textos ya acordados, y builders `buildPackagesAvailableMessage`/`buildPreBillingReadyMessage` que arman el mensaje final a partir de los datos reales.
+- **Hook compartido** `src/hooks/use-notify-packages-available.ts`: dado un cliente, consulta `GET /consolidations?availablePackages=<id>` (endpoint ya existente de Etapa 2/3), arma el mensaje de plantilla 1 con TODOS los paquetes sin orden del cliente (no solo un subconjunto — regla ya acordada), abre `wa.me`, y llama a `POST /logistics?action=log-notified` para dejar bitácora. Reutilizado en las 3 ubicaciones de la plantilla 1.
+- **Bitácora:** nuevo método `LogisticsRepository.logPackagesNotified` (`logistics.repo.ts`) — inserta un evento `INFO` "Cliente notificado de disponibilidad por WhatsApp" en `package_events` **por cada paquete** incluido en el mensaje (no un evento genérico). Expuesto vía `LogisticsService.logPackagesNotified` y `POST /api/logistics?action=log-notified`.
+- **Ubicación 1 — `/admin/logistics`:** botón "Notificar por WhatsApp" en la barra flotante de selección, junto a "Crear orden de envío" (`logistics-container.tsx`/`use-logistics.tsx`). Aparece con la selección activa (para identificar el cliente), pero el mensaje siempre incluye todos los paquetes sin orden de ese cliente, no solo los tildados.
+- **Ubicación 2 — toast post-registro de paquete:** `use-package-calculator.ts` → `handleSave` ahora captura `selectedCustomer` antes de resetear el formulario y agrega un botón de acción a `toast.success('Paquete registrado', { action: {...} })` (Sonner) que dispara la notificación — no se rediseñó la pantalla, se aprovechó el botón de acción nativo del toast.
+- **Ubicación 3 — detalle de cliente:** botón "WhatsApp" junto al bloque "Paquetes Activos" en `customer-detail-container.tsx`/`use-customer-detail.ts`. **Nota importante:** este botón usa el hook compartido (que consulta paquetes *sin orden*), no la lista `activePackages` que ya existía ahí (esa mezcla paquetes sin orden y paquetes ya asignados a una orden en curso — no sirve para la plantilla 1).
+- **Split pendientes/histórico en detalle de cliente:** ya existía antes de esta etapa (`activePackages` vs `historyPackages`/`filteredHistory` en `use-customer-detail.ts`, con UI ya separada en dos bloques) — la doc original decía que faltaba, pero al revisar el código ya estaba resuelto. Etapa 5 queda reducida a temas que no sean ese split.
+- **Plantilla 2 — botón "Enviar prefactura"** en el detalle de la orden (`shipment-order-detail.tsx`): agregado junto al botón "PDF" en ambas variantes de la card (estimado confirmado y estimado pendiente de confirmación). Label cambia a "Reenviar" si `pre_billing_notified_at` ya existe, con tooltip mostrando la fecha.
+- **`notified_at`:** nuevo método `ConsolidationsRepository.markPreBillingNotified` (`consolidations.repo.ts`) — estampa `pre_billing.notified_at = NOW()`. Expuesto vía `ConsolidationsService.markPreBillingNotified` y `PATCH /api/consolidations` con `action: 'notify-pre-billing'`. Se llama automáticamente al hacer click en "WhatsApp"/"Reenviar" en el detalle de la orden.
+- **Filtro "Sin notificar"** agregado a `ShipmentOrderPaymentFilter` (ahora 5 valores: `SIN_NOTIFICAR`, `PENDIENTE_PAGO`, `PAGADO`, `ENTREGADO`, `ALL`) — derivado de `pre_billing.uuid IS NOT NULL AND pre_billing.notified_at IS NULL`. `getPaginatedConsolidations` extendido con el JOIN a `pre_billing` también en la query de `COUNT(*)` (antes solo estaba en la query principal).
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Pendiente de aprobación del dueño (no implementado, solo el mecanismo está listo):** el texto exacto de la Plantilla 2 sigue siendo el borrador ya redactado — falta que el dueño lo apruebe y decida si agrega datos de pago (SINPE/cuenta).
+
+### ⬜ Etapa 5 — Detalle de cliente: mejoras adicionales + módulo de plantillas editables (pendiente, alcance reducido)
+
+Alcance original ("split pendientes/histórico + botón WhatsApp") ya resuelto en Etapa 4 (el split ya existía, el botón se agregó). Queda pendiente solo si el dueño pide algo adicional — por ejemplo, la sección de administración de plantillas editables mencionada en "Extras confirmados" más abajo (hoy las plantillas son constantes de código, no editables desde la UI).
 
 ---
 
@@ -175,31 +239,30 @@ No requiere aprobación previa del dueño para empezar a implementar — es text
 
 ### El detalle pasa de modal a PÁGINA
 
-Nueva ruta `/admin/shipment-orders/[uuid]` (patrón de referencia: `/admin/logistics/[id]`). Contenido:
+**IMPLEMENTADO.** `/admin/shipment-orders/[uuid]` (patrón de referencia: `/admin/logistics/[id]`). Contenido real, con dos diferencias respecto a lo planeado originalmente en esta sección:
 
-- Header: ID orden, cliente (link a su detalle), estado.
-- **Paquetes de la orden con acción "Quitar paquete"** (nuevo endpoint):
-  - Solo permitido con orden ABIERTO y sin factura final.
-  - Transaccional (espejo de `consolidatePackages`): `consolidation_id = NULL` + recálculo de `total_weight_lb`.
-  - Si existe prefactura → invalidarla/recalcularla (el monto quedó calculado con peso viejo).
-- **Card prefactura/factura:** generar, recalcular, confirmar, descargar PDF estimado y PDF factura (los PDFs se mudan del modal a esta página; siguen disponibles también en `/admin/billing`).
-- **Botón WhatsApp "Enviar prefactura"** (plantilla 2) → estampa `notified_at`.
-- Avance de estado: cerrar / despachar / entregar / reabrir.
-- **"Marcar como pagado" también aquí** (CONFIRMADO; se mantiene igualmente en `/admin/billing`).
+- Header: cliente, estado, dirección de entrega (editable si ABIERTO — no estaba en el plan original, se agregó como extra post-Etapa 3).
+- **Paquetes de la orden con "Quitar paquete" y "Agregar paquetes"** (ambos implementados, "Agregar" no estaba en el plan original de esta sección pero se pidió como extra): ABIERTO y sin factura, transaccional, recalcula `total_weight_lb`, invalida la prefactura si existía. **No se puede quitar el único paquete de la orden** (extra post-Etapa 3 (3)).
+- **Card prefactura/factura:** generar, recalcular, confirmar (botón "Confirmar Estimado", no "Confirmar y Facturar"), descargar PDF estimado. PDF de factura final se descarga desde `/admin/billing` (no se migró a esta página).
+- **Botón WhatsApp "Enviar prefactura"** (plantilla 2) → **PENDIENTE, es Etapa 4.** No implementado aún.
+- Avance de estado: **ya NO existe "cerrar" como acción manual** — generar el estimado auto-cierra la orden (ver "Etapa 3" arriba). Quedan: despachar / entregar / reabrir.
+- **"Marcar como pagado" también aquí** — implementado (además de `/admin/billing`).
 
 ### Filtros de la lista — pipeline de cobro
 
-Los filtros dejan de ser solo `status` y pasan a estados derivados combinando `consolidations.status` + `pre_billing` + `billing` (datos que ya existen):
+**IMPLEMENTADO (ver "Extra post-Etapa 3 (3)" arriba), distinto de la propuesta original de esta sección:** los filtros son **Pendientes de pago / Pagadas / Entregadas / Todas** (`ShipmentOrderPaymentFilter`), derivados de `billing.is_paid` + `consolidations.status = ENTREGADO`. El default al entrar es **Pendientes de pago**, no "Pendientes" (ese filtro por status logístico ya no existe en este listado).
+
+**Diferencia clave con la idea original de la tabla de abajo:** el filtro **"Sin notificar"** (que dependía de `pre_billing.notified_at`) **NO se implementó** — quedó pendiente para Etapa 4, junto con el resto de WhatsApp, porque `notified_at` recién tiene sentido una vez exista el botón que lo estampe (plantilla 2). Tabla de referencia original (a revisar al implementar Etapa 4, puede que ya no aplique tal cual dado que "Pendientes" por status dejó de ser el filtro base):
 
 | Filtro | Derivación |
 |---|---|
-| **Pendientes** (default) | `status != 'ENTREGADO'` — cumple pedido del dueño "ver abiertas/cerradas al entrar" |
-| **Sin notificar** | Sin prefactura, o prefactura sin `notified_at` |
-| **Pendiente de pago** | Prefactura/factura existente y `is_paid = false` |
-| **Pagadas** | `billing.is_paid = true` y no entregada — es la cola de "programar despacho" |
-| **Historial** | `status = 'ENTREGADO'` |
+| ~~Pendientes (default)~~ | Reemplazado por "Pendientes de pago" (ver arriba) |
+| **Sin notificar** (pendiente Etapa 4) | Sin prefactura, o prefactura sin `notified_at` |
+| Pendiente de pago | ✅ implementado |
+| Pagadas | ✅ implementado |
+| Historial / Entregadas | ✅ implementado |
 
-**CONFIRMADO:** columna nullable `notified_at` en `pre_billing`, estampada al click del botón WhatsApp de cobro. Hace confiable el filtro "Sin notificar" (la alternativa —asumir prefactura generada = notificada— falla justo en el caso que se quiere atrapar: la prefactura generada que nadie envió).
+**CONFIRMADO:** columna nullable `notified_at` en `pre_billing` (ya existe en BD desde Etapa 1, migración 008) — falta el botón que la estampe (Etapa 4).
 
 ---
 
@@ -229,8 +292,16 @@ Los filtros dejan de ser solo `status` y pasan a estados derivados combinando `c
 
 ## Boceto de etapas (orden por dependencias, a formalizar en development-plan.md al arrancar)
 
-1. **Backend quick wins:** validación tracking duplicado, quitar candado una-orden-por-cliente, endpoint quitar-paquete-de-orden, agregar `DESPACHADO` al enum/service, filtro "Pendientes" compuesto, columna `store_name` en packages.
-2. **Rediseño listado logística:** filtros Sin orden/Con orden + filtro cliente + selección múltiple mismo-cliente.
-3. **Crear orden desde la selección** + redirect al detalle nuevo + página de detalle de orden (reemplaza modal, incluye quitar paquete y PDFs).
-4. **WhatsApp:** módulo de plantillas con placeholders, helper `buildWhatsAppUrl`, botones en las 3 ubicaciones + detalle de orden (plantilla 2), evento de bitácora, `notified_at`, filtros pipeline de cobro en órdenes.
-5. **Detalle de cliente:** split paquetes pendientes/histórico + botón WhatsApp.
+1. ✅ **Backend quick wins:** validación tracking duplicado, quitar candado una-orden-por-cliente, endpoint quitar-paquete-de-orden, agregar `DESPACHADO` al enum/service, filtro "Pendientes" compuesto, columna `store_name` en packages.
+2. ✅ **Rediseño listado logística:** filtros Sin orden/Con orden + filtro cliente + selección múltiple mismo-cliente.
+3. ✅ **Crear orden desde la selección** + redirect al detalle nuevo + página de detalle de orden (reemplaza modal, incluye quitar/agregar paquete). Además: auto-cierre al generar estimado (ya no hay "cerrar" manual), dirección de entrega por orden, filtros de listado por pago en vez de por status, PDFs de estimado en la página de detalle (factura final sigue en `/admin/billing`).
+4. ✅ **WhatsApp:** módulo de plantillas con placeholders, helper `buildWhatsAppUrl`, botones en las 3 ubicaciones (toolbar de selección en logística, toast post-registro de paquete, detalle de cliente) + botón en detalle de orden (plantilla 2), evento de bitácora en `package_events`, `notified_at` en `pre_billing`, filtro "Sin notificar" agregado al listado de órdenes (ahora 5 filtros de pago).
+5. ⬜ **Detalle de cliente (alcance reducido):** el split pendientes/histórico ya existía antes de esta etapa; queda pendiente solo si el dueño pide algo adicional (ej. plantillas editables desde UI).
+
+### Pendientes concretos para retomar en otra sesión
+
+- Texto de la Plantilla 2 (cobro/prefactura lista) es un borrador — falta aprobación final del dueño + decidir si incluye datos de pago (SINPE/cuenta) antes de usarlo en producción. El mecanismo (botón, `notified_at`, mensaje) ya está implementado con el borrador actual.
+- El PDF de la **factura final** (no el estimado) no se agregó a la página de detalle de la orden — sigue existiendo solo en `/admin/billing`. No fue pedido explícitamente, mencionarlo si hace falta.
+- **Plantillas editables desde UI**: hoy `whatsapp-templates.ts` son constantes de código. El doc original preveía una sección de administración para editarlas sin tocar código — no implementada, no fue pedida explícitamente en Etapa 4.
+- Nadie ha probado el flujo completo end-to-end en el navegador todavía (todo validado con `tsc`/`lint`, no con `npm run dev` manual) — recomendable antes de un commit grande. Esto incluye no haber probado el link real de `wa.me` con un teléfono real.
+- Nada de lo hecho en Etapas 2, 3, 4 + extras está commiteado/pusheado todavía.
