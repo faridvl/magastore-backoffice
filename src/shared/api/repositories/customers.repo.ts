@@ -1,5 +1,11 @@
 import sql from '@/lib/db';
 import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
+import { WarehouseRoutesRepository } from './warehouse-routes.repo';
+
+// Única ruta real hoy (ver warehouse_routes seed en scripts/013). Cuando exista
+// una segunda ruta activa, esto deja de ser una constante fija.
+const DEFAULT_WAREHOUSE_ORIGIN = 'USA';
+const DEFAULT_WAREHOUSE_PACKAGE_TYPE = 'AEREO';
 
 /**
  * Verifica si ya existe un cliente por identificación o email
@@ -19,57 +25,72 @@ export const checkExistingCustomer = async (idCard: string, email: string): Prom
 export const createCustomerWithAddresses = async (data: CustomerInput): Promise<Customer> => {
   const addressesJson = JSON.stringify(data.addresses);
 
-  // Intentamos la query. Si falla, el error real saltará al catch del Service/Controller
-  const rows = await sql`
-    WITH new_cust AS (
-      INSERT INTO customers (
-        id_card, 
-        id_type, 
-        first_name, 
-        last_name, 
-        email, 
-        phone, 
-        customer_code
-      )
-      VALUES (
-        ${data.id_card}, 
-        ${data.id_type}, 
-        ${data.first_name}, 
-        ${data.last_name}, 
-        ${data.email}, 
-        ${data.phone},
-        -- Generamos el código aquí mismo usando un placeholder único
-        -- para evitar el UPDATE y la ambigüedad del serial_id
-        'MG-' || UPPER(SUBSTRING(uuid_generate_v4()::text FROM 31)) || '-' || nextval(pg_get_serial_sequence('customers', 'customer_id'))
-      )
-      RETURNING *
-    ),
-    ins_addr AS (
-      INSERT INTO customer_addresses (
-        customer_id, province, canton, district, exact_address, address_label, is_default
-      )
-      SELECT 
-        new_cust.id, 
-        (addr->>'province'), 
-        (addr->>'canton'), 
-        (addr->>'district'), 
-        (addr->>'exact_address'), 
-        COALESCE(addr->>'address_label', 'Casa'), 
-        COALESCE((addr->>'is_default')::boolean, false)
-      FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
-      RETURNING *
-    )
-    SELECT 
-      nc.*, 
-      COALESCE((SELECT json_agg(ia.*) FROM ins_addr ia), '[]'::json) as addresses_list
-    FROM new_cust nc;
-  `;
+  try {
+    await sql`BEGIN`;
 
-  if (!rows || rows.length === 0) {
-    throw new Error('Error crítico: La base de datos no retornó el registro creado.');
+    // Incremento atómico del contador de la ruta (único casillero real hoy:
+    // USA/AEREO) antes de insertar — si algo falla después, el ROLLBACK
+    // también revierte el contador.
+    const { code, warehouseRouteId } = await WarehouseRoutesRepository.incrementAndGetCode(
+      DEFAULT_WAREHOUSE_ORIGIN,
+      DEFAULT_WAREHOUSE_PACKAGE_TYPE,
+    );
+
+    const rows = await sql`
+      WITH new_cust AS (
+        INSERT INTO customers (
+          id_card,
+          id_type,
+          first_name,
+          last_name,
+          email,
+          phone,
+          customer_code
+        )
+        VALUES (
+          ${data.id_card},
+          ${data.id_type},
+          ${data.first_name},
+          ${data.last_name},
+          ${data.email},
+          ${data.phone},
+          ${code}
+        )
+        RETURNING *
+      ),
+      ins_addr AS (
+        INSERT INTO customer_addresses (
+          customer_id, province, canton, district, exact_address, address_label, is_default
+        )
+        SELECT
+          new_cust.id,
+          (addr->>'province'),
+          (addr->>'canton'),
+          (addr->>'district'),
+          (addr->>'exact_address'),
+          COALESCE(addr->>'address_label', 'Casa'),
+          COALESCE((addr->>'is_default')::boolean, false)
+        FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
+        RETURNING *
+      )
+      SELECT
+        nc.*,
+        COALESCE((SELECT json_agg(ia.*) FROM ins_addr ia), '[]'::json) as addresses_list
+      FROM new_cust nc;
+    `;
+
+    if (!rows || rows.length === 0) {
+      throw new Error('Error crítico: La base de datos no retornó el registro creado.');
+    }
+
+    await WarehouseRoutesRepository.assignCodeToCustomer(rows[0].id, warehouseRouteId, code);
+
+    await sql`COMMIT`;
+    return mapRowToCustomer(rows[0]);
+  } catch (error) {
+    await sql`ROLLBACK`;
+    throw error;
   }
-
-  return mapRowToCustomer(rows[0]);
 };
 /**
  * Obtiene lista paginada de clientes (sin direcciones para ligereza)
@@ -96,7 +117,18 @@ export const getPaginatedCustomers = async (
  */
 export const getCustomerById = async (id: string): Promise<Customer | null> => {
   const rows = await sql`
-    SELECT c.*, (SELECT json_agg(ca.*) FROM customer_addresses ca WHERE ca.customer_id = c.id) as addresses_list
+    SELECT c.*,
+      (SELECT json_agg(ca.*) FROM customer_addresses ca WHERE ca.customer_id = c.id) as addresses_list,
+      (
+        SELECT json_agg(json_build_object(
+          'code', cwc.code, 'origin', wr.origin, 'package_type', wr.package_type,
+          'address_line', wr.address_line, 'city', wr.city, 'state', wr.state,
+          'postal_code', wr.postal_code, 'contact_phone', wr.contact_phone
+        ))
+        FROM customer_warehouse_codes cwc
+        JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
+        WHERE cwc.customer_id = c.id
+      ) as warehouse_codes_list
     FROM customers c WHERE c.id = ${id} LIMIT 1
   `;
 
@@ -277,33 +309,75 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
         }
       }
 
-      await sql`
-        WITH new_cust AS (
-          INSERT INTO customers (id_card, id_type, first_name, last_name, email, phone, customer_code)
-          VALUES (
-            ${meta.id_card},
-            ${meta.id_type},
-            ${meta.first_name},
-            ${meta.last_name},
-            ${meta.email},
-            ${meta.phone},
-            ${meta.customer_code ?? sql`'MG-' || UPPER(SUBSTRING(uuid_generate_v4()::text FROM 31)) || '-' || nextval(pg_get_serial_sequence('customers', 'customer_id'))`}
-          )
-          RETURNING *
-        )
-        INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
-        SELECT
-          new_cust.id,
-          (addr->>'province'),
-          (addr->>'canton'),
-          (addr->>'district'),
-          (addr->>'exact_address'),
-          COALESCE(addr->>'address_label', 'Casa'),
-          COALESCE((addr->>'is_default')::boolean, false)
-        FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
-      `;
+      await sql`BEGIN`;
+      try {
+        // Código explícito de importación (cliente real ya asignado en otro
+        // sistema) vs. generado atómico para altas nuevas sin código propio.
+        let finalCode = meta.customer_code;
+        let warehouseRouteId: number | null = null;
+        if (!finalCode) {
+          const generated = await WarehouseRoutesRepository.incrementAndGetCode(
+            DEFAULT_WAREHOUSE_ORIGIN,
+            DEFAULT_WAREHOUSE_PACKAGE_TYPE,
+          );
+          finalCode = generated.code;
+          warehouseRouteId = generated.warehouseRouteId;
+        } else {
+          const route = await WarehouseRoutesRepository.getActiveRoute(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE);
+          if (route) {
+            warehouseRouteId = route.id;
+            // Si el código explícito sigue el patrón del prefijo de la ruta,
+            // avanza el contador para que la próxima alta manual no colisione.
+            if (finalCode.startsWith(route.code_prefix)) {
+              const suffix = finalCode.slice(route.code_prefix.length);
+              const counterValue = parseInt(suffix, 10);
+              if (!Number.isNaN(counterValue)) {
+                await WarehouseRoutesRepository.advanceCounterIfHigher(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE, counterValue);
+              }
+            }
+          }
+        }
 
-      inserted++;
+        const [newCustomer] = await sql`
+          WITH new_cust AS (
+            INSERT INTO customers (id_card, id_type, first_name, last_name, email, phone, customer_code)
+            VALUES (
+              ${meta.id_card},
+              ${meta.id_type},
+              ${meta.first_name},
+              ${meta.last_name},
+              ${meta.email},
+              ${meta.phone},
+              ${finalCode}
+            )
+            RETURNING *
+          ),
+          ins_addr AS (
+            INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+            SELECT
+              new_cust.id,
+              (addr->>'province'),
+              (addr->>'canton'),
+              (addr->>'district'),
+              (addr->>'exact_address'),
+              COALESCE(addr->>'address_label', 'Casa'),
+              COALESCE((addr->>'is_default')::boolean, false)
+            FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
+            RETURNING 1
+          )
+          SELECT new_cust.id FROM new_cust
+        `;
+
+        if (warehouseRouteId && newCustomer) {
+          await WarehouseRoutesRepository.assignCodeToCustomer(newCustomer.id, warehouseRouteId, finalCode);
+        }
+
+        await sql`COMMIT`;
+        inserted++;
+      } catch (err) {
+        await sql`ROLLBACK`;
+        throw err;
+      }
     } catch (err: any) {
       const msg: string = err.message ?? 'Error desconocido';
       if (msg.includes('customers_id_card_key') || msg.includes('duplicate key') && msg.includes('id_card')) {
@@ -343,5 +417,15 @@ const mapRowToCustomer = (raw: any): Customer => ({
     address_label: addr.address_label,
     is_default: addr.is_default,
     created_at: addr.created_at,
+  })),
+  warehouse_codes: (raw.warehouse_codes_list || []).map((wc: any) => ({
+    code: wc.code,
+    origin: wc.origin,
+    package_type: wc.package_type,
+    address_line: wc.address_line,
+    city: wc.city,
+    state: wc.state,
+    postal_code: wc.postal_code,
+    contact_phone: wc.contact_phone,
   })),
 });

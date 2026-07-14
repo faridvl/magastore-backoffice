@@ -2,46 +2,85 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, CheckCircle, Package, Clock, Loader2, MessageCircle, CheckSquare, Square, Boxes, ChevronRight } from 'lucide-react';
 
-const MAILBOXES = [
-  { label: 'USA Aéreo', suffix: 'A', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
-  { label: 'USA Marítimo', suffix: 'M', flag: '🚢', color: 'bg-blue-50 border-blue-100 text-blue-700' },
-  { label: 'China', suffix: 'CH', flag: '🇨🇳', color: 'bg-red-50 border-red-100 text-red-700' },
-  { label: 'Colombia', suffix: 'CO', flag: '🇨🇴', color: 'bg-amber-50 border-amber-100 text-amber-700' },
-];
+// Casillero por ruta (origin + package_type) — solo USA/AEREO tiene datos
+// reales hoy (ver warehouse_routes). Rutas futuras se agregan como fila nueva
+// en esa tabla, sin tocar este mapa de presentación.
+const WAREHOUSE_ROUTE_DISPLAY: Record<string, { label: string; flag: string; color: string }> = {
+  'USA-AEREO': { label: 'USA Aéreo', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
+  'USA-MARITIMO': { label: 'USA Marítimo', flag: '🚢', color: 'bg-blue-50 border-blue-100 text-blue-700' },
+  'CHINA-MARITIMO': { label: 'China', flag: '🇨🇳', color: 'bg-red-50 border-red-100 text-red-700' },
+};
 
-function MailboxCard({ code, label, suffix, flag, color }: { code: string; label: string; suffix: string; flag: string; color: string }) {
+function WarehouseCodeCard({
+  code, origin, packageType, addressLine, city, state, postalCode, contactPhone,
+  customerFirstName, customerFullName, customerPhone,
+}: {
+  code: string; origin: string; packageType: string;
+  addressLine: string | null; city: string | null; state: string | null;
+  postalCode: string | null; contactPhone: string | null;
+  customerFirstName: string; customerFullName: string; customerPhone: string;
+}) {
   const [copied, setCopied] = React.useState(false);
-  const mailboxCode = `${code}-${suffix}`;
+  const display = WAREHOUSE_ROUTE_DISPLAY[`${origin}-${packageType}`] ?? {
+    label: `${origin} ${packageType}`,
+    flag: '📦',
+    color: 'bg-slate-50 border-slate-100 text-slate-700',
+  };
   const handleCopy = () => {
-    navigator.clipboard.writeText(mailboxCode);
+    navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const handleSendWelcome = () => {
+    if (!customerPhone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    const message = buildWarehouseWelcomeMessage({
+      firstName: customerFirstName,
+      fullName: customerFullName,
+      code,
+      routeLabel: display.label,
+      addressLine, city, state, postalCode, contactPhone,
+    });
+    window.open(buildWhatsAppUrl(customerPhone, message), '_blank');
+  };
   return (
-    <div className={`flex items-center justify-between p-4 rounded-2xl border ${color}`}>
+    <div className={`flex items-center justify-between p-4 rounded-2xl border ${display.color}`}>
       <div className="flex items-center gap-3">
-        <span className="text-lg">{flag}</span>
+        <span className="text-lg">{display.flag}</span>
         <div>
-          <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{label}</p>
-          <p className="text-sm font-mono font-black">{mailboxCode}</p>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{display.label}</p>
+          <p className="text-sm font-mono font-black">{code}</p>
         </div>
       </div>
-      <button
-        onClick={handleCopy}
-        title="Copiar casillero"
-        className="p-2 rounded-xl hover:bg-white/60 transition-colors"
-      >
-        {copied ? <CheckIcon size={14} /> : <Copy size={14} />}
-      </button>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleSendWelcome}
+          title="Enviar datos de casillero por WhatsApp"
+          className="p-2 rounded-xl hover:bg-white/60 transition-colors"
+        >
+          <MessageCircle size={14} />
+        </button>
+        <button
+          onClick={handleCopy}
+          title="Copiar casillero"
+          className="p-2 rounded-xl hover:bg-white/60 transition-colors"
+        >
+          {copied ? <CheckIcon size={14} /> : <Copy size={14} />}
+        </button>
+      </div>
     </div>
   );
 }
+import { toast } from 'sonner';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerHistoryTab } from './customer-history-tab';
 import { CustomerEditForm } from './customer-edit-form';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
+import { buildWhatsAppUrl, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos de Costa Rica',
@@ -258,18 +297,28 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         {/* Casilleros */}
                                         <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4 md:col-span-2">
                                             <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {MAILBOXES.map((mb) => (
-                                                    <MailboxCard
-                                                        key={mb.suffix}
-                                                        code={customer.customer_code}
-                                                        label={mb.label}
-                                                        suffix={mb.suffix}
-                                                        flag={mb.flag}
-                                                        color={mb.color}
-                                                    />
-                                                ))}
-                                            </div>
+                                            {customer.warehouse_codes.length === 0 ? (
+                                                <p className="text-slate-400 text-sm">Este cliente no tiene casillero asignado.</p>
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    {customer.warehouse_codes.map((wc) => (
+                                                        <WarehouseCodeCard
+                                                            key={`${wc.origin}-${wc.package_type}`}
+                                                            code={wc.code}
+                                                            origin={wc.origin}
+                                                            packageType={wc.package_type}
+                                                            addressLine={wc.address_line}
+                                                            city={wc.city}
+                                                            state={wc.state}
+                                                            postalCode={wc.postal_code}
+                                                            contactPhone={wc.contact_phone}
+                                                            customerFirstName={customer.first_name}
+                                                            customerFullName={`${customer.first_name} ${customer.last_name}`}
+                                                            customerPhone={customer.phone}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Perfil Operativo */}

@@ -81,3 +81,44 @@ export function buildPreBillingReadyMessage(params: {
     metodo_entrega: params.deliveryMethod ? (DELIVERY_METHOD_LABELS[params.deliveryMethod] ?? params.deliveryMethod) : '—',
   });
 }
+
+export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `📦 ¡Bienvenido(a) a MAGASTORE, {{nombre}}!
+
+Este es tu casillero para compras en {{ruta_label}}:
+
+*{{codigo}}*
+
+Dirección de envío:
+{{nombre_completo}}
+{{codigo}}
+{{direccion}}
+{{ciudad}}, {{estado}} {{codigo_postal}}
+Tel: {{telefono}}
+
+Usa esta dirección al comprar en tiendas de Estados Unidos. Cuando tu paquete llegue a nuestra bodega, te avisaremos por este medio.
+
+*MAGASTORE 📦✈️*`;
+
+export function buildWarehouseWelcomeMessage(params: {
+  firstName: string;
+  fullName: string;
+  code: string;
+  routeLabel: string;
+  addressLine: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  contactPhone: string | null;
+}): string {
+  return interpolate(WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME, {
+    nombre: params.firstName,
+    nombre_completo: params.fullName,
+    codigo: params.code,
+    ruta_label: params.routeLabel,
+    direccion: params.addressLine ?? '[pendiente de configurar]',
+    ciudad: params.city ?? '—',
+    estado: params.state ?? '—',
+    codigo_postal: params.postalCode ?? '—',
+    telefono: params.contactPhone ?? '—',
+  });
+}

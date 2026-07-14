@@ -1,6 +1,48 @@
 # Plan: Rediseño de generación de `customer_code` por casillero/ruta
 
-**Estado:** Propuesto — no implementado. Para aplicar, referenciar este documento y decir "aplicar cambios de customer code".
+**Estado:** IMPLEMENTADO (2026-07-14, sin commit/push todavía). Las 5 etapas completas.
+
+## Progreso de implementación (2026-07-14)
+
+Preguntas abiertas resueltas con el dueño antes de implementar:
+- **Catálogo de rutas**: solo **USA/AEREO** es real hoy (prefijo `MG-2453-C-`). Las otras 3 anticipadas en `MAILBOXES` (USA Marítimo, China, Colombia) quedan sin fila — se agregan cuando exista casillero real contratado.
+- **Datos de prueba**: los clientes existentes (8, no 66 como decía una nota vieja) se **actualizaron** al nuevo formato en vez de borrarse.
+- **Padding del contador**: 2 dígitos (`00`-`99`), sin tope real — sigue creciendo sin padding (`100`, `101`...) por encima de 99.
+- **Contador inicial**: arranca en `0`.
+- **`customers.customer_code`**: se **mantiene** como código principal/cache, sin tocar los 22 archivos que ya lo leen (listados, PDFs, tracking, pickers, búsquedas). La tabla nueva es la fuente de verdad para múltiples rutas por cliente a futuro.
+- **Nombre de tabla**: `warehouse_routes` (inglés, consistente con el resto del esquema).
+
+### Etapa 1 — Modelo de datos
+- **Migración `scripts/013-warehouse-routes.sql`** aplicada en Neon: tabla `warehouse_routes` (`origin`, `package_type`, `code_prefix`, `current_counter`, datos de dirección del casillero nullable, `is_active`, UNIQUE `(origin, package_type)`) + tabla `customer_warehouse_codes` (`customer_id`, `warehouse_route_id`, `code`, `assigned_at`, UNIQUE `(warehouse_route_id, code)`).
+- **`origin = 'USA'`** (no `'MIAMI'` como decía el borrador original del plan) — verificado contra el valor real ya usado en `courier_rates.origin` para no crear un segundo vocabulario del mismo dato.
+- Ruta sembrada: `USA` / `AEREO` / `MG-2453-C-` / contador `0`.
+
+### Etapa 2 — Generación atómica del código
+- Nuevo repo `src/shared/api/repositories/warehouse-routes.repo.ts`: `incrementAndGetCode` (UPDATE atómico con RETURNING, no MAX()+1), `assignCodeToCustomer`, `getActiveRoute`, `advanceCounterIfHigher`, `getAll`.
+- **`createCustomerWithAddresses`** (`customers.repo.ts`) reescrito con transacción explícita `BEGIN`/`COMMIT`/`ROLLBACK`: incrementa el contador de la ruta, genera el código formateado, inserta cliente+direcciones (mismo CTE de siempre) con ese código, y registra la fila en `customer_warehouse_codes`. Si algo falla después del incremento, el `ROLLBACK` también revierte el contador.
+- **Nota de precisión sobre el plan original**: la fórmula vieja usaba `uuid_generate_v4()`, no `gen_random_uuid()` como decía una nota de otra sesión — verificado directamente en el código antes de reemplazarla.
+- **8 clientes de prueba existentes actualizados** (script puntual, no versionado) a `MG-2453-C-01` .. `MG-2453-C-08`, en orden de `created_at`. El contador de la ruta quedó en `8`, listo para que el próximo alta reciba `MG-2453-C-09`.
+- **`Customer.warehouse_codes`** (nuevo campo, tipo `CustomerWarehouseCodeDisplay[]`) expuesto por `getCustomerById` vía JOIN a `customer_warehouse_codes` + `warehouse_routes` (incluye código, origin, package_type, y los datos de dirección del casillero para el mensaje de bienvenida). `getPaginatedCustomers` no lo trae (no lo necesita el listado) — cae a `[]` por el mapeo defensivo existente.
+
+### Etapa 3 — Import de clientes reales
+- **`importCustomers`** (`customers.repo.ts`) reescrito con la misma transacción explícita: si la fila trae `customer_code` explícito (columna `codigo_magastore` del XLSX, comportamiento ya existente y preservado), se usa tal cual y **se avanza el contador de la ruta** si el código sigue el patrón del prefijo activo (`finalCode.startsWith(route.code_prefix)`) y el sufijo numérico es mayor al contador actual — para que la próxima alta manual no colisione. Si no trae código explícito, genera uno atómico igual que el alta individual.
+- El manejo de errores externo (cédula/email duplicados) no se tocó — sigue clasificando por mensaje de Postgres igual que antes.
+
+### Etapa 4 — UI del detalle de cliente
+- **`MAILBOXES`/`MailboxCard`** (que sintetizaba 4 sufijos ficticios en el frontend sin datos reales en BD) reemplazado por `WAREHOUSE_ROUTE_DISPLAY`/`WarehouseCodeCard`: itera `customer.warehouse_codes` real, con estado vacío ("Este cliente no tiene casillero asignado") si el cliente no tiene ninguno. El mapa de presentación (`label`/`flag`/`color`) queda listo para 3 rutas (USA Aéreo, USA Marítimo, China) aunque solo la primera tenga datos reales hoy; cualquier ruta sin entrada en el mapa cae a un ícono genérico.
+
+### Etapa 5 — Mensaje de bienvenida del casillero (WhatsApp)
+- Nueva plantilla `WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME` + `buildWarehouseWelcomeMessage()` en `whatsapp-templates.ts`, mismo mecanismo `interpolate()`/`buildWhatsAppUrl()` ya usado por las otras 2 plantillas.
+- Botón de WhatsApp en cada `WarehouseCodeCard` del detalle de cliente — **acción manual**, no se dispara en el flujo de creación (confirmado en las decisiones ya tomadas).
+- **Pendiente de datos reales**: `warehouse_routes.address_line/city/state/postal_code/contact_phone` quedaron `NULL` en la siembra — el mensaje muestra `[pendiente de configurar]` / `—` en esos campos hasta que se carguen los datos reales del casillero físico de Miami (decisión explícita: no bloquear la implementación esperando ese dato).
+
+### Verificación
+- `tsc --noEmit` limpio, `npm run lint` limpio en todas las etapas.
+- Sin commit/push todavía.
+
+---
+
+## Plan original (pre-implementación)
 
 ---
 
