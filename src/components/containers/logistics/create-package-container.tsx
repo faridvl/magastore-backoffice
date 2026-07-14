@@ -12,10 +12,10 @@ export const CreatePackageContainer: React.FC = () => {
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
 
     return (
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 p-4">
 
             {/* COLUMNA IZQUIERDA: FORMULARIO */}
-            <div className="lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-8">
+            <div className="md:col-span-7 lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-amber-600 text-white rounded-xl"><Package size={20} /></div>
                     <h2 className="text-lg font-bold text-slate-800">Nuevo Ingreso</h2>
@@ -190,7 +190,7 @@ export const CreatePackageContainer: React.FC = () => {
             </div>
 
             {/* COLUMNA DERECHA: CONFIG Y TOTALES */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="md:col-span-5 lg:col-span-4 space-y-6">
 
                 {/* CARD DE TOTALES */}
                 <div className="bg-slate-900 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">

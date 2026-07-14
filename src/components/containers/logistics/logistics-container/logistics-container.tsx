@@ -71,7 +71,7 @@ export const LogisticsContainer: React.FC = () => {
                         disabled={isDisabled}
                         onClick={(e) => e.stopPropagation()}
                         onChange={() => handleToggleSelect(row)}
-                        className="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                        className="h-5 w-5 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
                     />
                 );
             },
@@ -112,6 +112,7 @@ export const LogisticsContainer: React.FC = () => {
         {
             header: 'Info. Envío',
             accessor: 'package_type',
+            className: 'hidden lg:table-cell',
             render: (row) => (
                 <div className="flex flex-col">
                     <span className="text-[9px] font-black text-slate-400 uppercase">{row.package_type || 'AÉREO'}</span>
@@ -199,10 +200,10 @@ export const LogisticsContainer: React.FC = () => {
                     /> */}
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-shrink-0">
                     <button
                         onClick={notifyMultiple.open}
-                        className="bg-emerald-500 hover:bg-emerald-400 text-white pl-5 pr-5 py-3 rounded-[1.8rem] flex items-center gap-2 transition-all shadow-lg active:scale-95"
+                        className="bg-emerald-500 hover:bg-emerald-400 text-white pl-5 pr-5 py-3 rounded-[1.8rem] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
                     >
                         <MessageCircle size={16} strokeWidth={2.5} />
                         <span className="text-[10px] font-black uppercase tracking-[0.15em]">Notificar por WhatsApp</span>
@@ -373,7 +374,7 @@ export const LogisticsContainer: React.FC = () => {
                                     disabled={isDisabledForSelection}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={() => handleToggleSelect(pkg)}
-                                    className="h-4 w-4 flex-shrink-0 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                                    className="h-5 w-5 flex-shrink-0 rounded border-slate-300 text-amber-500 focus:ring-amber-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
                                 />
                             )}
                             <div className="flex-1 min-w-0">

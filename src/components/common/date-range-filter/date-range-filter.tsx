@@ -97,9 +97,9 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
         {hasValue && (
           <button
             onClick={() => { onClear(); setOpen(false); }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
           >
-            <X size={13} />
+            <X size={15} />
           </button>
         )}
       </div>

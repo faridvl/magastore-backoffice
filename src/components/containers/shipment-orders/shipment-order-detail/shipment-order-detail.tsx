@@ -242,7 +242,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
       {!hasBilling && (
         <div>
           {!hasPreBilling ? (
-            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between p-5">
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
               <div>
                 <p className="text-xs font-black text-slate-700">Prefactura</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
@@ -252,24 +252,27 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               <button
                 onClick={handleGenerateEstimateClick}
                 disabled={detail.packages.length === 0 || isGeneratingPreBilling}
-                className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all disabled:opacity-40"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all disabled:opacity-40 flex-shrink-0"
               >
                 <FileText size={14} />
                 {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
               </button>
             </div>
           ) : preBillingConfirmed ? (
-            <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-sm flex items-center justify-between p-5">
+            <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-sm flex flex-wrap items-center justify-between gap-3 p-5">
               <div className="flex items-center gap-3">
                 <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
                 <div>
                   <p className="text-xs font-black text-emerald-800">Prefactura confirmada</p>
                   <p className="text-[10px] text-emerald-600 mt-0.5">
                     {formatCRC(detail.pre_billing_amount ?? 0)}
+                    {detail.pre_billing_notified_at && (
+                      <> · Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
+                    )}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleNotifyPreBilling}
                   disabled={isNotifyingPreBilling}
@@ -290,16 +293,19 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             </div>
           ) : (
             <div className="bg-white rounded-[2rem] border border-amber-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div>
                   <p className="text-xs font-black text-amber-900">Estimado pendiente de confirmación</p>
                   <p className="text-[10px] text-amber-700 mt-0.5">
                     {detail.pre_billing_delivery_method
                       ? `Entrega: ${DELIVERY_LABELS[detail.pre_billing_delivery_method]}`
                       : ''}
+                    {detail.pre_billing_notified_at && (
+                      <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
+                    )}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={handleNotifyPreBilling}
                     disabled={isNotifyingPreBilling}
@@ -321,13 +327,14 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                       setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? 'RETIRO');
                       setShowPreBillingModal(true);
                     }}
-                    className="text-[9px] font-black text-amber-700 underline underline-offset-2"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
                   >
+                    <RotateCcw size={12} />
                     Recalcular
                   </button>
                 </div>
               </div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <p className="text-2xl font-black text-amber-900">
                   {formatCRC(detail.pre_billing_amount ?? 0)}
                 </p>
@@ -795,9 +802,9 @@ const PackageTable: React.FC<{
             onClick={() => onUnassign(pkg.uuid)}
             disabled={isUnassigning}
             title="Quitar de la orden de envío"
-            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 flex-shrink-0"
+            className="p-2.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 flex-shrink-0"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         )}
       </div>

@@ -82,6 +82,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
+          {/* En pantallas angostas (iPad) las columnas Peso/Paquetes/Fecha se ocultan — se resumen aquí */}
+          <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
+            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {new Date(row.created_at).toLocaleDateString('es-CR')}
+          </span>
         </div>
       ),
     },
@@ -122,6 +126,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Peso',
       accessor: 'total_weight_lb',
       align: 'center',
+      className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="font-black text-slate-700 text-sm">
           {Number(row.total_weight_lb).toFixed(2)} <span className="text-[10px] text-slate-400">lb</span>
@@ -132,6 +137,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Paquetes',
       accessor: 'package_count',
       align: 'center',
+      className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="bg-slate-100 text-slate-600 font-black text-xs px-3 py-1 rounded-full">
           {row.package_count}
@@ -141,6 +147,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     {
       header: 'Fecha',
       accessor: 'created_at',
+      className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
           {new Date(row.created_at).toLocaleDateString('es-CR')}
@@ -156,10 +163,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
           {row.status === ConsolidationStatus.ABIERTO && (
             <button
               onClick={(e) => { e.stopPropagation(); setDeleteUuid(row.uuid); }}
-              className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="p-2.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="Eliminar orden de envío"
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
             </button>
           )}
           <ChevronRight size={16} className="text-slate-300" />

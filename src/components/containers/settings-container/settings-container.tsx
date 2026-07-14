@@ -357,18 +357,18 @@ export const SettingsContainer: React.FC = () => {
                                                     onClick={() => handleToggleActive(rate)}
                                                     disabled={isToggling}
                                                     title={rate.is_active ? 'Desactivar' : 'Activar'}
-                                                    className={`p-1.5 rounded-lg transition-colors ${rate.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 hover:bg-slate-50'}`}
+                                                    className={`p-2.5 rounded-lg transition-colors ${rate.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 hover:bg-slate-50'}`}
                                                 >
-                                                    <Power size={13} />
+                                                    <Power size={15} />
                                                 </button>
                                             </td>
                                             <td className="px-4 py-2.5 text-right">
                                                 <button
                                                     onClick={() => startEdit(rate)}
-                                                    className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                                                    className="p-2.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
                                                     title="Editar"
                                                 >
-                                                    <Pencil size={13} />
+                                                    <Pencil size={15} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -539,17 +539,17 @@ function DeliveryRateRow({
                         onClick={onSave}
                         disabled={isSaving}
                         title="Guardar"
-                        className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
+                        className="p-2.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
                     >
-                        <Check size={14} />
+                        <Check size={16} />
                     </button>
                     <button
                         onClick={onCancel}
                         disabled={isSaving}
                         title="Cancelar"
-                        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-40"
+                        className="p-2.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-40"
                     >
-                        <X size={14} />
+                        <X size={16} />
                     </button>
                 </div>
             </td>

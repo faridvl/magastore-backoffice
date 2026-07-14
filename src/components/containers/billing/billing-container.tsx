@@ -53,6 +53,10 @@ export const BillingContainer: React.FC = () => {
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
+          {/* En pantallas angostas (iPad) las columnas Peso/Fecha se ocultan — se resumen aquí */}
+          <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
+            {row.total_weight_charged} lb · {new Date(row.created_at).toLocaleDateString('es-CR')}
+          </span>
         </div>
       ),
     },
@@ -60,6 +64,7 @@ export const BillingContainer: React.FC = () => {
       header: 'Peso',
       accessor: 'total_weight_charged',
       align: 'center',
+      className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="font-black text-slate-700 text-sm">
           {row.total_weight_charged} <span className="text-[10px] text-slate-400">lb</span>
@@ -69,6 +74,7 @@ export const BillingContainer: React.FC = () => {
     {
       header: 'Entrega',
       accessor: 'delivery_method',
+      className: 'hidden lg:table-cell',
       render: (row) => row.delivery_method ? (
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
@@ -120,6 +126,7 @@ export const BillingContainer: React.FC = () => {
     {
       header: 'Fecha',
       accessor: 'created_at',
+      className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
           {new Date(row.created_at).toLocaleDateString('es-CR')}

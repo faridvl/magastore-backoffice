@@ -7,6 +7,8 @@ export interface Column<T = any> {
     accessor: keyof T | string;
     render?: (item: T) => React.ReactNode;
     align?: 'left' | 'center' | 'right';
+    /** Clases extra para th y td — ej: 'hidden xl:table-cell' para ocultar la columna en pantallas angostas (iPad) */
+    className?: string;
 }
 
 interface TableProps<T> {
@@ -46,7 +48,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                             {columns.map((col, index) => (
                                 <th
                                     key={index}
-                                    className={`px-3 py-3 md:px-6 md:py-4 border-b border-slate-100 first:rounded-tl-2xl last:rounded-tr-2xl ${col.align === 'right' ? 'text-right' : ''}`}
+                                    className={`px-3 py-3 md:px-6 md:py-4 border-b border-slate-100 first:rounded-tl-2xl last:rounded-tr-2xl ${col.align === 'right' ? 'text-right' : ''} ${col.className ?? ''}`}
                                 >
                                     {col.headerRender ? col.headerRender() : (
                                         <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-bold tracking-widest">
@@ -61,8 +63,8 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                         {isLoading ? (
                             skeletonRows.map((_, i) => (
                                 <tr key={`skeleton-${i}`}>
-                                    {columns.map((_, j) => (
-                                        <td key={`cell-${j}`} className="px-3 py-3 md:px-6 md:py-4">
+                                    {columns.map((col, j) => (
+                                        <td key={`cell-${j}`} className={`px-3 py-3 md:px-6 md:py-4 ${col.className ?? ''}`}>
                                             <div className="h-4 bg-slate-100 rounded animate-pulse w-full" />
                                         </td>
                                     ))}
@@ -76,7 +78,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
                                     className={`transition-all duration-200 group ${onRowClick ? 'cursor-pointer hover:bg-amber-50/30' : ''} ${rowClassName?.(item) ?? ''}`}
                                 >
                                     {columns.map((col, colIndex) => (
-                                        <td key={colIndex} className={`px-3 py-3 md:px-6 md:py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+                                        <td key={colIndex} className={`px-3 py-3 md:px-6 md:py-4 ${col.align === 'right' ? 'text-right' : ''} ${col.className ?? ''}`}>
                                             {col.render ? col.render(item) : (
                                                 <span className="text-sm text-slate-600 font-medium">
                                                     {String(item[col.accessor as keyof T] || '-')}

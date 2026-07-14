@@ -1,6 +1,13 @@
 {
+    "id": "/",
     "name": "Magastore Backoffice",
     "short_name": "Magastore",
+    "description": "Backoffice de Magastore: paquetes, órdenes de envío, facturación y seguimiento.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "lang": "es",
     "icons": [
         {
             "src": "/icon-192.png",
@@ -11,9 +18,14 @@
             "src": "/icon-512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "theme_color": "#111111",
-    "background_color": "#fdfcf9",
-    "display": "standalone"
+    "background_color": "#fdfcf9"
 }
