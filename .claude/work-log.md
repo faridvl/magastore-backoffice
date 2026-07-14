@@ -10783,3 +10783,32 @@ fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
 1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
 4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
 --- status ---
+
+=== 2026-07-14 14:59 ===
+--- recent commits ---
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+--- status ---
+
+=== 2026-07-14 15:02 ===
+--- recent commits ---
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-14 15:02 ===
+--- recent commits ---
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+--- status ---
+ M .claude/work-log.md
