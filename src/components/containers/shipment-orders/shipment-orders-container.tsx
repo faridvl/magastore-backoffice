@@ -2,14 +2,27 @@ import React from 'react';
 import {
   Search,
   ChevronRight,
+  ChevronLeft,
   Boxes,
   Trash2,
   Loader2,
+  Plus,
+  Package,
+  MapPin,
+  CheckCircle,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useShipmentOrders, ShipmentOrderPaymentFilter } from './use-shipment-orders';
-import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus } from '@/types/logistics/logistics.types';
+import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
+
+const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
+  CORREOS_CR: 'Correos de Costa Rica',
+  TRACOPA: 'Tracopa',
+  RETIRO: 'Retiro en oficina',
+};
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -63,6 +76,24 @@ export const ShipmentOrdersContainer: React.FC = () => {
     deleteUuid, setDeleteUuid,
     handleConfirmDelete,
     isDeleting,
+
+    createStep,
+    openCreateModal,
+    closeCreateModal,
+    createCustomers,
+    createCustomer,
+    handleSelectCreateCustomer,
+    createPackages,
+    createSelectedPackageUuids,
+    toggleCreatePackage,
+    handleGoToAddressStep,
+    createAddresses,
+    createAddressId, setCreateAddressId,
+    createDeliveryMethod, setCreateDeliveryMethod,
+    handleConfirmCreate,
+    isLoadingCreateData,
+    isCreatingOrder,
+    setCreateStep,
   } = useShipmentOrders();
 
   const listColumns: Column<ConsolidationListItem>[] = [
@@ -199,6 +230,13 @@ export const ShipmentOrdersContainer: React.FC = () => {
               onClear={() => { setDateFrom(''); setDateTo(''); }}
             />
           </div>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 flex-shrink-0"
+          >
+            <Plus size={14} strokeWidth={3} />
+            <span className="text-[10px] font-black uppercase tracking-[0.12em] whitespace-nowrap">Nueva Orden</span>
+          </button>
         </div>
 
         {/* Filtros por estado de pago */}
@@ -352,6 +390,200 @@ export const ShipmentOrdersContainer: React.FC = () => {
                 {isDeleting ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: NUEVA ORDEN (cliente → paquetes → dirección/método, mismo flujo que Logística) */}
+      {createStep && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={closeCreateModal}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Boxes size={18} className="text-slate-600" />
+              </div>
+              <div>
+                <p className="font-black text-slate-800 uppercase tracking-wider text-xs">Nueva Orden de Envío</p>
+                {createCustomer && createStep !== 'customer' && (
+                  <p className="text-[11px] text-slate-400 mt-0.5">{createCustomer.first_name} {createCustomer.last_name}</p>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400 mb-6">
+              {createStep === 'customer' && 'Paso 1 de 3 — Elige el cliente'}
+              {createStep === 'packages' && 'Paso 2 de 3 — Elige los paquetes a incluir'}
+              {createStep === 'address' && 'Paso 3 de 3 — Dirección de entrega y método de envío'}
+            </p>
+
+            {isLoadingCreateData ? (
+              <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              </div>
+            ) : createStep === 'customer' ? (
+              <>
+                {createCustomers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Package size={32} className="text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500 text-sm">No hay clientes con paquetes disponibles sin orden de envío.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-80 overflow-y-auto space-y-2 mb-6">
+                    {createCustomers.map((c) => (
+                      <button
+                        key={c.customer_id}
+                        onClick={() => handleSelectCreateCustomer(c)}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border bg-slate-50 border-transparent hover:border-slate-200"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm text-slate-800 truncate">{c.first_name} {c.last_name}</p>
+                          <p className="text-[11px] text-slate-400">
+                            {c.package_count} paquete{c.package_count > 1 ? 's' : ''} disponible{c.package_count > 1 ? 's' : ''} · {Number(c.total_weight_lb).toFixed(2)} lb
+                          </p>
+                        </div>
+                        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={closeCreateModal}
+                  className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                >
+                  Cancelar
+                </button>
+              </>
+            ) : createStep === 'packages' ? (
+              <>
+                {createPackages.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Package size={32} className="text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500 text-sm">Este cliente ya no tiene paquetes disponibles.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto space-y-2 mb-6">
+                    {createPackages.map((pkg: AvailablePackage) => {
+                      const selected = createSelectedPackageUuids.includes(pkg.uuid);
+                      return (
+                        <button
+                          key={pkg.uuid}
+                          onClick={() => toggleCreatePackage(pkg.uuid)}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
+                            selected
+                              ? 'bg-amber-50 border-amber-200'
+                              : 'bg-slate-50 border-transparent hover:border-slate-200'
+                          }`}
+                        >
+                          {selected
+                            ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
+                            : <Square size={18} className="text-slate-300 flex-shrink-0" />
+                          }
+                          <div className="flex-1 min-w-0">
+                            <p className="font-mono text-sm font-bold text-slate-800 truncate">
+                              {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setCreateStep('customer')}
+                    className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <ChevronLeft size={14} /> Atrás
+                  </button>
+                  <button
+                    onClick={handleGoToAddressStep}
+                    disabled={createSelectedPackageUuids.length === 0}
+                    className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+                  >
+                    Continuar {createSelectedPackageUuids.length > 0 ? `(${createSelectedPackageUuids.length})` : ''}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <MapPin size={12} /> Dirección de entrega
+                </p>
+                {createAddresses.length === 0 ? (
+                  <p className="text-slate-400 text-sm py-4 text-center">Este cliente no tiene direcciones registradas.</p>
+                ) : (
+                  <div className="space-y-2 mb-6">
+                    {createAddresses.map((addr) => (
+                      <button
+                        key={addr.id}
+                        onClick={() => setCreateAddressId(addr.id)}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                          createAddressId === addr.id
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                          <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                            {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                          </p>
+                        </div>
+                        {createAddressId === addr.id && (
+                          <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                  Método de envío
+                </p>
+                <div className="space-y-2 mb-6">
+                  {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                    <button
+                      key={method}
+                      onClick={() => setCreateDeliveryMethod(method)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                        createDeliveryMethod === method
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
+                      {createDeliveryMethod === method && (
+                        <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setCreateStep('packages')}
+                    className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <ChevronLeft size={14} /> Atrás
+                  </button>
+                  <button
+                    onClick={handleConfirmCreate}
+                    disabled={!createAddressId || !createDeliveryMethod || isCreatingOrder}
+                    className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+                  >
+                    {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

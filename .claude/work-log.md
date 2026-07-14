@@ -10735,3 +10735,42 @@ fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
 6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
 5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
 --- status ---
+
+=== 2026-07-14 14:28 ===
+--- recent commits ---
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+--- status ---
+
+=== 2026-07-14 14:35 ===
+--- recent commits ---
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-14 14:45 ===
+--- recent commits ---
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-14 14:47 ===
+--- recent commits ---
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+--- status ---
+ M .claude/work-log.md
