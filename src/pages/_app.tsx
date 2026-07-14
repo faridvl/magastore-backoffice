@@ -10,6 +10,7 @@ import { DashboardContextProvider } from '@/layouts/dashboard/dashboard-context'
 import { NavigationContextProvider } from '@/shared/context/navigation-context';
 import { PageLoadingBar } from '@/components/common/page-loading-bar/page-loading-bar';
 import { BannerContainer } from '@/components/common/banner-container/banner-container';
+import { SplashScreen } from '@/components/common/splash-screen/splash-screen';
 
 const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
   const [queryClient] = useState(
@@ -70,6 +71,8 @@ const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
         - Asegurar que el layout principal aplique:
           bg-background text-slate-100 min-h-screen font-sans
       */}
+
+      <SplashScreen />
 
       <QueryClientProvider client={queryClient}>
         <NavigationContextProvider>

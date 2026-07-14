@@ -87,11 +87,16 @@ module.exports = {
       animation: {
         'fade-in-down': 'fade-in-down 0.7s ease-out',
         'spin-once': 'spin-once 0.6s ease-in-out',
+        'splash-logo': 'splash-logo 0.8s ease-out',
       },
       keyframes: {
         'fade-in-down': {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'splash-logo': {
+          '0%': { opacity: '0', transform: 'scale(0.92)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
         'spin-once': {
           '0%': { transform: 'rotate(0deg) scale(1)' },
