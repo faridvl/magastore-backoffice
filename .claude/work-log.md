@@ -10726,3 +10726,12 @@ fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
  M src/shared/api/services/consolidations.service.ts
  M src/types/logistics/logistics.types.ts
 ?? src/hooks/use-notify-multiple-customers.ts
+
+=== 2026-07-14 14:21 ===
+--- recent commits ---
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+--- status ---

@@ -24,10 +24,10 @@ Le informamos que actualmente tiene los siguientes paquetes disponibles en nuest
 
 Antes de programar su envío a Costa Rica, agradecemos nos indique cómo desea proceder:
 
-1️⃣ Enviar todos los paquetes disponibles.
-2️⃣ Esperar la llegada de más paquetes para consolidarlos en un solo envío.
-3️⃣ Separar los paquetes en diferentes envíos.
-4️⃣ Actualizar la dirección de entrega (si aplica).
+1. Enviar todos los paquetes disponibles.
+2. Esperar la llegada de más paquetes para consolidarlos en un solo envío.
+3. Separar los paquetes en diferentes envíos.
+4. Actualizar la dirección de entrega (si aplica).
 
 Una vez recibamos su confirmación, prepararemos su envío y le enviaremos la prefactura correspondiente.
 
