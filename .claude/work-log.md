@@ -10774,3 +10774,12 @@ fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
 fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-14 14:53 ===
+--- recent commits ---
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
+1521a88 feat: notificar por WhatsApp a m├║ltiples clientes desde Log├¡stica
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+--- status ---

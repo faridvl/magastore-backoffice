@@ -13,15 +13,26 @@ import { CustomerAddress } from '@/types/customer/customer.types';
 export type ViewMode = 'activos' | 'historial';
 export type ConsolidationFilter = 'SIN_ORDEN' | 'CON_ORDEN';
 
-const SELECTION_STORAGE_KEY = 'logistics:selectedUuids';
+const SELECTION_STORAGE_KEY = 'logistics:selection';
 
-const readStoredSelection = (): string[] => {
-    if (typeof window === 'undefined') return [];
+// El cliente viaja junto con los uuids: derivarlo de la página visible (como se
+// hacía antes) rompía el bloqueo cross-cliente al paginar — el primer paquete
+// seleccionado ya no estaba en la página actual, el cliente resolvía a null y
+// se podían mezclar paquetes de varios clientes en una misma selección.
+type StoredSelection = { uuids: string[]; customerId: string | null };
+
+const EMPTY_SELECTION: StoredSelection = { uuids: [], customerId: null };
+
+const readStoredSelection = (): StoredSelection => {
+    if (typeof window === 'undefined') return EMPTY_SELECTION;
     try {
         const raw = window.sessionStorage.getItem(SELECTION_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
+        if (!raw) return EMPTY_SELECTION;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.uuids)) return EMPTY_SELECTION;
+        return { uuids: parsed.uuids, customerId: parsed.customerId ?? null };
     } catch {
-        return [];
+        return EMPTY_SELECTION;
     }
 };
 
@@ -35,7 +46,9 @@ export const usePackages = (pageSize = 7) => {
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-    const [selectedUuids, setSelectedUuids] = useState<string[]>(readStoredSelection);
+    const [selection, setSelection] = useState<StoredSelection>(readStoredSelection);
+    const selectedUuids = selection.uuids;
+    const selectedCustomerId = selection.customerId;
 
     // Modal: elegir dirección de entrega + método de envío al crear la orden.
     // Siempre aparece — el método nunca se puede asumir automáticamente, aunque
@@ -52,12 +65,12 @@ export const usePackages = (pageSize = 7) => {
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        if (selectedUuids.length === 0) {
+        if (selection.uuids.length === 0) {
             window.sessionStorage.removeItem(SELECTION_STORAGE_KEY);
         } else {
-            window.sessionStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(selectedUuids));
+            window.sessionStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(selection));
         }
-    }, [selectedUuids]);
+    }, [selection]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -86,43 +99,39 @@ export const usePackages = (pageSize = 7) => {
 
     const handleViewModeChange = (mode: ViewMode) => {
         setViewMode(mode);
-        setSelectedUuids([]);
+        setSelection(EMPTY_SELECTION);
         setPage(1);
     };
 
     const handleSetConsolidationFilter = (filter: ConsolidationFilter) => {
         setConsolidationFilter(filter);
-        setSelectedUuids([]);
+        setSelection(EMPTY_SELECTION);
         setPage(1);
     };
 
     const setCustomerUuid = (uuid: string) => {
         setCustomerUuidState(uuid);
-        setSelectedUuids([]);
+        setSelection(EMPTY_SELECTION);
         setPage(1);
     };
 
-    // Cliente de la selección actual — bloquea selección cross-cliente
-    const selectedCustomerId = useMemo(() => {
-        if (selectedUuids.length === 0) return null;
-        const first = packages.find((p) => p.uuid === selectedUuids[0]);
-        return first?.customer_id ?? null;
-    }, [selectedUuids, packages]);
-
     const handleToggleSelect = (pkg: LogisticsPackage) => {
-        setSelectedUuids((prev) => {
-            if (prev.includes(pkg.uuid)) {
-                return prev.filter((u) => u !== pkg.uuid);
+        setSelection((prev) => {
+            if (prev.uuids.includes(pkg.uuid)) {
+                const uuids = prev.uuids.filter((u) => u !== pkg.uuid);
+                // Al vaciar la selección se libera el cliente — la próxima
+                // selección puede arrancar con cualquier otro.
+                return { uuids, customerId: uuids.length === 0 ? null : prev.customerId };
             }
-            if (selectedCustomerId && pkg.customer_id !== selectedCustomerId) {
+            if (prev.customerId && pkg.customer_id !== prev.customerId) {
                 toast.error('Solo puedes seleccionar paquetes del mismo cliente.');
                 return prev;
             }
-            return [...prev, pkg.uuid];
+            return { uuids: [...prev.uuids, pkg.uuid], customerId: pkg.customer_id };
         });
     };
 
-    const clearSelection = () => setSelectedUuids([]);
+    const clearSelection = () => setSelection(EMPTY_SELECTION);
 
     // En modo selección, click en la fila/card marca el checkbox en vez de navegar
     // al detalle — evita el miss-click que antes mandaba al operador fuera de la lista.
@@ -143,7 +152,7 @@ export const usePackages = (pageSize = 7) => {
                 deliveryMethod,
             });
             toast.success('Orden de envío creada correctamente');
-            setSelectedUuids([]);
+            setSelection(EMPTY_SELECTION);
             const uuid = (result as any)?.data?.uuid;
             router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
         } catch (err: any) {
