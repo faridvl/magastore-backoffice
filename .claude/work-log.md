@@ -10475,3 +10475,42 @@ e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
 9406650 feat: etapa 4 (WhatsApp) + mejoras post-etapa 3 en ├│rdenes de env├¡o
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-13 16:39 ===
+--- recent commits ---
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+--- status ---
+
+=== 2026-07-13 16:43 ===
+--- recent commits ---
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 16:47 ===
+--- recent commits ---
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 16:55 ===
+--- recent commits ---
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
+--- status ---
+ M .claude/work-log.md

@@ -33,6 +33,32 @@ async function assertNoOverlap(
 }
 
 export const DeliveryRatesRepository = {
+  /**
+   * Busca la tarifa activa cuyo rango cubra weightKg para este método+zona.
+   * Incluye también las filas sin zona (zone IS NULL, métodos que no distinguen
+   * GAM/Resto). Si hay más de un match debería ser por datos inconsistentes:
+   * assertNoOverlap ya lo previene en create/update, así que se toma la primera.
+   */
+  findMatchingRate: async (
+    deliveryMethod: string,
+    zone: 'GAM' | 'RESTO',
+    weightKg: number,
+  ): Promise<DeliveryRate | null> => {
+    const [row] = await sql`
+      SELECT id, uuid, delivery_method, zone, min_weight_kg, max_weight_kg,
+             fee_crc, cost_crc, is_active, created_at, updated_at
+      FROM delivery_rates
+      WHERE delivery_method = ${deliveryMethod}
+        AND (zone = ${zone} OR zone IS NULL)
+        AND is_active = true
+        AND min_weight_kg <= ${weightKg}
+        AND max_weight_kg >= ${weightKg}
+      ORDER BY zone ASC NULLS LAST
+      LIMIT 1
+    `;
+    return (row as DeliveryRate) ?? null;
+  },
+
   getAll: async (): Promise<DeliveryRate[]> => {
     const rows = await sql`
       SELECT id, uuid, delivery_method, zone, min_weight_kg, max_weight_kg,

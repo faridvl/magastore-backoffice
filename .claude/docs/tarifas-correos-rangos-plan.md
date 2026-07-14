@@ -1,9 +1,19 @@
 # Tarifas de envío por Correos CR — rangos configurables (análisis y plan)
 
-**Estado: EN IMPLEMENTACIÓN — Etapa 2 completada.** Decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 2 — Modelo de datos + CRUD de tarifas — completada, sin commit/push todavía).
+**Estado: EN IMPLEMENTACIÓN — Etapa 3 completada.** Decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (Etapa 3 — Motor de cálculo — completada, sin commit/push todavía).
 
 ## Progreso
+
+### ✅ Etapa 3 — Motor de cálculo (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Alcance acotado con el dueño:** esta etapa resuelve únicamente `fee_crc` (lo que se le cobra al cliente). El costo real de Correos/Tracopa (`cost_crc`) y el tracking de ganancia/pérdida del tramo local (análogo a `courier_rate_usd` vs `courier_cost_usd` del tramo Panamá) quedan explícitamente fuera — no se agregó `applied_cost_crc` a `pre_billing`/`billing`, ni el evento WARNING de bitácora que proponía el punto 5 de "Decisiones acordadas". Se retoma en una etapa futura si se decide trackear esa ganancia.
+- **Mapeo cantón→zona**: `GAM_CANTONS` + `resolveZone()` en `costa-rica-locations.ts` — 31 cantones oficiales de la Gran Área Metropolitana; cualquier cantón fuera de esa lista resuelve a `RESTO`. Reutiliza `normalize()` ya existente en el archivo (case/tilde-insensitive).
+- **Lookup de tarifa**: `DeliveryRatesRepository.findMatchingRate(deliveryMethod, zone, weightKg)` (`delivery-rates.repo.ts`) — busca la fila activa cuyo rango `[min_weight_kg, max_weight_kg]` cubra el peso, para ese método + zona (o `zone IS NULL` si el método no distingue zona). `assertNoOverlap` de la Etapa 2 garantiza que nunca hay más de un match posible.
+- **`generatePreBilling`** (`logistics.repo.ts`) reemplazó el switch fijo por: obtener el cantón desde `delivery_address_id` de la orden (o la dirección default del cliente si la orden no fijó una — mismo fallback que ya usaba `confirmPreBilling` para el snapshot), derivar zona con `resolveZone`, convertir el peso cobrado de lb a kg con `settings.kg_per_lb`, y buscar la tarifa con `findMatchingRate`. **Sin match** (rango no cubierto por ninguna fila activa) cae al fallback fijo `correos_fee_crc`/`tracopa_fee_crc` — no bloquea, tal como decía el punto 5 de "Decisiones acordadas". `RETIRO` sigue en `deliveryFee = 0` sin tocar `delivery_rates`.
+- **`confirmPreBilling` no requirió cambios** — ya copiaba `pre_billing.delivery_fee_crc` como snapshot hacia `billing`; el monto ya resuelto por rango viaja igual que antes.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Nota para etapas futuras**: sigue pendiente la Etapa 4 (UI de prefactura — mostrar de dónde salió el monto, override manual auditado, confirmación de zona) y la Etapa 5 (cargar el tarifario oficial completo de Correos en `delivery_rates`, hoy la tabla puede estar vacía y todo cae al fallback fijo).
 
 ### ✅ Etapa 2 — Modelo de datos + CRUD de tarifas (COMPLETADA 2026-07-13, sin commit/push)
 
@@ -85,12 +95,8 @@ Dropdowns provincia→cantón→distrito (dataset oficial CR estático en el rep
 ### ✅ Etapa 2 — Modelo de datos + CRUD de tarifas (completada — ver Progreso arriba)
 Migración `delivery_rates` + campo de conversión kg/lb en `system_settings` (+ historial). Reemplazar el input fijo "Correos de Costa Rica" en `settings-container.tsx` por una tabla editable (alta/edición/activar-desactivar, ambas columnas de tarifa, `cost_crc` vacío permitido). **Pendiente todavía dentro del alcance original de esta etapa:** el mapeo estático cantón→GAM no se implementó — se dejó para la Etapa 3, ya que solo tiene sentido junto con el lookup real en `generatePreBilling` que lo va a consumir.
 
-### ⬜ Etapa 3 — Motor de cálculo
-Lookup por rango en `generatePreBilling` (`logistics.repo.ts`) — **un solo punto**: la vía duplicada `generateBilling` fue eliminada en el cierre de facturación paralela (commit 289dc39). Cuidados:
-- `generatePreBilling` ahora auto-cierra la orden (`ABIERTO → CERRADO`) en la misma transacción y bloquea en `DESPACHADO`/`ENTREGADO` — preservar intacto.
-- El campo nuevo de costo debe copiarse también en `confirmPreBilling` hacia `billing` (copia snapshot, no recalcula).
-- Fallback al escalar fijo si el método no tiene filas en `delivery_rates`.
-- Lógica "sin match" del punto 5 de decisiones.
+### ✅ Etapa 3 — Motor de cálculo (completada — ver Progreso arriba)
+Lookup por rango en `generatePreBilling` (`logistics.repo.ts`) — **un solo punto**: la vía duplicada `generateBilling` fue eliminada en el cierre de facturación paralela (commit 289dc39). **Nota de alcance:** solo se resolvió `fee_crc`; el campo de costo (`cost_crc`/ganancia del tramo local) no se implementó en esta etapa por decisión explícita — queda para una etapa futura si se decide trackearlo.
 
 ### ⬜ Etapa 4 — UI de prefactura
 En `shipment-order-detail.tsx` / `use-shipment-order-detail.ts` (la página `/admin/shipment-orders/[uuid]` — el selector de método ya vive ahí, no en el modal viejo): desglose fee/costo/ganancia del tramo local, override manual auditado, y confirmación/corrección de zona junto a la card de dirección de entrega que ya existe.

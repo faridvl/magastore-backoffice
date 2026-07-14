@@ -11,6 +11,8 @@ import {
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { getSettings } from './settings.repo';
+import { DeliveryRatesRepository } from './delivery-rates.repo';
+import { resolveZone } from '@/shared/constants/costa-rica-locations';
 
 /**
  * Repository para el sistema de logística de couriers.
@@ -66,16 +68,13 @@ export const LogisticsRepository = {
     const price_lb = Number(settings.price_per_lb);
     const exchange = Number(settings.exchange_rate);
     const min_lb   = Number(settings.min_weight);
-    const deliveryFee =
-      deliveryMethod === 'CORREOS_CR' ? Number(settings.correos_fee_crc ?? 4500) :
-      deliveryMethod === 'TRACOPA'    ? Number(settings.tracopa_fee_crc  ?? 3000) :
-      0;
+    const kgPerLb  = Number(settings.kg_per_lb ?? 0.453592);
 
     try {
       await sql`BEGIN`;
 
       const [c] = await sql`
-        SELECT id, total_weight_lb, status FROM consolidations WHERE uuid = ${consolidationUuid}
+        SELECT id, customer_id, total_weight_lb, status, delivery_address_id FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
       if (!c) throw new Error('Orden de envío no encontrada.');
 
@@ -86,7 +85,31 @@ export const LogisticsRepository = {
       const actualWeight  = Number(c.total_weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
       const flete         = chargedWeight * price_lb * exchange;
-      const estimatedCrc  = flete + deliveryFee;
+
+      let deliveryFee = 0;
+      if (deliveryMethod === 'CORREOS_CR' || deliveryMethod === 'TRACOPA') {
+        // Misma dirección que confirmPreBilling usa para el snapshot: la fijada
+        // en la orden, o la default del cliente si la orden no tiene una propia.
+        const [addressRow] = c.delivery_address_id
+          ? await sql`SELECT canton FROM customer_addresses WHERE id = ${c.delivery_address_id}`
+          : await sql`
+              SELECT canton FROM customer_addresses
+              WHERE customer_id = ${c.customer_id}
+              ORDER BY is_default DESC LIMIT 1
+            `;
+
+        const zone = resolveZone(addressRow?.canton ?? '');
+        const weightKg = chargedWeight * kgPerLb;
+        const matchedRate = await DeliveryRatesRepository.findMatchingRate(deliveryMethod, zone, weightKg);
+
+        deliveryFee = matchedRate
+          ? Number(matchedRate.fee_crc)
+          : deliveryMethod === 'CORREOS_CR'
+            ? Number(settings.correos_fee_crc ?? 4500)
+            : Number(settings.tracopa_fee_crc ?? 3000);
+      }
+
+      const estimatedCrc = flete + deliveryFee;
 
       const [existing] = await sql`
         SELECT uuid FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1

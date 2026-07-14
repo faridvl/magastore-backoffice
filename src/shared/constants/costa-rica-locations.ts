@@ -135,6 +135,28 @@ export const COSTA_RICA_LOCATIONS: CostaRicaProvince[] = [
   },
 ];
 
+/**
+ * Cantones de la Gran Área Metropolitana (GAM), usados para derivar la zona
+ * GAM/Resto en las tarifas de entrega por rango de peso (delivery_rates).
+ * Fuente: definición oficial de GAM (INEC/MIVAH), 31 cantones.
+ */
+export const GAM_CANTONS: string[] = [
+  // San José
+  'San José', 'Escazú', 'Desamparados', 'Goicoechea', 'Santa Ana', 'Alajuelita',
+  'Vázquez de Coronado', 'Tibás', 'Moravia', 'Montes de Oca', 'Curridabat',
+  // Alajuela
+  'Alajuela', 'Atenas', 'Poás',
+  // Cartago
+  'Cartago', 'Paraíso', 'La Unión', 'Oreamuno', 'El Guarco',
+  // Heredia
+  'Heredia', 'Barva', 'Santo Domingo', 'Santa Bárbara', 'San Rafael', 'San Isidro',
+  'Belén', 'Flores', 'San Pablo',
+];
+
+export function resolveZone(canton: string): 'GAM' | 'RESTO' {
+  return GAM_CANTONS.some((c) => normalize(c) === normalize(canton)) ? 'GAM' : 'RESTO';
+}
+
 export function getCantons(province: string): CostaRicaCanton[] {
   return COSTA_RICA_LOCATIONS.find((p) => p.name === province)?.cantons ?? [];
 }
