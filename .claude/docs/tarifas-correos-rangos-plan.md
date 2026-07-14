@@ -1,9 +1,22 @@
 # Tarifas de envío por Correos CR — rangos configurables (análisis y plan)
 
-**Estado: EN IMPLEMENTACIÓN — Etapa 4 completada.** Decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 4 — método de envío en la orden + desglose — completada, sin commit/push todavía).
+**Estado: PLAN COMPLETO (etapas 1-5 implementadas).** Decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (Etapa 5 — carga de datos y limpieza — completada, sin commit/push todavía).
 
 ## Progreso
+
+### ✅ Etapa 5 — Carga de datos y limpieza (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Migración de siembra `scripts/012-seed-correos-delivery-rates.sql`** aplicada en Neon: 12 filas en `delivery_rates` para `CORREOS_CR`, cubriendo GAM y Resto por separado en los rangos 0-0.99, 1-1.99, 2-2.99, 3-9.99, 10-15 y 15.01-50 kg.
+- **7 filas con datos confirmados del volante** (fuente: tabla compartida por el dueño, 2026-07): `fee_crc` siempre confirmado; `cost_crc` NULL donde el volante decía "por confirmar" (0-0.99 kg ambas zonas, 10-15 kg Resto) — no bloquea facturar, solo deja sin dato la ganancia del tramo local (fuera de alcance de este plan).
+- **2 rangos con huecos en la fuente, resueltos por decisión explícita del dueño (no tarifa oficial confirmada por Correos — ajustar cuando se tenga el dato real):**
+  - **2-2.99 kg** → ₡2,400 (agrupado con el tramo liviana/pesada de 3-15kg, no con PYME de 0-1.99kg, porque el salto de precio del volante ya ocurre ahí). `cost_crc` NULL en ambas zonas — no hay dato de costo real para este rango extrapolado.
+  - **15.01-50 kg** → ₡2,400 (extensión del tramo "carga pesada"). Por encima de 50kg (caso extremo, no cubierto) cae al fallback fijo `correos_fee_crc`.
+- **Tracopa queda sin filas en `delivery_rates`** (decisión ya tomada en el plan, punto 9 de "Decisiones acordadas" — método demostrativo) — sigue usando `tracopa_fee_crc` fijo como única fuente de tarifa.
+- **Destino de `correos_fee_crc`/`tracopa_fee_crc`**: se mantienen en `system_settings` sin UI de edición directa (ya removida en la Etapa 2) — quedan como fallback documentado para pesos fuera de rango (Correos) y como única fuente para Tracopa. No requirió cambio de código, solo confirma la decisión ya tomada.
+- **Desglose en PDFs**: ya existía desde antes de este plan — `pre-billing-invoice.tsx` (líneas 198/206) ya separa "Flete" de "Entrega" con el monto de `delivery_fee_crc`, incluyendo "Sin cargo" para RETIRO. El monto resuelto por rango fluye ahí sin ningún cambio de código.
+- Verificado: filas insertadas sin conflicto de solapamiento (confirma que `assertNoOverlap` de la Etapa 2 acepta el tarifario real).
+- **Con esto, las 5 etapas del plan de tarifas quedan completas.** Pendiente explícitamente fuera de alcance en todas las etapas: costo/ganancia trackeada del tramo local con evento WARNING en bitácora, y override manual auditado del monto — quedan para un plan futuro si el dueño decide priorizarlo.
 
 ### ✅ Etapa 4 — Método de envío elegido al crear la orden (COMPLETADA 2026-07-13, sin commit/push)
 
@@ -115,8 +128,8 @@ Lookup por rango en `generatePreBilling` (`logistics.repo.ts`) — **un solo pun
 ### ✅ Etapa 4 — Método de envío en la orden (completada — ver Progreso arriba)
 Alcance ampliado respecto al plan original: el método de envío se decide al crear la orden (junto con la dirección), no al generar el estimado. `consolidations.delivery_method` nuevo, editable desde el detalle de la orden. Zona GAM/Resto derivada visible junto a la dirección. **Fuera de alcance:** desglose de costo/ganancia del tramo local y override manual auditado del monto (ver nota de la Etapa 3).
 
-### ⬜ Etapa 5 — Carga de datos y limpieza
-Sembrar `delivery_rates` con el tarifario oficial completo de Correos (los "por confirmar" con `cost_crc = NULL`). Decidir destino de `correos_fee_crc` (fallback documentado o remover). Desglose en PDFs si aplica.
+### ✅ Etapa 5 — Carga de datos y limpieza (completada — ver Progreso arriba)
+Tarifario de Correos sembrado (12 filas, GAM/Resto). `correos_fee_crc`/`tracopa_fee_crc` se mantienen como fallback documentado. Desglose en PDFs ya existía sin cambios.
 
 ---
 
