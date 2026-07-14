@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS customer_warehouse_codes (
 -- Única ruta real hoy: casillero Miami/Aéreo ya contratado con el forwarder.
 -- origin = 'USA' para alinear con el valor ya usado en courier_rates.origin
 -- (verificado en Neon: la única fila real hoy es origin='USA', package_type='AEREO').
--- Prefijo y contador confirmados por el dueño (MG-2453-C-00, arranca en 0).
-INSERT INTO warehouse_routes (origin, package_type, code_prefix, current_counter, is_active)
-VALUES ('USA', 'AEREO', 'MG-2453-C-', 0, true)
+-- Prefijo (MGA-2453-C-, 3 letras) y datos del casillero confirmados por el
+-- dueño; contador arranca en 0.
+INSERT INTO warehouse_routes (origin, package_type, code_prefix, current_counter, address_line, city, state, postal_code, contact_phone, is_active)
+VALUES ('USA', 'AEREO', 'MGA-2453-C-', 0, '2610 NW 89TH CT', 'Doral', 'Florida', '33172-1615', '+1 786-360-2816', true)
 ON CONFLICT (origin, package_type) DO NOTHING;

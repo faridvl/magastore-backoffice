@@ -32,9 +32,12 @@ Preguntas abiertas resueltas con el dueño antes de implementar:
 - **`MAILBOXES`/`MailboxCard`** (que sintetizaba 4 sufijos ficticios en el frontend sin datos reales en BD) reemplazado por `WAREHOUSE_ROUTE_DISPLAY`/`WarehouseCodeCard`: itera `customer.warehouse_codes` real, con estado vacío ("Este cliente no tiene casillero asignado") si el cliente no tiene ninguno. El mapa de presentación (`label`/`flag`/`color`) queda listo para 3 rutas (USA Aéreo, USA Marítimo, China) aunque solo la primera tenga datos reales hoy; cualquier ruta sin entrada en el mapa cae a un ícono genérico.
 
 ### Etapa 5 — Mensaje de bienvenida del casillero (WhatsApp)
-- Nueva plantilla `WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME` + `buildWarehouseWelcomeMessage()` en `whatsapp-templates.ts`, mismo mecanismo `interpolate()`/`buildWhatsAppUrl()` ya usado por las otras 2 plantillas.
+- Nueva plantilla `WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME` + `buildWarehouseWelcomeMessage()` en `whatsapp-templates.ts`, mismo mecanismo `interpolate()`/`buildWhatsAppUrl()` ya usado por las otras 2 plantillas. Formato ajustado al texto real que ya usa el dueño con sus clientes ("Nombre apellido: MGA ...", "Referencia: ...", etc.).
 - Botón de WhatsApp en cada `WarehouseCodeCard` del detalle de cliente — **acción manual**, no se dispara en el flujo de creación (confirmado en las decisiones ya tomadas).
-- **Pendiente de datos reales**: `warehouse_routes.address_line/city/state/postal_code/contact_phone` quedaron `NULL` en la siembra — el mensaje muestra `[pendiente de configurar]` / `—` en esos campos hasta que se carguen los datos reales del casillero físico de Miami (decisión explícita: no bloquear la implementación esperando ese dato).
+
+### Corrección post-implementación (2026-07-14): prefijo real y datos del casillero
+- El prefijo real es **`MGA-2453-C-`** (3 letras), no `MG-2453-C-` como se había asumido del ejemplo original del plan. Corregido en `warehouse_routes.code_prefix`, en la migración `013-warehouse-routes.sql`, y en los 8 clientes de prueba ya migrados (regenerados a `MGA-2453-C-01`..`08`).
+- **Datos reales del casillero de Miami cargados** (dados por el dueño): dirección `2610 NW 89TH CT`, ciudad `Doral`, estado `Florida`, código postal `33172-1615`, teléfono `+1 786-360-2816`. El mensaje de bienvenida ya no muestra placeholders.
 
 ### Verificación
 - `tsc --noEmit` limpio, `npm run lint` limpio en todas las etapas.

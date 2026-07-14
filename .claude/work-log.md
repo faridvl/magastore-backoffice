@@ -10621,3 +10621,12 @@ e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
 8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-13 22:49 ===
+--- recent commits ---
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+--- status ---

@@ -82,22 +82,15 @@ export function buildPreBillingReadyMessage(params: {
   });
 }
 
-export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `📦 ¡Bienvenido(a) a MAGASTORE, {{nombre}}!
+export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:
 
-Este es tu casillero para compras en {{ruta_label}}:
-
-*{{codigo}}*
-
-Dirección de envío:
-{{nombre_completo}}
-{{codigo}}
-{{direccion}}
-{{ciudad}}, {{estado}} {{codigo_postal}}
-Tel: {{telefono}}
-
-Usa esta dirección al comprar en tiendas de Estados Unidos. Cuando tu paquete llegue a nuestra bodega, te avisaremos por este medio.
-
-*MAGASTORE 📦✈️*`;
+Nombre apellido: MGA {{nombre_completo}}
+Dirección: {{direccion}}
+Referencia: {{codigo}}
+Estado: {{estado}}
+Ciudad: {{ciudad}}
+Codigo postal: {{codigo_postal}}
+Teléfono: {{telefono}}`;
 
 export function buildWarehouseWelcomeMessage(params: {
   firstName: string;
