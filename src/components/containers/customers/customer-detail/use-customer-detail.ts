@@ -9,6 +9,7 @@ import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-availabl
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { CustomerUpdateInput, CustomerAddressUpdateInput, CustomerAddress } from '@/types/customer/customer.types';
+import { DeliveryMethod } from '@/types/logistics/logistics.types';
 
 export const useCustomerDetail = (customerId: string) => {
   const router = useRouter();
@@ -18,9 +19,12 @@ export const useCustomerDetail = (customerId: string) => {
   const [editError, setEditError] = useState<string | null>(null);
   const [selectedPackageUuids, setSelectedPackageUuids] = useState<string[]>([]);
 
-  // Modal: elegir dirección de entrega — solo aparece si el cliente tiene 2+ direcciones
+  // Modal: elegir dirección de entrega + método de envío al crear la orden.
+  // Siempre aparece — el método nunca se puede asumir automáticamente, aunque
+  // el cliente tenga una sola dirección registrada.
   const [addressModalTarget, setAddressModalTarget] = useState<{ packageUuids: string[]; addresses: CustomerAddress[] } | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod | null>(null);
 
   const { data: customer, isLoading } = useCustomerProfile(customerId);
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
@@ -141,9 +145,9 @@ export const useCustomerDetail = (customerId: string) => {
 
   const clearSelection = () => setSelectedPackageUuids([]);
 
-  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId?: string) => {
+  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
     try {
-      const result = await createShipmentOrderWithPackages({ customerUuid: customerId, packageUuids, deliveryAddressId });
+      const result = await createShipmentOrderWithPackages({ customerUuid: customerId, packageUuids, deliveryAddressId, deliveryMethod });
       toast.success('Orden de envío creada correctamente');
       setSelectedPackageUuids([]);
       const uuid = (result as any)?.data?.uuid;
@@ -159,23 +163,20 @@ export const useCustomerDetail = (customerId: string) => {
       const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
         .get<{ data: CustomerAddress[] }>(`/customers/${customerId}/addresses`);
 
-      if (addresses.length > 1) {
-        setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0].id);
-        setAddressModalTarget({ packageUuids: selectedPackageUuids, addresses });
-        return;
-      }
-
-      await createOrderAndRedirect(selectedPackageUuids);
+      setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0]?.id ?? '');
+      setSelectedDeliveryMethod(null);
+      setAddressModalTarget({ packageUuids: selectedPackageUuids, addresses });
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
     }
   };
 
   const handleConfirmCreateOrderWithAddress = async () => {
-    if (!addressModalTarget || !selectedAddressId) return;
-    await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId);
+    if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
+    await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId, selectedDeliveryMethod);
     setAddressModalTarget(null);
     setSelectedAddressId('');
+    setSelectedDeliveryMethod(null);
   };
 
   return {
@@ -202,6 +203,8 @@ export const useCustomerDetail = (customerId: string) => {
     setAddressModalTarget,
     selectedAddressId,
     setSelectedAddressId,
+    selectedDeliveryMethod,
+    setSelectedDeliveryMethod,
     handleConfirmCreateOrderWithAddress,
     handleBack: () => router.back(),
     activeTab,

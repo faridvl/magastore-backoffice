@@ -16,6 +16,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const router = useRouter();
 
   const [showPreBillingModal, setShowPreBillingModal] = useState(false);
+  // Fallback solo para órdenes viejas sin delivery_method guardado — con una
+  // orden nueva este valor no se usa, generatePreBilling lee el de la orden.
   const [preBillingDeliveryMethod, setPreBillingDeliveryMethod] = useState<DeliveryMethod>('RETIRO');
   const [isGeneratingPreBilling, setIsGeneratingPreBilling] = useState(false);
   const [isConfirmingPreBilling, setIsConfirmingPreBilling] = useState(false);
@@ -26,6 +28,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+
+  const [showMethodModal, setShowMethodModal] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<DeliveryMethod | null>(null);
+  const [isSavingMethod, setIsSavingMethod] = useState(false);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [availablePackages, setAvailablePackages] = useState<AvailablePackage[]>([]);
@@ -108,7 +114,9 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     try {
       await ApiServiceClient(env.API.BASE_URL).post('/logistics?action=pre-billing', {
         consolidationUuid: uuid,
-        deliveryMethod: preBillingDeliveryMethod,
+        // La orden ya trae su método elegido al crearla; solo se manda explícito
+        // como fallback si es una orden vieja sin delivery_method guardado.
+        deliveryMethod: detail?.delivery_method ?? preBillingDeliveryMethod,
       });
       await detailQuery.invalidate();
       toast.success('Prefactura generada correctamente. La orden de envío pasó a estado Cerrado.');
@@ -199,6 +207,31 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  const handleOpenMethodModal = () => {
+    if (!detail) return;
+    setSelectedMethod(detail.delivery_method);
+    setShowMethodModal(true);
+  };
+
+  const handleConfirmMethodChange = async () => {
+    if (!uuid || !selectedMethod) return;
+    setIsSavingMethod(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-delivery-method',
+        consolidationUuid: uuid,
+        deliveryMethod: selectedMethod,
+      });
+      await detailQuery.invalidate();
+      toast.success('Método de envío actualizado');
+      setShowMethodModal(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo actualizar el método de envío.');
+    } finally {
+      setIsSavingMethod(false);
+    }
+  };
+
   const handleOpenAssignModal = async () => {
     if (!detail) return;
     setSelectedPackageUuids([]);
@@ -262,6 +295,16 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  // La orden ya trae su método elegido desde que se creó. El modal de "Generar
+  // Estimado" solo aparece como fallback si es una orden vieja sin delivery_method.
+  const handleGenerateEstimateClick = () => {
+    if (detail?.delivery_method) {
+      handleGeneratePreBilling();
+    } else {
+      setShowPreBillingModal(true);
+    }
+  };
+
   return {
     detail,
     isLoadingDetail,
@@ -276,6 +319,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     showPreBillingModal, setShowPreBillingModal,
     preBillingDeliveryMethod, setPreBillingDeliveryMethod,
     handleGeneratePreBilling,
+    handleGenerateEstimateClick,
     isGeneratingPreBilling,
     handleConfirmPreBilling,
     isConfirmingPreBilling,
@@ -289,6 +333,12 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     isLoadingAddresses,
     handleOpenAddressModal,
     handleConfirmAddressChange,
+
+    showMethodModal, setShowMethodModal,
+    selectedMethod, setSelectedMethod,
+    isSavingMethod,
+    handleOpenMethodModal,
+    handleConfirmMethodChange,
     isSavingAddress,
 
     showAssignModal, setShowAssignModal,

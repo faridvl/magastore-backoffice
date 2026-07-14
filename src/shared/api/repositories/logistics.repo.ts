@@ -60,7 +60,7 @@ export const LogisticsRepository = {
 
   generatePreBilling: async (
     consolidationUuid: string,
-    deliveryMethod: DeliveryMethod,
+    deliveryMethodOverride?: DeliveryMethod,
   ): Promise<Partial<PreBilling>> => {
     const settings = await getSettings();
     if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
@@ -74,12 +74,19 @@ export const LogisticsRepository = {
       await sql`BEGIN`;
 
       const [c] = await sql`
-        SELECT id, customer_id, total_weight_lb, status, delivery_address_id FROM consolidations WHERE uuid = ${consolidationUuid}
+        SELECT id, customer_id, total_weight_lb, status, delivery_address_id, delivery_method FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
       if (!c) throw new Error('Orden de envío no encontrada.');
 
       if (c.status === 'DESPACHADO' || c.status === 'ENTREGADO') {
         throw new Error('No se puede generar el estimado: la orden de envío ya fue despachada.');
+      }
+
+      // El método se eligió al crear la orden (junto con la dirección); solo se
+      // pide explícito como fallback para órdenes viejas que no lo tienen guardado.
+      const deliveryMethod = deliveryMethodOverride ?? (c.delivery_method as DeliveryMethod | null);
+      if (!deliveryMethod) {
+        throw new Error('Esta orden de envío no tiene un método de entrega. Indícalo para generar el estimado.');
       }
 
       const actualWeight  = Number(c.total_weight_lb);

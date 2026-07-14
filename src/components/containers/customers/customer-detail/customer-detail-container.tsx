@@ -41,6 +41,13 @@ import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerHistoryTab } from './customer-history-tab';
 import { CustomerEditForm } from './customer-edit-form';
+import { DeliveryMethod } from '@/types/logistics/logistics.types';
+
+const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
+  CORREOS_CR: 'Correos de Costa Rica',
+  TRACOPA: 'Tracopa',
+  RETIRO: 'Retiro en oficina',
+};
 
 export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
     const router = useRouter();
@@ -66,6 +73,8 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         setAddressModalTarget,
         selectedAddressId,
         setSelectedAddressId,
+        selectedDeliveryMethod,
+        setSelectedDeliveryMethod,
         handleConfirmCreateOrderWithAddress,
         handleBack,
         activeTab,
@@ -446,7 +455,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                 </main>
             </div>
 
-            {/* MODAL: ELEGIR DIRECCIÓN DE ENTREGA (cliente con 2+ direcciones) */}
+            {/* MODAL: ELEGIR DIRECCIÓN DE ENTREGA + MÉTODO DE ENVÍO (siempre, al crear la orden) */}
             {addressModalTarget && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -489,6 +498,28 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             ))}
                         </div>
 
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                            Método de envío
+                        </p>
+                        <div className="space-y-2 mb-6">
+                            {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                                <button
+                                    key={method}
+                                    onClick={() => setSelectedDeliveryMethod(method)}
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                                        selectedDeliveryMethod === method
+                                            ? 'bg-slate-900 text-white border-slate-900'
+                                            : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                                    }`}
+                                >
+                                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
+                                    {selectedDeliveryMethod === method && (
+                                        <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={() => setAddressModalTarget(null)}
@@ -498,7 +529,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             </button>
                             <button
                                 onClick={handleConfirmCreateOrderWithAddress}
-                                disabled={!selectedAddressId || isCreatingOrder}
+                                disabled={!selectedAddressId || !selectedDeliveryMethod || isCreatingOrder}
                                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
                             >
                                 {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}

@@ -70,8 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 case 'pre-billing':
                     const { consolidationUuid: preUuid, deliveryMethod: preDm } = req.body;
-                    if (!preUuid || !preDm) {
-                        return res.status(400).json({ message: 'consolidationUuid y deliveryMethod son requeridos.' });
+                    if (!preUuid) {
+                        return res.status(400).json({ message: 'consolidationUuid es requerido.' });
                     }
                     const preBill = await LogisticsService.generatePreBilling(preUuid, preDm);
                     return res.status(201).json(preBill);

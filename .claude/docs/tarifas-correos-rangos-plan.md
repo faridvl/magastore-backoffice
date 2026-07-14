@@ -1,9 +1,23 @@
 # Tarifas de envío por Correos CR — rangos configurables (análisis y plan)
 
-**Estado: EN IMPLEMENTACIÓN — Etapa 3 completada.** Decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (Etapa 3 — Motor de cálculo — completada, sin commit/push todavía).
+**Estado: EN IMPLEMENTACIÓN — Etapa 4 completada.** Decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-13 (Etapa 4 — método de envío en la orden + desglose — completada, sin commit/push todavía).
 
 ## Progreso
+
+### ✅ Etapa 4 — Método de envío elegido al crear la orden (COMPLETADA 2026-07-13, sin commit/push)
+
+- **Cambio de diseño respecto al plan original**: la Etapa 4 originalmente planteaba solo "UI de prefactura" (desglose + confirmación de zona) asumiendo que el método de envío se seguiría eligiendo al generar el estimado. Al revisar el flujo con el dueño surgió que el método debía decidirse **junto con la dirección, al crear la orden** — no varios pasos después — porque la zona GAM/Resto (que determina el precio) ya se fija con la dirección desde ese momento. Se amplió el alcance de esta etapa para cubrir eso.
+- **Migración `scripts/011-consolidation-delivery-method.sql`** aplicada en Neon: `consolidations.delivery_method` (TEXT, nullable — órdenes viejas quedan sin valor).
+- **Backend**: `ConsolidationsRepository.createConsolidationWithPackages` acepta `deliveryMethod` opcional y lo guarda en el INSERT; nuevo `setDeliveryMethod(uuid, method)` (mismo patrón que `setDeliveryAddress`, solo permitido en `ABIERTO`). `getConsolidationDetail` expone `delivery_method` y `pre_billing_fee_crc` (desglose fee de entrega separado del monto total). Endpoint `/api/consolidations` PATCH nueva acción `set-delivery-method`.
+- **`generatePreBilling`** (`logistics.repo.ts`) — el parámetro `deliveryMethod` pasó a ser opcional: si no viene explícito, lee `consolidations.delivery_method`. Si la orden no tiene método guardado (caso viejo) y no se pasa uno explícito, lanza error pidiéndolo — mantiene compatible el fallback del endpoint `/api/logistics?action=pre-billing` (ya no exige `deliveryMethod` en el body).
+- **Frontend — flujos de creación de orden** (`customer-detail` y `logistics`, los dos puntos de entrada que agrupan paquetes en una orden nueva): el modal que antes solo pedía dirección (y **solo aparecía si el cliente tenía 2+ direcciones**) ahora **siempre aparece** y pide también el método de envío — el método nunca se puede asumir automáticamente como sí pasaba con la dirección única. Botón "Crear Orden de Envío" deshabilitado hasta elegir ambos.
+- **Frontend — detalle de orden** (`shipment-order-detail.tsx`): nueva card "Método de envío" (paralela a "Dirección de entrega"), editable en `ABIERTO` vía modal propio (`showMethodModal`/`handleConfirmMethodChange`, mismo patrón que el modal de dirección). La card de dirección ahora también muestra la zona derivada (`resolveZone(delivery_canton)`) como texto informativo.
+- **Botón "Generar Estimado"**: si la orden ya tiene `delivery_method` guardado, genera el estimado directo sin preguntar nada (`handleGenerateEstimateClick`). El modal viejo de "Generar Prefactura" queda solo como fallback para órdenes sin método guardado, y también se reutiliza para "Recalcular" (pre-seleccionado con el método actual de la prefactura).
+- **Fuera de alcance** (confirmado en la Etapa 3, sigue igual): no hay tracking de costo/ganancia del tramo local ni override manual auditado del monto.
+- Verificado: `tsc --noEmit` limpio, `npm run lint` limpio.
+- **Nota preexistente sin tocar**: `src/pages/api/logistics/index.tsx` devuelve siempre 500 en su catch general (no distingue por mensaje de error como sí hace `consolidations/index.ts`) — inconsistencia preexistente, fuera del alcance de esta etapa.
+- **Nota para Etapa 5**: cargar el tarifario oficial completo de Correos en `delivery_rates` — hoy la tabla puede estar casi vacía y la mayoría de órdenes seguirán usando el fallback fijo `correos_fee_crc`/`tracopa_fee_crc` hasta que se complete.
 
 ### ✅ Etapa 3 — Motor de cálculo (COMPLETADA 2026-07-13, sin commit/push)
 
@@ -98,8 +112,8 @@ Migración `delivery_rates` + campo de conversión kg/lb en `system_settings` (+
 ### ✅ Etapa 3 — Motor de cálculo (completada — ver Progreso arriba)
 Lookup por rango en `generatePreBilling` (`logistics.repo.ts`) — **un solo punto**: la vía duplicada `generateBilling` fue eliminada en el cierre de facturación paralela (commit 289dc39). **Nota de alcance:** solo se resolvió `fee_crc`; el campo de costo (`cost_crc`/ganancia del tramo local) no se implementó en esta etapa por decisión explícita — queda para una etapa futura si se decide trackearlo.
 
-### ⬜ Etapa 4 — UI de prefactura
-En `shipment-order-detail.tsx` / `use-shipment-order-detail.ts` (la página `/admin/shipment-orders/[uuid]` — el selector de método ya vive ahí, no en el modal viejo): desglose fee/costo/ganancia del tramo local, override manual auditado, y confirmación/corrección de zona junto a la card de dirección de entrega que ya existe.
+### ✅ Etapa 4 — Método de envío en la orden (completada — ver Progreso arriba)
+Alcance ampliado respecto al plan original: el método de envío se decide al crear la orden (junto con la dirección), no al generar el estimado. `consolidations.delivery_method` nuevo, editable desde el detalle de la orden. Zona GAM/Resto derivada visible junto a la dirección. **Fuera de alcance:** desglose de costo/ganancia del tramo local y override manual auditado del monto (ver nota de la Etapa 3).
 
 ### ⬜ Etapa 5 — Carga de datos y limpieza
 Sembrar `delivery_rates` con el tarifario oficial completo de Correos (los "por confirmar" con `cost_crc = NULL`). Decidir destino de `correos_fee_crc` (fallback documentado o remover). Desglose en PDFs si aplica.

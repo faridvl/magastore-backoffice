@@ -10514,3 +10514,52 @@ e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
 289dc39 feat: redise├▒o de paquetes en detalle de cliente + cierre de facturaci├│n paralela
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-13 19:02 ===
+--- recent commits ---
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+--- status ---
+
+=== 2026-07-13 19:03 ===
+--- recent commits ---
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 19:05 ===
+--- recent commits ---
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 19:07 ===
+--- recent commits ---
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 19:12 ===
+--- recent commits ---
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
+8b8624f feat: etapa 1 de tarifas por rango ÔÇö direcciones estructuradas de Costa Rica
+4d11efe docs: re-an├ílisis del plan de customer_code post-├│rdenes v2 + hashes de commit por etapa
+e0e0dff docs: an├ílisis y plan de tarifas de Correos por rango configurable
+--- status ---
+ M .claude/work-log.md

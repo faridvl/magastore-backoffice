@@ -27,6 +27,7 @@ import {
   DeliveryMethod,
   AvailablePackage,
 } from '@/types/logistics/logistics.types';
+import { resolveZone } from '@/shared/constants/costa-rica-locations';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -76,6 +77,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     showPreBillingModal, setShowPreBillingModal,
     preBillingDeliveryMethod, setPreBillingDeliveryMethod,
     handleGeneratePreBilling,
+    handleGenerateEstimateClick,
     isGeneratingPreBilling,
     handleConfirmPreBilling,
     isConfirmingPreBilling,
@@ -90,6 +92,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleOpenAddressModal,
     handleConfirmAddressChange,
     isSavingAddress,
+
+    showMethodModal, setShowMethodModal,
+    selectedMethod, setSelectedMethod,
+    isSavingMethod,
+    handleOpenMethodModal,
+    handleConfirmMethodChange,
 
     showAssignModal, setShowAssignModal,
     availablePackages,
@@ -184,6 +192,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
+                  {detail.delivery_canton ? ` · Zona ${resolveZone(detail.delivery_canton)}` : ''}
                 </p>
               </>
             ) : (
@@ -195,6 +204,32 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           <button
             onClick={handleOpenAddressModal}
             disabled={isLoadingAddresses}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
+          >
+            <Pencil size={12} />
+            Cambiar
+          </button>
+        )}
+      </div>
+
+      {/* MÉTODO DE ENVÍO */}
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
+            <SendHorizonal size={16} className="text-slate-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Método de envío</p>
+            {detail.delivery_method ? (
+              <p className="text-sm font-bold text-slate-800">{DELIVERY_LABELS[detail.delivery_method]}</p>
+            ) : (
+              <p className="text-sm text-slate-400 italic">Sin elegir — se pedirá al generar el estimado</p>
+            )}
+          </div>
+        </div>
+        {detail.status === ConsolidationStatus.ABIERTO && (
+          <button
+            onClick={handleOpenMethodModal}
             className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
           >
             <Pencil size={12} />
@@ -215,12 +250,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setShowPreBillingModal(true)}
-                disabled={detail.packages.length === 0}
+                onClick={handleGenerateEstimateClick}
+                disabled={detail.packages.length === 0 || isGeneratingPreBilling}
                 className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all disabled:opacity-40"
               >
                 <FileText size={14} />
-                Generar Estimado
+                {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
               </button>
             </div>
           ) : preBillingConfirmed ? (
@@ -282,7 +317,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                     PDF
                   </button>
                   <button
-                    onClick={() => setShowPreBillingModal(true)}
+                    onClick={() => {
+                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? 'RETIRO');
+                      setShowPreBillingModal(true);
+                    }}
                     className="text-[9px] font-black text-amber-700 underline underline-offset-2"
                   >
                     Recalcular
@@ -577,6 +615,63 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isSavingAddress ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CAMBIAR MÉTODO DE ENVÍO */}
+      {showMethodModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowMethodModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <SendHorizonal size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Cambiar método de envío
+              </Typography>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                <button
+                  key={method}
+                  onClick={() => setSelectedMethod(method)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
+                    selectedMethod === method
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                  }`}
+                >
+                  <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
+                  {selectedMethod === method && (
+                    <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowMethodModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmMethodChange}
+                disabled={!selectedMethod || isSavingMethod}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isSavingMethod ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>

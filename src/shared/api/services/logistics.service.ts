@@ -204,7 +204,7 @@ export const LogisticsService = {
 
   generatePreBilling: async (
     consolidationUuid: string,
-    deliveryMethod: DeliveryMethod,
+    deliveryMethod?: DeliveryMethod,
   ): Promise<Partial<PreBilling>> => {
     try {
       return await LogisticsRepository.generatePreBilling(consolidationUuid, deliveryMethod);

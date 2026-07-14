@@ -111,6 +111,7 @@ export interface Consolidation {
   customer_id: string;
   status: ConsolidationStatus;
   total_weight_lb: number;
+  delivery_method: DeliveryMethod | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -336,12 +337,14 @@ export interface ConsolidationDetail {
   packages: ConsolidationPackage[];
   pre_billing_uuid: string | null;
   pre_billing_amount: number | null;
+  pre_billing_fee_crc: number | null;
   pre_billing_delivery_method: DeliveryMethod | null;
   pre_billing_confirmed: boolean | null;
   pre_billing_confirmed_at: string | null;
   pre_billing_notified_at: string | null;
   billing_uuid: string | null;
   billing_is_paid: boolean | null;
+  delivery_method: DeliveryMethod | null;
   delivery_address_id: string | null;
   delivery_address_label: string | null;
   delivery_exact_address: string | null;
@@ -370,6 +373,9 @@ export interface CreateConsolidationWithPackagesInput {
   // Requerido solo si el cliente tiene más de una dirección registrada; con una sola
   // dirección el backend la asigna automáticamente sin necesidad de enviarla.
   deliveryAddressId?: string;
+  // Elegido junto con la dirección al crear la orden. Opcional por compatibilidad
+  // con órdenes viejas; generatePreBilling cae a pedirlo explícito si falta.
+  deliveryMethod?: DeliveryMethod;
 }
 
 export interface UpdateConsolidationStatusInput {

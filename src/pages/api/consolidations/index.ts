@@ -51,24 +51,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST') {
-      const { customerUuid, packageUuids, deliveryAddressId } = req.body;
+      const { customerUuid, packageUuids, deliveryAddressId, deliveryMethod } = req.body;
       if (!customerUuid) {
         return res.status(400).json({ message: 'customerUuid es requerido.' });
       }
       const consolidation = packageUuids?.length
-        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId)
+        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod)
         : await ConsolidationsService.createConsolidation(customerUuid);
       return res.status(201).json({ data: consolidation });
     }
 
     if (req.method === 'PATCH') {
-      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids } = req.body;
+      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod } = req.body;
 
       if (action === 'set-delivery-address') {
         if (!consolidationUuid || !addressId) {
           return res.status(400).json({ message: 'consolidationUuid y addressId son requeridos.' });
         }
         await ConsolidationsService.setDeliveryAddress(consolidationUuid, addressId);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'set-delivery-method') {
+        if (!consolidationUuid || !deliveryMethod) {
+          return res.status(400).json({ message: 'consolidationUuid y deliveryMethod son requeridos.' });
+        }
+        await ConsolidationsService.setDeliveryMethod(consolidationUuid, deliveryMethod);
         return res.status(200).json({ data: { updated: true } });
       }
 

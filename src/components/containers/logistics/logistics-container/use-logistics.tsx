@@ -7,7 +7,7 @@ import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-availabl
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
-import { LogisticsPackage } from '@/types/logistics/logistics.types';
+import { LogisticsPackage, DeliveryMethod } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
 export type ViewMode = 'activos' | 'historial';
@@ -37,13 +37,16 @@ export const usePackages = (pageSize = 7) => {
     const [dateTo, setDateTo] = useState('');
     const [selectedUuids, setSelectedUuids] = useState<string[]>(readStoredSelection);
 
-    // Modal: elegir dirección de entrega — solo aparece si el cliente tiene 2+ direcciones
+    // Modal: elegir dirección de entrega + método de envío al crear la orden.
+    // Siempre aparece — el método nunca se puede asumir automáticamente, aunque
+    // el cliente tenga una sola dirección registrada.
     const [addressModalTarget, setAddressModalTarget] = useState<{
         customerUuid: string;
         packageUuids: string[];
         addresses: CustomerAddress[];
     } | null>(null);
     const [selectedAddressId, setSelectedAddressId] = useState('');
+    const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod | null>(null);
 
     // Persiste la selección en sessionStorage — sobrevive a un "back" del navegador
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
@@ -131,12 +134,13 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId?: string) => {
+    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
         try {
             const result = await createShipmentOrderWithPackages({
                 customerUuid,
                 packageUuids,
                 deliveryAddressId,
+                deliveryMethod,
             });
             toast.success('Orden de envío creada correctamente');
             setSelectedUuids([]);
@@ -153,23 +157,20 @@ export const usePackages = (pageSize = 7) => {
             const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
                 .get<{ data: CustomerAddress[] }>(`/customers/${selectedCustomerId}/addresses`);
 
-            if (addresses.length > 1) {
-                setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0].id);
-                setAddressModalTarget({ customerUuid: selectedCustomerId, packageUuids: selectedUuids, addresses });
-                return;
-            }
-
-            await createOrderAndRedirect(selectedUuids, selectedCustomerId);
+            setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0]?.id ?? '');
+            setSelectedDeliveryMethod(null);
+            setAddressModalTarget({ customerUuid: selectedCustomerId, packageUuids: selectedUuids, addresses });
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
         }
     };
 
     const handleConfirmCreateOrderWithAddress = async () => {
-        if (!addressModalTarget || !selectedAddressId) return;
-        await createOrderAndRedirect(addressModalTarget.packageUuids, addressModalTarget.customerUuid, selectedAddressId);
+        if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
+        await createOrderAndRedirect(addressModalTarget.packageUuids, addressModalTarget.customerUuid, selectedAddressId, selectedDeliveryMethod);
         setAddressModalTarget(null);
         setSelectedAddressId('');
+        setSelectedDeliveryMethod(null);
     };
 
     // Notifica al cliente de la selección actual sobre TODOS sus paquetes sin orden
@@ -212,11 +213,13 @@ export const usePackages = (pageSize = 7) => {
         handleNotifyWhatsApp,
         isNotifying,
 
-        // Modal: elegir dirección de entrega (solo si el cliente tiene 2+ direcciones)
+        // Modal: elegir dirección de entrega + método de envío al crear la orden
         addressModalTarget,
         setAddressModalTarget,
         selectedAddressId,
         setSelectedAddressId,
+        selectedDeliveryMethod,
+        setSelectedDeliveryMethod,
         handleConfirmCreateOrderWithAddress,
     };
 };

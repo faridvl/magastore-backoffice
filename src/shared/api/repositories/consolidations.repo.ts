@@ -4,6 +4,7 @@ import {
   ConsolidationDetail,
   ConsolidationStatus,
   AvailablePackage,
+  DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -39,6 +40,7 @@ export const ConsolidationsRepository = {
     customerUuid: string,
     packageUuids: string[],
     deliveryAddressId?: string,
+    deliveryMethod?: DeliveryMethod,
   ): Promise<{ uuid: string; status: ConsolidationStatus; total_weight_lb: number }> => {
     await sql`BEGIN`;
     try {
@@ -71,8 +73,8 @@ export const ConsolidationsRepository = {
       }
 
       const [created] = await sql`
-        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id)
-        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId})
+        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id, delivery_method)
+        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId}, ${deliveryMethod ?? null})
         RETURNING id, uuid, status
       `;
 
@@ -224,12 +226,14 @@ export const ConsolidationsRepository = {
         ) AS packages,
         pb.uuid AS pre_billing_uuid,
         pb.estimated_amount_crc AS pre_billing_amount,
+        pb.delivery_fee_crc AS pre_billing_fee_crc,
         pb.delivery_method AS pre_billing_delivery_method,
         pb.is_confirmed AS pre_billing_confirmed,
         pb.confirmed_at AS pre_billing_confirmed_at,
         pb.notified_at AS pre_billing_notified_at,
         b.uuid AS billing_uuid,
         b.is_paid AS billing_is_paid,
+        con.delivery_method,
         con.delivery_address_id,
         ca.address_label AS delivery_address_label,
         ca.exact_address AS delivery_exact_address,
@@ -245,8 +249,8 @@ export const ConsolidationsRepository = {
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
                con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
-               pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
-               b.uuid, b.is_paid, con.delivery_address_id, ca.address_label, ca.exact_address,
+               pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
+               b.uuid, b.is_paid, con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
     return row ? (row as ConsolidationDetail) : null;
@@ -274,6 +278,26 @@ export const ConsolidationsRepository = {
 
     await sql`
       UPDATE consolidations SET delivery_address_id = ${addressId}, updated_at = NOW()
+      WHERE id = ${row.id}
+    `;
+  },
+
+  /**
+   * Cambia el método de envío de la orden. Solo permitido en ABIERTO — una vez
+   * generado el estimado, generatePreBilling ya usó este valor para calcular la
+   * tarifa y cambiarlo después dejaría el monto desincronizado del método mostrado.
+   */
+  setDeliveryMethod: async (uuid: string, deliveryMethod: DeliveryMethod): Promise<void> => {
+    const [row] = await sql`
+      SELECT id, status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+    if (row.status !== 'ABIERTO') {
+      throw new Error('Transición inválida: solo se puede cambiar el método de envío mientras la orden esté ABIERTO.');
+    }
+
+    await sql`
+      UPDATE consolidations SET delivery_method = ${deliveryMethod}, updated_at = NOW()
       WHERE id = ${row.id}
     `;
   },
