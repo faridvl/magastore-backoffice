@@ -48,7 +48,7 @@ export const LogisticsContainer: React.FC = () => {
         dateTo, setDateTo,
         selectedUuids, selectedCustomerId, handleToggleSelect, handleRowClick, clearSelection,
         handleCreateOrder, isCreatingOrder,
-        handleNotifyWhatsApp, isNotifying,
+        notifyMultiple,
         addressModalTarget, setAddressModalTarget, selectedAddressId, setSelectedAddressId,
         selectedDeliveryMethod, setSelectedDeliveryMethod,
         handleConfirmCreateOrderWithAddress,
@@ -201,6 +201,13 @@ export const LogisticsContainer: React.FC = () => {
 
                 <div className="flex items-center gap-3 flex-shrink-0">
                     <button
+                        onClick={notifyMultiple.open}
+                        className="bg-emerald-500 hover:bg-emerald-400 text-white pl-5 pr-5 py-3 rounded-[1.8rem] flex items-center gap-2 transition-all shadow-lg active:scale-95"
+                    >
+                        <MessageCircle size={16} strokeWidth={2.5} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Notificar por WhatsApp</span>
+                    </button>
+                    <button
                         onClick={() => router.push('/admin/logistics/create')}
                         className="bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-4 py-3 rounded-[1.8rem] flex items-center justify-between gap-6 transition-all group shadow-lg active:scale-95"
                     >
@@ -325,15 +332,6 @@ export const LogisticsContainer: React.FC = () => {
                             className="text-[10px] font-bold uppercase text-slate-300 hover:text-white px-3 py-2"
                         >
                             Limpiar
-                        </button>
-                        <button
-                            onClick={handleNotifyWhatsApp}
-                            disabled={isNotifying}
-                            title="Notifica al cliente de TODOS sus paquetes disponibles, no solo los seleccionados"
-                            className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50"
-                        >
-                            <MessageCircle size={13} />
-                            {isNotifying ? 'Abriendo...' : 'Notificar por WhatsApp'}
                         </button>
                         <button
                             onClick={handleCreateOrder}
@@ -526,6 +524,88 @@ export const LogisticsContainer: React.FC = () => {
                                 {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: NOTIFICAR POR WHATSAPP (paquetes sin orden, envío individual por cliente) */}
+            {notifyMultiple.isOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={notifyMultiple.close}
+                >
+                    <div
+                        className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-emerald-50 rounded-xl">
+                                <MessageCircle size={18} className="text-emerald-600" />
+                            </div>
+                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                                Notificar paquetes disponibles
+                            </Typography>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mb-6">
+                            Toca &quot;Enviar&quot; junto a cada cliente para abrir su mensaje de WhatsApp.
+                        </p>
+
+                        {notifyMultiple.isLoading ? (
+                            <div className="flex justify-center py-8">
+                                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+                            </div>
+                        ) : notifyMultiple.customers.length === 0 ? (
+                            <div className="text-center py-8">
+                                <MessageCircle size={32} className="text-slate-300 mx-auto mb-3" />
+                                <p className="text-slate-500 text-sm">No hay clientes con paquetes disponibles sin orden de envío.</p>
+                            </div>
+                        ) : (
+                            <div className="max-h-96 overflow-y-auto space-y-2 mb-6">
+                                {notifyMultiple.customers.map((c) => {
+                                    const sent = notifyMultiple.sentCustomerIds.includes(c.customer_id);
+                                    const sending = notifyMultiple.sendingCustomerId === c.customer_id;
+                                    return (
+                                        <div
+                                            key={c.customer_id}
+                                            className={`flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border ${
+                                                sent ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-transparent'
+                                            }`}
+                                        >
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-sm text-slate-800 truncate">{c.first_name} {c.last_name}</p>
+                                                <p className="text-[11px] text-slate-400">
+                                                    {c.package_count} paquete{c.package_count > 1 ? 's' : ''} · {Number(c.total_weight_lb).toFixed(2)} lb
+                                                    {!c.phone && ' · Sin teléfono'}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => notifyMultiple.sendToCustomer(c.customer_id)}
+                                                disabled={!c.phone || sending}
+                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-40 flex-shrink-0 ${
+                                                    sent
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                                                }`}
+                                            >
+                                                {sent
+                                                    ? <><CheckCircle size={13} /> Enviado</>
+                                                    : sending
+                                                        ? 'Abriendo...'
+                                                        : <><MessageCircle size={13} /> Enviar</>
+                                                }
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={notifyMultiple.close}
+                            className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+                        >
+                            Cerrar
+                        </button>
                     </div>
                 </div>
             )}

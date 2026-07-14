@@ -10630,3 +10630,99 @@ fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
 7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
 8d4daa2 feat: etapa 2 del plan de tarifas ÔÇö modelo de datos y CRUD de delivery_rates
 --- status ---
+
+=== 2026-07-13 22:53 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+
+=== 2026-07-13 22:56 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 23:00 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 23:01 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 23:01 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 23:03 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-13 23:07 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-14 14:02 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-14 14:13 ===
+--- recent commits ---
+4450498 fix: prefijo real del casillero (MGA-2453-C-) y datos reales de Miami
+fa7e0a9 feat: redise├▒o de customer_code por casillero (5 etapas completas)
+6894bbf feat: etapa 5 del plan de tarifas ÔÇö siembra del tarifario de Correos CR
+5e14af1 feat: etapa 4 del plan de tarifas ÔÇö m├®todo de env├¡o elegido al crear la orden
+7707dc4 feat: etapa 3 del plan de tarifas ÔÇö motor de c├ílculo por rango en generatePreBilling
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-container/logistics-container.tsx
+ M src/components/containers/logistics/logistics-container/use-logistics.tsx
+ M src/pages/api/consolidations/index.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/services/consolidations.service.ts
+ M src/types/logistics/logistics.types.ts
+?? src/hooks/use-notify-multiple-customers.ts

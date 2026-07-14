@@ -5,6 +5,7 @@ import {
   ConsolidationStatus,
   AvailablePackage,
   DeliveryMethod,
+  CustomerWithAvailablePackages,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -398,6 +399,29 @@ export const ConsolidationsRepository = {
       await sql`ROLLBACK`;
       throw error;
     }
+  },
+
+  /**
+   * Clientes con al menos un paquete sin orden de envío (consolidation_id NULL),
+   * con conteo y peso total — usado por el modal de notificación masiva de
+   * WhatsApp en Logística (independiente de cualquier selección de paquetes).
+   */
+  getCustomersWithAvailablePackages: async (): Promise<CustomerWithAvailablePackages[]> => {
+    const rows = await sql`
+      SELECT
+        c.id AS customer_id,
+        c.first_name,
+        c.last_name,
+        c.phone,
+        COUNT(p.id) AS package_count,
+        COALESCE(SUM(p.weight_lb), 0) AS total_weight_lb
+      FROM packages p
+      JOIN customers c ON c.id = p.customer_id
+      WHERE p.consolidation_id IS NULL
+      GROUP BY c.id, c.first_name, c.last_name, c.phone
+      ORDER BY c.first_name ASC, c.last_name ASC
+    `;
+    return rows as CustomerWithAvailablePackages[];
   },
 
   getAvailablePackagesForCustomer: async (

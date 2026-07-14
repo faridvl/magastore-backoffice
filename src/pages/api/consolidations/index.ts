@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo, action, customerUuid } = req.query;
+      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
 
       if (action === 'check-open' && customerUuid) {
         const existing = await ConsolidationsService.getOpenConsolidationForCustomer(customerUuid as string);
@@ -35,6 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (availablePackages) {
         const packages = await ConsolidationsService.getAvailablePackages(availablePackages as string);
         return res.status(200).json({ data: packages });
+      }
+
+      if (customersWithAvailablePackages) {
+        const customers = await ConsolidationsService.getCustomersWithAvailablePackages();
+        return res.status(200).json({ data: customers });
       }
 
       const p = parseInt(page as string) || 1;

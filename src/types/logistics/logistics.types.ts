@@ -363,6 +363,15 @@ export interface AvailablePackage {
   store_name: string | null;
 }
 
+export interface CustomerWithAvailablePackages {
+  customer_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  package_count: number;
+  total_weight_lb: number;
+}
+
 export interface CreateConsolidationInput {
   customerUuid: string;
 }

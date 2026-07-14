@@ -3,7 +3,7 @@ import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-q
 import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
+import { useNotifyMultipleCustomers } from '@/hooks/use-notify-multiple-customers';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
@@ -80,7 +80,7 @@ export const usePackages = (pageSize = 7) => {
     const customers = customersData?.data ?? [];
 
     const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
-    const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
+    const notifyMultiple = useNotifyMultipleCustomers();
 
     const packages: LogisticsPackage[] = useMemo(() => data?.data || [], [data]);
 
@@ -173,16 +173,6 @@ export const usePackages = (pageSize = 7) => {
         setSelectedDeliveryMethod(null);
     };
 
-    // Notifica al cliente de la selección actual sobre TODOS sus paquetes sin orden
-    // (no solo los tildados) — la selección solo sirve para identificar de qué cliente
-    // se trata.
-    const handleNotifyWhatsApp = async () => {
-        if (!selectedCustomerId) return;
-        const customer = customers.find((c) => c.id === selectedCustomerId);
-        if (!customer) return;
-        await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
-    };
-
     return {
         packages,
         isLoading,
@@ -210,8 +200,7 @@ export const usePackages = (pageSize = 7) => {
         clearSelection,
         handleCreateOrder,
         isCreatingOrder,
-        handleNotifyWhatsApp,
-        isNotifying,
+        notifyMultiple,
 
         // Modal: elegir dirección de entrega + método de envío al crear la orden
         addressModalTarget,

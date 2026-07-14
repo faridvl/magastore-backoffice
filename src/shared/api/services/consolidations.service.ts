@@ -83,6 +83,10 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.getAvailablePackagesForCustomer(customerUuid);
   },
 
+  getCustomersWithAvailablePackages: async () => {
+    return ConsolidationsRepository.getCustomersWithAvailablePackages();
+  },
+
   /**
    * Quita un paquete de su orden de envío. Solo permitido si la orden sigue ABIERTO
    * y no tiene factura final. Si existe una prefactura, se elimina (snapshot obsoleto
