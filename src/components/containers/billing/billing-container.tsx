@@ -1,12 +1,10 @@
 import React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Search, CheckCircle2, Clock, XCircle, X, Package, FileDown, BarChart2, ChevronRight } from 'lucide-react';
+import { Search, CheckCircle2, Clock, XCircle, X, Package, FileDown, ChevronRight } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useBilling, PaidFilterValue } from './use-billing';
 import { BillingListItem, DeliveryMethod, ConsolidationStatus } from '@/types/logistics/logistics.types';
-import { routesPrivate } from '@/shared/navigation/routes';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
@@ -138,18 +136,11 @@ export const BillingContainer: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
-      {/* HEADER + REPORTES */}
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Typography variant={TypographyVariant.HEADER} className="text-2xl tracking-tighter">
           Facturación
         </Typography>
-        <Link
-          href={routesPrivate.admin.billing.reports}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-100 shadow-sm rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-amber-600 hover:border-amber-100 hover:bg-amber-50 transition-all"
-        >
-          <BarChart2 size={14} />
-          Reportes
-        </Link>
       </div>
 
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">

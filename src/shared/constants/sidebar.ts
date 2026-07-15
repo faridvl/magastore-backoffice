@@ -9,8 +9,8 @@ import {
   Landmark,
   ReceiptText,
   TrendingUp,
+  BarChart2,
   BarChart3,
-  FileText,
   MapPin,
 } from 'lucide-react';
 
@@ -57,6 +57,13 @@ export const NAV_GROUPS: NavGroup[] = [
         route: routesPrivate.admin.shipmentOrders.index,
       },
       {
+        menuKey: 'billing',
+        icon: BadgeDollarSign,
+        labelKey: 'Facturación',
+        route: routesPrivate.admin.billing.index,
+        adminOnly: true,
+      },
+      {
         menuKey: 'customers',
         icon: Users,
         labelKey: 'Clientes',
@@ -69,10 +76,10 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Finanzas',
     items: [
       {
-        menuKey: 'billing',
-        icon: BadgeDollarSign,
-        labelKey: 'Facturación',
-        route: routesPrivate.admin.billing.index,
+        menuKey: 'reports',
+        icon: BarChart2,
+        labelKey: 'Reportes',
+        route: routesPrivate.admin.billing.reports,
         adminOnly: true,
       },
       {
@@ -121,14 +128,6 @@ export const NAV_GROUPS: NavGroup[] = [
     groupKey: 'admin',
     label: 'Administrativo',
     items: [
-      {
-        menuKey: 'reports',
-        icon: FileText,
-        labelKey: 'Reportes',
-        route: '/admin/reports',
-        adminOnly: true,
-        disabled: true,
-      },
       {
         menuKey: 'settings',
         icon: Settings,

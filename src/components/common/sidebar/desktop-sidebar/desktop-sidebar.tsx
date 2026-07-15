@@ -13,9 +13,23 @@ interface DesktopSidebarProps {
   onClose?: () => void;
 }
 
+// Rutas habilitadas del menú, para resolver colisiones de prefijo
+// (ej. /admin/billing/reports también empieza con /admin/billing)
+const ALL_NAV_ROUTES = [...NAV_STANDALONE, ...NAV_GROUPS.flatMap((g) => g.items)]
+  .filter((item) => !item.disabled)
+  .map((item) => item.route);
+
+function isRouteActive(pathname: string, route: string): boolean {
+  if (!pathname.startsWith(route)) return false;
+  // Solo la ruta más específica del menú se marca activa
+  return !ALL_NAV_ROUTES.some(
+    (other) => other !== route && other.startsWith(route) && pathname.startsWith(other)
+  );
+}
+
 function getActiveGroup(groups: NavGroup[], pathname: string): string | null {
   for (const group of groups) {
-    if (group.items.some((item) => pathname.startsWith(item.route))) {
+    if (group.items.some((item) => !item.disabled && isRouteActive(pathname, item.route))) {
       return group.groupKey;
     }
   }
@@ -47,7 +61,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
   function renderNavItem(item: NavItem) {
     if (item.adminOnly && !isAdmin) return null;
 
-    const isActive = !item.disabled && router.pathname.startsWith(item.route);
+    const isActive = !item.disabled && isRouteActive(router.pathname, item.route);
     const Icon = item.icon;
 
     const content = (
@@ -147,7 +161,7 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
 
             const isOpen = !!openGroups[group.groupKey];
             const hasActive = visibleItems.some(
-              (item) => !item.disabled && router.pathname.startsWith(item.route)
+              (item) => !item.disabled && isRouteActive(router.pathname, item.route)
             );
 
             return (
