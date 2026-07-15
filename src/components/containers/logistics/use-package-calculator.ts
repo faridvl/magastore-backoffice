@@ -156,8 +156,11 @@ export const usePackageCalculator = () => {
             }
           : undefined,
       });
-    } catch {
-      toast.error('No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
+    } catch (err: any) {
+      // El backend manda la causa real (ej. "Ya existe un paquete registrado
+      // con el tracking ...") — mostrarla en vez de un genérico que obliga a
+      // adivinar qué dato está mal.
+      toast.error(err?.message ?? 'No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
     }
   };
 

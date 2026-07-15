@@ -87,18 +87,24 @@ export const LogisticsService = {
       throw new Error('El número de tracking es requerido.');
     }
 
-    const exists = await LogisticsRepository.existsByTrackingNumber(data.tracking_number.trim());
+    // Se normaliza UNA vez y se inserta el valor limpio — antes la validación
+    // usaba trim pero el INSERT guardaba el valor crudo, dejando trackings con
+    // espacios al final (copy-paste de WhatsApp) que burlaban el chequeo de
+    // duplicados y chocaban después contra el UNIQUE de la tabla.
+    const trackingNumber = data.tracking_number.trim();
+
+    const exists = await LogisticsRepository.existsByTrackingNumber(trackingNumber);
     if (exists) {
-      throw new Error(`Ya existe un paquete registrado con el tracking ${data.tracking_number.trim()}.`);
+      throw new Error(`Ya existe un paquete registrado con el tracking ${trackingNumber}.`);
     }
 
     try {
-      return await LogisticsRepository.createPackage(data);
+      return await LogisticsRepository.createPackage({ ...data, tracking_number: trackingNumber });
     } catch (error: any) {
       console.error('[LogisticsService.registerIncomingPackage] data:', JSON.stringify(data));
       console.error('[LogisticsService.registerIncomingPackage] error:', error?.message ?? error);
       if (error?.code === '23505') {
-        throw new Error(`Ya existe un paquete registrado con el tracking ${data.tracking_number.trim()}.`);
+        throw new Error(`Ya existe un paquete registrado con el tracking ${trackingNumber}.`);
       }
       throw new Error('No se pudo registrar el paquete. Verifique los datos.');
     }

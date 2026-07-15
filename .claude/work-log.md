@@ -10812,3 +10812,22 @@ fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
 fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-14 15:24 ===
+--- recent commits ---
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+--- status ---
+
+=== 2026-07-15 00:51 ===
+--- recent commits ---
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
+--- status ---
+ M .claude/work-log.md
