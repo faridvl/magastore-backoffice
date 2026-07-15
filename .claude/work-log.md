@@ -10831,3 +10831,22 @@ fca3a0d fix: reemplaza emojis de n├║mero compuestos en plantilla de WhatsApp
 06ceafd feat: mejoras UX para iPad/m├│vil y app instalable como PWA
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-15 10:06 ===
+--- recent commits ---
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+--- status ---
+
+=== 2026-07-15 10:52 ===
+--- recent commits ---
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
+--- status ---
+ M .claude/work-log.md

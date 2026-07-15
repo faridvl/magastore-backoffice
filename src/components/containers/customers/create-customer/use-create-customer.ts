@@ -185,8 +185,11 @@ export const useCreateCustomer = () => {
         toast.success('Cliente registrado exitosamente');
         admin.customers.list();
       },
-      onError: () => {
-        toast.error('No se pudo registrar el cliente. Verifica que el correo y la cédula no estén ya registrados.');
+      onError: (err: any) => {
+        // El backend manda la causa exacta (dirección inválida, cédula/correo
+        // duplicado, etc.) — mostrarla en vez de un genérico que apunta solo
+        // a correo/cédula cuando la falla puede ser otra.
+        toast.error(err?.message ?? 'No se pudo registrar el cliente. Verifica que el correo y la cédula no estén ya registrados.');
       },
     });
   };
