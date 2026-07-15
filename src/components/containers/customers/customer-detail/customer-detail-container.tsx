@@ -54,20 +54,23 @@ function WarehouseCodeCard({
           <p className="text-sm font-mono font-black">{code}</p>
         </div>
       </div>
-      <div className="flex items-center gap-1">
+      {/* Targets de 44px mínimo (guía táctil de iOS/iPad) y etiqueta en el botón
+          de WhatsApp — en touch no hay tooltip que explique un ícono solo */}
+      <div className="flex items-center gap-1.5 flex-shrink-0">
         <button
           onClick={handleSendWelcome}
           title="Enviar datos de casillero por WhatsApp"
-          className="p-2 rounded-xl hover:bg-white/60 transition-colors"
+          className="flex items-center gap-1.5 min-h-[44px] px-3 rounded-xl hover:bg-white/60 transition-colors text-[10px] font-black uppercase tracking-wide"
         >
-          <MessageCircle size={14} />
+          <MessageCircle size={15} />
+          <span className="hidden sm:inline">WhatsApp</span>
         </button>
         <button
           onClick={handleCopy}
           title="Copiar casillero"
-          className="p-2 rounded-xl hover:bg-white/60 transition-colors"
+          className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl hover:bg-white/60 transition-colors"
         >
-          {copied ? <CheckIcon size={14} /> : <Copy size={14} />}
+          {copied ? <CheckIcon size={15} /> : <Copy size={15} />}
         </button>
       </div>
     </div>
@@ -77,7 +80,6 @@ import { toast } from 'sonner';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
-import { CustomerHistoryTab } from './customer-history-tab';
 import { CustomerEditForm } from './customer-edit-form';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
 import { buildWhatsAppUrl, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
@@ -95,7 +97,6 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         isLoading,
         initials,
         metrics,
-        seasonalityData,
         unassignedPackages,
         assignedPackages,
         filteredHistory,
@@ -130,13 +131,24 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         saveEdit,
     } = useCustomerDetail(id);
 
-    if (isLoading || !customer) return <div>Cargando expediente...</div>;
+    if (isLoading || !customer) {
+        return (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-pulse">
+                <div className="lg:col-span-1 bg-white rounded-[32px] border border-slate-100 h-80" />
+                <div className="lg:col-span-3 space-y-6">
+                    <div className="bg-white rounded-[24px] border border-slate-100 h-24" />
+                    <div className="bg-white rounded-[32px] border border-slate-100 h-48" />
+                    <div className="bg-white rounded-[32px] border border-slate-100 h-48" />
+                </div>
+            </div>
+        );
+    }
 
     const metricPackageCount = metrics != null ? String(metrics.packageCount) : '—';
-    const metricTotalLbs = metrics != null ? `${metrics.totalLbs} lb` : '—';
-    const metricTotalSpent = metrics != null ? `₡${metrics.totalSpent.toLocaleString()}` : '—';
-    const metricCustomerType = metrics != null ? metrics.customerType : '—';
-    const metricFirstOrderDate = metrics != null ? metrics.firstOrderDate : '—';
+    const metricTotalLbs = metrics != null ? `${Number(metrics.totalLbs).toFixed(2)} lb` : '—';
+    const metricTotalSpent = metrics != null ? `₡${Math.round(metrics.totalSpent).toLocaleString('es-CR')}` : '—';
+    const metricFirstPackageDate = metrics != null ? metrics.firstPackageDate : '—';
+    const metricLastPackageDate = metrics != null ? metrics.lastPackageDate : '—';
 
     return (
         <div className="flex flex-col gap-6">
@@ -144,26 +156,30 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                 {/* LADO IZQUIERDO: Perfil Fijo */}
                 <aside className="lg:col-span-1 space-y-6">
                     <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden lg:sticky lg:top-6">
-                        <div className="p-8 flex flex-col items-center text-center">
-                            <div className="h-20 w-20 bg-slate-50 text-primary rounded-[1.5rem] flex items-center justify-center mb-6 text-2xl font-black border-2 border-primary/5 uppercase">
+                        {/* Compacto en mobile/iPad vertical (fila), columna centrada solo en lg+ —
+                            antes el bloque centrado consumía ~400px de alto antes del contenido útil */}
+                        <div className="p-5 lg:p-8 flex items-center gap-4 text-left lg:flex-col lg:text-center">
+                            <div className="h-14 w-14 lg:h-20 lg:w-20 bg-slate-50 text-primary rounded-[1.25rem] lg:rounded-[1.5rem] flex items-center justify-center lg:mb-6 text-lg lg:text-2xl font-black border-2 border-primary/5 uppercase flex-shrink-0">
                                 {initials}
                             </div>
 
-                            <div className="space-y-1 mb-4">
-                                <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg leading-tight">
-                                    {customer.first_name} {customer.last_name}
-                                </Typography>
-                                <Typography variant={TypographyVariant.CAPTION} className="text-primary font-bold tracking-widest uppercase block">
-                                    {customer.customer_code}
-                                </Typography>
-                            </div>
+                            <div className="min-w-0 lg:flex lg:flex-col lg:items-center">
+                                <div className="space-y-0.5 lg:space-y-1 mb-1.5 lg:mb-4">
+                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-base lg:text-lg leading-tight truncate">
+                                        {customer.first_name} {customer.last_name}
+                                    </Typography>
+                                    <Typography variant={TypographyVariant.CAPTION} className="text-primary font-bold tracking-widest uppercase block">
+                                        {customer.customer_code}
+                                    </Typography>
+                                </div>
 
-                            <div className="flex items-center gap-2 py-1 px-4 bg-slate-50 rounded-full border border-slate-100">
-                                <Typography variant={TypographyVariant.OVERLINE} className="text-slate-500 font-bold">Estado</Typography>
-                                <span className={`h-2 w-2 rounded-full ${customer.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
-                                <Typography variant={TypographyVariant.OVERLINE} className="font-black uppercase">
-                                    {customer.is_active ? 'Activo' : 'Inactivo'}
-                                </Typography>
+                                <div className="inline-flex items-center gap-2 py-1 px-4 bg-slate-50 rounded-full border border-slate-100">
+                                    <Typography variant={TypographyVariant.OVERLINE} className="text-slate-500 font-bold">Estado</Typography>
+                                    <span className={`h-2 w-2 rounded-full ${customer.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                                    <Typography variant={TypographyVariant.OVERLINE} className="font-black uppercase">
+                                        {customer.is_active ? 'Activo' : 'Inactivo'}
+                                    </Typography>
+                                </div>
                             </div>
                         </div>
 
@@ -222,15 +238,20 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                     ) : (
                         <>
                             {/* Tabs de Navegación */}
-                            <div className="flex gap-8 border-b border-slate-100">
+                            <div className="flex gap-4 sm:gap-8 border-b border-slate-100">
                                 {['info', 'history'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`pb-4 px-2 border-b-2 transition-all font-bold text-sm uppercase tracking-widest ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'
+                                        className={`pb-4 px-2 border-b-2 transition-all font-bold text-xs sm:text-sm uppercase tracking-widest flex items-center gap-2 ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         {tab === 'info' ? 'Información' : 'Actividad y Paquetes'}
+                                        {tab === 'history' && unassignedPackages.length > 0 && (
+                                            <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                                {unassignedPackages.length}
+                                            </span>
+                                        )}
                                     </button>
                                 ))}
                             </div>
@@ -238,26 +259,53 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             {/* VISTA 1: INFORMACIÓN GENERAL (Con Métricas) */}
                             {activeTab === 'info' ? (
                                 <div className="space-y-6 animate-in fade-in duration-500">
-                                    {/* Score Cards */}
+                                    {/* Casilleros — lo primero: es el dato que más se copia/comparte */}
+                                    <div className="bg-white p-6 lg:p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+                                        <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
+                                        {customer.warehouse_codes.length === 0 ? (
+                                            <p className="text-slate-400 text-sm">Este cliente no tiene casillero asignado.</p>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {customer.warehouse_codes.map((wc) => (
+                                                    <WarehouseCodeCard
+                                                        key={`${wc.origin}-${wc.package_type}`}
+                                                        code={wc.code}
+                                                        origin={wc.origin}
+                                                        packageType={wc.package_type}
+                                                        addressLine={wc.address_line}
+                                                        city={wc.city}
+                                                        state={wc.state}
+                                                        postalCode={wc.postal_code}
+                                                        contactPhone={wc.contact_phone}
+                                                        customerFirstName={customer.first_name}
+                                                        customerFullName={`${customer.first_name} ${customer.last_name}`}
+                                                        customerPhone={customer.phone}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Métricas reales (paquetes, peso, facturado) */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
+                                        <div className="bg-white p-5 lg:p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
                                             <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl"><Box size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Paquetes</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricPackageCount}</Typography>
                                             </div>
                                         </div>
-                                        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
+                                        <div className="bg-white p-5 lg:p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
                                             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><TrendingUp size={24} /></div>
                                             <div>
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Libras</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricTotalLbs}</Typography>
                                             </div>
                                         </div>
-                                        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
+                                        <div className="bg-white p-5 lg:p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-4">
                                             <div className="p-3 bg-primary/5 text-primary rounded-2xl"><DollarSign size={24} /></div>
                                             <div>
-                                                <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Inversión</Typography>
+                                                <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase">Facturado</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black">{metricTotalSpent}</Typography>
                                             </div>
                                         </div>
@@ -265,7 +313,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Direcciones */}
-                                        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                                        <div className="bg-white p-6 lg:p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
                                             <div className="flex justify-between items-center">
                                                 <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Direcciones</Typography>
                                                 <Button variant={ButtonVariant.GHOST} onClick={enterEditMode} className="text-xs text-primary flex items-center gap-1">
@@ -277,12 +325,9 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                     <div key={addr.id} className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100/50 flex gap-4">
                                                         <div className="p-2 bg-white rounded-xl h-fit text-primary shadow-sm border border-slate-100"><MapPin size={20} /></div>
                                                         <div className="flex-1">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{addr.address_label}</Typography>
-                                                                    {addr.is_default && <span className="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase">Principal</span>}
-                                                                </div>
-                                                                <button onClick={enterEditMode} className="text-slate-400 hover:text-primary transition-colors"><Edit3 size={14} /></button>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <Typography variant={TypographyVariant.BODY_BOLD}>{addr.address_label}</Typography>
+                                                                {addr.is_default && <span className="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase">Principal</span>}
                                                             </div>
                                                             <Typography variant={TypographyVariant.CAPTION} className="text-slate-500 font-medium">
                                                                 {addr.province}, {addr.canton}, {addr.district} <br />
@@ -294,53 +339,21 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             </div>
                                         </div>
 
-                                        {/* Casilleros */}
-                                        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4 md:col-span-2">
-                                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
-                                            {customer.warehouse_codes.length === 0 ? (
-                                                <p className="text-slate-400 text-sm">Este cliente no tiene casillero asignado.</p>
-                                            ) : (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {customer.warehouse_codes.map((wc) => (
-                                                        <WarehouseCodeCard
-                                                            key={`${wc.origin}-${wc.package_type}`}
-                                                            code={wc.code}
-                                                            origin={wc.origin}
-                                                            packageType={wc.package_type}
-                                                            addressLine={wc.address_line}
-                                                            city={wc.city}
-                                                            state={wc.state}
-                                                            postalCode={wc.postal_code}
-                                                            contactPhone={wc.contact_phone}
-                                                            customerFirstName={customer.first_name}
-                                                            customerFullName={`${customer.first_name} ${customer.last_name}`}
-                                                            customerPhone={customer.phone}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Perfil Operativo */}
-                                        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Perfil Operativo</Typography>
-                                                <Button variant={ButtonVariant.GHOST} onClick={enterEditMode} className="text-xs text-primary flex items-center gap-1">
-                                                    <Edit3 size={14} /> Gestionar
-                                                </Button>
-                                            </div>
+                                        {/* Perfil Operativo — solo datos reales, se edita desde "Editar cliente" */}
+                                        <div className="bg-white p-6 lg:p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col">
+                                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg mb-6">Perfil Operativo</Typography>
                                             <div className="grid grid-cols-1 gap-3 flex-1">
-                                                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-100 transition-colors">
-                                                    <div className="flex items-center gap-3 text-slate-500"><Tag size={18} /><Typography variant={TypographyVariant.BODY}>Categoría</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD} textColor="text-primary">{metricCustomerType}</Typography>
-                                                </div>
-                                                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl font-medium">
+                                                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><Calendar size={18} /><Typography variant={TypographyVariant.BODY}>Registro</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{new Date(customer.created_at).toLocaleDateString()}</Typography>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{new Date(customer.created_at).toLocaleDateString('es-CR')}</Typography>
                                                 </div>
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                                                    <div className="flex items-center gap-3 text-slate-500"><CreditCard size={18} /><Typography variant={TypographyVariant.BODY}>Primer Pedido</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{metricFirstOrderDate}</Typography>
+                                                    <div className="flex items-center gap-3 text-slate-500"><Box size={18} /><Typography variant={TypographyVariant.BODY}>Primer Paquete</Typography></div>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{metricFirstPackageDate}</Typography>
+                                                </div>
+                                                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                                    <div className="flex items-center gap-3 text-slate-500"><Clock size={18} /><Typography variant={TypographyVariant.BODY}>Último Paquete</Typography></div>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{metricLastPackageDate}</Typography>
                                                 </div>
                                             </div>
                                         </div>
@@ -393,10 +406,11 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                                             <p className="text-[10px] text-slate-400">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
                                                                         </div>
                                                                     </div>
+                                                                    {/* Mismos colores por estado que el listado de Logística */}
                                                                     <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full ${
-                                                                        pkg.status === 'PANAMA' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                                                                        pkg.status === 'PANAMA' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
                                                                     }`}>
-                                                                        {pkg.status === 'PANAMA' ? 'Panamá' : 'En Trámite'}
+                                                                        {pkg.status === 'PANAMA' ? 'En Panamá' : 'En Trámite'}
                                                                     </span>
                                                                 </button>
                                                             );

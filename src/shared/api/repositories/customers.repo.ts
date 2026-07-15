@@ -247,6 +247,35 @@ export const getPackagesByCustomer = async (customerId: string): Promise<{
   return rows as any[];
 };
 
+export interface CustomerMetricsRow {
+  package_count: number;
+  total_weight_lb: number;
+  first_package_date: string | null;
+  last_package_date: string | null;
+  total_billed_crc: number;
+}
+
+/**
+ * Métricas reales del cliente para la cabecera de su detalle: conteo y peso
+ * de paquetes, fechas de actividad, y total facturado (via billing→consolidations).
+ */
+export const getCustomerMetrics = async (customerId: string): Promise<CustomerMetricsRow> => {
+  const [row] = await sql`
+    SELECT
+      (SELECT COUNT(*) FROM packages p WHERE p.customer_id = ${customerId}) AS package_count,
+      (SELECT COALESCE(SUM(p.weight_lb), 0) FROM packages p WHERE p.customer_id = ${customerId}) AS total_weight_lb,
+      (SELECT MIN(p.created_at) FROM packages p WHERE p.customer_id = ${customerId}) AS first_package_date,
+      (SELECT MAX(p.created_at) FROM packages p WHERE p.customer_id = ${customerId}) AS last_package_date,
+      (
+        SELECT COALESCE(SUM(b.total_amount_crc), 0)
+        FROM billing b
+        JOIN consolidations con ON con.id = b.consolidation_id
+        WHERE con.customer_id = ${customerId}
+      ) AS total_billed_crc
+  `;
+  return row as unknown as CustomerMetricsRow;
+};
+
 export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {
   const result = await sql`SELECT id FROM customers WHERE customer_code = ${code} LIMIT 1`;
   return result.length > 0;

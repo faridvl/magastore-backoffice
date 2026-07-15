@@ -24,8 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'ID de cliente requerido' });
     }
 
-    const packages = await CustomerService.getCustomerPackages(id);
-    return res.status(200).json({ data: packages });
+    const [packages, metrics] = await Promise.all([
+      CustomerService.getCustomerPackages(id),
+      CustomerService.getCustomerMetrics(id),
+    ]);
+    return res.status(200).json({ data: packages, metrics });
   } catch (error: any) {
     console.error('[Customer Packages Error]:', error);
     return res.status(500).json({ message: error.message || 'Error interno' });

@@ -15,8 +15,16 @@ export interface CustomerPackage {
   consolidation_status: string | null;
 }
 
+export interface CustomerMetrics {
+  package_count: number;
+  total_weight_lb: number;
+  first_package_date: string | null;
+  last_package_date: string | null;
+  total_billed_crc: number;
+}
+
 export function useCustomerPackagesQuery(customerId?: string) {
-  return useQuery<{ data: CustomerPackage[] }>({
+  return useQuery<{ data: CustomerPackage[]; metrics: CustomerMetrics }>({
     queryKey: ['customer-packages', customerId],
     queryFn: () => ApiServiceClient(env.API.BASE_URL).get(`/customers/${customerId}/packages`),
     enabled: !!customerId,

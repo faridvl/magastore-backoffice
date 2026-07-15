@@ -122,9 +122,22 @@ export const useCustomerDetail = (customerId: string) => {
     return `${customer.first_name.charAt(0)}${customer.last_name.charAt(0)}`.toUpperCase();
   }, [customer]);
 
-  const metrics = null as { totalLbs: number; totalSpent: number; packageCount: number; firstOrderDate: string; customerType: string } | null;
-
-  const seasonalityData: { month: string; lbs: number }[] = [];
+  // Métricas reales desde el endpoint de paquetes (conteo, peso, facturado,
+  // fechas de actividad) — antes esto era un null hardcodeado y las cards
+  // del detalle mostraban "—" permanentemente.
+  const rawMetrics = packagesRes?.metrics ?? null;
+  const metrics = useMemo(() => {
+    if (!rawMetrics) return null;
+    const fmtDate = (d: string | null) =>
+      d ? new Date(d).toLocaleDateString('es-CR') : '—';
+    return {
+      packageCount: Number(rawMetrics.package_count),
+      totalLbs: Number(rawMetrics.total_weight_lb),
+      totalSpent: Number(rawMetrics.total_billed_crc),
+      firstPackageDate: fmtDate(rawMetrics.first_package_date),
+      lastPackageDate: fmtDate(rawMetrics.last_package_date),
+    };
+  }, [rawMetrics]);
 
   const filteredHistory = useMemo(() => {
     const query = searchTerm.toLowerCase().trim();
@@ -184,7 +197,6 @@ export const useCustomerDetail = (customerId: string) => {
     isLoading,
     initials,
     metrics,
-    seasonalityData,
     activePackages,
     unassignedPackages,
     assignedPackages,

@@ -10850,3 +10850,49 @@ eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
 72ac391 feat: crear orden de env├¡o desde la pesta├▒a de ├│rdenes
 --- status ---
  M .claude/work-log.md
+
+=== 2026-07-15 10:55 ===
+--- recent commits ---
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+--- status ---
+
+=== 2026-07-15 11:00 ===
+--- recent commits ---
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 11:02 ===
+--- recent commits ---
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 11:13 ===
+--- recent commits ---
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+46a5e5a fix: bloqueo cross-cliente de selecci├│n de paquetes se perd├¡a al paginar
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/customers/customer-detail/customer-detail-container.tsx
+ M src/components/containers/customers/customer-detail/use-customer-detail.ts
+ M src/pages/admin/customers/[id]/index.tsx
+ M src/pages/api/customers/[id]/packages.ts
+ M src/shared/api/querys/customers/use-customer-packages-query.ts
+ M src/shared/api/repositories/customers.repo.ts
+ M src/shared/api/services/customers.service.ts

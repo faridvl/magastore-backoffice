@@ -12,11 +12,11 @@ const CustomerDetailPage: React.FC = () => {
 
     return (
         <>
-            <Head><title>Detalle de Cliente | Sistema Médico</title></Head>
+            <Head><title>Detalle de Cliente | Magastore</title></Head>
             <DashboardLayout
                 isMainPage={false}
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Expediente de Cliente"
+                title="Detalle de Cliente"
             >
                 {router.isReady && id ? (
                     <CustomerDetailContainer id={id as string} />

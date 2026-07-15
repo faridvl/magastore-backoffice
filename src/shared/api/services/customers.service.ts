@@ -121,6 +121,11 @@ export const CustomerService = {
     return CustomerRepo.getPackagesByCustomer(id);
   },
 
+  getCustomerMetrics: async (id: string) => {
+    if (!id) throw new Error('El ID del cliente es requerido.');
+    return CustomerRepo.getCustomerMetrics(id);
+  },
+
   /**
    * Actualiza datos editables de un cliente existente
    */
