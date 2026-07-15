@@ -10896,3 +10896,35 @@ eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
  M src/shared/api/querys/customers/use-customer-packages-query.ts
  M src/shared/api/repositories/customers.repo.ts
  M src/shared/api/services/customers.service.ts
+
+=== 2026-07-15 11:18 ===
+--- recent commits ---
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+--- status ---
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-07-15 11:19 ===
+--- recent commits ---
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-07-15 11:22 ===
+--- recent commits ---
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+1bd579d feat: splash screen de arranque estilo app nativa
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx

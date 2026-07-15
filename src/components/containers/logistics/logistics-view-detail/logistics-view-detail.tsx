@@ -57,7 +57,7 @@ export const PackageDetailContainer: React.FC = () => {
                         disabled={isSavingStatus}
                         className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 md:px-8 py-3 md:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
                             ? 'bg-slate-500 text-white hover:bg-slate-600'
-                            : 'bg-slate-900 text-white hover:bg-slate-800'
+                            : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                             }`}
                     >
                         {statusPanel.isOpen ? <><X size={16} /> Cancelar</> : <><RefreshCw size={16} /> Cambiar Estado</>}
@@ -141,9 +141,9 @@ export const PackageDetailContainer: React.FC = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {/* COLUMNA IZQUIERDA: Info y Bitácora */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-8 order-last lg:order-none">
 
                     {/* CARD PRINCIPAL LOGÍSTICA */}
                     <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -167,6 +167,11 @@ export const PackageDetailContainer: React.FC = () => {
                                                     step="1"
                                                     value={data.peso}
                                                     onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
+                                                    onPaste={(e) => {
+                                                        const pasted = e.clipboardData.getData('text');
+                                                        if (!/^\d+$/.test(pasted.trim())) e.preventDefault();
+                                                    }}
+                                                    onWheel={(e) => e.currentTarget.blur()}
                                                     onChange={(e) => updateField('peso', e.target.value === '' ? '' : Math.floor(Number(e.target.value)))}
                                                     className="w-full font-black text-xl text-primary bg-transparent outline-none"
                                                 />
@@ -227,7 +232,7 @@ export const PackageDetailContainer: React.FC = () => {
                 </div>
 
                 {/* COLUMNA DERECHA: Resumen Financiero */}
-                <div className="space-y-6">
+                <div className="space-y-6 order-first lg:order-none">
                     <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden">
                         {/* Decoración de fondo */}
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
