@@ -152,7 +152,8 @@ CREATE TABLE packages (
     tc_banco numeric(10,4) DEFAULT NULL::numeric,
     insurance_applied boolean DEFAULT true NOT NULL,
     courier_rate_id integer,
-    store_name text
+    store_name text,
+    notified_at timestamp with time zone
 );
 
 -- Tabla: pre_billing

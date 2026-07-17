@@ -565,11 +565,20 @@ export const LogisticsContainer: React.FC = () => {
                                 {notifyMultiple.customers.map((c) => {
                                     const sent = notifyMultiple.sentCustomerIds.includes(c.customer_id);
                                     const sending = notifyMultiple.sendingCustomerId === c.customer_id;
+                                    const unnotified = Number(c.unnotified_count);
+                                    // Notificado persistido en BD: todos sus paquetes disponibles
+                                    // tienen notified_at. Un paquete nuevo lo saca de este estado.
+                                    const allNotified = unnotified === 0;
+                                    const hasNew = !allNotified && unnotified < Number(c.package_count);
                                     return (
                                         <div
                                             key={c.customer_id}
                                             className={`flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border ${
-                                                sent ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-transparent'
+                                                sent || allNotified
+                                                    ? 'bg-emerald-50 border-emerald-200'
+                                                    : hasNew
+                                                        ? 'bg-amber-50 border-amber-200'
+                                                        : 'bg-slate-50 border-transparent'
                                             }`}
                                         >
                                             <div className="min-w-0">
@@ -578,6 +587,16 @@ export const LogisticsContainer: React.FC = () => {
                                                     {c.package_count} paquete{c.package_count > 1 ? 's' : ''} · {Number(c.total_weight_lb).toFixed(2)} lb
                                                     {!c.phone && ' · Sin teléfono'}
                                                 </p>
+                                                {allNotified && !sent && (
+                                                    <p className="text-[10px] font-bold text-emerald-600 mt-0.5 flex items-center gap-1">
+                                                        <CheckCircle size={11} /> Notificado
+                                                    </p>
+                                                )}
+                                                {hasNew && (
+                                                    <p className="text-[10px] font-bold text-amber-600 mt-0.5">
+                                                        {unnotified} paquete{unnotified > 1 ? 's' : ''} nuevo{unnotified > 1 ? 's' : ''} sin notificar
+                                                    </p>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => notifyMultiple.sendToCustomer(c.customer_id)}
@@ -585,14 +604,18 @@ export const LogisticsContainer: React.FC = () => {
                                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-40 flex-shrink-0 ${
                                                     sent
                                                         ? 'bg-emerald-500 text-white'
-                                                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                                                        : allNotified
+                                                            ? 'bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50'
+                                                            : 'bg-slate-900 text-white hover:bg-slate-800'
                                                 }`}
                                             >
                                                 {sent
                                                     ? <><CheckCircle size={13} /> Enviado</>
                                                     : sending
                                                         ? 'Abriendo...'
-                                                        : <><MessageCircle size={13} /> Enviar</>
+                                                        : allNotified
+                                                            ? <><MessageCircle size={13} /> Reenviar</>
+                                                            : <><MessageCircle size={13} /> Enviar</>
                                                 }
                                             </button>
                                         </div>

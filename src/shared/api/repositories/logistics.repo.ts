@@ -495,18 +495,27 @@ export const LogisticsRepository = {
   },
 
   /**
-   * Registra en la bitácora de cada paquete que el cliente fue notificado de su
-   * disponibilidad por WhatsApp. No cambia el status del paquete.
+   * Marca los paquetes como notificados (packages.notified_at) y registra el
+   * evento en la bitácora de cada uno. No cambia el status del paquete.
    */
   logPackagesNotified: async (packageUuids: string[]): Promise<void> => {
-    const rows = await sql`
-      SELECT id, status FROM packages WHERE uuid = ANY(${packageUuids})
-    `;
-    for (const row of rows) {
-      await sql`
-        INSERT INTO package_events (package_id, status, event_type, description)
-        VALUES (${row.id}, ${row.status}, 'INFO', 'Cliente notificado de disponibilidad por WhatsApp')
+    try {
+      await sql`BEGIN`;
+      const rows = await sql`
+        UPDATE packages SET notified_at = NOW()
+        WHERE uuid = ANY(${packageUuids})
+        RETURNING id, status
       `;
+      for (const row of rows) {
+        await sql`
+          INSERT INTO package_events (package_id, status, event_type, description)
+          VALUES (${row.id}, ${row.status}, 'INFO', 'Cliente notificado de disponibilidad por WhatsApp')
+        `;
+      }
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
     }
   },
 

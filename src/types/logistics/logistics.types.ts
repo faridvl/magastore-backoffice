@@ -401,6 +401,9 @@ export interface CustomerWithAvailablePackages {
   last_name: string;
   phone: string;
   package_count: number;
+  // Paquetes disponibles con notified_at IS NULL — 0 significa que el cliente
+  // ya fue notificado de todos sus paquetes actuales.
+  unnotified_count: number;
   total_weight_lb: number;
 }
 

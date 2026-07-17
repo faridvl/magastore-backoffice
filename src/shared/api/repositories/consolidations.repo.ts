@@ -430,6 +430,7 @@ export const ConsolidationsRepository = {
         c.last_name,
         c.phone,
         COUNT(p.id) AS package_count,
+        COUNT(p.id) FILTER (WHERE p.notified_at IS NULL) AS unnotified_count,
         COALESCE(SUM(p.weight_lb), 0) AS total_weight_lb
       FROM packages p
       JOIN customers c ON c.id = p.customer_id

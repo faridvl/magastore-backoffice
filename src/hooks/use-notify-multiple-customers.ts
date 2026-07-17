@@ -78,6 +78,11 @@ export function useNotifyMultipleCustomers() {
       });
 
       setSentCustomerIds((prev) => [...prev, customerId]);
+      // Reflejar de inmediato el estado persistido: todos sus paquetes
+      // disponibles quedaron notificados.
+      setCustomers((prev) =>
+        prev.map((c) => (c.customer_id === customerId ? { ...c, unnotified_count: 0 } : c)),
+      );
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo preparar la notificación de WhatsApp.');
     } finally {
