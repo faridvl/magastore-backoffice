@@ -11115,3 +11115,23 @@ eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
  M src/shared/api/repositories/logistics.repo.ts
  M src/types/logistics/logistics.types.ts
 ?? src/components/common/billing-detail-modal/
+
+=== 2026-07-16 23:23 ===
+--- recent commits ---
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+--- status ---
+
+=== 2026-07-16 23:25 ===
+--- recent commits ---
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+--- status ---
+ M .claude/work-log.md
+?? src/middleware.ts
