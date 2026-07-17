@@ -209,6 +209,9 @@ export type PackageDetail = {
 
 export interface BillingListItem {
   uuid: string;
+  // Correlativo legible (F-0001) para identificar la factura al hablar con
+  // el cliente — el uuid no es práctico para eso.
+  invoice_number: number;
   consolidation_uuid: string;
   consolidation_status: ConsolidationStatus;
   customer_name: string;
@@ -231,6 +234,7 @@ export interface BillingPackageLine {
 
 export interface BillingDetail {
   uuid: string;
+  invoice_number: number;
   consolidation_uuid: string;
   consolidation_status: ConsolidationStatus;
   customer_name: string;

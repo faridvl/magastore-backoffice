@@ -4,6 +4,7 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos CR',
@@ -17,7 +18,7 @@ interface Props {
   onClose: () => void;
   onMarkAsPaid: () => void;
   isMarkingPaid: boolean;
-  onDownloadPdf: (uuid: string) => void;
+  onDownloadPdf: (uuid: string, invoiceNumber?: number) => void;
   isDownloadingPdf: boolean;
 }
 
@@ -50,7 +51,7 @@ export const BillingDetailModal: React.FC<Props> = ({
                 {billingDetail.customer_name}
               </Typography>
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                {billingDetail.customer_code} · {billingDetail.customer_email}
+                {formatInvoiceNumber(billingDetail.invoice_number)} · {billingDetail.customer_code} · {billingDetail.customer_email}
               </p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
@@ -120,7 +121,7 @@ export const BillingDetailModal: React.FC<Props> = ({
 
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => onDownloadPdf(billingDetail.uuid)}
+              onClick={() => onDownloadPdf(billingDetail.uuid, billingDetail.invoice_number)}
               disabled={isDownloadingPdf}
               className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-all disabled:opacity-50"
             >

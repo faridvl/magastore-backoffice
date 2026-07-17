@@ -33,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       React.createElement(BillingInvoicePDF, { detail }) as unknown as React.ReactElement<DocumentProps>,
     );
 
-    const shortId = uuid.slice(-8).toUpperCase();
+    const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="factura-${shortId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="factura-${invoiceLabel}.pdf"`);
     res.setHeader('Content-Length', buffer.length);
     return res.status(200).end(buffer);
   } catch (error: any) {

@@ -10,6 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Sequences
 CREATE SEQUENCE IF NOT EXISTS billing_id_seq START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS billing_invoice_number_seq START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 CREATE SEQUENCE IF NOT EXISTS consolidations_id_seq START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
 CREATE SEQUENCE IF NOT EXISTS courier_rates_id_seq START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 CREATE SEQUENCE IF NOT EXISTS customer_warehouse_codes_id_seq START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
@@ -37,7 +38,8 @@ CREATE TABLE billing (
     created_at timestamp with time zone DEFAULT now(),
     delivery_method character varying(20),
     delivery_fee_crc numeric(10,2) DEFAULT 0,
-    delivery_address_snapshot text
+    delivery_address_snapshot text,
+    invoice_number integer DEFAULT nextval('billing_invoice_number_seq'::regclass) NOT NULL
 );
 
 -- Tabla: consolidations
@@ -243,6 +245,7 @@ ALTER TABLE system_settings ADD CONSTRAINT system_settings_pkey PRIMARY KEY (id)
 ALTER TABLE users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 ALTER TABLE warehouse_routes ADD CONSTRAINT warehouse_routes_pkey PRIMARY KEY (id);
 ALTER TABLE billing ADD CONSTRAINT billing_uuid_key UNIQUE (uuid);
+ALTER TABLE billing ADD CONSTRAINT billing_invoice_number_key UNIQUE (invoice_number);
 ALTER TABLE consolidations ADD CONSTRAINT consolidations_uuid_key UNIQUE (uuid);
 ALTER TABLE courier_rates ADD CONSTRAINT courier_rates_uuid_key UNIQUE (uuid);
 ALTER TABLE customer_warehouse_codes ADD CONSTRAINT customer_warehouse_codes_uuid_key UNIQUE (uuid);
@@ -276,6 +279,7 @@ ALTER TABLE pre_billing ADD CONSTRAINT pre_billing_consolidation_id_fkey FOREIGN
 
 -- Ownership de sequences
 ALTER SEQUENCE billing_id_seq OWNED BY billing.id;
+ALTER SEQUENCE billing_invoice_number_seq OWNED BY billing.invoice_number;
 ALTER SEQUENCE consolidations_id_seq OWNED BY consolidations.id;
 ALTER SEQUENCE courier_rates_id_seq OWNED BY courier_rates.id;
 ALTER SEQUENCE customer_warehouse_codes_id_seq OWNED BY customer_warehouse_codes.id;

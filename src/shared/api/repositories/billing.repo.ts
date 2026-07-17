@@ -20,6 +20,7 @@ export const BillingRepository = {
       sql`
         SELECT
           b.uuid,
+          b.invoice_number,
           con.uuid AS consolidation_uuid,
           con.status AS consolidation_status,
           c.first_name || ' ' || c.last_name AS customer_name,
@@ -41,7 +42,8 @@ export const BillingRepository = {
             OR c.first_name ILIKE ${searchTerm}
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
-            OR b.uuid::text ILIKE ${searchTerm})
+            OR b.uuid::text ILIKE ${searchTerm}
+            OR b.invoice_number::text = ${search ?? null})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
           AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
@@ -58,7 +60,8 @@ export const BillingRepository = {
             OR c.first_name ILIKE ${searchTerm}
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
-            OR b.uuid::text ILIKE ${searchTerm})
+            OR b.uuid::text ILIKE ${searchTerm}
+            OR b.invoice_number::text = ${search ?? null})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
           AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
@@ -75,6 +78,7 @@ export const BillingRepository = {
     const rows = await sql`
       SELECT
         b.uuid,
+        b.invoice_number,
         con.uuid AS consolidation_uuid,
         con.status AS consolidation_status,
         c.first_name || ' ' || c.last_name AS customer_name,

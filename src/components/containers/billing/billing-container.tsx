@@ -8,6 +8,7 @@ import { useBilling, PaidFilterValue } from './use-billing';
 import { BillingListItem, DeliveryMethod, ConsolidationStatus } from '@/types/logistics/logistics.types';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos CR',
@@ -45,6 +46,15 @@ export const BillingContainer: React.FC = () => {
   } = useBilling();
 
   const billingColumns: Column<BillingListItem>[] = [
+    {
+      header: 'Factura',
+      accessor: 'invoice_number',
+      render: (row) => (
+        <span className="font-mono text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
+          {formatInvoiceNumber(row.invoice_number)}
+        </span>
+      ),
+    },
     {
       header: 'Cliente',
       accessor: 'customer_name',
@@ -150,7 +160,7 @@ export const BillingContainer: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar por cliente o casillero..."
+            placeholder="Buscar por cliente, casillero o N.º de factura..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"

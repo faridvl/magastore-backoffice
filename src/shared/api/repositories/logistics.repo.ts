@@ -224,7 +224,7 @@ export const LogisticsRepository = {
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
           ${pre.delivery_fee_crc}, ${addressSnapshot}
         )
-        RETURNING uuid
+        RETURNING uuid, invoice_number
       `;
 
       await sql`

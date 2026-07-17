@@ -232,7 +232,7 @@ interface Props {
 }
 
 export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
-  const shortId = detail.uuid.slice(-8).toUpperCase();
+  const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
   const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
@@ -260,7 +260,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
           <View style={s.headerMeta}>
             <View style={s.headerMetaRow}>
               <Text style={s.headerMetaLabel}>N.º de factura:</Text>
-              <Text style={s.headerMetaValue}>{shortId}</Text>
+              <Text style={s.headerMetaValue}>{invoiceLabel}</Text>
             </View>
             <View style={s.headerMetaRow}>
               <Text style={s.headerMetaLabel}>Cliente:</Text>

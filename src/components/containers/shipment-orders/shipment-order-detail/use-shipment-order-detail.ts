@@ -184,7 +184,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleDownloadBillingPdf = async (billingUuid: string) => {
+  const handleDownloadBillingPdf = async (billingUuid: string, invoiceNumber?: number) => {
     setIsDownloadingBillingPdf(true);
     try {
       const response = await fetch(`/api/billing/pdf?uuid=${billingUuid}`);
@@ -193,7 +193,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `factura-${billingUuid.slice(-8).toUpperCase()}.pdf`;
+      const label = invoiceNumber != null ? `F-${String(invoiceNumber).padStart(4, '0')}` : billingUuid.slice(-8).toUpperCase();
+      a.download = `factura-${label}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
