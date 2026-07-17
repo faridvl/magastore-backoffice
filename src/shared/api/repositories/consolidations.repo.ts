@@ -230,6 +230,7 @@ export const ConsolidationsRepository = {
         pb.uuid AS pre_billing_uuid,
         pb.estimated_amount_crc AS pre_billing_amount,
         pb.delivery_fee_crc AS pre_billing_fee_crc,
+        pb.delivery_cost_crc AS pre_billing_delivery_cost_crc,
         pb.delivery_method AS pre_billing_delivery_method,
         pb.is_confirmed AS pre_billing_confirmed,
         pb.confirmed_at AS pre_billing_confirmed_at,
@@ -264,7 +265,7 @@ export const ConsolidationsRepository = {
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
                con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
-               pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
+               pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_cost_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
                pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province

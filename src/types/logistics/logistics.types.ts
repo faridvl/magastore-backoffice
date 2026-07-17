@@ -351,6 +351,9 @@ export interface ConsolidationDetail {
   pre_billing_uuid: string | null;
   pre_billing_amount: number | null;
   pre_billing_fee_crc: number | null;
+  // Snapshot del costo real de entrega al generar el estimado (migración 014).
+  // Null en pre-billings viejos o si el cost_crc estaba "por confirmar".
+  pre_billing_delivery_cost_crc: number | null;
   pre_billing_delivery_method: DeliveryMethod | null;
   pre_billing_confirmed: boolean | null;
   pre_billing_confirmed_at: string | null;

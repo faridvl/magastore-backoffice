@@ -61,7 +61,13 @@ export const ConsolidationsService = {
     if (method === 'RETIRO') {
       deliveryCost = 0;
       deliveryFeeEstimate = 0;
+    } else if (method && detail.pre_billing_delivery_cost_crc != null) {
+      // Snapshot tomado al generar el estimado — la ganancia queda congelada
+      // aunque después cambien o se eliminen tarifas.
+      deliveryCost = Number(detail.pre_billing_delivery_cost_crc);
     } else if (method) {
+      // Fallback vivo: orden sin estimado aún, o pre-billing anterior a la
+      // migración 014 / con costo "por confirmar" en aquel momento.
       const settings = await getSettings();
       const kgPerLb = Number(settings?.kg_per_lb ?? 0.453592);
       const minLb = Number(settings?.min_weight ?? 1);

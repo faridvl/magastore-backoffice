@@ -93,7 +93,11 @@ export const LogisticsRepository = {
       const chargedWeight = Math.max(actualWeight, min_lb);
       const flete         = chargedWeight * price_lb * exchange;
 
+      // Snapshot del costo real de la entrega al momento del estimado. 0 para
+      // RETIRO (sin entrega); null si la tarifa matcheada no tiene cost_crc
+      // cargado ("por confirmar") o si se usó el fee de fallback de settings.
       let deliveryFee = 0;
+      let deliveryCost: number | null = 0;
       if (deliveryMethod === 'CORREOS_CR' || deliveryMethod === 'TRACOPA') {
         // Misma dirección que confirmPreBilling usa para el snapshot: la fijada
         // en la orden, o la default del cliente si la orden no tiene una propia.
@@ -114,6 +118,8 @@ export const LogisticsRepository = {
           : deliveryMethod === 'CORREOS_CR'
             ? Number(settings.correos_fee_crc ?? 4500)
             : Number(settings.tracopa_fee_crc ?? 3000);
+
+        deliveryCost = matchedRate?.cost_crc != null ? Number(matchedRate.cost_crc) : null;
       }
 
       const estimatedCrc = flete + deliveryFee;
@@ -129,6 +135,7 @@ export const LogisticsRepository = {
           SET estimated_amount_crc = ${estimatedCrc},
               delivery_method      = ${deliveryMethod},
               delivery_fee_crc     = ${deliveryFee},
+              delivery_cost_crc    = ${deliveryCost},
               applied_rate_usd     = ${price_lb},
               applied_exchange     = ${exchange},
               total_weight_charged = ${chargedWeight},
@@ -141,10 +148,10 @@ export const LogisticsRepository = {
         const [pre] = await sql`
           INSERT INTO pre_billing (
             consolidation_id, estimated_amount_crc, delivery_method,
-            delivery_fee_crc, applied_rate_usd, applied_exchange, total_weight_charged
+            delivery_fee_crc, delivery_cost_crc, applied_rate_usd, applied_exchange, total_weight_charged
           ) VALUES (
             ${c.id}, ${estimatedCrc}, ${deliveryMethod},
-            ${deliveryFee}, ${price_lb}, ${exchange}, ${chargedWeight}
+            ${deliveryFee}, ${deliveryCost}, ${price_lb}, ${exchange}, ${chargedWeight}
           )
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
         `;
