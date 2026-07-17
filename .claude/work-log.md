@@ -11135,3 +11135,245 @@ dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
 --- status ---
  M .claude/work-log.md
 ?? src/middleware.ts
+
+=== 2026-07-16 23:27 ===
+--- recent commits ---
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+--- status ---
+
+=== 2026-07-16 23:36 ===
+--- recent commits ---
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-17 00:16 ===
+--- recent commits ---
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-17 00:18 ===
+--- recent commits ---
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-17 00:24 ===
+--- recent commits ---
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-17 00:31 ===
+--- recent commits ---
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 00:38 ===
+--- recent commits ---
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 00:48 ===
+--- recent commits ---
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 01:05 ===
+--- recent commits ---
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 01:07 ===
+--- recent commits ---
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 01:17 ===
+--- recent commits ---
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 01:18 ===
+--- recent commits ---
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+af16917 feat: rentabilidad por orden y modal de factura compartido
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/
+
+=== 2026-07-17 01:22 ===
+--- recent commits ---
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+053cdd7 feat: middleware de rewrite por dominio para servir landing en magastorecr.com
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 01:38 ===
+--- recent commits ---
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 01:40 ===
+--- recent commits ---
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+540f7ab trigger deploy for dev environment
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 01:44 ===
+--- recent commits ---
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 01:47 ===
+--- recent commits ---
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 13:11 ===
+--- recent commits ---
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+--- status ---
+ M .claude/work-log.md
+ M src/components/common/header/header.tsx
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 13:16 ===
+--- recent commits ---
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+0e8cfd9 feat: quitar banner de landing (novedad para clientes) del dashboard
+--- status ---
+ M .claude/work-log.md
+ M src/components/common/header/header.tsx
+ M src/shared/api/services/auth.service.ts
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 13:26 ===
+--- recent commits ---
+2b5a36e fix: usar logo Magastore como avatar y corregir access_token en login
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+37ff225 feat: eliminar tarifas de entrega, cards mobile y rentabilidad con delivery
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-reports-container.tsx
+ M src/components/containers/billing/use-billing-reports.ts
+ M src/shared/api/repositories/billing.repo.ts
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 13:27 ===
+--- recent commits ---
+d45b6f9 fix: Ganancia Est. en Reportes ahora descuenta el costo real de entrega
+2b5a36e fix: usar logo Magastore como avatar y corregir access_token en login
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+654fa22 feat: snapshot del costo real de entrega en pre_billing
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
+
+=== 2026-07-17 13:55 ===
+--- recent commits ---
+3d2baa7 feat: numero de factura correlativo y legible (F-0001)
+d45b6f9 fix: Ganancia Est. en Reportes ahora descuenta el costo real de entrega
+2b5a36e fix: usar logo Magastore como avatar y corregir access_token en login
+b1a277e feat: estado notificado persistente en modal de WhatsApp por paquete
+12de32b feat: quitar input Tienda/Proveedor del ingreso de carga
+--- status ---
+ M .claude/work-log.md
+?? scripts/prod/002-seed.sql
