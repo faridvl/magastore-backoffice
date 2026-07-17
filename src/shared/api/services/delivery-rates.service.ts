@@ -31,4 +31,9 @@ export const DeliveryRatesService = {
     if (!uuid) throw new Error('Se requiere el UUID de la tarifa.');
     return DeliveryRatesRepository.toggleActive(uuid, isActive);
   },
+
+  remove: async (uuid: string) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la tarifa.');
+    return DeliveryRatesRepository.remove(uuid);
+  },
 };

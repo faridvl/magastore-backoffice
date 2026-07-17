@@ -37,6 +37,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ data: updated });
     }
 
+    if (req.method === 'DELETE') {
+      const { uuid } = req.body;
+      if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
+      await DeliveryRatesService.remove(uuid);
+      return res.status(200).json({ data: { deleted: true } });
+    }
+
     return res.status(405).json({ message: 'Método no permitido.' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';

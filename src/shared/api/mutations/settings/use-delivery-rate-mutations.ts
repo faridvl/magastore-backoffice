@@ -37,6 +37,22 @@ export function useUpdateDeliveryRateMutation() {
   return { updateDeliveryRate, isPending, error, reset };
 }
 
+export function useDeleteDeliveryRateMutation() {
+  const queryClient = useQueryClient();
+  const { mutateAsync: deleteDeliveryRate, isPending, error, reset } = useApiMutation<
+    { data: { deleted: boolean } },
+    { uuid: string },
+    Error
+  >({
+    mutationKey: ['deleteDeliveryRate'],
+    mutationFn: ({ uuid }) => ApiServiceClient(env.API.BASE_URL).delete('/delivery-rates', { uuid }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DELIVERY_RATES_KEY] });
+    },
+  });
+  return { deleteDeliveryRate, isPending, error, reset };
+}
+
 export function useToggleDeliveryRateActiveMutation() {
   const queryClient = useQueryClient();
   const { mutateAsync: toggleDeliveryRateActive, isPending, error, reset } = useApiMutation<

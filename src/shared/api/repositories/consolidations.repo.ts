@@ -247,7 +247,13 @@ export const ConsolidationsRepository = {
         ca.exact_address AS delivery_exact_address,
         ca.district AS delivery_district,
         ca.canton AS delivery_canton,
-        ca.province AS delivery_province
+        ca.province AS delivery_province,
+        COALESCE(
+          ca.canton,
+          (SELECT canton FROM customer_addresses
+           WHERE customer_id = con.customer_id
+           ORDER BY is_default DESC LIMIT 1)
+        ) AS zone_canton
       FROM consolidations con
       LEFT JOIN customers c ON c.id = con.customer_id
       LEFT JOIN packages p ON p.consolidation_id = con.id

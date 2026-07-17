@@ -1,4 +1,7 @@
 import { ConsolidationsRepository } from '../repositories/consolidations.repo';
+import { DeliveryRatesRepository } from '../repositories/delivery-rates.repo';
+import { getSettings } from '../repositories/settings.repo';
+import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
 
 // ABIERTO → CERRADO ya no es una transición manual: ocurre automáticamente al
@@ -47,7 +50,33 @@ export const ConsolidationsService = {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     const detail = await ConsolidationsRepository.getConsolidationDetail(uuid);
     if (!detail) throw new Error('Orden de envío no encontrada.');
-    return detail;
+
+    // Enriquecer con la tarifa de entrega vigente (cobro y costo real) para la
+    // rentabilidad. Mismo criterio de zona/peso que generatePreBilling: cantón de
+    // la dirección de entrega (o la default del cliente) y peso cobrado en kg.
+    const method = detail.pre_billing_delivery_method ?? detail.delivery_method;
+    let deliveryCost: number | null = null;
+    let deliveryFeeEstimate: number | null = null;
+
+    if (method === 'RETIRO') {
+      deliveryCost = 0;
+      deliveryFeeEstimate = 0;
+    } else if (method) {
+      const settings = await getSettings();
+      const kgPerLb = Number(settings?.kg_per_lb ?? 0.453592);
+      const minLb = Number(settings?.min_weight ?? 1);
+      const chargedLb = Math.max(Number(detail.total_weight_lb), minLb);
+      const zone = resolveZone(detail.zone_canton ?? '');
+      const rate = await DeliveryRatesRepository.findMatchingRate(method, zone, chargedLb * kgPerLb);
+      deliveryCost = rate?.cost_crc != null ? Number(rate.cost_crc) : null;
+      deliveryFeeEstimate = rate ? Number(rate.fee_crc) : null;
+    }
+
+    return {
+      ...detail,
+      delivery_cost_crc: deliveryCost,
+      delivery_fee_estimate_crc: deliveryFeeEstimate,
+    };
   },
 
   updateConsolidationStatus: async (

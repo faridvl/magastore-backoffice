@@ -372,6 +372,14 @@ export interface ConsolidationDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  // Cantón usado para resolver la zona (dirección de la orden, o la default
+  // del cliente si la orden aún no tiene dirección asignada).
+  zone_canton: string | null;
+  // Enriquecidos en el service con la tarifa vigente de delivery_rates que
+  // matchea método/zona/peso — para la rentabilidad. El costo real no se
+  // snapshotea: siempre refleja el valor actual de la tabla de tarifas.
+  delivery_cost_crc: number | null;
+  delivery_fee_estimate_crc: number | null;
 }
 
 export interface AvailablePackage {

@@ -812,8 +812,20 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
 
   const totalWeight = Number(detail.total_weight_lb);
   const chargedWeight = Math.max(totalWeight, Number(detail.current_min_weight));
-  const cobroTotal = chargedWeight * rateUsd * exchange;
-  const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0);
+
+  // Entrega: cobro del snapshot de la prefactura si existe; si no, la tarifa
+  // vigente que matchea método/zona/peso. El costo real siempre es el vigente
+  // de delivery_rates (no se snapshotea).
+  const deliveryMethod = detail.pre_billing_delivery_method ?? detail.delivery_method;
+  const hasDelivery = deliveryMethod != null && deliveryMethod !== 'RETIRO';
+  const deliveryFee = hasDelivery
+    ? Number(detail.pre_billing_fee_crc ?? detail.delivery_fee_estimate_crc ?? 0)
+    : 0;
+  const deliveryCost = hasDelivery ? detail.delivery_cost_crc : 0;
+  const missingDeliveryCost = hasDelivery && deliveryCost == null;
+
+  const cobroTotal = chargedWeight * rateUsd * exchange + deliveryFee;
+  const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0) + (deliveryCost ?? 0);
   const missingCost = rows.some((r) => r.costo == null);
   const gananciaTotal = cobroTotal - costoTotal;
   const margen = cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : 0;
@@ -860,6 +872,33 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
             </div>
           </div>
         ))}
+
+        {hasDelivery && (
+          <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+            <p className="text-sm font-bold text-slate-800">Entrega · {DELIVERY_LABELS[deliveryMethod]}</p>
+            <p className="text-[10px] text-slate-400 mb-2">
+              {detail.pre_billing_fee_crc != null ? 'Cobro del estimado' : 'Cobro con tarifa vigente'}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro</p>
+                <p className="text-xs font-bold text-slate-700">{formatCRC(deliveryFee)}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo real</p>
+                <p className="text-xs font-bold text-slate-700">
+                  {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Por confirmar</span>}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+                <p className={`text-xs font-black ${deliveryCost == null ? 'text-slate-400' : deliveryFee - deliveryCost >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {deliveryCost != null ? formatCRC(deliveryFee - deliveryCost) : '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
@@ -870,7 +909,7 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
           <p className="text-sm font-black text-white">
-            {formatCRC(costoTotal)}{missingCost ? ' *' : ''}
+            {formatCRC(costoTotal)}{missingCost || missingDeliveryCost ? ' *' : ''}
           </p>
         </div>
         <div>
@@ -886,6 +925,11 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
         {missingCost && (
           <p className="text-[10px] text-amber-600">
             * Ganancia parcial: hay paquetes registrados sin costo de courier o sin tipo de cambio del banco.
+          </p>
+        )}
+        {missingDeliveryCost && (
+          <p className="text-[10px] text-amber-600">
+            * El costo real de la entrega está por confirmar en la tarifa de {DELIVERY_LABELS[deliveryMethod!]} — no se incluye en el costo total.
           </p>
         )}
         {minApplied && (
