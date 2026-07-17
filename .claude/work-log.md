@@ -10928,3 +10928,190 @@ eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
 --- status ---
  M .claude/work-log.md
  M src/components/containers/logistics/logistics-view-detail/logistics-view-detail.tsx
+
+=== 2026-07-15 11:23 ===
+--- recent commits ---
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+--- status ---
+
+=== 2026-07-15 11:30 ===
+--- recent commits ---
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+6caa503 animaciones
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 14:40 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 22:45 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 23:11 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-15 23:12 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-16 22:27 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+
+=== 2026-07-16 22:30 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+
+=== 2026-07-16 22:33 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+
+=== 2026-07-16 22:37 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/types/logistics/logistics.types.ts
+
+=== 2026-07-16 22:45 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? src/components/common/billing-detail-modal/
+
+=== 2026-07-16 22:49 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? src/components/common/billing-detail-modal/
+
+=== 2026-07-16 22:56 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? src/components/common/billing-detail-modal/
+
+=== 2026-07-16 23:00 ===
+--- recent commits ---
+1055c4d feat: Facturacion pasa a Operaciones y Reportes al grupo Finanzas
+57102cc feat: pulido responsive del detalle de paquete
+3159c08 feat: redise├▒o UX del detalle de cliente con m├®tricas reales
+dc3df94 fix: crear cliente muestra la causa real del error, no el gen├®rico
+eef2292 fix: tracking se guarda sin espacios y el toast muestra la causa real
+--- status ---
+ M .claude/work-log.md
+ M src/components/containers/billing/billing-container.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/shipment-order-detail.tsx
+ M src/components/containers/shipment-orders/shipment-order-detail/use-shipment-order-detail.ts
+ M src/components/pdf/billing-invoice.tsx
+ M src/components/pdf/pre-billing-invoice.tsx
+ M src/pages/api/billing/pre-billing-pdf.ts
+ M src/shared/api/repositories/billing.repo.ts
+ M src/shared/api/repositories/consolidations.repo.ts
+ M src/shared/api/repositories/logistics.repo.ts
+ M src/types/logistics/logistics.types.ts
+?? src/components/common/billing-detail-modal/

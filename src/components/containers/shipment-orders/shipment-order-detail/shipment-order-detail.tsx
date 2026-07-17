@@ -11,19 +11,21 @@ import {
   RotateCcw,
   SendHorizonal,
   AlertCircle,
-  Wallet,
   MapPin,
   Pencil,
   Plus,
   Square,
   CheckSquare,
   MessageCircle,
+  TrendingUp,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
 import {
   ConsolidationStatus,
   ConsolidationPackage,
+  ConsolidationDetail,
   DeliveryMethod,
   AvailablePackage,
 } from '@/types/logistics/logistics.types';
@@ -84,6 +86,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleDownloadPreBillingPDF,
 
     handleMarkAsPaid, isMarkingPaid,
+
+    showBillingModal, setShowBillingModal,
+    billingDetail, isLoadingBillingDetail,
+    handleDownloadBillingPdf, isDownloadingBillingPdf,
 
     showAddressModal, setShowAddressModal,
     addressOptions,
@@ -371,16 +377,13 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </p>
             </div>
           </div>
-          {!isPaid && (
-            <button
-              onClick={handleMarkAsPaid}
-              disabled={isMarkingPaid}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-            >
-              <Wallet size={14} />
-              {isMarkingPaid ? 'Registrando...' : 'Marcar como pagado'}
-            </button>
-          )}
+          <button
+            onClick={() => setShowBillingModal(true)}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all"
+          >
+            <FileText size={14} />
+            Ver factura
+          </button>
         </div>
       )}
 
@@ -422,6 +425,9 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         )}
       </div>
 
+      {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al cliente) */}
+      {detail.packages.length > 0 && <ProfitCard detail={detail} />}
+
       {/* ACTIONS */}
       <div className="flex flex-col sm:flex-row gap-3">
         {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
@@ -445,6 +451,19 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* MODAL: DETALLE DE FACTURA (mismo modal que Facturación) */}
+      {showBillingModal && (
+        <BillingDetailModal
+          billingDetail={billingDetail}
+          isLoading={isLoadingBillingDetail}
+          onClose={() => setShowBillingModal(false)}
+          onMarkAsPaid={handleMarkAsPaid}
+          isMarkingPaid={isMarkingPaid}
+          onDownloadPdf={handleDownloadBillingPdf}
+          isDownloadingPdf={isDownloadingBillingPdf}
+        />
+      )}
 
       {/* MODAL: REABRIR / DESPACHAR */}
       {quickActionTarget && (
@@ -771,6 +790,113 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+  // Cobro con las tarifas del snapshot de la prefactura; si la orden sigue
+  // abierta, con las vigentes de system_settings (el monto puede variar hasta
+  // que se genere el estimado).
+  const usingSnapshot = detail.pre_billing_rate_usd != null && detail.pre_billing_exchange != null;
+  const rateUsd = Number(usingSnapshot ? detail.pre_billing_rate_usd : detail.current_price_per_lb);
+  const exchange = Number(usingSnapshot ? detail.pre_billing_exchange : detail.current_exchange_rate);
+
+  const rows = detail.packages.map((pkg) => {
+    const weight = Number(pkg.weight_lb);
+    const cobro = weight * rateUsd * exchange;
+    const hasCost = pkg.courier_cost_usd != null && pkg.tc_banco != null;
+    const costo = hasCost ? Number(pkg.courier_cost_usd) * Number(pkg.tc_banco) : null;
+    return { pkg, cobro, costo, ganancia: costo != null ? cobro - costo : null };
+  });
+
+  const totalWeight = Number(detail.total_weight_lb);
+  const chargedWeight = Math.max(totalWeight, Number(detail.current_min_weight));
+  const cobroTotal = chargedWeight * rateUsd * exchange;
+  const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0);
+  const missingCost = rows.some((r) => r.costo == null);
+  const gananciaTotal = cobroTotal - costoTotal;
+  const margen = cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : 0;
+  const minApplied = chargedWeight > totalWeight;
+
+  return (
+    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={14} className="text-slate-400" />
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            Rentabilidad · Solo interno
+          </p>
+        </div>
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+          {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {rows.map(({ pkg, cobro, costo, ganancia }) => (
+          <div key={pkg.uuid} className="px-4 py-3 bg-slate-50 rounded-2xl">
+            <p className="font-mono text-sm font-bold text-slate-800 truncate">{pkg.tracking_number}</p>
+            <p className="text-[10px] text-slate-400 mb-2">
+              {Number(pkg.weight_lb).toFixed(2)} lb{pkg.store_name ? ` · ${pkg.store_name}` : ''}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro</p>
+                <p className="text-xs font-bold text-slate-700">{formatCRC(cobro)}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo real</p>
+                <p className="text-xs font-bold text-slate-700">
+                  {costo != null ? formatCRC(costo) : <span className="text-slate-400 italic font-medium">Sin datos</span>}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+                <p className={`text-xs font-black ${ganancia == null ? 'text-slate-400' : ganancia >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {ganancia != null ? formatCRC(ganancia) : '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro total</p>
+          <p className="text-sm font-black text-white">{formatCRC(cobroTotal)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
+          <p className="text-sm font-black text-white">
+            {formatCRC(costoTotal)}{missingCost ? ' *' : ''}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+          <p className={`text-sm font-black ${gananciaTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {formatCRC(gananciaTotal)}
+            <span className="text-[10px] font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-0.5">
+        {missingCost && (
+          <p className="text-[10px] text-amber-600">
+            * Ganancia parcial: hay paquetes registrados sin costo de courier o sin tipo de cambio del banco.
+          </p>
+        )}
+        {minApplied && (
+          <p className="text-[10px] text-slate-400">
+            El cobro total incluye el ajuste por peso mínimo ({Number(detail.current_min_weight)} lb), por eso puede superar la suma por paquete.
+          </p>
+        )}
+        <p className="text-[10px] text-slate-400">
+          No incluye el fee de entrega (Correos/Tracopa), que es un traslado de costo. Este cálculo no aparece en el estimado ni en la factura del cliente.
+        </p>
+      </div>
     </div>
   );
 };

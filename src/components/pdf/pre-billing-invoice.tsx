@@ -81,6 +81,11 @@ const s = StyleSheet.create({
   },
 });
 
+export interface PreBillingPDFPackage {
+  tracking_number: string;
+  weight_lb: number;
+}
+
 export interface PreBillingPDFData {
   uuid: string;
   customer_name: string;
@@ -94,7 +99,11 @@ export interface PreBillingPDFData {
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
   created_at: string;
-  package_trackings: string[];
+  packages: PreBillingPDFPackage[];
+  delivery_exact_address: string | null;
+  delivery_district: string | null;
+  delivery_canton: string | null;
+  delivery_province: string | null;
 }
 
 interface Props {
@@ -109,7 +118,7 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
   const pricePerLb = Number(data.applied_rate_usd);
   const exchange = Number(data.applied_exchange);
   const flete = Number(data.total_weight_charged) * pricePerLb * exchange;
-  const trackings = data.package_trackings ?? [];
+  const packages = data.packages ?? [];
 
   return (
     <Document>
@@ -158,12 +167,25 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
           </Text>
         </View>
 
+        {data.delivery_exact_address && (
+          <View style={[s.contactRow, { backgroundColor: '#f1f5f9' }]}>
+            <Text style={[s.contactText, { color: '#475569' }]}>
+              Dirección de entrega:{' '}
+              <Text style={[s.contactHighlight, { color: '#1e293b' }]}>
+                {[data.delivery_exact_address, data.delivery_district, data.delivery_canton, data.delivery_province]
+                  .filter(Boolean)
+                  .join(', ')}
+              </Text>
+            </Text>
+          </View>
+        )}
+
         <View style={s.body}>
           <Text style={s.note}>
             Para confirmar el envío, comuníquese con nosotros aprobando este estimado.
           </Text>
 
-          {trackings.length > 0 && (
+          {packages.length > 0 && (
             <>
               <View style={s.tableHeader}>
                 <Text style={[s.thText, s.colTracking]}># de Tracking</Text>
@@ -171,12 +193,12 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
                 <Text style={[s.thText, s.colPrecio]}>Precio x LB</Text>
                 <Text style={[s.thText, s.colTotal]}>Subtotal</Text>
               </View>
-              {trackings.map((tracking, i) => {
-                const weight = data.total_weight_charged / trackings.length;
+              {packages.map((pkg, i) => {
+                const weight = Number(pkg.weight_lb);
                 const subtotal = weight * pricePerLb * exchange;
                 return (
                   <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                    <Text style={[s.tdMono, s.colTracking]}>{tracking}</Text>
+                    <Text style={[s.tdMono, s.colTracking]}>{pkg.tracking_number}</Text>
                     <Text style={[s.tdText, s.colPeso]}>{weight.toFixed(2)}</Text>
                     <Text style={[s.tdText, s.colPrecio]}>{fmtUSD(pricePerLb)}</Text>
                     <Text style={[s.tdText, s.colTotal]}>{fmtCRC(subtotal)}</Text>
@@ -193,7 +215,7 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
             </View>
             <View style={s.summaryRow}>
               <Text style={s.summaryLabel}>
-                {`Flete (${fmtUSD(pricePerLb)}/lb × ${exchange} tipo de cambio)`}
+                {`Precio Magastore (${fmtUSD(pricePerLb)}/lb)`}
               </Text>
               <Text style={s.summaryValue}>{fmtCRC(flete)}</Text>
             </View>

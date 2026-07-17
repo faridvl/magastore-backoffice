@@ -224,6 +224,11 @@ export interface BillingListItem {
   delivery_fee_crc: number;
 }
 
+export interface BillingPackageLine {
+  tracking_number: string;
+  weight_lb: number;
+}
+
 export interface BillingDetail {
   uuid: string;
   consolidation_uuid: string;
@@ -239,10 +244,16 @@ export interface BillingDetail {
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
-  package_trackings: string[];
+  packages: BillingPackageLine[];
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
   delivery_address_snapshot: string | null;
+  // Dirección de entrega actual de la orden — fallback con zona completa para
+  // facturas viejas cuyo snapshot solo guardó la dirección exacta.
+  delivery_exact_address: string | null;
+  delivery_district: string | null;
+  delivery_canton: string | null;
+  delivery_province: string | null;
 }
 
 export interface GenerateInvoiceInput {
@@ -321,6 +332,8 @@ export interface ConsolidationPackage {
   status: PackageStatus;
   arrival_date: string;
   store_name: string | null;
+  courier_cost_usd: number | null;
+  tc_banco: number | null;
 }
 
 export interface ConsolidationDetail {
@@ -342,6 +355,14 @@ export interface ConsolidationDetail {
   pre_billing_confirmed: boolean | null;
   pre_billing_confirmed_at: string | null;
   pre_billing_notified_at: string | null;
+  // Snapshot de tarifas de la prefactura (null si la orden sigue abierta)
+  pre_billing_rate_usd: number | null;
+  pre_billing_exchange: number | null;
+  // Tarifas vigentes de system_settings — fallback para calcular el cobro
+  // estimado de la rentabilidad cuando aún no hay prefactura.
+  current_price_per_lb: number;
+  current_exchange_rate: number;
+  current_min_weight: number;
   billing_uuid: string | null;
   billing_is_paid: boolean | null;
   delivery_method: DeliveryMethod | null;

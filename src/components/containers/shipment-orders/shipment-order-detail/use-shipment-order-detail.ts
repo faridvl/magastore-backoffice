@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useShipmentOrderDetailQuery } from '@/shared/api/querys/shipment-orders/use-shipment-order-detail-query';
+import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
 import { useUpdateShipmentOrderStatusMutation } from '@/shared/api/mutations/shipment-orders/use-update-shipment-order-status-mutation';
 import { useUnassignPackageMutation } from '@/shared/api/mutations/shipment-orders/use-unassign-package-mutation';
 import { useAssignPackagesToOrderMutation } from '@/shared/api/mutations/shipment-orders/use-assign-packages-to-order-mutation';
@@ -40,9 +41,19 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
 
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [isDownloadingBillingPdf, setIsDownloadingBillingPdf] = useState(false);
+
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
+
+  // Detalle de la factura para el modal — solo se consulta al abrirlo
+  const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
+  const { data: billingDetailResponse, isLoading: isLoadingBillingDetail } = billingDetailQuery.useQuery({
+    enabled: showBillingModal && !!detail?.billing_uuid,
+  });
+  const billingDetail = billingDetailResponse?.data ?? null;
 
   const { updateStatus, isPending: isUpdating } = useUpdateShipmentOrderStatusMutation();
   const { unassignPackage, isPending: isUnassigning } = useUnassignPackageMutation();
@@ -165,10 +176,32 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     if (!detail?.billing_uuid) return;
     try {
       await markAsPaid({ billingUuid: detail.billing_uuid });
-      await detailQuery.invalidate();
+      await Promise.all([detailQuery.invalidate(), billingDetailQuery.invalidate()]);
+      setShowBillingModal(false);
       toast.success('Factura marcada como pagada');
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar el pago. Intenta de nuevo.');
+    }
+  };
+
+  const handleDownloadBillingPdf = async (billingUuid: string) => {
+    setIsDownloadingBillingPdf(true);
+    try {
+      const response = await fetch(`/api/billing/pdf?uuid=${billingUuid}`);
+      if (!response.ok) throw new Error('No se pudo generar el PDF');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `factura-${billingUuid.slice(-8).toUpperCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch {
+      toast.error('No se pudo descargar el PDF. Intenta de nuevo más tarde.');
+    } finally {
+      setIsDownloadingBillingPdf(false);
     }
   };
 
@@ -326,6 +359,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     handleDownloadPreBillingPDF,
 
     handleMarkAsPaid, isMarkingPaid,
+
+    showBillingModal, setShowBillingModal,
+    billingDetail, isLoadingBillingDetail,
+    handleDownloadBillingPdf, isDownloadingBillingPdf,
 
     showAddressModal, setShowAddressModal,
     addressOptions,

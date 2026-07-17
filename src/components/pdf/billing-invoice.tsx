@@ -239,7 +239,14 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
   const pricePerLb = Number(detail.applied_rate_usd);
   const exchange = Number(detail.applied_exchange);
   const flete = Number(detail.total_weight_charged) * pricePerLb * exchange;
-  const trackings = detail.package_trackings ?? [];
+  const packages = detail.packages ?? [];
+  // Dirección viva de la orden (incluye distrito/cantón/provincia); el snapshot
+  // queda como fallback para facturas cuya orden ya no tiene dirección asignada.
+  const deliveryAddress = detail.delivery_exact_address
+    ? [detail.delivery_exact_address, detail.delivery_district, detail.delivery_canton, detail.delivery_province]
+        .filter(Boolean)
+        .join(', ')
+    : detail.delivery_address_snapshot;
 
   return (
     <Document>
@@ -287,12 +294,12 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
         </View>
 
         {/* ── Dirección de entrega ── */}
-        {detail.delivery_address_snapshot && (
+        {deliveryAddress && (
           <View style={[s.contactRow, { backgroundColor: '#f1f5f9' }]}>
             <Text style={[s.contactText, { color: '#475569' }]}>
               Dirección de entrega:{' '}
               <Text style={[s.contactHighlight, { color: '#1e293b' }]}>
-                {detail.delivery_address_snapshot}
+                {deliveryAddress}
               </Text>
             </Text>
           </View>
@@ -305,7 +312,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
           </Text>
 
           {/* Tabla de paquetes */}
-          {trackings.length > 0 && (
+          {packages.length > 0 && (
             <>
               {/* Header de tabla */}
               <View style={s.tableHeader}>
@@ -315,12 +322,12 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
                 <Text style={[s.thText, s.colTotal]}>Subtotal</Text>
               </View>
 
-              {trackings.map((tracking, i) => {
-                const weight = detail.total_weight_charged / trackings.length;
+              {packages.map((pkg, i) => {
+                const weight = Number(pkg.weight_lb);
                 const subtotal = weight * pricePerLb * exchange;
                 return (
                   <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                    <Text style={[s.tdMono, s.colTracking]}>{tracking}</Text>
+                    <Text style={[s.tdMono, s.colTracking]}>{pkg.tracking_number}</Text>
                     <Text style={[s.tdText, s.colPeso]}>{weight.toFixed(2)}</Text>
                     <Text style={[s.tdText, s.colPrecio]}>{fmtUSD(pricePerLb)}</Text>
                     <Text style={[s.tdText, s.colTotal]}>{fmtCRC(subtotal)}</Text>
@@ -338,7 +345,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
             </View>
             <View style={s.summaryRow}>
               <Text style={s.summaryLabel}>
-                {`Flete (${fmtUSD(pricePerLb)}/lb × ${exchange} tipo de cambio)`}
+                {`Precio Magastore (${fmtUSD(pricePerLb)}/lb)`}
               </Text>
               <Text style={s.summaryValue}>{fmtCRC(flete)}</Text>
             </View>

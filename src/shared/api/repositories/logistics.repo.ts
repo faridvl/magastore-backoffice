@@ -192,12 +192,20 @@ export const LogisticsRepository = {
       // La dirección snapshot usa la fijada en la orden (delivery_address_id), no la
       // is_default del cliente — pueden diferir si el operador la cambió para este envío.
       const [addressRow] = c.delivery_address_id
-        ? await sql`SELECT exact_address FROM customer_addresses WHERE id = ${c.delivery_address_id}`
+        ? await sql`
+            SELECT exact_address, district, canton, province FROM customer_addresses
+            WHERE id = ${c.delivery_address_id}
+          `
         : await sql`
-            SELECT exact_address FROM customer_addresses
+            SELECT exact_address, district, canton, province FROM customer_addresses
             WHERE customer_id = ${c.customer_id}
             ORDER BY is_default DESC LIMIT 1
           `;
+      const addressSnapshot = addressRow
+        ? [addressRow.exact_address, addressRow.district, addressRow.canton, addressRow.province]
+            .filter(Boolean)
+            .join(', ')
+        : null;
 
       const [bill] = await sql`
         INSERT INTO billing (
@@ -207,7 +215,7 @@ export const LogisticsRepository = {
         ) VALUES (
           ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
-          ${pre.delivery_fee_crc}, ${addressRow?.exact_address ?? null}
+          ${pre.delivery_fee_crc}, ${addressSnapshot}
         )
         RETURNING uuid
       `;

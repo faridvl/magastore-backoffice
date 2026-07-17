@@ -91,14 +91,22 @@ export const BillingRepository = {
         b.delivery_method,
         COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc,
         b.delivery_address_snapshot,
+        ca.exact_address AS delivery_exact_address,
+        ca.district AS delivery_district,
+        ca.canton AS delivery_canton,
+        ca.province AS delivery_province,
         COALESCE(
-          (SELECT json_agg(p.tracking_number ORDER BY p.created_at)
+          (SELECT json_agg(
+             json_build_object('tracking_number', p.tracking_number, 'weight_lb', p.weight_lb)
+             ORDER BY p.created_at
+           )
            FROM packages p WHERE p.consolidation_id = con.id),
           '[]'::json
-        ) AS package_trackings
+        ) AS packages
       FROM billing b
       JOIN consolidations con ON b.consolidation_id = con.id
       JOIN customers c ON con.customer_id = c.id
+      LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
       WHERE b.uuid = ${uuid}
     `;
 

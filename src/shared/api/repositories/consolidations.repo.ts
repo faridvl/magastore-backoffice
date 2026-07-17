@@ -220,7 +220,9 @@ export const ConsolidationsRepository = {
               'package_type', p.package_type,
               'status', p.status,
               'arrival_date', p.arrival_date,
-              'store_name', p.store_name
+              'store_name', p.store_name,
+              'courier_cost_usd', p.courier_cost_usd,
+              'tc_banco', p.tc_banco
             ) ORDER BY p.created_at DESC
           ) FILTER (WHERE p.id IS NOT NULL),
           '[]'::json
@@ -232,6 +234,11 @@ export const ConsolidationsRepository = {
         pb.is_confirmed AS pre_billing_confirmed,
         pb.confirmed_at AS pre_billing_confirmed_at,
         pb.notified_at AS pre_billing_notified_at,
+        pb.applied_rate_usd AS pre_billing_rate_usd,
+        pb.applied_exchange AS pre_billing_exchange,
+        ss.price_per_lb AS current_price_per_lb,
+        ss.exchange_rate AS current_exchange_rate,
+        ss.min_weight AS current_min_weight,
         b.uuid AS billing_uuid,
         b.is_paid AS billing_is_paid,
         con.delivery_method,
@@ -247,10 +254,12 @@ export const ConsolidationsRepository = {
       LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
       LEFT JOIN billing b ON b.consolidation_id = con.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
+      CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
                con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
                pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
+               pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
