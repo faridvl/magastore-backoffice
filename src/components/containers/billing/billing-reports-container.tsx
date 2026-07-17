@@ -17,8 +17,22 @@ function fmtMonth(yyyyMm: string): string {
   return `${MONTH_LABELS[month] ?? month} ${year}`;
 }
 
+const MONTH_OPTIONS: { value: string; label: string }[] = [
+  { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' }, { value: '03', label: 'Marzo' },
+  { value: '04', label: 'Abril' }, { value: '05', label: 'Mayo' }, { value: '06', label: 'Junio' },
+  { value: '07', label: 'Julio' }, { value: '08', label: 'Agosto' }, { value: '09', label: 'Setiembre' },
+  { value: '10', label: 'Octubre' }, { value: '11', label: 'Noviembre' }, { value: '12', label: 'Diciembre' },
+];
+
 export const BillingReportsContainer: React.FC = () => {
-  const { from, setFrom, to, setTo, rows, isLoading } = useBillingReports();
+  const {
+    from, setFrom, to, setTo,
+    selectedYear, selectedMonth, applyMonthFilter,
+    rows, isLoading,
+  } = useBillingReports();
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   const totalInvoiced = rows.reduce((s, r) => s + Number(r.total_invoiced_crc), 0);
   const totalPaid     = rows.reduce((s, r) => s + Number(r.total_paid_crc), 0);
@@ -35,8 +49,29 @@ export const BillingReportsContainer: React.FC = () => {
         tooltip="Resumen mensual de ingresos facturados, pagados, pendientes y ganancia estimada por mes."
       />
 
-      {/* Filtro de rango */}
+      {/* Filtros */}
       <div className="flex flex-wrap items-end gap-4 bg-white border border-slate-200 rounded-xl p-4">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Mes</label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => applyMonthFilter(selectedYear, e.target.value)}
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">— Rango libre —</option>
+            {MONTH_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Año</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => applyMonthFilter(Number(e.target.value), selectedMonth)}
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Desde</label>
           <input

@@ -131,12 +131,13 @@ export const BillingRepository = {
               WHERE p.consolidation_id = b.consolidation_id
                 AND p.courier_cost_usd IS NOT NULL
                 AND p.tc_banco IS NOT NULL
-            )
+            ) - COALESCE(pb.delivery_cost_crc, 0)
           ), 0
         )::numeric AS total_ganancia_crc,
         COUNT(*)::int                                          AS invoice_count,
         COUNT(CASE WHEN b.is_paid THEN 1 END)::int             AS paid_count
       FROM billing b
+      LEFT JOIN pre_billing pb ON pb.consolidation_id = b.consolidation_id
       WHERE b.created_at >= ${from}::timestamptz
         AND b.created_at <  ${to}::timestamptz
       GROUP BY DATE_TRUNC('month', b.created_at)
