@@ -130,3 +130,9 @@ dist
 .pnp.*
 .vercel
 .env*.local
+
+# Bitácora de trabajo local — ruido en diffs, no aporta al repo
+.claude/work-log.md
+
+# Seeds de producción: contienen hashes de contraseñas reales
+scripts/prod/

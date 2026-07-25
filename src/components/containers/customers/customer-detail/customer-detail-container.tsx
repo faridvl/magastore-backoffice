@@ -21,6 +21,7 @@ function WarehouseCodeCard({
   customerFirstName: string; customerFullName: string; customerPhone: string;
 }) {
   const [copied, setCopied] = React.useState(false);
+  const welcomeTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.WAREHOUSE_WELCOME);
   const display = WAREHOUSE_ROUTE_DISPLAY[`${origin}-${packageType}`] ?? {
     label: `${origin} ${packageType}`,
     flag: '📦',
@@ -42,6 +43,7 @@ function WarehouseCodeCard({
       code,
       routeLabel: display.label,
       addressLine, city, state, postalCode, contactPhone,
+      templateBody: welcomeTemplateBody,
     });
     window.open(buildWhatsAppUrl(customerPhone, message), '_blank');
   };
@@ -81,8 +83,11 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
+import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
 import { buildWhatsAppUrl, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 
 const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
   CORREOS_CR: 'Correos de Costa Rica',
@@ -121,6 +126,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         setActiveTab,
         isEditMode,
         editForm,
+        customerTypes,
         editError,
         isSaving,
         enterEditMode,
@@ -171,6 +177,13 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                     <Typography variant={TypographyVariant.CAPTION} className="text-primary font-bold tracking-widest uppercase block">
                                         {customer.customer_code}
                                     </Typography>
+                                    {customer.customer_type_name && (
+                                        <CustomerTypeBadge
+                                            name={customer.customer_type_name}
+                                            mode={customer.customer_type_billing_mode}
+                                            discount={customer.customer_type_discount_percent}
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="inline-flex items-center gap-2 py-1 px-4 bg-slate-50 rounded-full border border-slate-100">
@@ -226,6 +239,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             </div>
                             <CustomerEditForm
                                 form={editForm}
+                                customerTypes={customerTypes}
                                 isSaving={isSaving}
                                 error={editError}
                                 onFieldChange={handleEditField}

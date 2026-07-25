@@ -1,12 +1,15 @@
 import React from 'react';
-import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Info, Loader2, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Info, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
+import { routesPrivate } from '@/shared/navigation/routes';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
         formData, setFormData, calculations, settings, courierRates, selectedCourierRate,
         customers, selectedCustomer, customerAddresses, searchTerm, setSearchTerm,
-        isOpen, setIsOpen, handleSave, isSaving, isLoading
+        isOpen, setIsOpen, handleSave, isSaving, isLoading,
+        missingWarehouse, dismissMissingWarehouse, handleAssignWarehouseCode, isAssigningCode
     } = usePackageCalculator();
 
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
@@ -120,8 +123,16 @@ export const CreatePackageContainer: React.FC = () => {
                         <div>
                             <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Tarifa Courier</label>
                             {courierRates.length === 0 ? (
-                                <div className="p-4 bg-slate-50 rounded-2xl text-xs text-slate-400 font-medium border border-slate-100">
-                                    Sin tarifas configuradas
+                                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 space-y-2">
+                                    <p className="text-xs text-red-600 font-semibold">
+                                        No hay tarifas de courier activas. Todo paquete debe registrar su costo real.
+                                    </p>
+                                    <Link
+                                        href={routesPrivate.admin.courierRates}
+                                        className="inline-flex items-center gap-1 text-xs font-bold text-red-700 underline underline-offset-2"
+                                    >
+                                        Configurar tarifa de courier
+                                    </Link>
                                 </div>
                             ) : (
                                 <select
@@ -129,7 +140,7 @@ export const CreatePackageContainer: React.FC = () => {
                                     value={formData.courier_rate_id ?? ''}
                                     onChange={(e) => setFormData({ ...formData, courier_rate_id: e.target.value || null })}
                                 >
-                                    <option value="">Sin tarifa / manual</option>
+                                    <option value="">Selecciona una tarifa...</option>
                                     {courierRates.map((r) => (
                                         <option key={r.uuid} value={r.uuid}>
                                             {r.name} — ${Number(r.rate_usd).toFixed(2)}/lb
@@ -250,6 +261,43 @@ export const CreatePackageContainer: React.FC = () => {
                     </p>
                 </div>
             </div>
+
+            {missingWarehouse && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
+                                <AlertTriangle size={20} className="text-amber-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-800">Falta el casillero del cliente</h3>
+                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                                    {selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : 'Este cliente'} no
+                                    tiene código asignado para <strong>{missingWarehouse.rateName}</strong>. Sin casillero en esa ruta el
+                                    paquete no puede registrarse, porque no hay dirección a la que esa mercancía haya podido llegar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                                onClick={handleAssignWarehouseCode}
+                                disabled={isAssigningCode}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
+                            >
+                                {isAssigningCode ? <><Loader2 size={14} className="animate-spin" /> Asignando...</> : 'Asignar casillero y registrar'}
+                            </button>
+                            <button
+                                onClick={dismissMissingWarehouse}
+                                disabled={isAssigningCode}
+                                className="px-4 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

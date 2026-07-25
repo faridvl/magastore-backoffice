@@ -23,7 +23,13 @@ export const ApiServiceClient = (baseUrl: string) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error en la petición');
+      // Se conservan los campos extra del cuerpo (code, status y cualquier dato
+      // que el handler mande para que la UI reaccione) — antes solo sobrevivía
+      // el mensaje y no se podía distinguir un error de otro.
+      const error = Object.assign(new Error(data.message || 'Error en la petición'), data, {
+        status: response.status,
+      });
+      throw error;
     }
 
     return data;

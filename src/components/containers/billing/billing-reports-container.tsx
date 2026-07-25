@@ -39,6 +39,7 @@ export const BillingReportsContainer: React.FC = () => {
   const totalPending  = rows.reduce((s, r) => s + Number(r.total_pending_crc), 0);
   const totalGanancia = rows.reduce((s, r) => s + Number(r.total_ganancia_crc), 0);
   const totalInvoices = rows.reduce((s, r) => s + r.invoice_count, 0);
+  const totalUnknownCost = rows.reduce((s, r) => s + r.unknown_cost_count, 0);
 
   return (
     <div className="space-y-6">
@@ -100,6 +101,12 @@ export const BillingReportsContainer: React.FC = () => {
         <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-amber-600" />
         <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-amber-600" />
       </div>
+
+      {totalUnknownCost > 0 && (
+        <p className="text-xs text-amber-600 -mt-2">
+          * {totalUnknownCost} factura{totalUnknownCost !== 1 ? 's' : ''} en este período no tenía{totalUnknownCost !== 1 ? 'n' : ''} el costo real de entrega confirmado al momento de facturar — la ganancia mostrada no descuenta ese costo en esos casos.
+        </p>
+      )}
 
       {/* Tabla mensual */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-x-auto">

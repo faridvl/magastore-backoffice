@@ -1,12 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
-import { PackageStatus, PackageType } from '@/types/logistics/logistics.types';
+import { PackageStatus, PackageType, CourierRate } from '@/types/logistics/logistics.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useCustomerAddressesQuery } from '@/shared/api/querys/customers/use-customer-addresses-query';
 import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
+import { ApiServiceClient } from '@/shared/api/api-service-client';
+import { env } from '@/shared/api/config';
 
 const TC_BANCO_KEY = 'magastore_tc_banco';
 
@@ -19,6 +21,9 @@ export const usePackageCalculator = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  // Ruta cuyo casillero le falta al cliente elegido; abre el modal de aviso.
+  const [missingWarehouse, setMissingWarehouse] = useState<{ routeId: number; rateName: string } | null>(null);
+  const [isAssigningCode, setIsAssigningCode] = useState(false);
   const [formData, setFormData] = useState({
     tracking_number: '',
     customer_id: '',
@@ -71,17 +76,19 @@ export const usePackageCalculator = () => {
 
   const selectedCustomer = customersRes?.data.find((c) => c.id === formData.customer_id);
 
-  // Auto-seleccionar "Aéreo USA" por defecto cuando cargan las rates
-  useEffect(() => {
-    if (!courierRates || courierRates.length === 0 || formData.courier_rate_id) return;
-    const defaultRate =
-      courierRates.find((r) => r.name.toLowerCase().includes('aéreo') && r.name.toLowerCase().includes('usa')) ??
-      courierRates.find((r) => r.name.toLowerCase().includes('aereo') && r.name.toLowerCase().includes('usa')) ??
-      courierRates[0];
-    if (defaultRate) setFormData((prev) => ({ ...prev, courier_rate_id: defaultRate.uuid }));
-  }, [courierRates]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Este endpoint devuelve el array plano; se normaliza una vez para que el
+  // resto del hook no dependa de la forma exacta de la respuesta.
+  const rates: CourierRate[] = Array.isArray(courierRates) ? courierRates : [];
 
-  const selectedCourierRate = (courierRates ?? []).find((r) => r.uuid === formData.courier_rate_id) ?? null;
+  // Preseleccionar el courier marcado como predeterminado en su mantenimiento.
+  // Si ninguno lo está (todos desactivados, por ejemplo), cae al primero activo.
+  useEffect(() => {
+    if (rates.length === 0 || formData.courier_rate_id) return;
+    const defaultRate = rates.find((r) => r.is_default) ?? rates[0];
+    if (defaultRate) setFormData((prev) => ({ ...prev, courier_rate_id: defaultRate.uuid }));
+  }, [rates]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedCourierRate = rates.find((r) => r.uuid === formData.courier_rate_id) ?? null;
 
   // Cálculos dinámicos
   const calculations = useMemo(() => {
@@ -119,8 +126,20 @@ export const usePackageCalculator = () => {
       toast.error('Ingresa el tipo de cambio del banco antes de continuar.');
       return;
     }
+    if (!formData.courier_rate_id || calculations.courierCostUSD <= 0) {
+      toast.error('Selecciona una tarifa de courier antes de continuar. Todo paquete debe registrar su costo real.');
+      return;
+    }
     // Persistir TC banco para el próximo paquete
     localStorage.setItem(TC_BANCO_KEY, String(formData.tc_banco));
+    await submitPackage();
+  };
+
+  /**
+   * Envía el paquete. Separado de handleSave para poder reintentarlo tal cual
+   * después de asignarle al cliente el casillero que le faltaba.
+   */
+  const submitPackage = async () => {
     const notifiedCustomer = selectedCustomer;
     try {
       await executeCreate({
@@ -130,8 +149,8 @@ export const usePackageCalculator = () => {
         package_type: selectedCourierRate?.package_type ?? PackageType.AEREO,
         status: formData.status,
         address_id: formData.address_id || null,
-        courier_cost_usd: calculations.courierCostUSD || null,
-        tc_banco: formData.tc_banco || null,
+        courier_cost_usd: calculations.courierCostUSD,
+        tc_banco: formData.tc_banco,
         insurance_applied: formData.insurance_applied,
         courier_rate_id: selectedCourierRate?.id ?? null,
         store_name: formData.store_name.trim() || null,
@@ -148,6 +167,7 @@ export const usePackageCalculator = () => {
         store_name: '',
       }));
       setSearchTerm('');
+      setMissingWarehouse(null);
       toast.success('Paquete registrado', {
         action: notifiedCustomer
           ? {
@@ -157,10 +177,35 @@ export const usePackageCalculator = () => {
           : undefined,
       });
     } catch (err: any) {
+      // Falta de casillero: no es un error de datos, es un paso que falta —
+      // se ofrece asignarlo sin perder lo que el operador ya cargó.
+      if (err?.code === 'MISSING_WAREHOUSE_CODE' && err?.warehouseRouteId) {
+        setMissingWarehouse({ routeId: Number(err.warehouseRouteId), rateName: err.rateName ?? '' });
+        return;
+      }
       // El backend manda la causa real (ej. "Ya existe un paquete registrado
       // con el tracking ...") — mostrarla en vez de un genérico que obliga a
       // adivinar qué dato está mal.
       toast.error(err?.message ?? 'No se pudo registrar el paquete. Verifica los datos e intenta de nuevo.');
+    }
+  };
+
+  /** Asigna el casillero faltante y reintenta el registro. */
+  const handleAssignWarehouseCode = async () => {
+    if (!missingWarehouse) return;
+    setIsAssigningCode(true);
+    try {
+      const res: any = await ApiServiceClient(env.API.BASE_URL).post('/customers/assign-warehouse-code', {
+        customerId: formData.customer_id,
+        warehouseRouteId: missingWarehouse.routeId,
+      });
+      toast.success(`Casillero asignado: ${res?.data?.code ?? ''}`);
+      setMissingWarehouse(null);
+      await submitPackage();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo asignar el casillero.');
+    } finally {
+      setIsAssigningCode(false);
     }
   };
 
@@ -169,7 +214,7 @@ export const usePackageCalculator = () => {
     setFormData,
     calculations,
     settings,
-    courierRates: courierRates ?? [],
+    courierRates: rates,
     selectedCourierRate,
     customers: filteredCustomers,
     selectedCustomer,
@@ -180,6 +225,10 @@ export const usePackageCalculator = () => {
     setIsOpen,
     handleSave,
     isSaving,
+    missingWarehouse,
+    dismissMissingWarehouse: () => setMissingWarehouse(null),
+    handleAssignWarehouseCode,
+    isAssigningCode,
     isLoading: loadingCustomers || loadingSettings || loadingRates,
   };
 };

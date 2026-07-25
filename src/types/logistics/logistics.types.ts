@@ -25,7 +25,37 @@ export interface CourierRate {
   rate_usd: number;
   insurance_usd: number;
   is_active: boolean;
+  /** Viene preseleccionado al registrar un paquete. Solo uno puede serlo. */
+  is_default: boolean;
   created_at: Date;
+}
+
+export interface CourierRateInput {
+  name: string;
+  origin: string;
+  package_type: PackageType;
+  rate_usd: number;
+  insurance_usd: number;
+  // Datos del casillero de esta ruta (warehouse_routes) — se administran junto
+  // con la tarifa porque un courier nuevo implica un casillero y un prefijo de
+  // código nuevos para sus clientes.
+  code_prefix: string;
+  address_line: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  contact_phone: string | null;
+}
+
+/** Tarifa de courier con los datos de su casillero, para el mantenimiento. */
+export interface CourierRateWithWarehouse extends CourierRate {
+  code_prefix: string | null;
+  current_counter: number | null;
+  address_line: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  contact_phone: string | null;
 }
 
 export type DeliveryZone = 'GAM' | 'RESTO';
@@ -133,6 +163,10 @@ export interface Billing {
   created_at: Date;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
+  courier_cost_crc: number | null;
+  delivery_cost_crc: number | null;
+  profit_crc: number | null;
+  has_unknown_cost: boolean;
 }
 
 // --- Inputs para Mutaciones ---
@@ -144,8 +178,8 @@ export interface PackageInput {
   package_type?: PackageType;
   status?: PackageStatus;
   address_id?: string | null;
-  courier_cost_usd?: number | null;
-  tc_banco?: number | null;
+  courier_cost_usd: number;
+  tc_banco: number;
   insurance_applied?: boolean;
   courier_rate_id?: number | null;
   store_name?: string | null;
@@ -297,6 +331,9 @@ export interface BillingMonthlyReport {
   total_ganancia_crc: number;
   invoice_count: number;
   paid_count: number;
+  // Facturas cuyo costo de entrega no se conocía al confirmar (billing.has_unknown_cost) —
+  // total_ganancia_crc no las castiga con costo cero, las excluye de ese descuento.
+  unknown_cost_count: number;
 }
 
 export interface MarkPaidInput {
@@ -347,6 +384,11 @@ export interface ConsolidationDetail {
   customer_code: string;
   customer_email: string;
   customer_phone: string;
+  // Regla de cobro del cliente — explica por qué el monto puede diferir de la
+  // tarifa de lista (socios al costo, clientes con descuento).
+  customer_type_name: string | null;
+  customer_type_billing_mode: string | null;
+  customer_type_discount_percent: number | null;
   status: ConsolidationStatus;
   total_weight_lb: number;
   created_at: string;
@@ -372,6 +414,13 @@ export interface ConsolidationDetail {
   current_min_weight: number;
   billing_uuid: string | null;
   billing_is_paid: boolean | null;
+  // Ganancia congelada al confirmar la factura (migración 018) — fuente de
+  // verdad cuando ya existe factura; no se recalcula si cambian tarifas después.
+  billing_total_amount_crc: number | null;
+  billing_courier_cost_crc: number | null;
+  billing_delivery_cost_crc: number | null;
+  billing_profit_crc: number | null;
+  billing_has_unknown_cost: boolean | null;
   delivery_method: DeliveryMethod | null;
   delivery_address_id: string | null;
   delivery_address_label: string | null;

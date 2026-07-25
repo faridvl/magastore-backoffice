@@ -8,15 +8,21 @@ const LOCATION_LABEL_CLASSNAME = 'text-[10px] font-black uppercase text-slate-40
 
 const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 
-const TIERS = [
-    { id: 'Regular', label: 'Regular', desc: 'Cliente estándar', color: 'bg-slate-100 text-slate-500' },
-    { id: 'VIP', label: 'VIP', desc: 'Cliente frecuente', color: 'bg-amber-50 text-amber-600 border-amber-100' },
-    { id: 'Diamond', label: 'Diamond', desc: 'Nivel máximo', color: 'bg-amber-600 text-white' }
-];
+const BILLING_MODE_STYLES: Record<string, string> = {
+    NORMAL: 'bg-slate-100 text-slate-500',
+    AL_COSTO: 'bg-sky-50 text-sky-600',
+    DESCUENTO: 'bg-amber-50 text-amber-600',
+};
+
+const BILLING_MODE_DESC = (mode: string, discount: number): string => {
+    if (mode === 'AL_COSTO') return 'Solo paga lo que costó traer el paquete, sin ganancia';
+    if (mode === 'DESCUENTO') return `Paga la tarifa por libra con ${discount}% de rebaja`;
+    return 'Paga la tarifa completa por libra';
+};
 
 export const CreateCustomerContainer: React.FC = () => {
     const {
-        formData, addresses, errors, handleInputChange,
+        formData, addresses, errors, customerTypes, handleInputChange,
         addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending
     } = useCreateCustomer();
 
@@ -51,22 +57,37 @@ export const CreateCustomerContainer: React.FC = () => {
                     <FormInput label="Número de Cédula" name="idCard" value={formData.idCard} onChange={handleInputChange} placeholder="0-0000-0000" error={errors.idCard} />
                     <FormInput label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="cliente@email.com" error={errors.email} />
                     <FormInput label="Teléfono" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+506 0000-0000" error={errors.phone} />
+                    <FormInput
+                        label="Código de casillero (opcional)"
+                        name="customerCode"
+                        value={formData.customerCode}
+                        onChange={handleInputChange}
+                        placeholder="Se genera automáticamente si lo dejas vacío"
+                        error={errors.customerCode}
+                    />
                 </div>
 
-                {/* SECCIÓN 2: TIER */}
+                {/* SECCIÓN 2: TIPO DE CLIENTE (regla de cobro) */}
                 <div className="space-y-4">
                     <div className="border-b border-slate-100 pb-4 mb-2">
-                        <Typography variant={TypographyVariant.SUBTITLE}>Nivel de Lealtad</Typography>
+                        <Typography variant={TypographyVariant.SUBTITLE}>Tipo de Cliente</Typography>
+                        <p className="text-xs font-medium text-slate-400 mt-1">
+                            Define cómo se le cobra el flete. La entrega local (Correos/encomienda) siempre se cobra completa.
+                        </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {TIERS.map((tier) => (
+                        {customerTypes.map((type) => (
                             <div
-                                key={tier.id}
-                                onClick={() => handleInputChange({ target: { name: 'tier', value: tier.id } } as any)}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${formData.tier === tier.id ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
+                                key={type.id}
+                                onClick={() => handleInputChange({ target: { name: 'customerTypeId', value: String(type.id) } } as any)}
+                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${String(type.id) === formData.customerTypeId ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
                             >
-                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${tier.color}`}>{tier.label}</span>
-                                <p className="text-xs font-medium text-slate-400 mt-2">{tier.desc}</p>
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${BILLING_MODE_STYLES[type.billing_mode] ?? 'bg-slate-100 text-slate-500'}`}>
+                                    {type.name}
+                                </span>
+                                <p className="text-xs font-medium text-slate-400 mt-2">
+                                    {BILLING_MODE_DESC(type.billing_mode, Number(type.discount_percent))}
+                                </p>
                             </div>
                         ))}
                     </div>

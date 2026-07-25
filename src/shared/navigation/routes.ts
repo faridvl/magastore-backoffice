@@ -40,5 +40,9 @@ export const routesPrivate = {
       detail: (id: string | number) => `/admin/customers/${id}`,
     },
     settings: '/admin/settings',
+    courierRates: '/admin/courier-rates',
+    customerTypes: '/admin/customer-types',
+    whatsappTemplates: '/admin/whatsapp-templates',
+    whatsappTemplateDetail: (uuid: string) => `/admin/whatsapp-templates/${uuid}`,
   },
 };

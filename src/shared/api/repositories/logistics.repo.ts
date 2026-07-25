@@ -24,8 +24,8 @@ export const LogisticsRepository = {
    */
   createPackage: async (data: PackageInput): Promise<Partial<Package>> => {
     const addressId = data.address_id || null;
-    const courierCostUsd = data.courier_cost_usd ?? null;
-    const tcBanco = data.tc_banco ?? null;
+    const courierCostUsd = data.courier_cost_usd;
+    const tcBanco = data.tc_banco;
     const insuranceApplied = data.insurance_applied ?? true;
     const courierRateId = data.courier_rate_id ?? null;
     const storeName = data.store_name?.trim() || null;
@@ -50,10 +50,10 @@ export const LogisticsRepository = {
 
   getCourierRates: async (): Promise<CourierRate[]> => {
     const rows = await sql`
-      SELECT id, uuid, name, origin, package_type, rate_usd, insurance_usd, is_active, created_at
+      SELECT id, uuid, name, origin, package_type, rate_usd, insurance_usd, is_active, is_default, created_at
       FROM courier_rates
       WHERE is_active = true
-      ORDER BY name ASC
+      ORDER BY is_default DESC, name ASC
     `;
     return rows as CourierRate[];
   },
@@ -91,7 +91,46 @@ export const LogisticsRepository = {
 
       const actualWeight  = Number(c.total_weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
-      const flete         = chargedWeight * price_lb * exchange;
+
+      // Regla de cobro del cliente. Solo afecta el flete internacional: la
+      // entrega local (Correos/encomienda) se cobra completa en todos los modos
+      // porque es un costo que Magastore traslada tal cual, no un margen propio.
+      const [customerType] = await sql`
+        SELECT ct.billing_mode, ct.discount_percent
+        FROM customers cu
+        LEFT JOIN customer_types ct ON ct.id = cu.customer_type_id
+        WHERE cu.id = ${c.customer_id}
+      `;
+      const billingMode = (customerType?.billing_mode as string | null) ?? 'NORMAL';
+      const discountPercent = Number(customerType?.discount_percent ?? 0);
+
+      let flete: number;
+      if (billingMode === 'AL_COSTO') {
+        // Socios/familia: se cobra exactamente lo que costó mover la mercancía,
+        // sin margen. Sale de los paquetes reales, no de la tarifa de lista.
+        const [costRow] = await sql`
+          SELECT
+            COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total,
+            COUNT(*) FILTER (WHERE courier_cost_usd IS NULL OR tc_banco IS NULL)::int AS sin_costo,
+            COUNT(*)::int AS total_paquetes
+          FROM packages WHERE consolidation_id = ${c.id}
+        `;
+        // Sin costo real no hay nada que cobrar: facturar ₡0 sería regalar el
+        // envío en silencio. Se bloquea para que el operador complete el dato.
+        if (Number(costRow.total_paquetes) === 0) {
+          throw new Error('La orden no tiene paquetes: no se puede calcular el cobro al costo.');
+        }
+        if (Number(costRow.sin_costo) > 0) {
+          throw new Error(
+            `No se puede generar el estimado: ${costRow.sin_costo} paquete(s) de esta orden no tienen registrado el costo del courier, y este cliente se factura al costo real.`,
+          );
+        }
+        flete = Number(costRow.total);
+      } else if (billingMode === 'DESCUENTO') {
+        flete = chargedWeight * price_lb * exchange * (1 - discountPercent / 100);
+      } else {
+        flete = chargedWeight * price_lb * exchange;
+      }
 
       // Snapshot del costo real de la entrega al momento del estimado. 0 para
       // RETIRO (sin entrega); null si la tarifa matcheada no tiene cost_crc
@@ -139,6 +178,8 @@ export const LogisticsRepository = {
               applied_rate_usd     = ${price_lb},
               applied_exchange     = ${exchange},
               total_weight_charged = ${chargedWeight},
+              applied_billing_mode = ${billingMode},
+              applied_discount_percent = ${discountPercent},
               updated_at           = NOW()
           WHERE consolidation_id = ${c.id}
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
@@ -148,10 +189,12 @@ export const LogisticsRepository = {
         const [pre] = await sql`
           INSERT INTO pre_billing (
             consolidation_id, estimated_amount_crc, delivery_method,
-            delivery_fee_crc, delivery_cost_crc, applied_rate_usd, applied_exchange, total_weight_charged
+            delivery_fee_crc, delivery_cost_crc, applied_rate_usd, applied_exchange, total_weight_charged,
+            applied_billing_mode, applied_discount_percent
           ) VALUES (
             ${c.id}, ${estimatedCrc}, ${deliveryMethod},
-            ${deliveryFee}, ${deliveryCost}, ${price_lb}, ${exchange}, ${chargedWeight}
+            ${deliveryFee}, ${deliveryCost}, ${price_lb}, ${exchange}, ${chargedWeight},
+            ${billingMode}, ${discountPercent}
           )
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
         `;
@@ -214,15 +257,33 @@ export const LogisticsRepository = {
             .join(', ')
         : null;
 
+      // Ganancia congelada al confirmar: courier_cost_crc se calcula de los
+      // paquetes reales de la orden (nunca NULL desde 017-packages-cost-not-null.sql);
+      // delivery_cost_crc viene del snapshot ya congelado en pre_billing. Si ese
+      // costo de entrega no se conocía al generar el estimado, se marca
+      // has_unknown_cost en vez de asumir cero silenciosamente.
+      const [courierCostRow] = await sql`
+        SELECT COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total
+        FROM packages WHERE consolidation_id = ${c.id}
+      `;
+      const courierCostCrc = Number(courierCostRow.total);
+      const deliveryCostCrc = pre.delivery_cost_crc != null ? Number(pre.delivery_cost_crc) : null;
+      const hasUnknownCost = deliveryCostCrc == null && pre.delivery_method !== 'RETIRO' && pre.delivery_method != null;
+      const profitCrc = Number(pre.estimated_amount_crc) - courierCostCrc - (deliveryCostCrc ?? 0);
+
       const [bill] = await sql`
         INSERT INTO billing (
           consolidation_id, applied_rate_usd, applied_exchange, applied_fee_crc,
           total_weight_charged, total_amount_crc, delivery_method,
-          delivery_fee_crc, delivery_address_snapshot
+          delivery_fee_crc, delivery_address_snapshot,
+          courier_cost_crc, delivery_cost_crc, profit_crc, has_unknown_cost,
+          applied_billing_mode, applied_discount_percent
         ) VALUES (
           ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
-          ${pre.delivery_fee_crc}, ${addressSnapshot}
+          ${pre.delivery_fee_crc}, ${addressSnapshot},
+          ${courierCostCrc}, ${deliveryCostCrc}, ${profitCrc}, ${hasUnknownCost},
+          ${pre.applied_billing_mode}, ${pre.applied_discount_percent}
         )
         RETURNING uuid, invoice_number
       `;

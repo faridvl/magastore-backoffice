@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCreateCustomerMutation } from '@/shared/api/mutations/customers/use-create-customer-mutation';
+import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
 import { useNavigation } from '@/hooks/use-navigation';
 
 interface FormErrors {
@@ -9,6 +10,7 @@ interface FormErrors {
   idCard?: string;
   email?: string;
   phone?: string;
+  customerCode?: string;
   addresses?: string;
 }
 
@@ -60,6 +62,8 @@ function applyPhoneMask(value: string): string {
 export const useCreateCustomer = () => {
   const { admin } = useNavigation();
   const { execute, isPending } = useCreateCustomerMutation();
+  const { data: customerTypesRes } = useCustomerTypesQuery();
+  const customerTypes = (customerTypesRes?.data ?? []).filter((t) => t.is_active);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -68,7 +72,8 @@ export const useCreateCustomer = () => {
     idType: 'FISICA',
     email: '',
     phone: '',
-    tier: 'Regular',
+    customerTypeId: '' as string,
+    customerCode: '',
   });
 
   const [addresses, setAddresses] = useState([
@@ -177,6 +182,10 @@ export const useCreateCustomer = () => {
       last_name: formData.lastName,
       email: formData.email,
       phone: formData.phone,
+      // Vacío = el backend genera el siguiente código de la ruta.
+      customer_code: formData.customerCode.trim() || null,
+      // Vacío = el backend asigna el tipo NORMAL por defecto.
+      customer_type_id: formData.customerTypeId ? Number(formData.customerTypeId) : null,
       addresses: addresses.map(({ id, ...rest }) => rest),
     };
 
@@ -198,6 +207,7 @@ export const useCreateCustomer = () => {
     formData,
     addresses,
     errors,
+    customerTypes,
     handleInputChange,
     addAddressField,
     removeAddress,

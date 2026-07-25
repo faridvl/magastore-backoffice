@@ -39,6 +39,19 @@ export const CustomerService = {
       );
     }
 
+    // Código manual: se respeta tal cual, pero no puede pisar el de otro cliente.
+    // Si se omite, el repositorio genera el siguiente de la ruta.
+    const explicitCode = data.customer_code?.trim();
+    if (explicitCode) {
+      const codeTaken = await CustomerRepo.existsByCustomerCode(explicitCode);
+      if (codeTaken) {
+        throw new Error(`El código ${explicitCode} ya está asignado a otro cliente.`);
+      }
+      data.customer_code = explicitCode;
+    } else {
+      data.customer_code = null;
+    }
+
     try {
       return await CustomerRepo.createCustomerWithAddresses(data);
     } catch (error: any) {

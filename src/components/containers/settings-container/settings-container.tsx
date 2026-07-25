@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { routesPrivate } from '@/shared/navigation/routes';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useSettings } from './use-settings';
 import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
@@ -231,7 +233,7 @@ export const SettingsContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Card 2 — Costo courier */}
+                {/* Card 2 — Costo courier: se administra por courier, no acá */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
                         <div className="p-2 bg-blue-50 rounded-xl">
@@ -239,28 +241,20 @@ export const SettingsContainer: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-sm font-bold text-slate-800">Costo courier — Panamá</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">Lo que cobra el courier por mover la mercancía hasta CR</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Cada courier tiene su propia tarifa y su casillero</p>
                         </div>
                     </div>
-                    <div className="px-5 py-4 flex flex-col sm:flex-row sm:flex-wrap gap-4">
-                        <SettingInput
-                            label="Tarifa / Lb"
-                            hint="USD por libra que cobra el courier"
-                            unit="USD"
-                            step="0.01"
-                            value={Number(settings.courier_rate_usd)}
-                            accentClass="focus-within:border-blue-400 focus-within:ring-blue-400/20"
-                            onChange={(v) => handleUpdateSetting('courier_rate_usd', v)}
-                        />
-                        <SettingInput
-                            label="Seguro"
-                            hint="USD fijo de seguro (aplica ≥2 lb)"
-                            unit="USD"
-                            step="0.01"
-                            value={Number(settings.courier_insurance_usd)}
-                            accentClass="focus-within:border-blue-400 focus-within:ring-blue-400/20"
-                            onChange={(v) => handleUpdateSetting('courier_insurance_usd', v)}
-                        />
+                    <div className="px-5 py-4">
+                        <p className="text-[12px] text-slate-500 leading-relaxed">
+                            La tarifa por libra y el seguro se configuran por courier, junto con la dirección del
+                            casillero y el prefijo de código de sus clientes.
+                        </p>
+                        <Link
+                            href={routesPrivate.admin.courierRates}
+                            className="inline-flex items-center gap-1.5 mt-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-[11px] font-bold hover:bg-blue-100 transition-all"
+                        >
+                            <Truck size={13} /> Ir a Couriers y Casilleros
+                        </Link>
                     </div>
                 </div>
 

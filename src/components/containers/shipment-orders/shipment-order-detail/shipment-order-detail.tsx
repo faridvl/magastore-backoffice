@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
+import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
+import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
 import {
   ConsolidationStatus,
@@ -151,9 +153,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           <button onClick={handleBack} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
             <ChevronLeft size={14} /> Volver a órdenes de envío
           </button>
-          <Typography variant={TypographyVariant.HEADER} className="tracking-tighter">
-            {detail.customer_name}
-          </Typography>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Typography variant={TypographyVariant.HEADER} className="tracking-tighter">
+              {detail.customer_name}
+            </Typography>
+            {detail.customer_type_name && detail.customer_type_billing_mode !== 'NORMAL' && (
+              <CustomerTypeBadge
+                name={detail.customer_type_name}
+                mode={detail.customer_type_billing_mode as CustomerBillingMode}
+                discount={detail.customer_type_discount_percent}
+              />
+            )}
+          </div>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
             {detail.customer_code} · {detail.customer_email}
           </p>
@@ -794,7 +805,79 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   );
 };
 
-const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => (
+  detail.billing_uuid ? <BilledProfitCard detail={detail} /> : <EstimatedProfitCard detail={detail} />
+);
+
+// Cuando ya existe factura, la ganancia mostrada es la congelada en `billing`
+// al momento de confirmar (migración 018) — no se recalcula con datos en vivo,
+// para que editar/desactivar una tarifa después no altere retroactivamente el
+// número de una factura ya emitida.
+const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+  const cobroTotal = Number(detail.billing_total_amount_crc ?? 0);
+  const courierCost = detail.billing_courier_cost_crc != null ? Number(detail.billing_courier_cost_crc) : null;
+  const deliveryCost = detail.billing_delivery_cost_crc != null ? Number(detail.billing_delivery_cost_crc) : null;
+  const gananciaTotal = detail.billing_profit_crc != null ? Number(detail.billing_profit_crc) : null;
+  const margen = gananciaTotal != null && cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : null;
+  const hasUnknownCost = detail.billing_has_unknown_cost === true;
+
+  return (
+    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={14} className="text-slate-400" />
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            Rentabilidad · Solo interno
+          </p>
+        </div>
+        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
+          Ganancia final (facturada)
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo courier</p>
+          <p className="text-xs font-bold text-slate-700">{courierCost != null ? formatCRC(courierCost) : '—'}</p>
+        </div>
+        <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo entrega</p>
+          <p className="text-xs font-bold text-slate-700">
+            {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Sin dato al facturar</span>}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro total</p>
+          <p className="text-sm font-black text-white">{formatCRC(cobroTotal)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
+          <p className="text-sm font-black text-white">
+            {formatCRC((courierCost ?? 0) + (deliveryCost ?? 0))}{hasUnknownCost ? ' *' : ''}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+          <p className={`text-sm font-black ${gananciaTotal != null && gananciaTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {gananciaTotal != null ? formatCRC(gananciaTotal) : '—'}
+            {margen != null && <span className="text-[10px] font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>}
+          </p>
+        </div>
+      </div>
+
+      {hasUnknownCost && (
+        <p className="mt-3 text-[10px] text-amber-600">
+          * El costo real de la entrega no estaba confirmado al momento de facturar — la ganancia mostrada no lo descuenta.
+        </p>
+      )}
+    </div>
+  );
+};
+
+const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
   // Cobro con las tarifas del snapshot de la prefactura; si la orden sigue
   // abierta, con las vigentes de system_settings (el monto puede variar hasta
   // que se genere el estimado).

@@ -8,6 +8,50 @@ const DEFAULT_WAREHOUSE_ORIGIN = 'USA';
 const DEFAULT_WAREHOUSE_PACKAGE_TYPE = 'AEREO';
 
 /**
+ * Resuelve el código de casillero de un cliente nuevo: si viene explícito lo
+ * respeta (y avanza el contador de la ruta cuando sigue su prefijo, para que la
+ * próxima alta automática no colisione); si no, genera el siguiente atómico.
+ * Debe llamarse dentro de una transacción — el incremento del contador solo se
+ * revierte si el ROLLBACK lo alcanza.
+ */
+async function resolveCustomerCode(
+  explicitCode?: string | null,
+): Promise<{ code: string; warehouseRouteId: number | null }> {
+  const trimmed = explicitCode?.trim();
+
+  if (!trimmed) {
+    const generated = await WarehouseRoutesRepository.incrementAndGetCode(
+      DEFAULT_WAREHOUSE_ORIGIN,
+      DEFAULT_WAREHOUSE_PACKAGE_TYPE,
+    );
+    return { code: generated.code, warehouseRouteId: generated.warehouseRouteId };
+  }
+
+  const route = await WarehouseRoutesRepository.getActiveRoute(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE);
+  if (!route) return { code: trimmed, warehouseRouteId: null };
+
+  if (trimmed.startsWith(route.code_prefix)) {
+    const counterValue = parseInt(trimmed.slice(route.code_prefix.length), 10);
+    if (!Number.isNaN(counterValue)) {
+      await WarehouseRoutesRepository.advanceCounterIfHigher(
+        DEFAULT_WAREHOUSE_ORIGIN,
+        DEFAULT_WAREHOUSE_PACKAGE_TYPE,
+        counterValue,
+      );
+    }
+  }
+  return { code: trimmed, warehouseRouteId: route.id };
+}
+
+/**
+ * Verifica si ya existe un cliente con ese código de casillero.
+ */
+export const existsByCustomerCode = async (code: string): Promise<boolean> => {
+  const rows = await sql`SELECT 1 FROM customers WHERE customer_code = ${code} LIMIT 1`;
+  return rows.length > 0;
+};
+
+/**
  * Verifica si ya existe un cliente por identificación o email
  */
 export const checkExistingCustomer = async (idCard: string, email: string): Promise<boolean> => {
@@ -28,13 +72,10 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
   try {
     await sql`BEGIN`;
 
-    // Incremento atómico del contador de la ruta (único casillero real hoy:
-    // USA/AEREO) antes de insertar — si algo falla después, el ROLLBACK
-    // también revierte el contador.
-    const { code, warehouseRouteId } = await WarehouseRoutesRepository.incrementAndGetCode(
-      DEFAULT_WAREHOUSE_ORIGIN,
-      DEFAULT_WAREHOUSE_PACKAGE_TYPE,
-    );
+    // Código explícito si el operador lo escribió (cliente que ya tenía casillero
+    // asignado antes de entrar al sistema), o generado atómico si no. Si algo
+    // falla después, el ROLLBACK también revierte el contador.
+    const { code, warehouseRouteId } = await resolveCustomerCode(data.customer_code);
 
     const rows = await sql`
       WITH new_cust AS (
@@ -45,7 +86,8 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
           last_name,
           email,
           phone,
-          customer_code
+          customer_code,
+          customer_type_id
         )
         VALUES (
           ${data.id_card},
@@ -54,7 +96,11 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
           ${data.last_name},
           ${data.email},
           ${data.phone},
-          ${code}
+          ${code},
+          COALESCE(
+            ${data.customer_type_id ?? null},
+            (SELECT id FROM customer_types WHERE billing_mode = 'NORMAL' AND is_active = true ORDER BY id LIMIT 1)
+          )
         )
         RETURNING *
       ),
@@ -83,7 +129,9 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
       throw new Error('Error crítico: La base de datos no retornó el registro creado.');
     }
 
-    await WarehouseRoutesRepository.assignCodeToCustomer(rows[0].id, warehouseRouteId, code);
+    if (warehouseRouteId) {
+      await WarehouseRoutesRepository.assignCodeToCustomer(rows[0].id, warehouseRouteId, code);
+    }
 
     await sql`COMMIT`;
     return mapRowToCustomer(rows[0]);
@@ -128,8 +176,13 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
         FROM customer_warehouse_codes cwc
         JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
         WHERE cwc.customer_id = c.id
-      ) as warehouse_codes_list
-    FROM customers c WHERE c.id = ${id} LIMIT 1
+      ) as warehouse_codes_list,
+      ct.name AS customer_type_name,
+      ct.billing_mode AS customer_type_billing_mode,
+      ct.discount_percent AS customer_type_discount_percent
+    FROM customers c
+    LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+    WHERE c.id = ${id} LIMIT 1
   `;
 
   if (!rows || rows.length === 0) return null;
@@ -183,7 +236,8 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
       phone      = ${data.phone},
       is_active  = ${data.is_active},
       id_card    = COALESCE(${data.id_card ?? null}, id_card),
-      id_type    = COALESCE(${data.id_type ?? null}, id_type)
+      id_type    = COALESCE(${data.id_type ?? null}, id_type),
+      customer_type_id = COALESCE(${data.customer_type_id ?? null}, customer_type_id)
     WHERE id = ${id}
   `;
 
@@ -342,30 +396,7 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
       try {
         // Código explícito de importación (cliente real ya asignado en otro
         // sistema) vs. generado atómico para altas nuevas sin código propio.
-        let finalCode = meta.customer_code;
-        let warehouseRouteId: number | null = null;
-        if (!finalCode) {
-          const generated = await WarehouseRoutesRepository.incrementAndGetCode(
-            DEFAULT_WAREHOUSE_ORIGIN,
-            DEFAULT_WAREHOUSE_PACKAGE_TYPE,
-          );
-          finalCode = generated.code;
-          warehouseRouteId = generated.warehouseRouteId;
-        } else {
-          const route = await WarehouseRoutesRepository.getActiveRoute(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE);
-          if (route) {
-            warehouseRouteId = route.id;
-            // Si el código explícito sigue el patrón del prefijo de la ruta,
-            // avanza el contador para que la próxima alta manual no colisione.
-            if (finalCode.startsWith(route.code_prefix)) {
-              const suffix = finalCode.slice(route.code_prefix.length);
-              const counterValue = parseInt(suffix, 10);
-              if (!Number.isNaN(counterValue)) {
-                await WarehouseRoutesRepository.advanceCounterIfHigher(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE, counterValue);
-              }
-            }
-          }
-        }
+        const { code: finalCode, warehouseRouteId } = await resolveCustomerCode(meta.customer_code);
 
         const [newCustomer] = await sql`
           WITH new_cust AS (
@@ -436,6 +467,10 @@ const mapRowToCustomer = (raw: any): Customer => ({
   customer_code: raw.customer_code,
   is_active: raw.is_active,
   created_at: raw.created_at,
+  customer_type_id: raw.customer_type_id ?? null,
+  customer_type_name: raw.customer_type_name ?? null,
+  customer_type_billing_mode: raw.customer_type_billing_mode ?? null,
+  customer_type_discount_percent: raw.customer_type_discount_percent != null ? Number(raw.customer_type_discount_percent) : null,
   addresses: (raw.addresses_list || []).map((addr: any) => ({
     id: addr.id,
     customer_id: addr.customer_id,

@@ -10,6 +10,8 @@ import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-pai
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { buildWhatsAppUrl, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
@@ -40,6 +42,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
 
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
+  const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
 
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [isDownloadingBillingPdf, setIsDownloadingBillingPdf] = useState(false);
@@ -314,6 +317,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         weightLb: Number(detail.total_weight_lb),
         deliveryMethod: detail.pre_billing_delivery_method,
+        amountCrc: detail.pre_billing_amount,
+        templateBody: preBillingTemplateBody,
       });
       window.open(buildWhatsAppUrl(detail.customer_phone, message), '_blank');
 

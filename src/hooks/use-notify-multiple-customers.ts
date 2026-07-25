@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { buildWhatsAppUrl, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { AvailablePackage, CustomerWithAvailablePackages } from '@/types/logistics/logistics.types';
 
 /**
@@ -23,6 +25,7 @@ export function useNotifyMultipleCustomers() {
   const [customers, setCustomers] = useState<CustomerWithAvailablePackages[]>([]);
   const [sentCustomerIds, setSentCustomerIds] = useState<string[]>([]);
   const [sendingCustomerId, setSendingCustomerId] = useState<string | null>(null);
+  const templateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PACKAGES_AVAILABLE);
 
   const open = async () => {
     setIsOpen(true);
@@ -69,6 +72,7 @@ export function useNotifyMultipleCustomers() {
           trackingNumber: p.tracking_number,
           weightLb: Number(p.weight_lb),
         })),
+        templateBody,
       });
 
       window.open(buildWhatsAppUrl(customer.phone, message), '_blank');

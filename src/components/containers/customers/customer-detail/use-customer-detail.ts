@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
 import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-customer-packages-query';
+import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
 import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
@@ -17,6 +18,8 @@ export const useCustomerDetail = (customerId: string) => {
   const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const { data: customerTypesRes } = useCustomerTypesQuery();
+  const customerTypes = (customerTypesRes?.data ?? []).filter((t) => t.is_active);
   const [selectedPackageUuids, setSelectedPackageUuids] = useState<string[]>([]);
 
   // Modal: elegir dirección de entrega + método de envío al crear la orden.
@@ -50,6 +53,7 @@ export const useCustomerDetail = (customerId: string) => {
       email: customer.email,
       phone: customer.phone,
       is_active: customer.is_active,
+      customer_type_id: customer.customer_type_id,
       addresses: customer.addresses.map((a) => ({
         id: a.id,
         province: a.province,
@@ -70,7 +74,7 @@ export const useCustomerDetail = (customerId: string) => {
     setEditError(null);
   };
 
-  const handleEditField = (field: keyof Omit<CustomerUpdateInput, 'addresses'>, value: string | boolean) => {
+  const handleEditField = (field: keyof Omit<CustomerUpdateInput, 'addresses'>, value: string | boolean | number | null) => {
     setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
@@ -223,6 +227,7 @@ export const useCustomerDetail = (customerId: string) => {
     setActiveTab,
     isEditMode,
     editForm,
+    customerTypes,
     editError,
     isSaving,
     enterEditMode,

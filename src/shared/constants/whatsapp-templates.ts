@@ -41,6 +41,7 @@ Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 
 Peso total: {{peso_total}} lb
 Método de entrega: {{metodo_entrega}}
+*Total a pagar: {{monto}}*
 
 Quedamos atentos a su confirmación para proceder.
 
@@ -49,13 +50,15 @@ Quedamos atentos a su confirmación para proceder.
 export function buildPackagesAvailableMessage(params: {
   firstName: string;
   packages: { storeName: string | null; trackingNumber: string; weightLb: number }[];
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
 }): string {
   const lista = params.packages
     .map((p) => `* ${p.storeName || p.trackingNumber} – ${p.weightLb.toFixed(2)} lb`)
     .join('\n');
   const pesoTotal = params.packages.reduce((sum, p) => sum + p.weightLb, 0).toFixed(2);
 
-  return interpolate(WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE, {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE, {
     nombre: params.firstName,
     lista_paquetes: lista,
     peso_total: pesoTotal,
@@ -73,12 +76,17 @@ export function buildPreBillingReadyMessage(params: {
   orderShortId: string;
   weightLb: number;
   deliveryMethod: string | null;
+  /** Total del estimado en colones. */
+  amountCrc?: number | null;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
 }): string {
-  return interpolate(WHATSAPP_TEMPLATE_PREBILLING_READY, {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PREBILLING_READY, {
     nombre: params.firstName,
     id_orden: params.orderShortId,
     peso_total: params.weightLb.toFixed(2),
     metodo_entrega: params.deliveryMethod ? (DELIVERY_METHOD_LABELS[params.deliveryMethod] ?? params.deliveryMethod) : '—',
+    monto: params.amountCrc != null ? `₡${Math.round(Number(params.amountCrc)).toLocaleString('es-CR')}` : '—',
   });
 }
 
@@ -102,8 +110,10 @@ export function buildWarehouseWelcomeMessage(params: {
   state: string | null;
   postalCode: string | null;
   contactPhone: string | null;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
 }): string {
-  return interpolate(WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME, {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME, {
     nombre: params.firstName,
     nombre_completo: params.fullName,
     codigo: params.code,
