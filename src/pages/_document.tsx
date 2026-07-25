@@ -14,7 +14,7 @@ class MyDocument extends Document {
           <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
           <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-          <link rel="manifest" href="/site.webmanifest" />
+          <link rel="manifest" href="/api/site.webmanifest" />
 
           {/* Brand Theme Color (alineado a paleta Magastore) */}
           <meta name="theme-color" content="#111111" />
