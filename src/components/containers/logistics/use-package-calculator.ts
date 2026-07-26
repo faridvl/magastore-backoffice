@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PackageStatus, PackageType, CourierRate } from '@/types/logistics/logistics.types';
+import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
@@ -143,23 +144,44 @@ export const usePackageCalculator = () => {
     const courierInsurance = Number(selectedCourierRate?.insurance_usd || 0);
 
     const weight = formData.weight_lb > 0 ? Math.max(formData.weight_lb, minW) : 0;
-    const cobroTotalUSD = weight * price;
-    const cobroTotalCRC = cobroTotalUSD * rate;
 
     const insurance = formData.insurance_applied && formData.weight_lb >= 2 ? courierInsurance : 0;
     const courierCostUSD = formData.weight_lb > 0 && courierRate > 0 ? formData.weight_lb * courierRate + insurance : 0;
     const courierCostCRC = courierCostUSD * formData.tc_banco;
+
+    // Regla de cobro del cliente. Misma lógica que generatePreBilling en
+    // logistics.repo.ts: si aquí se mostrara siempre el precio de lista, el
+    // operador vería un monto que no es el que se va a facturar.
+    const billingMode = selectedCustomer?.customer_type_billing_mode ?? CustomerBillingMode.NORMAL;
+    const discountPercent = Number(selectedCustomer?.customer_type_discount_percent ?? 0);
+
+    const listaCRC = weight * price * rate;
+    let cobroTotalCRC: number;
+    if (billingMode === CustomerBillingMode.AL_COSTO) {
+      // Solo paga el costo real del courier, sin margen. En el alta ese costo es
+      // el del propio paquete; en la factura será la suma de los de la orden.
+      cobroTotalCRC = courierCostCRC;
+    } else if (billingMode === CustomerBillingMode.DESCUENTO) {
+      cobroTotalCRC = listaCRC * (1 - discountPercent / 100);
+    } else {
+      cobroTotalCRC = listaCRC;
+    }
+
+    const cobroTotalUSD = rate > 0 ? cobroTotalCRC / rate : 0;
     const ganancia = cobroTotalCRC > 0 && courierCostCRC > 0 ? cobroTotalCRC - courierCostCRC : 0;
 
     return {
       cobroTotalUSD,
       cobroTotalCRC,
+      listaCRC,
       courierCostUSD,
       courierCostCRC,
       ganancia,
+      billingMode,
+      discountPercent,
       appliedMin: formData.weight_lb > 0 && formData.weight_lb < minW,
     };
-  }, [formData, settings, selectedCourierRate]);
+  }, [formData, settings, selectedCourierRate, selectedCustomer]);
 
   const handleSave = async () => {
     if (!formData.customer_id || !formData.tracking_number) {

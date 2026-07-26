@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Info, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
 import { routesPrivate } from '@/shared/navigation/routes';
+import { CustomerBillingMode } from '@/types/customer/customer.types';
+import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
@@ -213,7 +215,23 @@ export const CreatePackageContainer: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Cobro al Cliente</p>
-                                <h3 className="text-2xl md:text-4xl font-black italic text-white">₡{calculations.cobroTotalCRC.toLocaleString()}</h3>
+                                <h3 className="text-2xl md:text-4xl font-black italic text-white">₡{Math.round(calculations.cobroTotalCRC).toLocaleString()}</h3>
+                                {/* El monto ya no es el de lista: se dice de dónde sale para que
+                                    el operador no lo lea como un error de cálculo. */}
+                                {calculations.billingMode !== CustomerBillingMode.NORMAL && selectedCustomer && (
+                                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                        <CustomerTypeBadge
+                                            name={selectedCustomer.customer_type_name ?? 'Tipo especial'}
+                                            mode={calculations.billingMode}
+                                            discount={calculations.discountPercent}
+                                        />
+                                        {calculations.listaCRC > 0 && (
+                                            <span className="text-[10px] font-bold text-slate-500 line-through">
+                                                ₡{Math.round(calculations.listaCRC).toLocaleString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             {calculations.courierCostCRC > 0 && (
                                 <div className="pt-4 border-t border-white/5 space-y-2">

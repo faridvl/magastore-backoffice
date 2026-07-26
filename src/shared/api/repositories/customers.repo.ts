@@ -172,7 +172,20 @@ export const getPaginatedCustomers = async (
   const offset = (page - 1) * limit;
 
   const [customers, totalResult] = await Promise.all([
-    sql`SELECT * FROM customers ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+    // El tipo de cliente viaja en el listado porque el alta de paquetes calcula
+    // el cobro en vivo desde el cliente seleccionado aquí: sin billing_mode
+    // mostraría precio de lista a un cliente AL_COSTO o con descuento.
+    sql`
+      SELECT c.id, c.id_card, c.id_type, c.first_name, c.last_name, c.email, c.phone,
+             c.customer_code, c.is_active, c.created_at, c.customer_type_id,
+             ct.name AS customer_type_name,
+             ct.billing_mode AS customer_type_billing_mode,
+             ct.discount_percent AS customer_type_discount_percent
+      FROM customers c
+      LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+      ORDER BY c.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `,
     sql`SELECT COUNT(*) as total FROM customers`,
   ]);
 
