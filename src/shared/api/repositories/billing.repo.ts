@@ -1,5 +1,10 @@
 import sql from '@/lib/db';
-import { BillingListItem, BillingDetail, BillingMonthlyReport } from '@/types/logistics/logistics.types';
+import {
+  BillingListItem,
+  BillingDetail,
+  BillingMonthlyReport,
+  ProfitShareMonthlyReport,
+} from '@/types/logistics/logistics.types';
 
 export const BillingRepository = {
   getPaginatedBilling: async (
@@ -141,6 +146,79 @@ export const BillingRepository = {
     `;
 
     return rows as BillingMonthlyReport[];
+  },
+
+  /**
+   * Participación de Farid agregada por mes. Separa deliberadamente lo FACTURADO
+   * (plata real, la que se le paga) de lo ESTIMADO (órdenes con estimado generado
+   * pero aún sin facturar): sumarlas daría un total inflado con envíos que quizá
+   * nunca se cobren.
+   *
+   * El LEFT JOIN a profit_share_periods hace que un mes sin fila sea un mes no
+   * pagado, sin necesidad de precargar meses.
+   */
+  getProfitShareReport: async (
+    from: string,
+    to: string,
+  ): Promise<ProfitShareMonthlyReport[]> => {
+    const rows = await sql`
+      SELECT
+        ps.period,
+        COALESCE(SUM(CASE WHEN ps.status = 'FACTURADO' THEN ps.share_crc ELSE 0 END), 0)::numeric      AS invoiced_share_crc,
+        COALESCE(SUM(CASE WHEN ps.status = 'ESTIMADO'  THEN ps.share_crc ELSE 0 END), 0)::numeric      AS estimated_share_crc,
+        COALESCE(SUM(CASE WHEN ps.status = 'FACTURADO' THEN ps.profit_base_crc ELSE 0 END), 0)::numeric AS invoiced_profit_crc,
+        COALESCE(MAX(ps.share_percent), 0)::numeric                                                    AS share_percent,
+        COUNT(CASE WHEN ps.status = 'FACTURADO' THEN 1 END)::int                                       AS invoiced_count,
+        COUNT(CASE WHEN ps.status = 'ESTIMADO'  THEN 1 END)::int                                       AS estimated_count,
+        COUNT(CASE WHEN ps.has_unknown_cost THEN 1 END)::int                                           AS unknown_cost_count,
+        COALESCE(BOOL_OR(pp.is_paid), false)                                                           AS is_paid,
+        MAX(pp.paid_at)                                                                                AS paid_at,
+        MAX(pp.paid_by_name)                                                                           AS paid_by_name,
+        MAX(pp.paid_amount_crc)::numeric                                                               AS paid_amount_crc
+      FROM profit_shares ps
+      LEFT JOIN profit_share_periods pp ON pp.period = ps.period
+      WHERE ps.period >= ${from} AND ps.period <= ${to}
+      GROUP BY ps.period
+      ORDER BY ps.period ASC
+    `;
+
+    return rows as ProfitShareMonthlyReport[];
+  },
+
+  /**
+   * Marca (o desmarca) un mes como pagado a Farid. Congela el monto pagado al
+   * marcar, para que facturar una orden más tarde en ese mismo mes no reescriba
+   * en silencio lo que ya se liquidó.
+   */
+  markProfitSharePeriodPaid: async (
+    period: string,
+    isPaid: boolean,
+    userName: string,
+  ): Promise<{ period: string; is_paid: boolean; paid_at: string | null }> => {
+    const [totals] = await sql`
+      SELECT COALESCE(SUM(share_crc), 0)::numeric AS total
+      FROM profit_shares
+      WHERE period = ${period} AND status = 'FACTURADO'
+    `;
+
+    const [row] = await sql`
+      INSERT INTO profit_share_periods (period, is_paid, paid_at, paid_by_name, paid_amount_crc)
+      VALUES (
+        ${period}, ${isPaid},
+        CASE WHEN ${isPaid}::boolean THEN NOW() ELSE NULL END,
+        ${isPaid ? userName : null},
+        ${isPaid ? Number(totals.total) : null}
+      )
+      ON CONFLICT (period) DO UPDATE SET
+        is_paid         = EXCLUDED.is_paid,
+        paid_at         = CASE WHEN EXCLUDED.is_paid THEN NOW() ELSE NULL END,
+        paid_by_name    = CASE WHEN EXCLUDED.is_paid THEN EXCLUDED.paid_by_name ELSE NULL END,
+        paid_amount_crc = CASE WHEN EXCLUDED.is_paid THEN EXCLUDED.paid_amount_crc ELSE NULL END,
+        updated_at      = NOW()
+      RETURNING period, is_paid, paid_at
+    `;
+
+    return row as { period: string; is_paid: boolean; paid_at: string | null };
   },
 
   markBillingAsPaid: async (uuid: string): Promise<Partial<BillingListItem>> => {

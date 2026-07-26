@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useBillingReportsQuery } from '@/shared/api/querys/billing/use-billing-reports-query';
-import { BillingMonthlyReport } from '@/types/logistics/logistics.types';
+import { useProfitShareQuery } from '@/shared/api/querys/billing/use-profit-share-query';
+import { useMarkProfitSharePaidMutation } from '@/shared/api/mutations/billing/use-mark-profit-share-paid-mutation';
+import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 
 function getDefaultRange(): { from: string; to: string } {
   const now = new Date();
@@ -44,11 +47,36 @@ export function useBillingReports() {
 
   const rows: BillingMonthlyReport[] = data?.data ?? [];
 
+  // Participación de Farid: mismo rango de fechas que el reporte de facturación,
+  // pero agregada por período (YYYY-MM) y con su propio estado de pago por mes.
+  const { useQuery: useShareQuery } = useProfitShareQuery(from, to);
+  const { data: shareData, isLoading: isLoadingShare } = useShareQuery();
+  const shareRows: ProfitShareMonthlyReport[] = shareData?.data ?? [];
+
+  const { markPeriodPaid, isPending: isMarkingPaid } = useMarkProfitSharePaidMutation();
+
+  const togglePeriodPaid = async (period: string, isPaid: boolean) => {
+    try {
+      await markPeriodPaid({ period, isPaid });
+      toast.success(
+        isPaid
+          ? 'Período marcado como pagado a Farid'
+          : 'Se revirtió el pago del período',
+      );
+    } catch {
+      toast.error('No se pudo actualizar el estado de pago. Intenta de nuevo.');
+    }
+  };
+
   return {
     from, setFrom: setFromManual,
     to,   setTo: setToManual,
     selectedYear, selectedMonth, applyMonthFilter,
     rows,
     isLoading,
+    shareRows,
+    isLoadingShare,
+    togglePeriodPaid,
+    isMarkingPaid,
   };
 }

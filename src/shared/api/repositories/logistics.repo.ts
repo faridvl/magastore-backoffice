@@ -15,6 +15,97 @@ import { DeliveryRatesRepository } from './delivery-rates.repo';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 
 /**
+ * Registra la participación de Farid sobre la ganancia de una orden.
+ *
+ * Se llama DENTRO de la transacción de quien la invoca (generatePreBilling al
+ * estimar, confirmPreBilling al facturar) — no abre ni cierra transacción propia.
+ *
+ * Es un UPSERT sobre consolidation_id porque generatePreBilling es re-ejecutable:
+ * recalcular el estimado debe sobreescribir la fila, nunca agregar otra, o la
+ * sumatoria mensual contaría el mismo envío dos veces.
+ *
+ * El desglose por paquete prorratea el cobro por peso: la factura es de la orden
+ * completa (peso mínimo y fee de entrega son únicos para el envío), así que un
+ * cobro "propio" por paquete no existe como dato real. El costo sí es real de
+ * cada paquete. Si la orden pesa 0, el prorrateo se reparte en partes iguales
+ * para no dividir por cero.
+ */
+const upsertProfitShare = async (params: {
+  consolidationId: number;
+  billingId: number | null;
+  period: string;
+  status: 'ESTIMADO' | 'FACTURADO';
+  revenueCrc: number;
+  courierCostCrc: number;
+  deliveryCostCrc: number | null;
+  sharePercent: number;
+  hasUnknownCost: boolean;
+}): Promise<void> => {
+  const {
+    consolidationId, billingId, period, status,
+    revenueCrc, courierCostCrc, deliveryCostCrc, sharePercent, hasUnknownCost,
+  } = params;
+
+  const profitBase = revenueCrc - courierCostCrc - (deliveryCostCrc ?? 0);
+  // Una orden que dio pérdida no genera participación negativa: Farid no le debe
+  // plata a Magastore por un envío mal cotizado, simplemente no gana nada ahí.
+  const shareCrc = profitBase > 0 ? (profitBase * sharePercent) / 100 : 0;
+
+  const [share] = await sql`
+    INSERT INTO profit_shares (
+      consolidation_id, billing_id, period, status,
+      revenue_crc, courier_cost_crc, delivery_cost_crc,
+      profit_base_crc, share_percent, share_crc, has_unknown_cost
+    ) VALUES (
+      ${consolidationId}, ${billingId}, ${period}, ${status},
+      ${revenueCrc}, ${courierCostCrc}, ${deliveryCostCrc},
+      ${profitBase}, ${sharePercent}, ${shareCrc}, ${hasUnknownCost}
+    )
+    ON CONFLICT (consolidation_id) DO UPDATE SET
+      billing_id        = COALESCE(EXCLUDED.billing_id, profit_shares.billing_id),
+      period            = EXCLUDED.period,
+      status            = EXCLUDED.status,
+      revenue_crc       = EXCLUDED.revenue_crc,
+      courier_cost_crc  = EXCLUDED.courier_cost_crc,
+      delivery_cost_crc = EXCLUDED.delivery_cost_crc,
+      profit_base_crc   = EXCLUDED.profit_base_crc,
+      share_percent     = EXCLUDED.share_percent,
+      share_crc         = EXCLUDED.share_crc,
+      has_unknown_cost  = EXCLUDED.has_unknown_cost,
+      updated_at        = NOW()
+    RETURNING id
+  `;
+
+  const packages = await sql`
+    SELECT id, weight_lb, COALESCE(courier_cost_usd * tc_banco, 0) AS cost_crc
+    FROM packages WHERE consolidation_id = ${consolidationId}
+    ORDER BY created_at
+  `;
+
+  await sql`DELETE FROM profit_share_packages WHERE profit_share_id = ${share.id}`;
+  if (packages.length === 0) return;
+
+  const totalWeight = packages.reduce((sum, p) => sum + Number(p.weight_lb), 0);
+
+  for (const pkg of packages) {
+    const weight = Number(pkg.weight_lb);
+    const ratio = totalWeight > 0 ? weight / totalWeight : 1 / packages.length;
+    const pkgRevenue = revenueCrc * ratio;
+    const pkgCost = Number(pkg.cost_crc) + (deliveryCostCrc ?? 0) * ratio;
+    const pkgProfit = pkgRevenue - pkgCost;
+    const pkgShare = pkgProfit > 0 ? (pkgProfit * sharePercent) / 100 : 0;
+
+    await sql`
+      INSERT INTO profit_share_packages (
+        profit_share_id, package_id, weight_lb, revenue_crc, cost_crc, profit_crc, share_crc
+      ) VALUES (
+        ${share.id}, ${pkg.id}, ${weight}, ${pkgRevenue}, ${pkgCost}, ${pkgProfit}, ${pkgShare}
+      )
+    `;
+  }
+};
+
+/**
  * Repository para el sistema de logística de couriers.
  * Maneja transacciones manuales compatibles con Neon HTTP Client.
  */
@@ -225,6 +316,29 @@ export const LogisticsRepository = {
         result = pre;
       }
 
+      // Participación de Farid sobre la ganancia proyectada de este estimado.
+      // Se registra ya (status ESTIMADO) para que la ganancia quede asentada por
+      // paquete desde el momento del estimado; al confirmar la factura se
+      // recongela con las cifras definitivas y pasa a FACTURADO.
+      //
+      // El costo del courier se lee de los paquetes reales. En modo AL_COSTO el
+      // cobro ES ese costo, así que la ganancia da 0 y la participación también.
+      const [preCostRow] = await sql`
+        SELECT COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total
+        FROM packages WHERE consolidation_id = ${c.id}
+      `;
+      await upsertProfitShare({
+        consolidationId: c.id,
+        billingId: null,
+        period: new Date().toISOString().slice(0, 7),
+        status: 'ESTIMADO',
+        revenueCrc: estimatedCrc,
+        courierCostCrc: Number(preCostRow.total),
+        deliveryCostCrc: deliveryCost,
+        sharePercent: Number(settings.farid_share_percent ?? 20),
+        hasUnknownCost: deliveryCost == null && !methodRow.is_pickup,
+      });
+
       // Generar el estimado "cierra" la orden: deja de aceptar más paquetes
       // y pasa a la cola de cobro. Solo aplica la primera vez (ABIERTO); si ya
       // está CERRADO (recalculando el estimado) no hay transición que hacer.
@@ -313,8 +427,24 @@ export const LogisticsRepository = {
           ${courierCostCrc}, ${deliveryCostCrc}, ${profitCrc}, ${hasUnknownCost},
           ${pre.applied_billing_mode}, ${pre.applied_discount_percent}
         )
-        RETURNING uuid, invoice_number
+        RETURNING id, uuid, invoice_number
       `;
+
+      // Recongelar la participación de Farid con las cifras definitivas y pasarla
+      // a FACTURADO. El período se recalcula a la fecha de la factura: un envío
+      // estimado a fin de mes y facturado el siguiente pertenece al mes en que se
+      // cobró, que es cuando corresponde pagarle.
+      await upsertProfitShare({
+        consolidationId: c.id,
+        billingId: bill.id,
+        period: new Date().toISOString().slice(0, 7),
+        status: 'FACTURADO',
+        revenueCrc: Number(pre.estimated_amount_crc),
+        courierCostCrc: courierCostCrc,
+        deliveryCostCrc: deliveryCostCrc,
+        sharePercent: Number(settings.farid_share_percent ?? 20),
+        hasUnknownCost: hasUnknownCost,
+      });
 
       await sql`
         UPDATE pre_billing SET is_confirmed = true, confirmed_at = NOW()

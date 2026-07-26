@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2 } from 'lucide-react';
+import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { routesPrivate } from '@/shared/navigation/routes';
@@ -280,6 +280,37 @@ export const SettingsContainer: React.FC = () => {
                             accentClass="focus-within:border-emerald-400 focus-within:ring-emerald-400/20"
                             onChange={(v) => handleUpdateSetting('kg_per_lb', v)}
                         />
+                    </div>
+                </div>
+
+                {/* Card 3b — Participación de Farid: solo lectura a propósito.
+                    Es un acuerdo societario, no una tarifa operativa: no viaja en el
+                    UPDATE de settings.repo.ts y se cambia directamente en la BD. */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                        <div className="p-2 bg-violet-50 rounded-xl">
+                            <Lock size={15} className="text-violet-500" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-800">Participación sobre la ganancia</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Reparto de la utilidad — no se le cobra de más al cliente</p>
+                        </div>
+                    </div>
+                    <div className="px-5 py-4 flex flex-wrap items-center gap-4">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Farid</span>
+                            <span className="text-2xl font-black text-violet-600">
+                                {Number(settings.farid_share_percent ?? 20)}%
+                            </span>
+                        </div>
+                        <p className="flex-1 min-w-[220px] text-[12px] text-slate-500 leading-relaxed">
+                            Se calcula sobre la ganancia de cada envío (cobro − costo courier − costo de entrega)
+                            y se registra por paquete al generar el estimado. Valor fijo: no editable desde el
+                            backoffice.{' '}
+                            <Link href={routesPrivate.admin.billing.reports} className="text-violet-600 font-bold hover:underline">
+                                Ver en Reportes
+                            </Link>
+                        </p>
                     </div>
                 </div>
 

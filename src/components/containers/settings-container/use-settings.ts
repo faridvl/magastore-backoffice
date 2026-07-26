@@ -17,6 +17,7 @@ export const useSettings = () => {
     courier_rate_usd: 0,
     courier_insurance_usd: 0,
     kg_per_lb: 0.453592,
+    farid_share_percent: 0,
     updated_at: new Date().toISOString(),
   });
 
@@ -32,6 +33,7 @@ export const useSettings = () => {
         courier_rate_usd:      Number(data.current.courier_rate_usd ?? 2.30),
         courier_insurance_usd: Number(data.current.courier_insurance_usd ?? 0.50),
         kg_per_lb:             Number(data.current.kg_per_lb ?? 0.453592),
+        farid_share_percent:   Number(data.current.farid_share_percent ?? 20),
       });
     }
   }, [data]);

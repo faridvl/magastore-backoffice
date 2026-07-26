@@ -381,6 +381,63 @@ export interface MarkPaidInput {
   billingUuid: string;
 }
 
+// --- Participación de Farid sobre la ganancia ---
+
+export enum ProfitShareStatus {
+  // Registrado al generar el estimado. Plata proyectada: la orden todavía puede
+  // recalcularse o no facturarse nunca.
+  ESTIMADO = 'ESTIMADO',
+  // La factura fue confirmada. Cifra definitiva y única que cuenta como ingreso.
+  FACTURADO = 'FACTURADO',
+}
+
+export interface ProfitShareMonthlyReport {
+  period: string;
+  // Solo filas FACTURADO — es la cifra que se le paga a Farid.
+  invoiced_share_crc: number;
+  // Solo filas ESTIMADO — órdenes con estimado generado y aún sin facturar.
+  estimated_share_crc: number;
+  invoiced_profit_crc: number;
+  share_percent: number;
+  invoiced_count: number;
+  estimated_count: number;
+  // Órdenes cuyo costo de entrega no se conocía: su ganancia no lo descuenta,
+  // así que la participación calculada queda por encima de la real.
+  unknown_cost_count: number;
+  is_paid: boolean;
+  paid_at: string | null;
+  paid_by_name: string | null;
+  paid_amount_crc: number | null;
+}
+
+export interface ProfitSharePackageBreakdown {
+  tracking_number: string;
+  weight_lb: number;
+  revenue_crc: number;
+  cost_crc: number;
+  profit_crc: number;
+  share_crc: number;
+}
+
+export interface ProfitShareDetail {
+  uuid: string;
+  period: string;
+  status: ProfitShareStatus;
+  revenue_crc: number;
+  courier_cost_crc: number;
+  delivery_cost_crc: number | null;
+  profit_base_crc: number;
+  share_percent: number;
+  share_crc: number;
+  has_unknown_cost: boolean;
+  packages: ProfitSharePackageBreakdown[];
+}
+
+export interface MarkPeriodPaidInput {
+  period: string;
+  isPaid: boolean;
+}
+
 // --- Tipos para Órdenes de Envío (gestión) ---
 
 export enum ConsolidationPaymentStatus {
