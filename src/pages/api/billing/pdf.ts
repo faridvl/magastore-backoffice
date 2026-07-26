@@ -40,12 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
-    // El casillero va en el nombre para poder identificar el archivo sin
-    // abrirlo. Se sanea porque termina en una cabecera HTTP.
+    // El casillero va antes del número para que al ordenar la carpeta queden
+    // juntos todos los archivos de un mismo cliente. Se sanea porque el nombre
+    // termina en una cabecera HTTP.
     const codeSlug = (detail.customer_code ?? '').replace(/[^A-Za-z0-9-]/g, '');
     const fileName = codeSlug
-      ? `factura-${invoiceLabel}-${codeSlug}.pdf`
-      : `factura-${invoiceLabel}.pdf`;
+      ? `FACTURA-${codeSlug}-${invoiceLabel}.pdf`
+      : `FACTURA-${invoiceLabel}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);

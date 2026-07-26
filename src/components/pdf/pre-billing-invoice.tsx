@@ -20,15 +20,7 @@ const s = StyleSheet.create({
     backgroundColor: '#0f1a2e', flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'flex-start', paddingTop: 20, paddingBottom: 20, paddingLeft: 32, paddingRight: 32,
   },
-  brandBlock: { flexDirection: 'column', alignItems: 'flex-start' },
-  docTitle: {
-    fontSize: 18, color: '#ffffff', fontFamily: 'Helvetica-Bold',
-    letterSpacing: 2, marginTop: 8,
-  },
-  docSubtitle: {
-    fontSize: 8, color: '#93c5fd', fontFamily: 'Helvetica-Bold',
-    letterSpacing: 1, marginTop: 2,
-  },
+  brandBlock: { flexDirection: 'row', alignItems: 'center' },
   // El logo es apaisado (1126x718). Se respeta esa proporción: forzarlo a un
   // cuadrado lo deformaba.
   brandLogo: { width: 130, height: 83 },
@@ -147,14 +139,10 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
           <View style={s.brandBlock}>
             {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf/renderer, no <img>: no acepta alt */}
             <Image style={s.brandLogo} src={LOGO_BUFFER} />
-            <Text style={s.docTitle}>PREFACTURA</Text>
-            <Text style={s.docSubtitle}>
-              {shortId} · {data.customer_code}
-            </Text>
           </View>
           <View style={s.headerMeta}>
             <View style={s.headerMetaRow}>
-              <Text style={s.headerMetaLabel}>N.º de prefactura:</Text>
+              <Text style={s.headerMetaLabel}>N.º estimado:</Text>
               <Text style={s.headerMetaValue}>{shortId}</Text>
             </View>
             <View style={s.headerMetaRow}>

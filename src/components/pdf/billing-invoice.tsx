@@ -35,22 +35,8 @@ const s = StyleSheet.create({
     paddingRight: 32,
   },
   brandBlock: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  docTitle: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontFamily: 'Helvetica-Bold',
-    letterSpacing: 2,
-    marginTop: 8,
-  },
-  docSubtitle: {
-    fontSize: 8,
-    color: '#93c5fd',
-    fontFamily: 'Helvetica-Bold',
-    letterSpacing: 1,
-    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   brandLogo: {
     // El logo es apaisado (1126x718). Se respeta esa proporción: forzarlo a un
@@ -280,10 +266,6 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
           <View style={s.brandBlock}>
             {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf/renderer, no <img>: no acepta alt */}
             <Image style={s.brandLogo} src={LOGO_BUFFER} />
-            <Text style={s.docTitle}>FACTURA</Text>
-            <Text style={s.docSubtitle}>
-              {invoiceLabel} · {detail.customer_code}
-            </Text>
           </View>
           <View style={s.headerMeta}>
             <View style={s.headerMetaRow}>

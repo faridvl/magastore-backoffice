@@ -104,12 +104,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     const shortId = uuid.slice(-8).toUpperCase();
-    // El casillero va en el nombre para poder identificar el archivo sin
-    // abrirlo. Se sanea porque termina en una cabecera HTTP.
+    // El casillero va antes del número para que al ordenar la carpeta queden
+    // juntos todos los archivos de un mismo cliente. Se sanea porque el nombre
+    // termina en una cabecera HTTP.
     const codeSlug = (data.customer_code ?? '').replace(/[^A-Za-z0-9-]/g, '');
     const fileName = codeSlug
-      ? `prefactura-${shortId}-${codeSlug}.pdf`
-      : `prefactura-${shortId}.pdf`;
+      ? `PREFACTURA-${codeSlug}-${shortId}.pdf`
+      : `PREFACTURA-${shortId}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
