@@ -45,7 +45,7 @@ function WarehouseCodeCard({
       addressLine, city, state, postalCode, contactPhone,
       templateBody: welcomeTemplateBody,
     });
-    openWhatsApp(customerPhone, message);
+    void notifyWhatsApp(customerPhone, message);
   };
   return (
     <div className={`flex items-center justify-between p-4 rounded-2xl border ${display.color}`}>
@@ -84,7 +84,7 @@ import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
-import { openWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
+import { notifyWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';

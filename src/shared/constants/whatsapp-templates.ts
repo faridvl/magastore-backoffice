@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 export type WhatsAppTemplateVars = Record<string, string>;
 
 export function interpolate(template: string, vars: WhatsAppTemplateVars): string {
@@ -15,7 +17,12 @@ function normalizePhone(phone: string): string {
 }
 
 /**
- * iPad no admite WhatsApp Business nativo: ahí el flujo real es WhatsApp Web.
+ * El iPad de operación no tiene NINGUNA app de WhatsApp instalada (ni normal ni
+ * Business): el único acceso es web.whatsapp.com agregado a inicio. Por eso no
+ * hay deep-link posible — no existe app que registre el esquema whatsapp://,
+ * así que ningún enlace puede "detectarla". De ahí que en iPad el flujo bueno
+ * sea copiar el mensaje y pegarlo en WhatsApp Web.
+ *
  * iPadOS 13+ reporta "Macintosh" en el userAgent, así que se detecta por la
  * combinación de plataforma Mac + pantalla táctil (maxTouchPoints > 1), que es
  * la única señal fiable.
@@ -60,6 +67,82 @@ export function openWhatsApp(phone: string, message: string): void {
     return;
   }
   window.open(url, '_blank');
+}
+
+/**
+ * Copia texto al portapapeles de forma fiable en Safari/iPad.
+ *
+ * navigator.clipboard.writeText exige un "user gesture" vivo, y Safari lo da
+ * por perdido en cuanto hubo un await de por medio — que es justo el caso de
+ * los flujos de notificación, que consultan los paquetes antes de armar el
+ * mensaje. Cuando eso pasa se recurre a execCommand('copy') sobre un textarea
+ * temporal, que no depende del gesto. Es API obsoleta pero sigue siendo el
+ * único fallback que funciona ahí.
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Cae al fallback de abajo.
+  }
+
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    // Fuera de vista pero enfocable: iOS ignora los elementos con display:none
+    // o visibility:hidden al ejecutar el copiado.
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    textarea.setAttribute('readonly', '');
+    document.body.appendChild(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Copia el mensaje de WhatsApp al portapapeles y avisa por toast.
+ *
+ * Flujo pensado para el iPad de operación: sin app de WhatsApp instalada, abrir
+ * web.whatsapp.com desde la PWA obliga a una navegación lenta y saca al
+ * operador de Magastore. Copiar y pegar en el WhatsApp Web ya abierto es más
+ * rápido y no pierde el contexto de la pantalla actual.
+ *
+ * Devuelve true si se copió, para que el caller decida si marca la acción como
+ * realizada.
+ */
+export async function copyWhatsAppMessage(message: string): Promise<boolean> {
+  const ok = await copyToClipboard(message);
+  if (ok) {
+    toast.success('Mensaje copiado. Pegalo en WhatsApp Web.');
+  } else {
+    toast.error('No se pudo copiar el mensaje.');
+  }
+  return ok;
+}
+
+/**
+ * Punto de entrada único de las notificaciones de WhatsApp.
+ *
+ * En el iPad de operación (sin app de WhatsApp) copia el mensaje al
+ * portapapeles y deja al operador pegarlo en su WhatsApp Web ya abierto: evita
+ * la navegación lenta y no lo saca de Magastore. En cualquier otro dispositivo
+ * abre el chat directo, que ahí sí resuelve a la app nativa.
+ */
+export async function notifyWhatsApp(phone: string, message: string): Promise<void> {
+  if (isIpad()) {
+    await copyWhatsAppMessage(message);
+    return;
+  }
+  openWhatsApp(phone, message);
 }
 
 export const WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE = `📦 Estimado(a), {{nombre}}.

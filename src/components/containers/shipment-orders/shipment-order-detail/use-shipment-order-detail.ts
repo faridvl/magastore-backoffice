@@ -9,7 +9,7 @@ import { useAssignPackagesToOrderMutation } from '@/shared/api/mutations/shipmen
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { openWhatsApp, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import { notifyWhatsApp, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
@@ -323,15 +323,15 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         amountCrc: detail.pre_billing_amount,
         templateBody: preBillingTemplateBody,
       });
-      // notified_at se estampa ANTES de abrir WhatsApp: en iPad openWhatsApp
-      // navega en la misma vista y nada de lo que quede después se ejecuta.
+      // notified_at se estampa ANTES de notificar: fuera de iPad se navega a
+      // WhatsApp en la misma vista y nada de lo que quede después se ejecuta.
       await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
         action: 'notify-pre-billing',
         consolidationUuid: uuid,
       });
       await detailQuery.invalidate();
 
-      openWhatsApp(detail.customer_phone, message);
+      await notifyWhatsApp(detail.customer_phone, message);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar la notificación.');
     } finally {
