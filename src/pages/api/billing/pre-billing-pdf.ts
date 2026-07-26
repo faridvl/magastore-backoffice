@@ -16,6 +16,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
       pb.delivery_fee_crc,
       pb.applied_rate_usd,
       pb.applied_exchange,
+      pb.applied_billing_mode,
+      pb.applied_discount_percent,
       pb.total_weight_charged,
       pb.created_at,
       con.total_weight_lb,
@@ -40,7 +42,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
     LEFT JOIN packages p ON p.consolidation_id = con.id
     WHERE pb.uuid = ${uuid}
     GROUP BY pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.delivery_fee_crc,
-             pb.applied_rate_usd, pb.applied_exchange, pb.total_weight_charged, pb.created_at,
+             pb.applied_rate_usd, pb.applied_exchange, pb.applied_billing_mode,
+             pb.applied_discount_percent, pb.total_weight_charged, pb.created_at,
              con.total_weight_lb, c.first_name, c.last_name, c.customer_code, c.email,
              ca.exact_address, ca.district, ca.canton, ca.province
   `;
@@ -54,6 +57,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
     total_weight_charged: Number(row.total_weight_charged),
     applied_rate_usd: Number(row.applied_rate_usd),
     applied_exchange: Number(row.applied_exchange),
+    applied_billing_mode: row.applied_billing_mode ?? null,
+    applied_discount_percent: row.applied_discount_percent != null ? Number(row.applied_discount_percent) : null,
     estimated_amount_crc: Number(row.estimated_amount_crc),
     delivery_method: row.delivery_method,
     delivery_fee_crc: Number(row.delivery_fee_crc ?? 0),

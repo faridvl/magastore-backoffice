@@ -4,6 +4,7 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { BillingDetail } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
@@ -29,6 +30,22 @@ export const BillingDetailModal: React.FC<Props> = ({
 }) => {
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const deliveryMethodLabel = resolveDeliveryMethodLabel(billingDetail?.delivery_method, deliveryMethodsData?.data);
+
+  // Mismo desglose que el PDF de la factura: sale del monto real y no de la
+  // tarifa de lista, para que las líneas cuadren con el total en clientes con
+  // regla de cobro especial.
+  const breakdown = billingDetail
+    ? buildBillingBreakdown({
+        packages: billingDetail.packages ?? [],
+        amountCrc: billingDetail.total_amount_crc,
+        deliveryFeeCrc: billingDetail.delivery_fee_crc,
+        totalWeightCharged: billingDetail.total_weight_charged,
+        appliedRateUsd: billingDetail.applied_rate_usd,
+        appliedExchange: billingDetail.applied_exchange,
+        billingMode: billingDetail.applied_billing_mode,
+        discountPercent: billingDetail.applied_discount_percent,
+      })
+    : null;
 
   return (
   <div
@@ -67,9 +84,16 @@ export const BillingDetailModal: React.FC<Props> = ({
               value={`${billingDetail.total_weight_charged} lb`}
             />
             <BillingRow
-              label={`Flete internacional ($${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`}
-              value={formatCRC(billingDetail.total_weight_charged * billingDetail.applied_rate_usd * billingDetail.applied_exchange)}
+              label={
+                breakdown?.isNormal === false
+                  ? `Flete internacional (lista $${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`
+                  : `Flete internacional ($${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`
+              }
+              value={formatCRC(breakdown?.isNormal === false ? breakdown.fleteLista : breakdown?.flete ?? 0)}
             />
+            {breakdown && !breakdown.isNormal && (
+              <BillingRow label={breakdown.ruleLabel ?? 'Ajuste'} value={`- ${formatCRC(breakdown.descuento)}`} />
+            )}
             {billingDetail.delivery_method && (
               <BillingRow
                 label={`Envío local — ${deliveryMethodLabel}`}

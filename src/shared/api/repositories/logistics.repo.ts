@@ -370,6 +370,8 @@ export const LogisticsRepository = {
         b.applied_exchange,
         b.total_weight_charged,
         b.applied_fee_crc,
+        b.applied_billing_mode,
+        b.applied_discount_percent,
         COALESCE(
           (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
            FROM package_events ev WHERE ev.package_id = p.id),

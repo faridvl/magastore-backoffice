@@ -6,6 +6,7 @@ import { usePackageDetailContainer } from './use-logistics-detail';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const STATUS_LABELS: Record<PackageStatus, string> = {
     [PackageStatus.PANAMA]:     'En Bodega Panamá',
@@ -23,6 +24,21 @@ export const PackageDetailContainer: React.FC = () => {
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
     const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+
+    // Desglose de la factura con la regla de cobro del cliente. Sin paquetes:
+    // esta vista muestra totales, no el detalle línea por línea.
+    const facturaBreakdown = tieneFactura && data.totalFacturado != null
+        ? buildBillingBreakdown({
+            packages: [],
+            amountCrc: data.totalFacturado,
+            deliveryFeeCrc: data.deliveryFeeCrc ?? 0,
+            totalWeightCharged: data.totalWeightCharged ?? data.peso,
+            appliedRateUsd: data.appliedRateUsd ?? 0,
+            appliedExchange: data.appliedExchange ?? 0,
+            billingMode: data.appliedBillingMode,
+            discountPercent: data.appliedDiscountPercent,
+        })
+        : null;
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -256,8 +272,21 @@ export const PackageDetailContainer: React.FC = () => {
                                             <FinanceRow label="Courier" value={data.courierRateName} />
                                         )}
                                         <FinanceRow label="Peso Cobrado" value={`${data.totalWeightCharged ?? data.peso} Lbs`} />
-                                        <FinanceRow label="Tarifa Aplicada" value={`$${Number(data.appliedRateUsd ?? 0).toFixed(2)}/lb`} />
-                                        <FinanceRow label="Flete Internacional" value={`$${(Number(data.totalWeightCharged ?? data.peso) * Number(data.appliedRateUsd ?? 0)).toFixed(2)}`} isHighlight />
+                                        <FinanceRow
+                                            label={facturaBreakdown && !facturaBreakdown.isNormal ? 'Tarifa de Lista' : 'Tarifa Aplicada'}
+                                            value={`$${Number(data.appliedRateUsd ?? 0).toFixed(2)}/lb`}
+                                        />
+                                        {/* El flete sale del monto facturado (ya con la regla de cobro),
+                                            no de peso × tarifa: para un cliente al costo o con descuento
+                                            ese producto no es lo que se cobró. */}
+                                        {facturaBreakdown && !facturaBreakdown.isNormal && (
+                                            <FinanceRow label={facturaBreakdown.ruleLabel ?? 'Ajuste'} value={`- ₡${Math.round(facturaBreakdown.descuento).toLocaleString()}`} />
+                                        )}
+                                        <FinanceRow
+                                            label="Flete Internacional"
+                                            value={facturaBreakdown ? `₡${Math.round(facturaBreakdown.flete).toLocaleString()}` : '—'}
+                                            isHighlight
+                                        />
 
                                         <div className="h-px bg-white/5" />
 

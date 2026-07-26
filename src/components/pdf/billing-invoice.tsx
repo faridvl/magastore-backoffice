@@ -3,6 +3,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/render
 import path from 'path';
 import fs from 'fs';
 import { BillingDetail } from '@/types/logistics/logistics.types';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const LOGO_BUFFER = fs.readFileSync(
   path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-transparent.png'),
@@ -232,9 +233,20 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
   const pricePerLb = Number(detail.applied_rate_usd);
-  const exchange = Number(detail.applied_exchange);
-  const flete = Number(detail.total_weight_charged) * pricePerLb * exchange;
   const packages = detail.packages ?? [];
+  // El desglose respeta la regla de cobro congelada en la factura. Si se
+  // reconstruyera a precio de lista, las líneas sumarían más que el TOTAL en
+  // clientes con descuento o al costo.
+  const breakdown = buildBillingBreakdown({
+    packages,
+    amountCrc: detail.total_amount_crc,
+    deliveryFeeCrc: detail.delivery_fee_crc,
+    totalWeightCharged: detail.total_weight_charged,
+    appliedRateUsd: detail.applied_rate_usd,
+    appliedExchange: detail.applied_exchange,
+    billingMode: detail.applied_billing_mode,
+    discountPercent: detail.applied_discount_percent,
+  });
   // Dirección viva de la orden (incluye distrito/cantón/provincia); el snapshot
   // queda como fallback para facturas cuya orden ya no tiene dirección asignada.
   const deliveryAddress = detail.delivery_exact_address
@@ -318,18 +330,16 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
                 <Text style={[s.thText, s.colTotal]}>Subtotal</Text>
               </View>
 
-              {packages.map((pkg, i) => {
-                const weight = Number(pkg.weight_lb);
-                const subtotal = weight * pricePerLb * exchange;
-                return (
-                  <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                    <Text style={[s.tdMono, s.colTracking]}>{pkg.tracking_number}</Text>
-                    <Text style={[s.tdText, s.colPeso]}>{weight.toFixed(2)}</Text>
-                    <Text style={[s.tdText, s.colPrecio]}>{fmtUSD(pricePerLb)}</Text>
-                    <Text style={[s.tdText, s.colTotal]}>{fmtCRC(subtotal)}</Text>
-                  </View>
-                );
-              })}
+              {breakdown.lines.map((line, i) => (
+                <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
+                  <Text style={[s.tdMono, s.colTracking]}>{line.tracking_number}</Text>
+                  <Text style={[s.tdText, s.colPeso]}>{line.weight.toFixed(2)}</Text>
+                  <Text style={[s.tdText, s.colPrecio]}>
+                    {breakdown.effectiveRateUsd != null ? fmtUSD(breakdown.effectiveRateUsd) : '—'}
+                  </Text>
+                  <Text style={[s.tdText, s.colTotal]}>{fmtCRC(line.subtotal)}</Text>
+                </View>
+              ))}
             </>
           )}
 
@@ -339,12 +349,31 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
               <Text style={s.summaryLabel}>Peso total (LB)</Text>
               <Text style={s.summaryValue}>{detail.total_weight_charged} lb</Text>
             </View>
+            {/* Con una regla de cobro especial se muestra el precio de lista y
+                la rebaja como líneas separadas: el cliente ve de dónde sale su
+                monto en vez de un número menor sin explicación. */}
             <View style={s.summaryRow}>
               <Text style={s.summaryLabel}>
-                {`Precio Magastore (${fmtUSD(pricePerLb)}/lb)`}
+                {breakdown.isNormal
+                  ? `Precio Magastore (${fmtUSD(pricePerLb)}/lb)`
+                  : `Precio Magastore (tarifa de lista ${fmtUSD(pricePerLb)}/lb)`}
               </Text>
-              <Text style={s.summaryValue}>{fmtCRC(flete)}</Text>
+              <Text style={s.summaryValue}>
+                {fmtCRC(breakdown.isNormal ? breakdown.flete : breakdown.fleteLista)}
+              </Text>
             </View>
+            {!breakdown.isNormal && (
+              <>
+                <View style={s.summaryRow}>
+                  <Text style={s.summaryLabel}>{breakdown.ruleLabel}</Text>
+                  <Text style={s.summaryValue}>{`- ${fmtCRC(breakdown.descuento)}`}</Text>
+                </View>
+                <View style={s.summaryRow}>
+                  <Text style={s.summaryLabel}>Subtotal envío internacional</Text>
+                  <Text style={s.summaryValue}>{fmtCRC(breakdown.flete)}</Text>
+                </View>
+              </>
+            )}
             {detail.delivery_method && (
               <View style={s.summaryRow}>
                 <Text style={s.summaryLabel}>

@@ -884,11 +884,20 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
   const rateUsd = Number(usingSnapshot ? detail.pre_billing_rate_usd : detail.current_price_per_lb);
   const exchange = Number(usingSnapshot ? detail.pre_billing_exchange : detail.current_exchange_rate);
 
+  // Regla de cobro del cliente. Sin esto la rentabilidad muestra margen sobre
+  // precio de lista: para un cliente AL_COSTO la ganancia real es ₡0 y para uno
+  // con descuento el margen queda inflado.
+  const billingMode = detail.customer_type_billing_mode ?? CustomerBillingMode.NORMAL;
+  const discountPercent = Number(detail.customer_type_discount_percent ?? 0);
+  const isAlCosto = billingMode === CustomerBillingMode.AL_COSTO;
+  const discountFactor = billingMode === CustomerBillingMode.DESCUENTO ? 1 - discountPercent / 100 : 1;
+
   const rows = detail.packages.map((pkg) => {
     const weight = Number(pkg.weight_lb);
-    const cobro = weight * rateUsd * exchange;
     const hasCost = pkg.courier_cost_usd != null && pkg.tc_banco != null;
     const costo = hasCost ? Number(pkg.courier_cost_usd) * Number(pkg.tc_banco) : null;
+    // AL_COSTO cobra exactamente el costo real del paquete, no la tarifa por peso.
+    const cobro = isAlCosto ? (costo ?? 0) : weight * rateUsd * exchange * discountFactor;
     return { pkg, cobro, costo, ganancia: costo != null ? cobro - costo : null };
   });
 
@@ -907,12 +916,19 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
   const deliveryCost = hasDelivery ? detail.delivery_cost_crc : 0;
   const missingDeliveryCost = hasDelivery && deliveryCost == null;
 
-  const cobroTotal = chargedWeight * rateUsd * exchange + deliveryFee;
+  // El flete sigue la regla del cliente; la entrega local se cobra completa en
+  // todos los modos — es un costo trasladado, no margen propio (ver generatePreBilling).
+  const fleteTotal = isAlCosto
+    ? rows.reduce((acc, r) => acc + (r.costo ?? 0), 0)
+    : chargedWeight * rateUsd * exchange * discountFactor;
+  const cobroTotal = fleteTotal + deliveryFee;
   const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0) + (deliveryCost ?? 0);
   const missingCost = rows.some((r) => r.costo == null);
   const gananciaTotal = cobroTotal - costoTotal;
   const margen = cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : 0;
-  const minApplied = chargedWeight > totalWeight;
+  // En AL_COSTO el cobro sale de los costos reales, no del peso: el mínimo no
+  // interviene, así que avisar de él sería engañoso.
+  const minApplied = chargedWeight > totalWeight && !isAlCosto;
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
@@ -923,9 +939,19 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
             Rentabilidad · Solo interno
           </p>
         </div>
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-          {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
-        </span>
+        <div className="flex items-center gap-2">
+          {/* La regla de cobro explica por qué el margen no es el de lista. */}
+          {billingMode !== CustomerBillingMode.NORMAL && (
+            <CustomerTypeBadge
+              name={detail.customer_type_name ?? 'Tipo especial'}
+              mode={billingMode as CustomerBillingMode}
+              discount={discountPercent}
+            />
+          )}
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2">

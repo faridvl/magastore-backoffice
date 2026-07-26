@@ -3,6 +3,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/render
 import path from 'path';
 import fs from 'fs';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const LOGO_BUFFER = fs.readFileSync(
   path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-transparent.png'),
@@ -89,6 +90,9 @@ export interface PreBillingPDFData {
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
+  // Regla de cobro con la que se calculó el estimado — snapshot de pre_billing.
+  applied_billing_mode: string | null;
+  applied_discount_percent: number | null;
   estimated_amount_crc: number;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
@@ -111,9 +115,19 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
   const pricePerLb = Number(data.applied_rate_usd);
-  const exchange = Number(data.applied_exchange);
-  const flete = Number(data.total_weight_charged) * pricePerLb * exchange;
   const packages = data.packages ?? [];
+  // Mismo criterio que la factura final: el desglose sale del monto estimado
+  // real, no de la tarifa de lista, para que las líneas cuadren con el total.
+  const breakdown = buildBillingBreakdown({
+    packages,
+    amountCrc: data.estimated_amount_crc,
+    deliveryFeeCrc: data.delivery_fee_crc,
+    totalWeightCharged: data.total_weight_charged,
+    appliedRateUsd: data.applied_rate_usd,
+    appliedExchange: data.applied_exchange,
+    billingMode: data.applied_billing_mode,
+    discountPercent: data.applied_discount_percent,
+  });
 
   return (
     <Document>
@@ -189,18 +203,16 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
                 <Text style={[s.thText, s.colPrecio]}>Precio x LB</Text>
                 <Text style={[s.thText, s.colTotal]}>Subtotal</Text>
               </View>
-              {packages.map((pkg, i) => {
-                const weight = Number(pkg.weight_lb);
-                const subtotal = weight * pricePerLb * exchange;
-                return (
-                  <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
-                    <Text style={[s.tdMono, s.colTracking]}>{pkg.tracking_number}</Text>
-                    <Text style={[s.tdText, s.colPeso]}>{weight.toFixed(2)}</Text>
-                    <Text style={[s.tdText, s.colPrecio]}>{fmtUSD(pricePerLb)}</Text>
-                    <Text style={[s.tdText, s.colTotal]}>{fmtCRC(subtotal)}</Text>
-                  </View>
-                );
-              })}
+              {breakdown.lines.map((line, i) => (
+                <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
+                  <Text style={[s.tdMono, s.colTracking]}>{line.tracking_number}</Text>
+                  <Text style={[s.tdText, s.colPeso]}>{line.weight.toFixed(2)}</Text>
+                  <Text style={[s.tdText, s.colPrecio]}>
+                    {breakdown.effectiveRateUsd != null ? fmtUSD(breakdown.effectiveRateUsd) : '—'}
+                  </Text>
+                  <Text style={[s.tdText, s.colTotal]}>{fmtCRC(line.subtotal)}</Text>
+                </View>
+              ))}
             </>
           )}
 
@@ -209,12 +221,29 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
               <Text style={s.summaryLabel}>Peso total (LB)</Text>
               <Text style={s.summaryValue}>{data.total_weight_charged} lb</Text>
             </View>
+            {/* Ver billing-invoice: con regla especial se separan lista y rebaja. */}
             <View style={s.summaryRow}>
               <Text style={s.summaryLabel}>
-                {`Precio Magastore (${fmtUSD(pricePerLb)}/lb)`}
+                {breakdown.isNormal
+                  ? `Precio Magastore (${fmtUSD(pricePerLb)}/lb)`
+                  : `Precio Magastore (tarifa de lista ${fmtUSD(pricePerLb)}/lb)`}
               </Text>
-              <Text style={s.summaryValue}>{fmtCRC(flete)}</Text>
+              <Text style={s.summaryValue}>
+                {fmtCRC(breakdown.isNormal ? breakdown.flete : breakdown.fleteLista)}
+              </Text>
             </View>
+            {!breakdown.isNormal && (
+              <>
+                <View style={s.summaryRow}>
+                  <Text style={s.summaryLabel}>{breakdown.ruleLabel}</Text>
+                  <Text style={s.summaryValue}>{`- ${fmtCRC(breakdown.descuento)}`}</Text>
+                </View>
+                <View style={s.summaryRow}>
+                  <Text style={s.summaryLabel}>Subtotal envío internacional</Text>
+                  <Text style={s.summaryValue}>{fmtCRC(breakdown.flete)}</Text>
+                </View>
+              </>
+            )}
             {data.delivery_method && (
               <View style={s.summaryRow}>
                 <Text style={s.summaryLabel}>

@@ -88,6 +88,8 @@ export const BillingRepository = {
         b.total_weight_charged,
         b.applied_rate_usd,
         b.applied_exchange,
+        b.applied_billing_mode,
+        b.applied_discount_percent,
         b.total_amount_crc,
         b.is_paid,
         b.paid_at,

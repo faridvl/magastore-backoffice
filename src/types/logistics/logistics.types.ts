@@ -267,6 +267,9 @@ export type PackageDetail = {
   applied_exchange: number | null;
   total_weight_charged: number | null;
   applied_fee_crc: number | null;
+  // Regla de cobro congelada en la factura (ver BillingDetail).
+  applied_billing_mode: string | null;
+  applied_discount_percent: number | null;
 };
 
 // --- Tipos para Billing ---
@@ -308,6 +311,11 @@ export interface BillingDetail {
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
+  // Regla de cobro congelada al confirmar la factura. Se lee de aquí y no del
+  // tipo actual del cliente: si mañana cambia de tipo, una factura ya emitida
+  // debe seguir explicando el monto con el que se emitió.
+  applied_billing_mode: string | null;
+  applied_discount_percent: number | null;
   total_amount_crc: number;
   is_paid: boolean;
   paid_at: string | null;
@@ -344,6 +352,9 @@ export interface PreBillingDetail {
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
+  // Regla de cobro con la que se calculó el estimado (ver BillingDetail).
+  applied_billing_mode: string | null;
+  applied_discount_percent: number | null;
   estimated_amount_crc: number;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
