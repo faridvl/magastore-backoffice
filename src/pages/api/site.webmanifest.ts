@@ -2,8 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const host = req.headers.host ?? '';
-  const isDev = host.includes('dev-portal');
+  const isDev = host.includes('dev-portal') || host.includes('localhost') || host.includes('127.0.0.1');
   const backgroundColor = isDev ? '#10B981' : '#000000';
+  const iconSuffix = isDev ? '-dev' : '';
 
   const manifest = {
     id: '/',
@@ -16,9 +17,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     orientation: 'any',
     lang: 'es',
     icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: `/icon-192${iconSuffix}.png`, sizes: '192x192', type: 'image/png' },
+      { src: `/icon-512${iconSuffix}.png`, sizes: '512x512', type: 'image/png' },
+      { src: `/icon-512${iconSuffix}.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     theme_color: '#111111',
     background_color: backgroundColor,
