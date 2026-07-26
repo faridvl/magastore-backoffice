@@ -75,7 +75,9 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'Inter', 'sans-serif'],
+        // var(--font-display) la inyecta next/font en el landing; las demás
+        // páginas caen al fallback 'Poppins' como hasta ahora.
+        display: ['var(--font-display)', 'Poppins', 'Inter', 'sans-serif'],
       },
       spacing: {
         4.5: '1.125rem',

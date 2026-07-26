@@ -17,7 +17,9 @@ export const useSettings = () => {
     courier_rate_usd: 0,
     courier_insurance_usd: 0,
     kg_per_lb: 0.453592,
-    farid_share_percent: 0,
+    // 20% es el default de la columna en BD (scripts/023-farid-profit-share.sql)
+    // y el fallback que ya usan el useEffect de abajo, la UI y logistics.repo.ts.
+    farid_share_percent: 20,
     updated_at: new Date().toISOString(),
   });
 
