@@ -2,6 +2,7 @@ import React from 'react';
 import { Truck, Plus, Pencil, Check, X, Power, MapPin, Hash, Star } from 'lucide-react';
 import { useCourierRates, CourierRateDraft } from './use-courier-rates';
 import { PackageType } from '@/types/logistics/logistics.types';
+import { CourierRateFormErrors } from '@/shared/utils/courier-rate-schema';
 
 const PACKAGE_TYPE_OPTIONS: { value: PackageType; label: string }[] = [
     { value: PackageType.AEREO, label: 'Aéreo' },
@@ -14,6 +15,7 @@ export const CourierRatesContainer: React.FC = () => {
         isLoading,
         editingUuid,
         editDraft,
+        editErrors,
         startEdit,
         cancelEdit,
         updateEditDraft,
@@ -21,6 +23,7 @@ export const CourierRatesContainer: React.FC = () => {
         isUpdating,
         showNewRow,
         newDraft,
+        newErrors,
         openNewRow,
         cancelNewRow,
         updateNewDraft,
@@ -59,6 +62,7 @@ export const CourierRatesContainer: React.FC = () => {
                 {showNewRow && (
                     <CourierRateForm
                         draft={newDraft}
+                        errors={newErrors}
                         onChange={updateNewDraft}
                         onSave={saveNewRow}
                         onCancel={cancelNewRow}
@@ -77,6 +81,7 @@ export const CourierRatesContainer: React.FC = () => {
                         <CourierRateForm
                             key={rate.uuid}
                             draft={editDraft}
+                            errors={editErrors}
                             onChange={updateEditDraft}
                             onSave={saveEdit}
                             onCancel={cancelEdit}
@@ -165,57 +170,68 @@ export const CourierRatesContainer: React.FC = () => {
 };
 
 const inputClass = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
+const inputErrorClass = 'w-full bg-white border border-red-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400';
 const labelClass = 'text-[10px] font-semibold text-slate-500 uppercase tracking-wider';
 
 function Field({
     label,
+    error,
     children,
 }: {
     label: string;
+    error?: string;
     children: React.ReactNode;
 }) {
     return (
         <div className="flex flex-col gap-1">
             <label className={labelClass}>{label}</label>
             {children}
+            {error && <p className="text-[10px] font-medium text-red-500 mt-0.5">{error}</p>}
         </div>
     );
 }
 
 function CourierRateForm({
     draft,
+    errors,
     onChange,
     onSave,
     onCancel,
     isSaving,
 }: {
     draft: CourierRateDraft;
+    errors: CourierRateFormErrors;
     onChange: (field: keyof CourierRateDraft, value: string) => void;
     onSave: () => void;
     onCancel: () => void;
     isSaving: boolean;
 }) {
+    const cls = (field: keyof CourierRateDraft) => (errors[field] ? inputErrorClass : inputClass);
+
     return (
         <div className="px-5 py-5 bg-emerald-50/30 space-y-5">
             <div className="space-y-3">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Courier y tarifa</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <Field label="Nombre">
-                        <input type="text" value={draft.name} onChange={(e) => onChange('name', e.target.value)} placeholder="Ej. Aéreo USA" className={inputClass} />
+                    <Field label="Nombre" error={errors.name}>
+                        <input type="text" value={draft.name} onChange={(e) => onChange('name', e.target.value)} placeholder="EJ. AÉREO USA" className={cls('name')} />
                     </Field>
-                    <Field label="Origen">
-                        <input type="text" value={draft.origin} onChange={(e) => onChange('origin', e.target.value)} placeholder="USA" className={inputClass} />
+                    <Field label="Origen" error={errors.origin}>
+                        <input type="text" value={draft.origin} onChange={(e) => onChange('origin', e.target.value)} placeholder="USA" className={cls('origin')} />
                     </Field>
-                    <Field label="Tipo">
-                        <select value={draft.package_type} onChange={(e) => onChange('package_type', e.target.value)} className={inputClass}>
+                    <Field label="Tipo" error={errors.package_type}>
+                        <select value={draft.package_type} onChange={(e) => onChange('package_type', e.target.value)} className={cls('package_type')}>
                             {PACKAGE_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                     </Field>
-                    <Field label="Tarifa (USD/lb)">
-                        <input type="number" step="0.01" min="0" inputMode="decimal" value={draft.rate_usd} onChange={(e) => onChange('rate_usd', e.target.value)} placeholder="0.00" className={inputClass} />
+                    {/* type="text" y no "number": la máscara de monto controla el
+                        formato, y un input numérico rechaza el valor intermedio
+                        mientras se escribe el decimal. */}
+                    <Field label="Tarifa (USD/lb)" error={errors.rate_usd}>
+                        <input type="text" inputMode="decimal" value={draft.rate_usd} onChange={(e) => onChange('rate_usd', e.target.value)} placeholder="0.00" className={cls('rate_usd')} />
                     </Field>
-                    <Field label="Seguro (USD)">
-                        <input type="number" step="0.01" min="0" inputMode="decimal" value={draft.insurance_usd} onChange={(e) => onChange('insurance_usd', e.target.value)} placeholder="0.00" className={inputClass} />
+                    <Field label="Seguro (USD)" error={errors.insurance_usd}>
+                        <input type="text" inputMode="decimal" value={draft.insurance_usd} onChange={(e) => onChange('insurance_usd', e.target.value)} placeholder="0.00" className={cls('insurance_usd')} />
                     </Field>
                 </div>
             </div>
@@ -228,23 +244,23 @@ function CourierRateForm({
                     </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <Field label="Prefijo de código">
-                        <input type="text" value={draft.code_prefix} onChange={(e) => onChange('code_prefix', e.target.value)} placeholder="MGA-2453-C-" className={`${inputClass} font-mono`} />
+                    <Field label="Prefijo de código" error={errors.code_prefix}>
+                        <input type="text" value={draft.code_prefix} onChange={(e) => onChange('code_prefix', e.target.value)} placeholder="MGA-2453-C-" className={`${cls('code_prefix')} font-mono`} />
                     </Field>
-                    <Field label="Teléfono de contacto">
-                        <input type="text" value={draft.contact_phone} onChange={(e) => onChange('contact_phone', e.target.value)} placeholder="+1 786-360-2816" className={inputClass} />
+                    <Field label="Teléfono de contacto" error={errors.contact_phone}>
+                        <input type="text" inputMode="tel" value={draft.contact_phone} onChange={(e) => onChange('contact_phone', e.target.value)} placeholder="+1 786-360-2816" className={cls('contact_phone')} />
                     </Field>
-                    <Field label="Dirección">
-                        <input type="text" value={draft.address_line} onChange={(e) => onChange('address_line', e.target.value)} placeholder="2610 NW 89TH CT" className={inputClass} />
+                    <Field label="Dirección" error={errors.address_line}>
+                        <input type="text" value={draft.address_line} onChange={(e) => onChange('address_line', e.target.value)} placeholder="2610 NW 89TH CT" className={cls('address_line')} />
                     </Field>
-                    <Field label="Ciudad">
-                        <input type="text" value={draft.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Doral" className={inputClass} />
+                    <Field label="Ciudad" error={errors.city}>
+                        <input type="text" value={draft.city} onChange={(e) => onChange('city', e.target.value)} placeholder="DORAL" className={cls('city')} />
                     </Field>
-                    <Field label="Estado / Provincia">
-                        <input type="text" value={draft.state} onChange={(e) => onChange('state', e.target.value)} placeholder="Florida" className={inputClass} />
+                    <Field label="Estado / Provincia" error={errors.state}>
+                        <input type="text" value={draft.state} onChange={(e) => onChange('state', e.target.value)} placeholder="FLORIDA" className={cls('state')} />
                     </Field>
-                    <Field label="Código postal">
-                        <input type="text" value={draft.postal_code} onChange={(e) => onChange('postal_code', e.target.value)} placeholder="33172-1615" className={inputClass} />
+                    <Field label="Código postal" error={errors.postal_code}>
+                        <input type="text" inputMode="numeric" value={draft.postal_code} onChange={(e) => onChange('postal_code', e.target.value)} placeholder="33172-1615" className={cls('postal_code')} />
                     </Field>
                 </div>
             </div>
