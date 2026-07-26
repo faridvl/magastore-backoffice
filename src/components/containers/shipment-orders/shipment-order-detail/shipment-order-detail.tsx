@@ -29,6 +29,7 @@ import {
   ConsolidationPackage,
   ConsolidationDetail,
   AvailablePackage,
+  ProfitShareStatus,
 } from '@/types/logistics/logistics.types';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
@@ -865,10 +866,54 @@ const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail })
         </div>
       </div>
 
+      <ProfitShareRow detail={detail} />
+
       {hasUnknownCost && (
         <p className="mt-3 text-[10px] text-amber-600">
           * El costo real de la entrega no estaba confirmado al momento de facturar — la ganancia mostrada no lo descuenta.
         </p>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Reparto de la ganancia de esta orden: cuánto le toca a Farid y cuánto queda.
+ * Solo existe desde que se genera el estimado — antes de eso no hay fila que
+ * mostrar. Mientras siga en ESTIMADO se marca como provisional, porque
+ * reabrir la orden o mover paquetes lo descarta y lo vuelve a calcular.
+ */
+const ProfitShareRow: React.FC<{
+  detail: ConsolidationDetail;
+  // La tarjeta del estimado calcula la ganancia en vivo (billing_profit_crc aún
+  // es null porque no hay factura); la tarjeta facturada usa la congelada.
+  profitOverride?: number;
+}> = ({ detail, profitOverride }) => {
+  if (detail.profit_share_crc == null) return null;
+
+  const share = Number(detail.profit_share_crc);
+  const percent = detail.profit_share_percent != null ? Number(detail.profit_share_percent) : null;
+  const isEstimated = detail.profit_share_status === ProfitShareStatus.ESTIMADO;
+
+  const profit = profitOverride ?? (detail.billing_profit_crc != null ? Number(detail.billing_profit_crc) : null);
+  const neto = profit != null ? profit - share : null;
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-violet-50 rounded-2xl">
+      <div>
+        <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+          Farid{percent != null ? ` · ${percent}%` : ''}
+          {isEstimated && <span className="ml-1 text-slate-400">(provisional)</span>}
+        </p>
+        <p className="text-sm font-black text-violet-700">{formatCRC(share)}</p>
+      </div>
+      {neto != null && (
+        <div className="text-right">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Neto Magastore</p>
+          <p className={`text-sm font-black ${neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {formatCRC(neto)}
+          </p>
+        </div>
       )}
     </div>
   );
@@ -1029,6 +1074,8 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
           </p>
         </div>
       </div>
+
+      <ProfitShareRow detail={detail} profitOverride={gananciaTotal} />
 
       <div className="mt-3 space-y-0.5">
         {missingCost && (

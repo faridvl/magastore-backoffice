@@ -519,6 +519,11 @@ export interface ConsolidationDetail {
   billing_delivery_cost_crc: number | null;
   billing_profit_crc: number | null;
   billing_has_unknown_cost: boolean | null;
+  // Participación de Farid sobre la ganancia de esta orden (migración 023).
+  // Null mientras no se haya generado el estimado — se crea recién ahí.
+  profit_share_crc: number | null;
+  profit_share_percent: number | null;
+  profit_share_status: ProfitShareStatus | null;
   delivery_method: DeliveryMethod | null;
   delivery_address_id: string | null;
   delivery_address_label: string | null;

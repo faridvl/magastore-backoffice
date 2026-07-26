@@ -250,6 +250,9 @@ export const ConsolidationsRepository = {
         b.delivery_cost_crc AS billing_delivery_cost_crc,
         b.profit_crc AS billing_profit_crc,
         b.has_unknown_cost AS billing_has_unknown_cost,
+        ps.share_crc AS profit_share_crc,
+        ps.share_percent AS profit_share_percent,
+        ps.status AS profit_share_status,
         con.delivery_method,
         con.delivery_address_id,
         ca.address_label AS delivery_address_label,
@@ -269,6 +272,7 @@ export const ConsolidationsRepository = {
       LEFT JOIN packages p ON p.consolidation_id = con.id
       LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
       LEFT JOIN billing b ON b.consolidation_id = con.id
+      LEFT JOIN profit_shares ps ON ps.consolidation_id = con.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
       CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
@@ -278,6 +282,7 @@ export const ConsolidationsRepository = {
                pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_cost_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
                pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, b.total_amount_crc, b.courier_cost_crc, b.delivery_cost_crc, b.profit_crc, b.has_unknown_cost,
+               ps.share_crc, ps.share_percent, ps.status,
                con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
