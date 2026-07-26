@@ -40,8 +40,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
+    // El casillero va en el nombre para poder identificar el archivo sin
+    // abrirlo. Se sanea porque termina en una cabecera HTTP.
+    const codeSlug = (detail.customer_code ?? '').replace(/[^A-Za-z0-9-]/g, '');
+    const fileName = codeSlug
+      ? `factura-${invoiceLabel}-${codeSlug}.pdf`
+      : `factura-${invoiceLabel}.pdf`;
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="factura-${invoiceLabel}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', buffer.length);
     return res.status(200).end(buffer);
   } catch (error: any) {

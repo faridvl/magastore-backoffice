@@ -104,8 +104,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     const shortId = uuid.slice(-8).toUpperCase();
+    // El casillero va en el nombre para poder identificar el archivo sin
+    // abrirlo. Se sanea porque termina en una cabecera HTTP.
+    const codeSlug = (data.customer_code ?? '').replace(/[^A-Za-z0-9-]/g, '');
+    const fileName = codeSlug
+      ? `prefactura-${shortId}-${codeSlug}.pdf`
+      : `prefactura-${shortId}.pdf`;
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="estimado-${shortId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', buffer.length);
     return res.status(200).end(buffer);
   } catch (error: any) {
