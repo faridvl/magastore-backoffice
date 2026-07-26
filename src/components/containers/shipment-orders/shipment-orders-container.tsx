@@ -214,7 +214,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
             <input
               type="text"
-              placeholder="Buscar por cliente o casillero..."
+              placeholder="Buscar por cliente, casillero o N° de orden..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-slate-50 pl-9 pr-4 py-2.5 rounded-xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"

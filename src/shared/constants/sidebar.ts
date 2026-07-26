@@ -11,7 +11,6 @@ import {
   TrendingUp,
   BarChart2,
   BarChart3,
-  MapPin,
   MessageCircle,
 } from 'lucide-react';
 
@@ -40,11 +39,17 @@ export const NAV_STANDALONE: NavItem[] = [
   },
 ];
 
-export const NAV_GROUPS: NavGroup[] = [
+const ALL_NAV_GROUPS: NavGroup[] = [
   {
     groupKey: 'operations',
     label: 'Operaciones',
     items: [
+      {
+        menuKey: 'customers',
+        icon: Users,
+        labelKey: 'Clientes',
+        route: routesPrivate.admin.customers.index,
+      },
       {
         menuKey: 'logistics',
         icon: Truck,
@@ -57,6 +62,12 @@ export const NAV_GROUPS: NavGroup[] = [
         labelKey: 'Órdenes de Envío',
         route: routesPrivate.admin.shipmentOrders.index,
       },
+    ],
+  },
+  {
+    groupKey: 'finance',
+    label: 'Finanzas',
+    items: [
       {
         menuKey: 'billing',
         icon: BadgeDollarSign,
@@ -64,18 +75,6 @@ export const NAV_GROUPS: NavGroup[] = [
         route: routesPrivate.admin.billing.index,
         adminOnly: true,
       },
-      {
-        menuKey: 'customers',
-        icon: Users,
-        labelKey: 'Clientes',
-        route: routesPrivate.admin.customers.index,
-      },
-    ],
-  },
-  {
-    groupKey: 'finance',
-    label: 'Finanzas',
-    items: [
       {
         menuKey: 'reports',
         icon: BarChart2,
@@ -127,7 +126,7 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     groupKey: 'admin',
-    label: 'Administrativo',
+    label: 'Configuración',
     items: [
       {
         menuKey: 'settings',
@@ -139,7 +138,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'courier-rates',
         icon: Truck,
-        labelKey: 'Couriers y Casilleros',
+        labelKey: 'Proveedores',
         route: routesPrivate.admin.courierRates,
         adminOnly: true,
       },
@@ -164,14 +163,17 @@ export const NAV_GROUPS: NavGroup[] = [
         route: routesPrivate.admin.deliveryMethods,
         adminOnly: true,
       },
-      {
-        menuKey: 'addresses',
-        icon: MapPin,
-        labelKey: 'Datos de Direcciones',
-        route: '/admin/addresses',
-        adminOnly: true,
-        disabled: true,
-      },
     ],
   },
 ];
+
+// En producción se ocultan los módulos "PRONTO" (disabled) por completo: no
+// tiene sentido mostrarle a un cliente real un módulo que todavía no existe.
+// En dev/preview se conservan visibles con su badge para dar seguimiento.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+export const NAV_GROUPS: NavGroup[] = IS_PRODUCTION
+  ? ALL_NAV_GROUPS
+      .map((group) => ({ ...group, items: group.items.filter((item) => !item.disabled) }))
+      .filter((group) => group.items.length > 0)
+  : ALL_NAV_GROUPS;
