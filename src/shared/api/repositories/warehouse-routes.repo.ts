@@ -16,57 +16,64 @@ export const WarehouseRoutesRepository = {
    * Casillero de una ruta sin importar si está activa — para mostrar/editar
    * los datos junto a su tarifa de courier en el mantenimiento.
    */
-  getByRoute: async (origin: string, packageType: string): Promise<WarehouseRoute | null> => {
+  /**
+   * Casillero de un courier sin importar si está activo — para mostrar/editar
+   * los datos junto a su tarifa en el mantenimiento.
+   */
+  getByCourierRateId: async (courierRateId: number): Promise<WarehouseRoute | null> => {
     const [row] = await sql`
-      SELECT id, uuid, origin, package_type, code_prefix, current_counter,
+      SELECT id, uuid, courier_rate_id, origin, package_type, code_prefix, current_counter,
              address_line, city, state, postal_code, contact_phone, is_active, created_at
       FROM warehouse_routes
-      WHERE origin = ${origin} AND package_type = ${packageType}
+      WHERE courier_rate_id = ${courierRateId}
       LIMIT 1
     `;
     return (row as WarehouseRoute) ?? null;
   },
 
   /**
-   * Alta/actualización del casillero de una ruta. La clave natural es
-   * (origin, package_type) — la misma que usa courier_rates —, así que un
-   * courier nuevo con esa combinación crea su casillero aquí. El contador
-   * nunca se toca en el update: es estado vivo de asignación de códigos.
+   * Alta/actualización del casillero de un courier. La clave es el courier, no
+   * (origin, package_type): dos proveedores del mismo origen y tipo son
+   * bodegas distintas, con dirección y numeración propias. El contador nunca
+   * se toca en el update: es estado vivo de asignación de códigos.
    */
-  upsert: async (data: WarehouseRouteInput): Promise<WarehouseRoute> => {
+  upsert: async (courierRateId: number, data: WarehouseRouteInput): Promise<WarehouseRoute> => {
     const [row] = await sql`
       INSERT INTO warehouse_routes (
-        origin, package_type, code_prefix, address_line, city, state, postal_code, contact_phone
+        courier_rate_id, origin, package_type, code_prefix,
+        address_line, city, state, postal_code, contact_phone
       ) VALUES (
-        ${data.origin}, ${data.package_type}, ${data.code_prefix},
+        ${courierRateId}, ${data.origin}, ${data.package_type}, ${data.code_prefix},
         ${data.address_line}, ${data.city}, ${data.state}, ${data.postal_code}, ${data.contact_phone}
       )
-      ON CONFLICT (origin, package_type) DO UPDATE SET
+      ON CONFLICT (courier_rate_id) DO UPDATE SET
+        origin        = EXCLUDED.origin,
+        package_type  = EXCLUDED.package_type,
         code_prefix   = EXCLUDED.code_prefix,
         address_line  = EXCLUDED.address_line,
         city          = EXCLUDED.city,
         state         = EXCLUDED.state,
         postal_code   = EXCLUDED.postal_code,
         contact_phone = EXCLUDED.contact_phone
-      RETURNING id, uuid, origin, package_type, code_prefix, current_counter,
+      RETURNING id, uuid, courier_rate_id, origin, package_type, code_prefix, current_counter,
                 address_line, city, state, postal_code, contact_phone, is_active, created_at
     `;
     return row as WarehouseRoute;
   },
 
-  setActive: async (origin: string, packageType: string, isActive: boolean): Promise<void> => {
+  setActive: async (courierRateId: number, isActive: boolean): Promise<void> => {
     await sql`
       UPDATE warehouse_routes SET is_active = ${isActive}
-      WHERE origin = ${origin} AND package_type = ${packageType}
+      WHERE courier_rate_id = ${courierRateId}
     `;
   },
 
-  getActiveRoute: async (origin: string, packageType: string): Promise<WarehouseRoute | null> => {
+  getActiveRouteByCourier: async (courierRateId: number): Promise<WarehouseRoute | null> => {
     const [row] = await sql`
-      SELECT id, uuid, origin, package_type, code_prefix, current_counter,
+      SELECT id, uuid, courier_rate_id, origin, package_type, code_prefix, current_counter,
              address_line, city, state, postal_code, contact_phone, is_active, created_at
       FROM warehouse_routes
-      WHERE origin = ${origin} AND package_type = ${packageType} AND is_active = true
+      WHERE courier_rate_id = ${courierRateId} AND is_active = true
       LIMIT 1
     `;
     return (row as WarehouseRoute) ?? null;
@@ -74,7 +81,7 @@ export const WarehouseRoutesRepository = {
 
   getById: async (routeId: number): Promise<WarehouseRoute | null> => {
     const [row] = await sql`
-      SELECT id, uuid, origin, package_type, code_prefix, current_counter,
+      SELECT id, uuid, courier_rate_id, origin, package_type, code_prefix, current_counter,
              address_line, city, state, postal_code, contact_phone, is_active, created_at
       FROM warehouse_routes
       WHERE id = ${routeId}
@@ -106,12 +113,12 @@ export const WarehouseRoutesRepository = {
    */
   getDefaultRoute: async (): Promise<WarehouseRoute | null> => {
     const [row] = await sql`
-      SELECT wr.id, wr.uuid, wr.origin, wr.package_type, wr.code_prefix, wr.current_counter,
+      SELECT wr.id, wr.uuid, wr.courier_rate_id, wr.origin, wr.package_type,
+             wr.code_prefix, wr.current_counter,
              wr.address_line, wr.city, wr.state, wr.postal_code, wr.contact_phone,
              wr.is_active, wr.created_at
       FROM courier_rates cr
-      JOIN warehouse_routes wr
-        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      JOIN warehouse_routes wr ON wr.courier_rate_id = cr.id
       WHERE cr.is_default = true AND cr.is_active = true AND wr.is_active = true
       LIMIT 1
     `;
@@ -127,18 +134,20 @@ export const WarehouseRoutesRepository = {
   getCustomerRoutes: async (customerId: string): Promise<CustomerWarehouseRoute[]> => {
     const rows = await sql`
       SELECT wr.id AS warehouse_route_id, cwc.code, wr.origin, wr.package_type,
-             wr.address_line, wr.city, wr.state, wr.postal_code, wr.contact_phone
+             wr.address_line, wr.city, wr.state, wr.postal_code, wr.contact_phone,
+             cr.name AS courier_name
       FROM customer_warehouse_codes cwc
       JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
+      JOIN courier_rates cr ON cr.id = wr.courier_rate_id
       WHERE cwc.customer_id = ${customerId} AND wr.is_active = true
-      ORDER BY wr.origin ASC, wr.package_type ASC
+      ORDER BY cr.name ASC
     `;
     return rows as CustomerWarehouseRoute[];
   },
 
   getAll: async (): Promise<WarehouseRoute[]> => {
     const rows = await sql`
-      SELECT id, uuid, origin, package_type, code_prefix, current_counter,
+      SELECT id, uuid, courier_rate_id, origin, package_type, code_prefix, current_counter,
              address_line, city, state, postal_code, contact_phone, is_active, created_at
       FROM warehouse_routes
       ORDER BY origin ASC, package_type ASC
@@ -152,14 +161,14 @@ export const WarehouseRoutesRepository = {
    * dentro de una transacción junto con el INSERT del cliente, para que un
    * fallo posterior (ej. email duplicado) revierta también el contador.
    */
-  incrementAndGetCode: async (origin: string, packageType: string): Promise<{ code: string; warehouseRouteId: number }> => {
+  incrementAndGetCode: async (courierRateId: number): Promise<{ code: string; warehouseRouteId: number }> => {
     const [route] = await sql`
       UPDATE warehouse_routes
       SET current_counter = current_counter + 1
-      WHERE origin = ${origin} AND package_type = ${packageType} AND is_active = true
+      WHERE courier_rate_id = ${courierRateId} AND is_active = true
       RETURNING id, code_prefix, current_counter
     `;
-    if (!route) throw new Error(`No hay una ruta de casillero activa para origin=${origin}, package_type=${packageType}.`);
+    if (!route) throw new Error(`El courier ${courierRateId} no tiene un casillero activo configurado.`);
 
     return {
       code: formatCode(route.code_prefix, route.current_counter),
@@ -215,15 +224,47 @@ export const WarehouseRoutesRepository = {
   },
 
   /**
+   * Paquetes registrados por un cliente contra el courier dueño de esta ruta.
+   * Se consulta antes de quitarle el casillero: si ya recibió mercancía por ahí,
+   * el código es parte del historial y borrarlo dejaría paquetes apuntando a un
+   * casillero que el cliente "nunca tuvo".
+   */
+  countPackagesForCustomerRoute: async (customerId: string, warehouseRouteId: number): Promise<number> => {
+    const [row] = await sql`
+      SELECT COUNT(*)::int AS count
+      FROM packages p
+      JOIN warehouse_routes wr ON wr.courier_rate_id = p.courier_rate_id
+      WHERE p.customer_id = ${customerId} AND wr.id = ${warehouseRouteId}
+    `;
+    return Number(row?.count ?? 0);
+  },
+
+  /**
+   * Quita el casillero de un cliente. El contador de la ruta NO se decrementa:
+   * es una secuencia, no un conteo de asignaciones vivas — retrocederlo haría
+   * que el próximo cliente recibiera un código ya usado antes.
+   */
+  removeCustomerCode: async (customerId: string, warehouseRouteId: number): Promise<void> => {
+    const rows = await sql`
+      DELETE FROM customer_warehouse_codes
+      WHERE customer_id = ${customerId} AND warehouse_route_id = ${warehouseRouteId}
+      RETURNING id
+    `;
+    if (rows.length === 0) {
+      throw new Error('El cliente no tiene un casillero en esa ruta.');
+    }
+  },
+
+  /**
    * Avanza el contador de la ruta hasta counterValue si es mayor al actual —
    * usado tras un import masivo con códigos explícitos, para que la próxima
    * alta manual no colisione con un número ya importado.
    */
-  advanceCounterIfHigher: async (origin: string, packageType: string, counterValue: number): Promise<void> => {
+  advanceCounterIfHigher: async (routeId: number, counterValue: number): Promise<void> => {
     await sql`
       UPDATE warehouse_routes
       SET current_counter = ${counterValue}
-      WHERE origin = ${origin} AND package_type = ${packageType} AND current_counter < ${counterValue}
+      WHERE id = ${routeId} AND current_counter < ${counterValue}
     `;
   },
 };

@@ -143,13 +143,15 @@ export const LogisticsRepository = {
     // warehouse_route_id viaja con la tarifa para que el alta de cliente pueda
     // pedir los casilleros por id sin una segunda consulta. LEFT JOIN: una
     // tarifa antigua puede no tener casillero configurado todavía.
+    // code_prefix se usa para mostrarle al operador el formato del código al
+    // escribir uno manual, en vez de dejarlo adivinar.
     const rows = await sql`
       SELECT cr.id, cr.uuid, cr.name, cr.origin, cr.package_type, cr.rate_usd,
              cr.insurance_usd, cr.is_active, cr.is_default, cr.created_at,
-             wr.id AS warehouse_route_id
+             wr.id AS warehouse_route_id, wr.code_prefix, wr.current_counter
       FROM courier_rates cr
       LEFT JOIN warehouse_routes wr
-        ON wr.origin = cr.origin AND wr.package_type = cr.package_type AND wr.is_active = true
+        ON wr.courier_rate_id = cr.id AND wr.is_active = true
       WHERE cr.is_active = true
       ORDER BY cr.is_default DESC, cr.name ASC
     `;

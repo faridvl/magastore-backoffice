@@ -23,8 +23,7 @@ export const CourierRatesRepository = {
              wr.code_prefix, wr.current_counter, wr.address_line, wr.city,
              wr.state, wr.postal_code, wr.contact_phone
       FROM courier_rates cr
-      LEFT JOIN warehouse_routes wr
-        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      LEFT JOIN warehouse_routes wr ON wr.courier_rate_id = cr.id
       ORDER BY cr.name ASC
     `;
     return rows as CourierRateWithWarehouse[];
@@ -41,8 +40,7 @@ export const CourierRatesRepository = {
     const [row] = await sql`
       SELECT wr.id AS route_id, cr.name AS rate_name, cr.origin, cr.package_type
       FROM courier_rates cr
-      LEFT JOIN warehouse_routes wr
-        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      LEFT JOIN warehouse_routes wr ON wr.courier_rate_id = cr.id
       WHERE cr.id = ${courierRateId}
       LIMIT 1
     `;
@@ -63,8 +61,7 @@ export const CourierRatesRepository = {
     const [row] = await sql`
       SELECT wr.id AS route_id, cr.name AS rate_name
       FROM courier_rates cr
-      LEFT JOIN warehouse_routes wr
-        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      LEFT JOIN warehouse_routes wr ON wr.courier_rate_id = cr.id
       WHERE cr.uuid = ${uuid}
       LIMIT 1
     `;
