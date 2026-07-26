@@ -178,20 +178,34 @@ Quedamos atentos a su confirmación para proceder.
 
 *MAGASTORE 📦✈️*`;
 
+export type WhatsAppPackageLine = {
+  storeName: string | null;
+  trackingNumber: string;
+  weightLb: number;
+};
+
+/**
+ * Una línea por paquete, con la tienda como etiqueta y el tracking como
+ * respaldo cuando no se registró. Compartida por las plantillas que listan
+ * paquetes para que el formato sea idéntico en todos los mensajes.
+ */
+function formatPackageLines(packages: WhatsAppPackageLine[]): string {
+  return packages
+    .map((p) => `* ${p.storeName || p.trackingNumber} – ${p.weightLb.toFixed(2)} lb`)
+    .join('\n');
+}
+
 export function buildPackagesAvailableMessage(params: {
   firstName: string;
-  packages: { storeName: string | null; trackingNumber: string; weightLb: number }[];
+  packages: WhatsAppPackageLine[];
   /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
   templateBody?: string;
 }): string {
-  const lista = params.packages
-    .map((p) => `* ${p.storeName || p.trackingNumber} – ${p.weightLb.toFixed(2)} lb`)
-    .join('\n');
   const pesoTotal = params.packages.reduce((sum, p) => sum + p.weightLb, 0).toFixed(2);
 
   return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE, {
     nombre: params.firstName,
-    lista_paquetes: lista,
+    lista_paquetes: formatPackageLines(params.packages),
     peso_total: pesoTotal,
   });
 }
@@ -206,12 +220,20 @@ export function buildPreBillingReadyMessage(params: {
   deliveryMethodLabel: string | null;
   /** Total del estimado en colones. */
   amountCrc?: number | null;
+  /** Paquetes de la orden, para las variables {{lista_paquetes}} y
+   * {{cantidad_paquetes}}. Opcional: las plantillas que no las usan siguen
+   * funcionando sin pasarlos. */
+  packages?: WhatsAppPackageLine[];
   /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
   templateBody?: string;
 }): string {
+  const packages = params.packages ?? [];
+
   return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PREBILLING_READY, {
     nombre: params.firstName,
     id_orden: params.orderShortId,
+    lista_paquetes: formatPackageLines(packages),
+    cantidad_paquetes: String(packages.length),
     peso_total: params.weightLb.toFixed(2),
     metodo_entrega: params.deliveryMethodLabel ?? '—',
     monto: params.amountCrc != null ? `₡${Math.round(Number(params.amountCrc)).toLocaleString('es-CR')}` : '—',

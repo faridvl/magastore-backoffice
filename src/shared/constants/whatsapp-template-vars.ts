@@ -25,6 +25,8 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   PREBILLING_READY: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+    { key: 'lista_paquetes', label: 'Lista con cada paquete de la orden y su peso, uno por línea' },
+    { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
     { key: 'metodo_entrega', label: 'Cómo se entrega — ej. Correos de Costa Rica' },
     { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24,500' },

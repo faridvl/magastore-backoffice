@@ -321,6 +321,11 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         weightLb: Number(detail.total_weight_lb),
         deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
+        packages: (detail.packages ?? []).map((p) => ({
+          storeName: p.store_name,
+          trackingNumber: p.tracking_number,
+          weightLb: Number(p.weight_lb),
+        })),
         templateBody: preBillingTemplateBody,
       });
       // notified_at se estampa ANTES de notificar: fuera de iPad se navega a
