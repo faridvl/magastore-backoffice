@@ -19,7 +19,7 @@ export const PackageDetailContainer: React.FC = () => {
     const { id } = router.query;
     const uuid = router.isReady ? (id as string) : undefined;
     const {
-        data, bitacora, calculos, tieneFactura, isLoading, isError,
+        data, bitacora, calculos, tieneFactura, isLoading, isError, error, refetch,
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
@@ -49,7 +49,41 @@ export const PackageDetailContainer: React.FC = () => {
         </div>
     );
 
-    if (isError) return <div className="p-10 text-center text-red-500 font-bold">Error al cargar el paquete. Revisa el UUID.</div>;
+    // El mensaje anterior culpaba siempre al UUID, incluso ante un 401 o un
+    // fallo del servidor, lo que hacía imposible distinguir la causa real.
+    if (isError) {
+        const status = (error as { status?: number } | null)?.status;
+        const detalle = status === 401
+            ? 'Tu sesión expiró. Inicia sesión de nuevo.'
+            : status === 404
+                ? 'Este paquete no existe o fue eliminado.'
+                : 'No se pudo cargar el paquete. Intenta de nuevo.';
+
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] px-6 text-center gap-4">
+                <AlertCircle className="text-red-500" size={32} />
+                <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-700">
+                    {detalle}
+                </Typography>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={() => router.back()}
+                        className="px-6 py-3 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-black text-xs uppercase tracking-widest hover:border-slate-300 transition-all"
+                    >
+                        Volver
+                    </button>
+                    {status !== 401 && (
+                        <button
+                            onClick={() => refetch()}
+                            className="px-6 py-3 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
+                        >
+                            Reintentar
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-6 md:space-y-8 pb-20">

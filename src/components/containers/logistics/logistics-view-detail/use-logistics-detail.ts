@@ -16,7 +16,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
   });
 
   const packageQuery = usePackageDetailQuery(uuid as string);
-  const { data: apiData, isLoading: isLoadingPackage, isError } = packageQuery.useQuery();
+  const { data: apiData, isLoading: isLoadingPackage, isError, error, refetch } = packageQuery.useQuery();
 
   const { data: settingsRes } = useSettingsQuery();
   const settings = settingsRes?.current;
@@ -180,6 +180,8 @@ export const usePackageDetailContainer = (uuid?: string) => {
     tieneFactura,
     isLoading: !uuid || isLoadingPackage,
     isError,
+    error,
+    refetch,
     isEditingFinancial,
     isSavingWeight,
     setIsEditingFinancial,

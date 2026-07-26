@@ -383,7 +383,8 @@ export const LogisticsRepository = {
       LEFT JOIN courier_rates cr ON p.courier_rate_id = cr.id
       LEFT JOIN LATERAL (
         SELECT is_paid, paid_at, total_amount_crc, delivery_method, delivery_fee_crc,
-               applied_rate_usd, applied_exchange, total_weight_charged, applied_fee_crc
+               applied_rate_usd, applied_exchange, total_weight_charged, applied_fee_crc,
+               applied_billing_mode, applied_discount_percent
         FROM billing
         WHERE consolidation_id = con.id
         ORDER BY created_at DESC

@@ -34,7 +34,7 @@ EMAIL_LOGO_URL=https://tudominio.com/logo.png   # opcional
 ```
 
 - `MAGASTORE_DB_POSTGRES_URL` — string de conexión a Neon PostgreSQL
-- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 12h). Si está ausente, el sistema cae a un fallback hardcodeado — **no usar en producción sin esta variable**
+- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 7 días). Si está ausente, el sistema cae a un fallback hardcodeado — **no usar en producción sin esta variable**
 - `RESEND_API_KEY` — para notificaciones de entrega y facturas por email
 - `EMAIL_FROM` — dirección remitente que debe estar verificada en Resend
 - `EMAIL_LOGO_URL` — URL pública del logo para los emails (opcional)
