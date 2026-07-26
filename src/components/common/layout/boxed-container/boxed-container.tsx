@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, Ref } from "react";
 import { tailwind } from "@/utils/tailwind-utils";
 
 export enum BoxedLayoutStyle {
@@ -11,6 +11,8 @@ type BoxedLayoutProps = {
     contentStyle?: BoxedLayoutStyle;
     boxClassName?: string;
     containerClassName?: string;
+    containerRef?: Ref<HTMLDivElement>;
+    overlay?: ReactNode;
 } & JSX.IntrinsicElements['div'];
 
 export function BoxedLayout({
@@ -18,15 +20,23 @@ export function BoxedLayout({
     children,
     containerClassName,
     boxClassName,
+    containerRef,
+    overlay,
     ...divProps
 }: BoxedLayoutProps) {
     const isBoxed = contentStyle === BoxedLayoutStyle.BOXED;
 
     return (
         <div
-            className={tailwind('flex flex-row h-full w-full justify-center', containerClassName)}
+            ref={containerRef}
+            className={tailwind(
+                'relative flex flex-row h-full w-full justify-center',
+                'overscroll-y-contain',
+                containerClassName,
+            )}
             {...divProps}
         >
+            {overlay}
             <div
                 className={tailwind(
                     'w-full pt-6 pb-24 px-4 md:px-8',

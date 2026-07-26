@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { buildWhatsAppUrl, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { notifyWhatsApp, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { AvailablePackage } from '@/types/logistics/logistics.types';
 
 /**
@@ -12,6 +14,7 @@ import { AvailablePackage } from '@/types/logistics/logistics.types';
  */
 export function useNotifyPackagesAvailable() {
   const [isNotifying, setIsNotifying] = useState(false);
+  const templateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PACKAGES_AVAILABLE);
 
   const notify = async (customerId: string, firstName: string, phone: string) => {
     if (!phone) {
@@ -35,13 +38,17 @@ export function useNotifyPackagesAvailable() {
           trackingNumber: p.tracking_number,
           weightLb: Number(p.weight_lb),
         })),
+        templateBody,
       });
 
-      window.open(buildWhatsAppUrl(phone, message), '_blank');
-
+      // La bitácora se registra ANTES de notificar: fuera de iPad se navega a
+      // WhatsApp en la misma vista y todo lo pendiente después de esa línea no
+      // llegaría a ejecutarse.
       await ApiServiceClient(env.API.BASE_URL).post('/logistics?action=log-notified', {
         packageUuids: packages.map((p: AvailablePackage) => p.uuid),
       });
+
+      await notifyWhatsApp(phone, message);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo preparar la notificación de WhatsApp.');
     } finally {

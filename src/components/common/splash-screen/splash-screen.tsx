@@ -14,8 +14,12 @@ type Phase = 'visible' | 'fading' | 'hidden';
  */
 export function SplashScreen() {
   const [phase, setPhase] = useState<Phase>('visible');
+  const [isDev, setIsDev] = useState(false);
 
   useEffect(() => {
+    // Mismo criterio de host que `_document.tsx` usa para el splash nativo.
+    setIsDev(window.location.host.includes('dev-portal'));
+
     if (sessionStorage.getItem(SESSION_KEY)) {
       setPhase('hidden');
       return;
@@ -41,13 +45,18 @@ export function SplashScreen() {
     >
       <div className="animate-splash-logo flex flex-col items-center px-10">
         <Image
-          src="/logo/magastore-perfil-transparent.png"
+          src="/logo/magastore-logo-2026.png"
           alt="Magastore — Compras por Internet"
-          width={320}
-          height={320}
+          width={560}
+          height={348}
           priority
-          className="w-56 sm:w-72 h-auto object-contain"
+          className="w-64 sm:w-80 h-auto object-contain"
         />
+        {isDev && (
+          <span className="mt-6 text-[0.65rem] font-bold tracking-[0.3em] text-emerald-400 uppercase">
+            Entorno de pruebas
+          </span>
+        )}
       </div>
     </div>
   );

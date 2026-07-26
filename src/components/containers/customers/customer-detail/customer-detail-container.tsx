@@ -21,6 +21,7 @@ function WarehouseCodeCard({
   customerFirstName: string; customerFullName: string; customerPhone: string;
 }) {
   const [copied, setCopied] = React.useState(false);
+  const welcomeTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.WAREHOUSE_WELCOME);
   const display = WAREHOUSE_ROUTE_DISPLAY[`${origin}-${packageType}`] ?? {
     label: `${origin} ${packageType}`,
     flag: '📦',
@@ -42,8 +43,9 @@ function WarehouseCodeCard({
       code,
       routeLabel: display.label,
       addressLine, city, state, postalCode, contactPhone,
+      templateBody: welcomeTemplateBody,
     });
-    window.open(buildWhatsAppUrl(customerPhone, message), '_blank');
+    void notifyWhatsApp(customerPhone, message);
   };
   return (
     <div className={`flex items-center justify-between p-4 rounded-2xl border ${display.color}`}>
@@ -81,14 +83,11 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
-import { DeliveryMethod } from '@/types/logistics/logistics.types';
-import { buildWhatsAppUrl, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
+import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
+import { notifyWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 
 export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
     const router = useRouter();
@@ -121,6 +120,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         setActiveTab,
         isEditMode,
         editForm,
+        customerTypes,
         editError,
         isSaving,
         enterEditMode,
@@ -129,7 +129,18 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         handleEditAddress,
         addNewAddress,
         saveEdit,
+        availableCourierRates,
+        isAssignCodeModalOpen,
+        openAssignCodeModal,
+        closeAssignCodeModal,
+        assignWarehouseCode,
+        isAssigningCode,
     } = useCustomerDetail(id);
+
+    // Courier elegido en el modal de asignación de casillero.
+    const [rateToAssign, setRateToAssign] = React.useState('');
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
     if (isLoading || !customer) {
         return (
@@ -171,6 +182,13 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                     <Typography variant={TypographyVariant.CAPTION} className="text-primary font-bold tracking-widest uppercase block">
                                         {customer.customer_code}
                                     </Typography>
+                                    {customer.customer_type_name && (
+                                        <CustomerTypeBadge
+                                            name={customer.customer_type_name}
+                                            mode={customer.customer_type_billing_mode}
+                                            discount={customer.customer_type_discount_percent}
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="inline-flex items-center gap-2 py-1 px-4 bg-slate-50 rounded-full border border-slate-100">
@@ -226,6 +244,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             </div>
                             <CustomerEditForm
                                 form={editForm}
+                                customerTypes={customerTypes}
                                 isSaving={isSaving}
                                 error={editError}
                                 onFieldChange={handleEditField}
@@ -261,7 +280,17 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                 <div className="space-y-6 animate-in fade-in duration-500">
                                     {/* Casilleros — lo primero: es el dato que más se copia/comparte */}
                                     <div className="bg-white p-6 lg:p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
-                                        <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
+                                            {availableCourierRates.length > 0 && (
+                                                <button
+                                                    onClick={() => { setRateToAssign(''); openAssignCodeModal(); }}
+                                                    className="flex items-center gap-1.5 px-4 py-2 bg-amber-600 text-white rounded-2xl text-[11px] font-bold hover:bg-amber-700 transition-colors"
+                                                >
+                                                    <Plus size={14} /> Asignar casillero
+                                                </button>
+                                            )}
+                                        </div>
                                         {customer.warehouse_codes.length === 0 ? (
                                             <p className="text-slate-400 text-sm">Este cliente no tiene casillero asignado.</p>
                                         ) : (
@@ -519,6 +548,54 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
             </div>
 
             {/* MODAL: ELEGIR DIRECCIÓN DE ENTREGA + MÉTODO DE ENVÍO (siempre, al crear la orden) */}
+            {/* Asignar un casillero nuevo a un cliente ya creado. Solo lista
+                couriers que todavía no tiene: repetir uno no genera código. */}
+            {isAssignCodeModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-800">Asignar casillero</h3>
+                            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                                Se le genera a {customer.first_name} un código nuevo en el courier que elijas.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block ml-1 tracking-widest">Courier</label>
+                            <select
+                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none"
+                                value={rateToAssign}
+                                onChange={(e) => setRateToAssign(e.target.value)}
+                            >
+                                <option value="">Selecciona un courier...</option>
+                                {availableCourierRates.map((r) => (
+                                    <option key={r.uuid} value={r.uuid}>
+                                        {r.name} — {r.origin} · {r.package_type}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                                onClick={() => assignWarehouseCode(rateToAssign)}
+                                disabled={isAssigningCode || !rateToAssign}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
+                            >
+                                {isAssigningCode ? <><Loader2 size={14} className="animate-spin" /> Asignando...</> : 'Asignar casillero'}
+                            </button>
+                            <button
+                                onClick={closeAssignCodeModal}
+                                disabled={isAssigningCode}
+                                className="px-4 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {addressModalTarget && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -565,18 +642,18 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             Método de envío
                         </p>
                         <div className="space-y-2 mb-6">
-                            {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                            {activeDeliveryMethods.map((dm) => (
                                 <button
-                                    key={method}
-                                    onClick={() => setSelectedDeliveryMethod(method)}
+                                    key={dm.code}
+                                    onClick={() => setSelectedDeliveryMethod(dm.code)}
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                                        selectedDeliveryMethod === method
+                                        selectedDeliveryMethod === dm.code
                                             ? 'bg-slate-900 text-white border-slate-900'
                                             : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                                     }`}
                                 >
-                                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                                    {selectedDeliveryMethod === method && (
+                                    <span className="font-bold text-sm">{dm.name}</span>
+                                    {selectedDeliveryMethod === dm.code && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                                     )}
                                 </button>

@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '../header/header';
 import { DashboardLayoutContent } from './dasboard-content';
 import { BoxedLayoutStyle } from './boxed-container/boxed-container';
 import { SuccessAlert } from '../alerts/success-alert';
 import { tailwind } from '@/utils/tailwind-utils';
 import DesktopSidebar from '../sidebar/desktop-sidebar/desktop-sidebar';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import { PullToRefreshIndicator } from '../pull-to-refresh/pull-to-refresh-indicator';
 
 export type UseDashboardLayoutHook = {
   setPageTitle: (title: string) => void;
@@ -46,6 +49,21 @@ export function DashboardLayout({
   const [boxClassName, setBoxClassName] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+
+  // Refresca solo las queries montadas en la pantalla actual, en lugar de
+  // recargar la página: conserva filtros, paginación y estado del container.
+  const handleRefresh = useCallback(
+    () => queryClient.refetchQueries({ type: 'active' }),
+    [queryClient],
+  );
+
+  const { pullDistance, isRefreshing, isTriggered } = usePullToRefresh({
+    scrollRef: scrollContainerRef,
+    onRefresh: handleRefresh,
+  });
 
   useEffect(() => {
     if (showSuccess) {
@@ -125,6 +143,14 @@ export function DashboardLayout({
           onScroll={onScroll}
           contentStyle={contentStyle}
           boxClassName={boxClassName}
+          containerRef={scrollContainerRef}
+          overlay={
+            <PullToRefreshIndicator
+              pullDistance={pullDistance}
+              isRefreshing={isRefreshing}
+              isTriggered={isTriggered}
+            />
+          }
         >
           {renderedChildren}
         </DashboardLayoutContent>

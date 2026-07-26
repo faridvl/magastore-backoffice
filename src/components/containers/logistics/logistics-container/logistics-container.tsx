@@ -5,13 +5,8 @@ import { Search, User, Calendar, Plus, Box, PackageCheck, MapPin, CheckCircle, M
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
-import { LogisticsPackage, DeliveryMethod } from '@/types/logistics/logistics.types';
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
+import { LogisticsPackage } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
@@ -53,6 +48,8 @@ export const LogisticsContainer: React.FC = () => {
         selectedDeliveryMethod, setSelectedDeliveryMethod,
         handleConfirmCreateOrderWithAddress,
     } = usePackages(PAGE_SIZE);
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
     const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
     const visibleSelectedCount = packages.filter((p) => selectedUuids.includes(p.uuid)).length;
@@ -492,18 +489,18 @@ export const LogisticsContainer: React.FC = () => {
                             Método de envío
                         </p>
                         <div className="space-y-2 mb-6">
-                            {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                            {activeDeliveryMethods.map((dm) => (
                                 <button
-                                    key={method}
-                                    onClick={() => setSelectedDeliveryMethod(method)}
+                                    key={dm.code}
+                                    onClick={() => setSelectedDeliveryMethod(dm.code)}
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                                        selectedDeliveryMethod === method
+                                        selectedDeliveryMethod === dm.code
                                             ? 'bg-slate-900 text-white border-slate-900'
                                             : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                                     }`}
                                 >
-                                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                                    {selectedDeliveryMethod === method && (
+                                    <span className="font-bold text-sm">{dm.name}</span>
+                                    {selectedDeliveryMethod === dm.code && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                                     )}
                                 </button>
@@ -565,11 +562,20 @@ export const LogisticsContainer: React.FC = () => {
                                 {notifyMultiple.customers.map((c) => {
                                     const sent = notifyMultiple.sentCustomerIds.includes(c.customer_id);
                                     const sending = notifyMultiple.sendingCustomerId === c.customer_id;
+                                    const unnotified = Number(c.unnotified_count);
+                                    // Notificado persistido en BD: todos sus paquetes disponibles
+                                    // tienen notified_at. Un paquete nuevo lo saca de este estado.
+                                    const allNotified = unnotified === 0;
+                                    const hasNew = !allNotified && unnotified < Number(c.package_count);
                                     return (
                                         <div
                                             key={c.customer_id}
                                             className={`flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border ${
-                                                sent ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-transparent'
+                                                sent || allNotified
+                                                    ? 'bg-emerald-50 border-emerald-200'
+                                                    : hasNew
+                                                        ? 'bg-amber-50 border-amber-200'
+                                                        : 'bg-slate-50 border-transparent'
                                             }`}
                                         >
                                             <div className="min-w-0">
@@ -578,6 +584,16 @@ export const LogisticsContainer: React.FC = () => {
                                                     {c.package_count} paquete{c.package_count > 1 ? 's' : ''} · {Number(c.total_weight_lb).toFixed(2)} lb
                                                     {!c.phone && ' · Sin teléfono'}
                                                 </p>
+                                                {allNotified && !sent && (
+                                                    <p className="text-[10px] font-bold text-emerald-600 mt-0.5 flex items-center gap-1">
+                                                        <CheckCircle size={11} /> Notificado
+                                                    </p>
+                                                )}
+                                                {hasNew && (
+                                                    <p className="text-[10px] font-bold text-amber-600 mt-0.5">
+                                                        {unnotified} paquete{unnotified > 1 ? 's' : ''} nuevo{unnotified > 1 ? 's' : ''} sin notificar
+                                                    </p>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => notifyMultiple.sendToCustomer(c.customer_id)}
@@ -585,14 +601,18 @@ export const LogisticsContainer: React.FC = () => {
                                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-40 flex-shrink-0 ${
                                                     sent
                                                         ? 'bg-emerald-500 text-white'
-                                                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                                                        : allNotified
+                                                            ? 'bg-white border border-emerald-300 text-emerald-700 hover:bg-emerald-50'
+                                                            : 'bg-slate-900 text-white hover:bg-slate-800'
                                                 }`}
                                             >
                                                 {sent
                                                     ? <><CheckCircle size={13} /> Enviado</>
                                                     : sending
                                                         ? 'Abriendo...'
-                                                        : <><MessageCircle size={13} /> Enviar</>
+                                                        : allNotified
+                                                            ? <><MessageCircle size={13} /> Reenviar</>
+                                                            : <><MessageCircle size={13} /> Enviar</>
                                                 }
                                             </button>
                                         </div>

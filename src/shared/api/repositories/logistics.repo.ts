@@ -15,6 +15,97 @@ import { DeliveryRatesRepository } from './delivery-rates.repo';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 
 /**
+ * Registra la participación de Farid sobre la ganancia de una orden.
+ *
+ * Se llama DENTRO de la transacción de quien la invoca (generatePreBilling al
+ * estimar, confirmPreBilling al facturar) — no abre ni cierra transacción propia.
+ *
+ * Es un UPSERT sobre consolidation_id porque generatePreBilling es re-ejecutable:
+ * recalcular el estimado debe sobreescribir la fila, nunca agregar otra, o la
+ * sumatoria mensual contaría el mismo envío dos veces.
+ *
+ * El desglose por paquete prorratea el cobro por peso: la factura es de la orden
+ * completa (peso mínimo y fee de entrega son únicos para el envío), así que un
+ * cobro "propio" por paquete no existe como dato real. El costo sí es real de
+ * cada paquete. Si la orden pesa 0, el prorrateo se reparte en partes iguales
+ * para no dividir por cero.
+ */
+const upsertProfitShare = async (params: {
+  consolidationId: number;
+  billingId: number | null;
+  period: string;
+  status: 'ESTIMADO' | 'FACTURADO';
+  revenueCrc: number;
+  courierCostCrc: number;
+  deliveryCostCrc: number | null;
+  sharePercent: number;
+  hasUnknownCost: boolean;
+}): Promise<void> => {
+  const {
+    consolidationId, billingId, period, status,
+    revenueCrc, courierCostCrc, deliveryCostCrc, sharePercent, hasUnknownCost,
+  } = params;
+
+  const profitBase = revenueCrc - courierCostCrc - (deliveryCostCrc ?? 0);
+  // Una orden que dio pérdida no genera participación negativa: Farid no le debe
+  // plata a Magastore por un envío mal cotizado, simplemente no gana nada ahí.
+  const shareCrc = profitBase > 0 ? (profitBase * sharePercent) / 100 : 0;
+
+  const [share] = await sql`
+    INSERT INTO profit_shares (
+      consolidation_id, billing_id, period, status,
+      revenue_crc, courier_cost_crc, delivery_cost_crc,
+      profit_base_crc, share_percent, share_crc, has_unknown_cost
+    ) VALUES (
+      ${consolidationId}, ${billingId}, ${period}, ${status},
+      ${revenueCrc}, ${courierCostCrc}, ${deliveryCostCrc},
+      ${profitBase}, ${sharePercent}, ${shareCrc}, ${hasUnknownCost}
+    )
+    ON CONFLICT (consolidation_id) DO UPDATE SET
+      billing_id        = COALESCE(EXCLUDED.billing_id, profit_shares.billing_id),
+      period            = EXCLUDED.period,
+      status            = EXCLUDED.status,
+      revenue_crc       = EXCLUDED.revenue_crc,
+      courier_cost_crc  = EXCLUDED.courier_cost_crc,
+      delivery_cost_crc = EXCLUDED.delivery_cost_crc,
+      profit_base_crc   = EXCLUDED.profit_base_crc,
+      share_percent     = EXCLUDED.share_percent,
+      share_crc         = EXCLUDED.share_crc,
+      has_unknown_cost  = EXCLUDED.has_unknown_cost,
+      updated_at        = NOW()
+    RETURNING id
+  `;
+
+  const packages = await sql`
+    SELECT id, weight_lb, COALESCE(courier_cost_usd * tc_banco, 0) AS cost_crc
+    FROM packages WHERE consolidation_id = ${consolidationId}
+    ORDER BY created_at
+  `;
+
+  await sql`DELETE FROM profit_share_packages WHERE profit_share_id = ${share.id}`;
+  if (packages.length === 0) return;
+
+  const totalWeight = packages.reduce((sum, p) => sum + Number(p.weight_lb), 0);
+
+  for (const pkg of packages) {
+    const weight = Number(pkg.weight_lb);
+    const ratio = totalWeight > 0 ? weight / totalWeight : 1 / packages.length;
+    const pkgRevenue = revenueCrc * ratio;
+    const pkgCost = Number(pkg.cost_crc) + (deliveryCostCrc ?? 0) * ratio;
+    const pkgProfit = pkgRevenue - pkgCost;
+    const pkgShare = pkgProfit > 0 ? (pkgProfit * sharePercent) / 100 : 0;
+
+    await sql`
+      INSERT INTO profit_share_packages (
+        profit_share_id, package_id, weight_lb, revenue_crc, cost_crc, profit_crc, share_crc
+      ) VALUES (
+        ${share.id}, ${pkg.id}, ${weight}, ${pkgRevenue}, ${pkgCost}, ${pkgProfit}, ${pkgShare}
+      )
+    `;
+  }
+};
+
+/**
  * Repository para el sistema de logística de couriers.
  * Maneja transacciones manuales compatibles con Neon HTTP Client.
  */
@@ -24,8 +115,8 @@ export const LogisticsRepository = {
    */
   createPackage: async (data: PackageInput): Promise<Partial<Package>> => {
     const addressId = data.address_id || null;
-    const courierCostUsd = data.courier_cost_usd ?? null;
-    const tcBanco = data.tc_banco ?? null;
+    const courierCostUsd = data.courier_cost_usd;
+    const tcBanco = data.tc_banco;
     const insuranceApplied = data.insurance_applied ?? true;
     const courierRateId = data.courier_rate_id ?? null;
     const storeName = data.store_name?.trim() || null;
@@ -49,11 +140,18 @@ export const LogisticsRepository = {
   },
 
   getCourierRates: async (): Promise<CourierRate[]> => {
+    // warehouse_route_id viaja con la tarifa para que el alta de cliente pueda
+    // pedir los casilleros por id sin una segunda consulta. LEFT JOIN: una
+    // tarifa antigua puede no tener casillero configurado todavía.
     const rows = await sql`
-      SELECT id, uuid, name, origin, package_type, rate_usd, insurance_usd, is_active, created_at
-      FROM courier_rates
-      WHERE is_active = true
-      ORDER BY name ASC
+      SELECT cr.id, cr.uuid, cr.name, cr.origin, cr.package_type, cr.rate_usd,
+             cr.insurance_usd, cr.is_active, cr.is_default, cr.created_at,
+             wr.id AS warehouse_route_id
+      FROM courier_rates cr
+      LEFT JOIN warehouse_routes wr
+        ON wr.origin = cr.origin AND wr.package_type = cr.package_type AND wr.is_active = true
+      WHERE cr.is_active = true
+      ORDER BY cr.is_default DESC, cr.name ASC
     `;
     return rows as CourierRate[];
   },
@@ -91,10 +189,58 @@ export const LogisticsRepository = {
 
       const actualWeight  = Number(c.total_weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
-      const flete         = chargedWeight * price_lb * exchange;
 
+      // Regla de cobro del cliente. Solo afecta el flete internacional: la
+      // entrega local (Correos/encomienda) se cobra completa en todos los modos
+      // porque es un costo que Magastore traslada tal cual, no un margen propio.
+      const [customerType] = await sql`
+        SELECT ct.billing_mode, ct.discount_percent
+        FROM customers cu
+        LEFT JOIN customer_types ct ON ct.id = cu.customer_type_id
+        WHERE cu.id = ${c.customer_id}
+      `;
+      const billingMode = (customerType?.billing_mode as string | null) ?? 'NORMAL';
+      const discountPercent = Number(customerType?.discount_percent ?? 0);
+
+      let flete: number;
+      if (billingMode === 'AL_COSTO') {
+        // Socios/familia: se cobra exactamente lo que costó mover la mercancía,
+        // sin margen. Sale de los paquetes reales, no de la tarifa de lista.
+        const [costRow] = await sql`
+          SELECT
+            COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total,
+            COUNT(*) FILTER (WHERE courier_cost_usd IS NULL OR tc_banco IS NULL)::int AS sin_costo,
+            COUNT(*)::int AS total_paquetes
+          FROM packages WHERE consolidation_id = ${c.id}
+        `;
+        // Sin costo real no hay nada que cobrar: facturar ₡0 sería regalar el
+        // envío en silencio. Se bloquea para que el operador complete el dato.
+        if (Number(costRow.total_paquetes) === 0) {
+          throw new Error('La orden no tiene paquetes: no se puede calcular el cobro al costo.');
+        }
+        if (Number(costRow.sin_costo) > 0) {
+          throw new Error(
+            `No se puede generar el estimado: ${costRow.sin_costo} paquete(s) de esta orden no tienen registrado el costo del courier, y este cliente se factura al costo real.`,
+          );
+        }
+        flete = Number(costRow.total);
+      } else if (billingMode === 'DESCUENTO') {
+        flete = chargedWeight * price_lb * exchange * (1 - discountPercent / 100);
+      } else {
+        flete = chargedWeight * price_lb * exchange;
+      }
+
+      const [methodRow] = await sql`
+        SELECT is_pickup, requires_zone FROM delivery_methods WHERE code = ${deliveryMethod}
+      `;
+      if (!methodRow) throw new Error(`El método de entrega "${deliveryMethod}" no existe o fue eliminado.`);
+
+      // Snapshot del costo real de la entrega al momento del estimado. 0 para un
+      // método de retiro (sin entrega); null si la tarifa matcheada no tiene
+      // cost_crc cargado ("por confirmar") o si se usó el fee de fallback de settings.
       let deliveryFee = 0;
-      if (deliveryMethod === 'CORREOS_CR' || deliveryMethod === 'TRACOPA') {
+      let deliveryCost: number | null = 0;
+      if (!methodRow.is_pickup) {
         // Misma dirección que confirmPreBilling usa para el snapshot: la fijada
         // en la orden, o la default del cliente si la orden no tiene una propia.
         const [addressRow] = c.delivery_address_id
@@ -105,15 +251,29 @@ export const LogisticsRepository = {
               ORDER BY is_default DESC LIMIT 1
             `;
 
-        const zone = resolveZone(addressRow?.canton ?? '');
+        // Métodos que no distinguen GAM/Resto (requires_zone = false) buscan la
+        // tarifa sin zona: findMatchingRate ya matchea filas con zone IS NULL.
+        const zone = methodRow.requires_zone ? resolveZone(addressRow?.canton ?? '') : 'RESTO';
         const weightKg = chargedWeight * kgPerLb;
         const matchedRate = await DeliveryRatesRepository.findMatchingRate(deliveryMethod, zone, weightKg);
 
-        deliveryFee = matchedRate
-          ? Number(matchedRate.fee_crc)
-          : deliveryMethod === 'CORREOS_CR'
-            ? Number(settings.correos_fee_crc ?? 4500)
-            : Number(settings.tracopa_fee_crc ?? 3000);
+        if (matchedRate) {
+          deliveryFee = Number(matchedRate.fee_crc);
+        } else if (deliveryMethod === 'CORREOS_CR') {
+          deliveryFee = Number(settings.correos_fee_crc ?? 4500);
+        } else if (deliveryMethod === 'TRACOPA') {
+          deliveryFee = Number(settings.tracopa_fee_crc ?? 3000);
+        } else {
+          // Método sin fallback legacy en system_settings: si no hay ninguna tarifa
+          // configurada en delivery_rates para su peso/zona, no hay forma de saber
+          // cuánto cobrar. Cobrar ₡0 en silencio sería regalar el tramo local —
+          // igual criterio que AL_COSTO bloquea el flete sin costo conocido.
+          throw new Error(
+            `No hay tarifa configurada para "${deliveryMethod}" en este rango de peso/zona. Carga una tarifa en Configuración antes de generar el estimado.`,
+          );
+        }
+
+        deliveryCost = matchedRate?.cost_crc != null ? Number(matchedRate.cost_crc) : null;
       }
 
       const estimatedCrc = flete + deliveryFee;
@@ -129,9 +289,12 @@ export const LogisticsRepository = {
           SET estimated_amount_crc = ${estimatedCrc},
               delivery_method      = ${deliveryMethod},
               delivery_fee_crc     = ${deliveryFee},
+              delivery_cost_crc    = ${deliveryCost},
               applied_rate_usd     = ${price_lb},
               applied_exchange     = ${exchange},
               total_weight_charged = ${chargedWeight},
+              applied_billing_mode = ${billingMode},
+              applied_discount_percent = ${discountPercent},
               updated_at           = NOW()
           WHERE consolidation_id = ${c.id}
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
@@ -141,15 +304,40 @@ export const LogisticsRepository = {
         const [pre] = await sql`
           INSERT INTO pre_billing (
             consolidation_id, estimated_amount_crc, delivery_method,
-            delivery_fee_crc, applied_rate_usd, applied_exchange, total_weight_charged
+            delivery_fee_crc, delivery_cost_crc, applied_rate_usd, applied_exchange, total_weight_charged,
+            applied_billing_mode, applied_discount_percent
           ) VALUES (
             ${c.id}, ${estimatedCrc}, ${deliveryMethod},
-            ${deliveryFee}, ${price_lb}, ${exchange}, ${chargedWeight}
+            ${deliveryFee}, ${deliveryCost}, ${price_lb}, ${exchange}, ${chargedWeight},
+            ${billingMode}, ${discountPercent}
           )
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
         `;
         result = pre;
       }
+
+      // Participación de Farid sobre la ganancia proyectada de este estimado.
+      // Se registra ya (status ESTIMADO) para que la ganancia quede asentada por
+      // paquete desde el momento del estimado; al confirmar la factura se
+      // recongela con las cifras definitivas y pasa a FACTURADO.
+      //
+      // El costo del courier se lee de los paquetes reales. En modo AL_COSTO el
+      // cobro ES ese costo, así que la ganancia da 0 y la participación también.
+      const [preCostRow] = await sql`
+        SELECT COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total
+        FROM packages WHERE consolidation_id = ${c.id}
+      `;
+      await upsertProfitShare({
+        consolidationId: c.id,
+        billingId: null,
+        period: new Date().toISOString().slice(0, 7),
+        status: 'ESTIMADO',
+        revenueCrc: estimatedCrc,
+        courierCostCrc: Number(preCostRow.total),
+        deliveryCostCrc: deliveryCost,
+        sharePercent: Number(settings.farid_share_percent ?? 20),
+        hasUnknownCost: deliveryCost == null && !methodRow.is_pickup,
+      });
 
       // Generar el estimado "cierra" la orden: deja de aceptar más paquetes
       // y pasa a la cola de cobro. Solo aplica la primera vez (ABIERTO); si ya
@@ -207,18 +395,56 @@ export const LogisticsRepository = {
             .join(', ')
         : null;
 
+      // Ganancia congelada al confirmar: courier_cost_crc se calcula de los
+      // paquetes reales de la orden (nunca NULL desde 017-packages-cost-not-null.sql);
+      // delivery_cost_crc viene del snapshot ya congelado en pre_billing. Si ese
+      // costo de entrega no se conocía al generar el estimado, se marca
+      // has_unknown_cost en vez de asumir cero silenciosamente.
+      const [courierCostRow] = await sql`
+        SELECT COALESCE(SUM(courier_cost_usd * tc_banco), 0) AS total
+        FROM packages WHERE consolidation_id = ${c.id}
+      `;
+      const courierCostCrc = Number(courierCostRow.total);
+      const deliveryCostCrc = pre.delivery_cost_crc != null ? Number(pre.delivery_cost_crc) : null;
+
+      const [methodRow] = pre.delivery_method
+        ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${pre.delivery_method}`
+        : [null];
+      const hasUnknownCost = deliveryCostCrc == null && pre.delivery_method != null && !methodRow?.is_pickup;
+      const profitCrc = Number(pre.estimated_amount_crc) - courierCostCrc - (deliveryCostCrc ?? 0);
+
       const [bill] = await sql`
         INSERT INTO billing (
           consolidation_id, applied_rate_usd, applied_exchange, applied_fee_crc,
           total_weight_charged, total_amount_crc, delivery_method,
-          delivery_fee_crc, delivery_address_snapshot
+          delivery_fee_crc, delivery_address_snapshot,
+          courier_cost_crc, delivery_cost_crc, profit_crc, has_unknown_cost,
+          applied_billing_mode, applied_discount_percent
         ) VALUES (
           ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
-          ${pre.delivery_fee_crc}, ${addressSnapshot}
+          ${pre.delivery_fee_crc}, ${addressSnapshot},
+          ${courierCostCrc}, ${deliveryCostCrc}, ${profitCrc}, ${hasUnknownCost},
+          ${pre.applied_billing_mode}, ${pre.applied_discount_percent}
         )
-        RETURNING uuid
+        RETURNING id, uuid, invoice_number
       `;
+
+      // Recongelar la participación de Farid con las cifras definitivas y pasarla
+      // a FACTURADO. El período se recalcula a la fecha de la factura: un envío
+      // estimado a fin de mes y facturado el siguiente pertenece al mes en que se
+      // cobró, que es cuando corresponde pagarle.
+      await upsertProfitShare({
+        consolidationId: c.id,
+        billingId: bill.id,
+        period: new Date().toISOString().slice(0, 7),
+        status: 'FACTURADO',
+        revenueCrc: Number(pre.estimated_amount_crc),
+        courierCostCrc: courierCostCrc,
+        deliveryCostCrc: deliveryCostCrc,
+        sharePercent: Number(settings.farid_share_percent ?? 20),
+        hasUnknownCost: hasUnknownCost,
+      });
 
       await sql`
         UPDATE pre_billing SET is_confirmed = true, confirmed_at = NOW()
@@ -274,6 +500,8 @@ export const LogisticsRepository = {
         b.applied_exchange,
         b.total_weight_charged,
         b.applied_fee_crc,
+        b.applied_billing_mode,
+        b.applied_discount_percent,
         COALESCE(
           (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
            FROM package_events ev WHERE ev.package_id = p.id),
@@ -285,7 +513,8 @@ export const LogisticsRepository = {
       LEFT JOIN courier_rates cr ON p.courier_rate_id = cr.id
       LEFT JOIN LATERAL (
         SELECT is_paid, paid_at, total_amount_crc, delivery_method, delivery_fee_crc,
-               applied_rate_usd, applied_exchange, total_weight_charged, applied_fee_crc
+               applied_rate_usd, applied_exchange, total_weight_charged, applied_fee_crc,
+               applied_billing_mode, applied_discount_percent
         FROM billing
         WHERE consolidation_id = con.id
         ORDER BY created_at DESC
@@ -488,18 +717,27 @@ export const LogisticsRepository = {
   },
 
   /**
-   * Registra en la bitácora de cada paquete que el cliente fue notificado de su
-   * disponibilidad por WhatsApp. No cambia el status del paquete.
+   * Marca los paquetes como notificados (packages.notified_at) y registra el
+   * evento en la bitácora de cada uno. No cambia el status del paquete.
    */
   logPackagesNotified: async (packageUuids: string[]): Promise<void> => {
-    const rows = await sql`
-      SELECT id, status FROM packages WHERE uuid = ANY(${packageUuids})
-    `;
-    for (const row of rows) {
-      await sql`
-        INSERT INTO package_events (package_id, status, event_type, description)
-        VALUES (${row.id}, ${row.status}, 'INFO', 'Cliente notificado de disponibilidad por WhatsApp')
+    try {
+      await sql`BEGIN`;
+      const rows = await sql`
+        UPDATE packages SET notified_at = NOW()
+        WHERE uuid = ANY(${packageUuids})
+        RETURNING id, status
       `;
+      for (const row of rows) {
+        await sql`
+          INSERT INTO package_events (package_id, status, event_type, description)
+          VALUES (${row.id}, ${row.status}, 'INFO', 'Cliente notificado de disponibilidad por WhatsApp')
+        `;
+      }
+      await sql`COMMIT`;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
     }
   },
 

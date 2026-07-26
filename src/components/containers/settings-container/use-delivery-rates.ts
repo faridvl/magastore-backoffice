@@ -5,6 +5,7 @@ import {
   useCreateDeliveryRateMutation,
   useUpdateDeliveryRateMutation,
   useToggleDeliveryRateActiveMutation,
+  useDeleteDeliveryRateMutation,
 } from '@/shared/api/mutations/settings/use-delivery-rate-mutations';
 import { DeliveryRate, DeliveryRateInput, DeliveryMethod, DeliveryZone } from '@/types/logistics/logistics.types';
 
@@ -18,7 +19,9 @@ export type DeliveryRateDraft = {
 };
 
 const EMPTY_DRAFT: DeliveryRateDraft = {
-  delivery_method: 'CORREOS_CR',
+  // Vacío a propósito: fuerza al operador a elegir el método explícitamente en
+  // vez de dejar preseleccionado un valor que podría guardarse sin querer.
+  delivery_method: '',
   zone: null,
   min_weight_kg: '',
   max_weight_kg: '',
@@ -53,7 +56,9 @@ export const useDeliveryRates = () => {
   const { createDeliveryRate, isPending: isCreating } = useCreateDeliveryRateMutation();
   const { updateDeliveryRate, isPending: isUpdating } = useUpdateDeliveryRateMutation();
   const { toggleDeliveryRateActive, isPending: isToggling } = useToggleDeliveryRateActiveMutation();
+  const { deleteDeliveryRate, isPending: isDeleting } = useDeleteDeliveryRateMutation();
 
+  const [confirmingDeleteUuid, setConfirmingDeleteUuid] = useState<string | null>(null);
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<DeliveryRateDraft>(EMPTY_DRAFT);
 
@@ -120,6 +125,24 @@ export const useDeliveryRates = () => {
     }
   };
 
+  // Eliminar en dos pasos: el primer tap arma la confirmación, el segundo ejecuta.
+  const requestDelete = (rate: DeliveryRate) => {
+    setConfirmingDeleteUuid(rate.uuid);
+  };
+
+  const cancelDelete = () => setConfirmingDeleteUuid(null);
+
+  const confirmDelete = async () => {
+    if (!confirmingDeleteUuid) return;
+    try {
+      await deleteDeliveryRate({ uuid: confirmingDeleteUuid });
+      toast.success('Tarifa eliminada');
+      setConfirmingDeleteUuid(null);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo eliminar la tarifa.');
+    }
+  };
+
   return {
     rates,
     isLoading,
@@ -139,5 +162,10 @@ export const useDeliveryRates = () => {
     isCreating,
     handleToggleActive,
     isToggling,
+    confirmingDeleteUuid,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+    isDeleting,
   };
 };

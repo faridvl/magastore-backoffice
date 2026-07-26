@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { LogisticsService } from '@/shared/api/services/logistics.service';
+import { LogisticsService, MissingWarehouseCodeError } from '@/shared/api/services/logistics.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -57,8 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { courier_cost_usd, tc_banco, insurance_applied, ...restBody } = req.body;
                     const newPkg = await LogisticsService.registerIncomingPackage({
                       ...restBody,
-                      courier_cost_usd: courier_cost_usd != null ? Number(courier_cost_usd) : null,
-                      tc_banco: tc_banco != null ? Number(tc_banco) : null,
+                      courier_cost_usd: Number(courier_cost_usd),
+                      tc_banco: Number(tc_banco),
                       insurance_applied: insurance_applied ?? true,
                     });
                     return res.status(201).json(newPkg);
@@ -126,6 +126,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).end(`Method ${req.method} Not Allowed`);
 
     } catch (error: any) {
+        // Falta de casillero: 409 con los datos que la UI necesita para ofrecer
+        // asignarlo, en vez de un 500 genérico.
+        if (error instanceof MissingWarehouseCodeError) {
+            return res.status(409).json({
+                message: error.message,
+                code: 'MISSING_WAREHOUSE_CODE',
+                warehouseRouteId: error.warehouseRouteId,
+                rateName: error.rateName,
+            });
+        }
         console.error('[Logistics Controller Error]:', error);
         return res.status(500).json({ message: error.message || 'Error interno' });
     }

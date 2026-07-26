@@ -10,6 +10,19 @@ import {
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
+import { CourierRatesRepository } from '../repositories/courier-rates.repo';
+import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
+
+/**
+ * El cliente no tiene casillero en la ruta del courier elegido. Se distingue de
+ * un error genérico para que la UI pueda ofrecer asignarlo sin salir del flujo.
+ */
+export class MissingWarehouseCodeError extends Error {
+  constructor(public readonly warehouseRouteId: number, public readonly rateName: string) {
+    super(`El cliente no tiene casillero asignado para "${rateName}".`);
+    this.name = 'MissingWarehouseCodeError';
+  }
+}
 
 /**
  * Servicio encargado de la lógica de negocio para el sistema de couriers.
@@ -86,6 +99,14 @@ export const LogisticsService = {
     if (!data.tracking_number?.trim()) {
       throw new Error('El número de tracking es requerido.');
     }
+    // Todo paquete debe registrar su costo real de courier — es la base del
+    // cálculo de rentabilidad; sin esto la ganancia queda incompleta o incorrecta.
+    if (!data.courier_cost_usd || data.courier_cost_usd <= 0) {
+      throw new Error('El costo real de courier es requerido. Configura una tarifa de courier activa.');
+    }
+    if (!data.tc_banco || data.tc_banco <= 0) {
+      throw new Error('El tipo de cambio del banco es requerido.');
+    }
 
     // Se normaliza UNA vez y se inserta el valor limpio — antes la validación
     // usaba trim pero el INSERT guardaba el valor crudo, dejando trackings con
@@ -96,6 +117,22 @@ export const LogisticsService = {
     const exists = await LogisticsRepository.existsByTrackingNumber(trackingNumber);
     if (exists) {
       throw new Error(`Ya existe un paquete registrado con el tracking ${trackingNumber}.`);
+    }
+
+    // El cliente debe tener casillero en la ruta de este courier: el paquete
+    // llegó a una dirección física concreta, y sin código asignado no hay forma
+    // de que esa mercancía fuera realmente enviada a ese casillero.
+    if (data.courier_rate_id) {
+      const routeInfo = await CourierRatesRepository.getWarehouseRouteForRate(data.courier_rate_id);
+      if (!routeInfo?.route_id) {
+        throw new Error(
+          `El courier "${routeInfo?.rate_name ?? 'seleccionado'}" no tiene casillero configurado. Configúralo en Couriers y Casilleros antes de registrar paquetes con esta tarifa.`,
+        );
+      }
+      const existingCode = await WarehouseRoutesRepository.getCustomerCodeForRoute(data.customer_id, routeInfo.route_id);
+      if (!existingCode) {
+        throw new MissingWarehouseCodeError(routeInfo.route_id, routeInfo.rate_name);
+      }
     }
 
     try {

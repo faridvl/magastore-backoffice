@@ -107,6 +107,13 @@ export const DeliveryRatesRepository = {
     return row as DeliveryRate;
   },
 
+  remove: async (uuid: string): Promise<void> => {
+    const rows = await sql`
+      DELETE FROM delivery_rates WHERE uuid = ${uuid} RETURNING id
+    `;
+    if (rows.length === 0) throw new Error('Tarifa no encontrada.');
+  },
+
   toggleActive: async (uuid: string, isActive: boolean): Promise<DeliveryRate> => {
     const [row] = await sql`
       UPDATE delivery_rates SET is_active = ${isActive}, updated_at = NOW()

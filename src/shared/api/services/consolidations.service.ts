@@ -1,4 +1,8 @@
 import { ConsolidationsRepository } from '../repositories/consolidations.repo';
+import { DeliveryRatesRepository } from '../repositories/delivery-rates.repo';
+import { DeliveryMethodsRepository } from '../repositories/delivery-methods.repo';
+import { getSettings } from '../repositories/settings.repo';
+import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
 
 // ABIERTO → CERRADO ya no es una transición manual: ocurre automáticamente al
@@ -47,7 +51,41 @@ export const ConsolidationsService = {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     const detail = await ConsolidationsRepository.getConsolidationDetail(uuid);
     if (!detail) throw new Error('Orden de envío no encontrada.');
-    return detail;
+
+    // Enriquecer con la tarifa de entrega vigente (cobro y costo real) para la
+    // rentabilidad. Mismo criterio de zona/peso que generatePreBilling: cantón de
+    // la dirección de entrega (o la default del cliente) y peso cobrado en kg.
+    const method = detail.pre_billing_delivery_method ?? detail.delivery_method;
+    let deliveryCost: number | null = null;
+    let deliveryFeeEstimate: number | null = null;
+
+    const methodEntity = method ? await DeliveryMethodsRepository.findByCode(method) : null;
+
+    if (methodEntity?.is_pickup) {
+      deliveryCost = 0;
+      deliveryFeeEstimate = 0;
+    } else if (method && detail.pre_billing_delivery_cost_crc != null) {
+      // Snapshot tomado al generar el estimado — la ganancia queda congelada
+      // aunque después cambien o se eliminen tarifas.
+      deliveryCost = Number(detail.pre_billing_delivery_cost_crc);
+    } else if (method) {
+      // Fallback vivo: orden sin estimado aún, o pre-billing anterior a la
+      // migración 014 / con costo "por confirmar" en aquel momento.
+      const settings = await getSettings();
+      const kgPerLb = Number(settings?.kg_per_lb ?? 0.453592);
+      const minLb = Number(settings?.min_weight ?? 1);
+      const chargedLb = Math.max(Number(detail.total_weight_lb), minLb);
+      const zone = methodEntity?.requires_zone === false ? 'RESTO' : resolveZone(detail.zone_canton ?? '');
+      const rate = await DeliveryRatesRepository.findMatchingRate(method, zone, chargedLb * kgPerLb);
+      deliveryCost = rate?.cost_crc != null ? Number(rate.cost_crc) : null;
+      deliveryFeeEstimate = rate ? Number(rate.fee_crc) : null;
+    }
+
+    return {
+      ...detail,
+      delivery_cost_crc: deliveryCost,
+      delivery_fee_estimate_crc: deliveryFeeEstimate,
+    };
   },
 
   updateConsolidationStatus: async (

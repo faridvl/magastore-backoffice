@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power } from 'lucide-react';
+import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { routesPrivate } from '@/shared/navigation/routes';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useSettings } from './use-settings';
 import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { SettingsHistory } from '@/types/settings/settings.types';
-import { DeliveryRate, DeliveryMethod, DeliveryZone } from '@/types/logistics/logistics.types';
-
-const DELIVERY_METHOD_OPTIONS: { value: DeliveryMethod; label: string }[] = [
-    { value: 'CORREOS_CR', label: 'Correos CR' },
-    { value: 'TRACOPA', label: 'Tracopa' },
-];
+import { DeliveryRate, DeliveryZone } from '@/types/logistics/logistics.types';
 
 const ZONE_OPTIONS: { value: DeliveryZone | ''; label: string }[] = [
     { value: '', label: 'Sin zona' },
@@ -87,7 +85,17 @@ export const SettingsContainer: React.FC = () => {
         isCreating,
         handleToggleActive,
         isToggling,
+        confirmingDeleteUuid,
+        requestDelete,
+        cancelDelete,
+        confirmDelete,
+        isDeleting,
     } = useDeliveryRates();
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    // Solo métodos que cobran entrega tienen tarifas por rango — retiro no aplica.
+    const deliveryMethodOptions = (deliveryMethodsData?.data ?? [])
+        .filter((m) => m.is_active && !m.is_pickup)
+        .map((m) => ({ value: m.code, label: m.name }));
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -226,7 +234,7 @@ export const SettingsContainer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Card 2 — Costo courier */}
+                {/* Card 2 — Costo courier: se administra por courier, no acá */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
                         <div className="p-2 bg-blue-50 rounded-xl">
@@ -234,28 +242,20 @@ export const SettingsContainer: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-sm font-bold text-slate-800">Costo courier — Panamá</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">Lo que cobra el courier por mover la mercancía hasta CR</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Cada courier tiene su propia tarifa y su casillero</p>
                         </div>
                     </div>
-                    <div className="px-5 py-4 flex flex-col sm:flex-row sm:flex-wrap gap-4">
-                        <SettingInput
-                            label="Tarifa / Lb"
-                            hint="USD por libra que cobra el courier"
-                            unit="USD"
-                            step="0.01"
-                            value={Number(settings.courier_rate_usd)}
-                            accentClass="focus-within:border-blue-400 focus-within:ring-blue-400/20"
-                            onChange={(v) => handleUpdateSetting('courier_rate_usd', v)}
-                        />
-                        <SettingInput
-                            label="Seguro"
-                            hint="USD fijo de seguro (aplica ≥2 lb)"
-                            unit="USD"
-                            step="0.01"
-                            value={Number(settings.courier_insurance_usd)}
-                            accentClass="focus-within:border-blue-400 focus-within:ring-blue-400/20"
-                            onChange={(v) => handleUpdateSetting('courier_insurance_usd', v)}
-                        />
+                    <div className="px-5 py-4">
+                        <p className="text-[12px] text-slate-500 leading-relaxed">
+                            La tarifa por libra y el seguro se configuran por courier, junto con la dirección del
+                            casillero y el prefijo de código de sus clientes.
+                        </p>
+                        <Link
+                            href={routesPrivate.admin.courierRates}
+                            className="inline-flex items-center gap-1.5 mt-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-[11px] font-bold hover:bg-blue-100 transition-all"
+                        >
+                            <Truck size={13} /> Ir a Couriers y Casilleros
+                        </Link>
                     </div>
                 </div>
 
@@ -283,6 +283,37 @@ export const SettingsContainer: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Card 3b — Participación de Farid: solo lectura a propósito.
+                    Es un acuerdo societario, no una tarifa operativa: no viaja en el
+                    UPDATE de settings.repo.ts y se cambia directamente en la BD. */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                        <div className="p-2 bg-violet-50 rounded-xl">
+                            <Lock size={15} className="text-violet-500" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-800">Participación sobre la ganancia</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">Reparto de la utilidad — no se le cobra de más al cliente</p>
+                        </div>
+                    </div>
+                    <div className="px-5 py-4 flex flex-wrap items-center gap-4">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Farid</span>
+                            <span className="text-2xl font-black text-violet-600">
+                                {Number(settings.farid_share_percent ?? 20)}%
+                            </span>
+                        </div>
+                        <p className="flex-1 min-w-[220px] text-[12px] text-slate-500 leading-relaxed">
+                            Se calcula sobre la ganancia de cada envío (cobro − costo courier − costo de entrega)
+                            y se registra por paquete al generar el estimado. Valor fijo: no editable desde el
+                            backoffice.{' '}
+                            <Link href={routesPrivate.admin.billing.reports} className="text-violet-600 font-bold hover:underline">
+                                Ver en Reportes
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+
                 {/* Card 4 — Tarifas por rango de peso (delivery_rates) */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
@@ -304,7 +335,70 @@ export const SettingsContainer: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    {/* Mobile: cards apiladas */}
+                    <div className="sm:hidden divide-y divide-slate-50">
+                        {showNewRow && (
+                            <DeliveryRateCardForm
+                                draft={newDraft}
+                                onChange={updateNewDraft}
+                                onSave={saveNewRow}
+                                onCancel={cancelNewRow}
+                                isSaving={isCreating}
+                                deliveryMethodOptions={deliveryMethodOptions}
+                            />
+                        )}
+                        {isLoadingRates ? (
+                            <p className="px-5 py-6 text-center text-slate-400 text-xs">Cargando...</p>
+                        ) : rates.length === 0 && !showNewRow ? (
+                            <p className="px-5 py-6 text-center text-slate-400 text-xs">Sin tarifas configuradas. Usa &quot;Agregar&quot; para crear la primera.</p>
+                        ) : rates.map((rate) => (
+                            editingUuid === rate.uuid ? (
+                                <DeliveryRateCardForm
+                                    key={rate.uuid}
+                                    draft={editDraft}
+                                    onChange={updateEditDraft}
+                                    onSave={saveEdit}
+                                    onCancel={cancelEdit}
+                                    isSaving={isUpdating}
+                                    deliveryMethodOptions={deliveryMethodOptions}
+                                />
+                            ) : (
+                                <div key={rate.uuid} className={`px-5 py-3.5 ${!rate.is_active ? 'opacity-40' : ''}`}>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-bold text-slate-700">
+                                                {deliveryMethodOptions.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
+                                                <span className="ml-1.5 font-medium text-slate-400">{rate.zone ?? 'Sin zona'}</span>
+                                            </p>
+                                            <p className="text-[11px] text-slate-500 font-mono mt-0.5">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0">
+                                            <p className="text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</p>
+                                            <p className="text-[11px] text-slate-500">
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `Costo ₡${Number(rate.cost_crc).toLocaleString()}`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-1 mt-2">
+                                        <RateActions
+                                            rate={rate}
+                                            isToggling={isToggling}
+                                            isDeleting={isDeleting}
+                                            confirming={confirmingDeleteUuid === rate.uuid}
+                                            onToggle={() => handleToggleActive(rate)}
+                                            onEdit={() => startEdit(rate)}
+                                            onDelete={() => requestDelete(rate)}
+                                            onConfirmDelete={confirmDelete}
+                                            onCancelDelete={cancelDelete}
+                                        />
+                                    </div>
+                                </div>
+                            )
+                        ))}
+                    </div>
+
+                    {/* Desktop: tabla */}
+                    <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-slate-100">
@@ -325,6 +419,7 @@ export const SettingsContainer: React.FC = () => {
                                         onSave={saveNewRow}
                                         onCancel={cancelNewRow}
                                         isSaving={isCreating}
+                                        deliveryMethodOptions={deliveryMethodOptions}
                                     />
                                 )}
                                 {isLoadingRates ? (
@@ -340,11 +435,12 @@ export const SettingsContainer: React.FC = () => {
                                             onSave={saveEdit}
                                             onCancel={cancelEdit}
                                             isSaving={isUpdating}
+                                            deliveryMethodOptions={deliveryMethodOptions}
                                         />
                                     ) : (
                                         <tr key={rate.uuid} className={!rate.is_active ? 'opacity-40' : ''}>
                                             <td className="px-4 py-2.5 text-xs font-bold text-slate-700">
-                                                {DELIVERY_METHOD_OPTIONS.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
+                                                {deliveryMethodOptions.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
                                             </td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">{rate.zone ?? '—'}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</td>
@@ -362,14 +458,33 @@ export const SettingsContainer: React.FC = () => {
                                                     <Power size={15} />
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-2.5 text-right">
-                                                <button
-                                                    onClick={() => startEdit(rate)}
-                                                    className="p-2.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                                                    title="Editar"
-                                                >
-                                                    <Pencil size={15} />
-                                                </button>
+                                            <td className="px-4 py-2.5">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    {confirmingDeleteUuid === rate.uuid ? (
+                                                        <RateDeleteConfirm
+                                                            isDeleting={isDeleting}
+                                                            onConfirm={confirmDelete}
+                                                            onCancel={cancelDelete}
+                                                        />
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => startEdit(rate)}
+                                                                className="p-2.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                                                                title="Editar"
+                                                            >
+                                                                <Pencil size={15} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => requestDelete(rate)}
+                                                                className="p-2.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                                                title="Eliminar"
+                                                            >
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -482,6 +597,163 @@ export const SettingsContainer: React.FC = () => {
     );
 };
 
+// Confirmación de borrado en dos pasos, compartida entre tabla y cards.
+function RateDeleteConfirm({
+    isDeleting,
+    onConfirm,
+    onCancel,
+}: {
+    isDeleting: boolean;
+    onConfirm: () => void;
+    onCancel: () => void;
+}) {
+    return (
+        <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">¿Eliminar?</span>
+            <button
+                onClick={onConfirm}
+                disabled={isDeleting}
+                className="px-2.5 py-1.5 rounded-lg bg-red-500 text-white text-[11px] font-bold hover:bg-red-600 transition-colors disabled:opacity-40"
+            >
+                Sí
+            </button>
+            <button
+                onClick={onCancel}
+                disabled={isDeleting}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-[11px] font-bold hover:bg-slate-50 transition-colors disabled:opacity-40"
+            >
+                No
+            </button>
+        </div>
+    );
+}
+
+// Botonera de acciones de una tarifa en la vista mobile (cards).
+function RateActions({
+    rate,
+    isToggling,
+    isDeleting,
+    confirming,
+    onToggle,
+    onEdit,
+    onDelete,
+    onConfirmDelete,
+    onCancelDelete,
+}: {
+    rate: DeliveryRate;
+    isToggling: boolean;
+    isDeleting: boolean;
+    confirming: boolean;
+    onToggle: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    onConfirmDelete: () => void;
+    onCancelDelete: () => void;
+}) {
+    if (confirming) {
+        return <RateDeleteConfirm isDeleting={isDeleting} onConfirm={onConfirmDelete} onCancel={onCancelDelete} />;
+    }
+    return (
+        <>
+            <button
+                onClick={onToggle}
+                disabled={isToggling}
+                title={rate.is_active ? 'Desactivar' : 'Activar'}
+                className={`p-2.5 rounded-lg transition-colors ${rate.is_active ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-300 hover:bg-slate-50'}`}
+            >
+                <Power size={15} />
+            </button>
+            <button
+                onClick={onEdit}
+                className="p-2.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                title="Editar"
+            >
+                <Pencil size={15} />
+            </button>
+            <button
+                onClick={onDelete}
+                className="p-2.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                title="Eliminar"
+            >
+                <Trash2 size={15} />
+            </button>
+        </>
+    );
+}
+
+// Formulario apilado para crear/editar una tarifa en mobile — mismos campos que
+// DeliveryRateRow pero en layout vertical para que sea usable en pantallas chicas.
+function DeliveryRateCardForm({
+    draft,
+    onChange,
+    onSave,
+    onCancel,
+    isSaving,
+    deliveryMethodOptions,
+}: {
+    draft: DeliveryRateDraft;
+    onChange: (field: keyof DeliveryRateDraft, value: string) => void;
+    onSave: () => void;
+    onCancel: () => void;
+    isSaving: boolean;
+    deliveryMethodOptions: { value: string; label: string }[];
+}) {
+    const inputClass = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
+    const labelClass = 'text-[10px] font-semibold text-slate-500 uppercase tracking-wider';
+
+    return (
+        <div className="px-5 py-4 bg-emerald-50/30 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Método</label>
+                    <select value={draft.delivery_method} onChange={(e) => onChange('delivery_method', e.target.value)} className={inputClass}>
+                        <option value="" disabled>Selecciona un método</option>
+                        {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Zona</label>
+                    <select value={draft.zone ?? ''} onChange={(e) => onChange('zone', e.target.value)} className={inputClass}>
+                        {ZONE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Peso mín (kg)</label>
+                    <input type="number" step="0.01" min="0" inputMode="decimal" value={draft.min_weight_kg} onChange={(e) => onChange('min_weight_kg', e.target.value)} placeholder="0" className={inputClass} />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Peso máx (kg)</label>
+                    <input type="number" step="0.01" min="0" inputMode="decimal" value={draft.max_weight_kg} onChange={(e) => onChange('max_weight_kg', e.target.value)} placeholder="0" className={inputClass} />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Cobro cliente (₡)</label>
+                    <input type="number" step="1" min="0" inputMode="numeric" value={draft.fee_crc} onChange={(e) => onChange('fee_crc', e.target.value)} placeholder="CRC" className={inputClass} />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Costo real (₡)</label>
+                    <input type="number" step="1" min="0" inputMode="numeric" value={draft.cost_crc} onChange={(e) => onChange('cost_crc', e.target.value)} placeholder="Por confirmar" className={inputClass} />
+                </div>
+            </div>
+            <div className="flex gap-2">
+                <button
+                    onClick={onSave}
+                    disabled={isSaving || !draft.delivery_method}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-40"
+                >
+                    <Check size={14} /> Guardar
+                </button>
+                <button
+                    onClick={onCancel}
+                    disabled={isSaving}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-40"
+                >
+                    <X size={14} /> Cancelar
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // Fila editable inline — usada tanto para editar una tarifa existente como para
 // dar de alta una nueva. El solapamiento de rango se valida en el backend al guardar.
 function DeliveryRateRow({
@@ -490,12 +762,14 @@ function DeliveryRateRow({
     onSave,
     onCancel,
     isSaving,
+    deliveryMethodOptions,
 }: {
     draft: DeliveryRateDraft;
     onChange: (field: keyof DeliveryRateDraft, value: string) => void;
     onSave: () => void;
     onCancel: () => void;
     isSaving: boolean;
+    deliveryMethodOptions: { value: string; label: string }[];
 }) {
     const cellInputClass = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
 
@@ -507,7 +781,8 @@ function DeliveryRateRow({
                     onChange={(e) => onChange('delivery_method', e.target.value)}
                     className={cellInputClass}
                 >
-                    {DELIVERY_METHOD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    <option value="" disabled>Selecciona</option>
+                    {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
             </td>
             <td className="px-4 py-2">
@@ -537,7 +812,7 @@ function DeliveryRateRow({
                 <div className="flex items-center justify-end gap-1.5">
                     <button
                         onClick={onSave}
-                        disabled={isSaving}
+                        disabled={isSaving || !draft.delivery_method}
                         title="Guardar"
                         className="p-2.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
                     >

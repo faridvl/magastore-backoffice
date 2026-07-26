@@ -1,3 +1,4 @@
+import { ReactNode, Ref } from "react";
 import { tailwind } from "@/utils/tailwind-utils";
 import { BoxedLayout, BoxedLayoutStyle } from "./boxed-container/boxed-container";
 
@@ -8,6 +9,8 @@ type Props = {
     contentClassNames?: string;
     //  bottomPadding?: string;
     boxClassName?: string;
+    containerRef?: Ref<HTMLDivElement>;
+    overlay?: ReactNode;
 }
 
 export function DashboardLayoutContent({
@@ -17,6 +20,8 @@ export function DashboardLayoutContent({
     contentClassNames,
     //  bottomPadding, // TBD(!): DEFINIR COMO VOY A AGREGAR EL PADDING AL FINAL
     boxClassName,
+    containerRef,
+    overlay,
 }: Props) {
     return (
         <BoxedLayout
@@ -24,6 +29,8 @@ export function DashboardLayoutContent({
             onScroll={onScroll}
             containerClassName={tailwind(contentClassNames, 'overflow-auto')}
             boxClassName={boxClassName}
+            containerRef={containerRef}
+            overlay={overlay}
         >
             {children}
         </BoxedLayout>

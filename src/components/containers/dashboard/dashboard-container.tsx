@@ -190,45 +190,6 @@ export const DashboardContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* Banner landing */}
-      <a
-        href="/landing.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group relative flex flex-col sm:flex-row items-center gap-6 bg-slate-900 rounded-3xl p-6 md:p-8 mb-6 md:mb-8 overflow-hidden cursor-pointer no-underline"
-        style={{ textDecoration: 'none' }}
-      >
-        {/* Glow detrás */}
-        <div className="pointer-events-none absolute -top-10 -left-10 w-48 h-48 rounded-full bg-amber-500 opacity-10 blur-3xl group-hover:opacity-20 transition-opacity" />
-        <div className="pointer-events-none absolute -bottom-10 right-20 w-40 h-40 rounded-full bg-amber-400 opacity-10 blur-3xl group-hover:opacity-20 transition-opacity" />
-
-        {/* Ícono */}
-        <div className="relative flex-shrink-0 w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/40 group-hover:scale-110 transition-transform">
-          <Package size={32} className="text-white" />
-        </div>
-
-        {/* Texto */}
-        <div className="relative flex-1 text-center sm:text-left">
-          <div className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-2">
-            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
-            Novedad para clientes
-          </div>
-          <h3 className="text-white font-black text-lg md:text-xl tracking-tight mb-1">
-            ¿Ya conoces nuestra nueva landing para clientes?
-          </h3>
-          <p className="text-slate-400 text-sm">
-            Comparte la propuesta de valor de Magastore con tus clientes potenciales — casillero en Miami, tarifas claras y seguimiento en tiempo real.
-          </p>
-        </div>
-
-        {/* CTA */}
-        <div className="relative flex-shrink-0">
-          <span className="inline-flex items-center gap-2 bg-amber-500 group-hover:bg-amber-400 text-slate-900 font-black text-sm px-5 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/30 whitespace-nowrap">
-            Ver landing →
-          </span>
-        </div>
-      </a>
-
       {/* Actividad reciente */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-50">

@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx';
+import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
@@ -17,6 +18,20 @@ export const useImportCustomers = (onClose: () => void) => {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const { mutate, isPending } = useImportCustomersMutation();
+
+  // Catálogo real de couriers: alimenta la hoja de referencia de la plantilla y
+  // permite avisar de un nombre mal escrito antes de subir el archivo.
+  const { data: courierRatesRes } = useCourierRatesQuery();
+  const courierRates = useMemo(
+    () => (Array.isArray(courierRatesRes) ? courierRatesRes : []),
+    [courierRatesRes],
+  );
+  const courierNames = useMemo(() => courierRates.map((r) => r.name), [courierRates]);
+
+  // parseFile es un useCallback sin dependencias (se pasa a un input file y no
+  // debe recrearse). El ref le da acceso al catálogo vigente sin cambiar eso.
+  const courierNamesRef = useRef<string[]>([]);
+  useEffect(() => { courierNamesRef.current = courierNames; }, [courierNames]);
 
   const parseFile = useCallback((file: File) => {
     setParseError(null);
@@ -56,6 +71,7 @@ export const useImportCustomers = (onClose: () => void) => {
           const isPrincipalRaw = r['es_principal']?.toString().trim().toLowerCase();
           const isDefault = isPrincipalRaw === 'si' || isPrincipalRaw === 'sí' || isPrincipalRaw === 'yes' || isPrincipalRaw === '1';
           const customerCode = r['codigo_magastore']?.toString().trim() || undefined;
+          const couriers = r['couriers']?.toString().trim() || undefined;
 
           if (!idCard) { rowErrors.push(`Fila ${rowNum}: cédula vacía.`); return; }
           if (!VALID_ID_TYPES.includes(idTypeRaw)) { rowErrors.push(`Fila ${rowNum}: tipo_identificacion inválido "${idTypeRaw}". Valores válidos: ${VALID_ID_TYPES.join(', ')}.`); return; }
@@ -64,6 +80,20 @@ export const useImportCustomers = (onClose: () => void) => {
           if (!email) { rowErrors.push(`Fila ${rowNum}: email vacío.`); return; }
           if (!phone) { rowErrors.push(`Fila ${rowNum}: teléfono vacío.`); return; }
           if (!province || !canton || !district || !exactAddress) { rowErrors.push(`Fila ${rowNum}: campos de dirección incompletos.`); return; }
+
+          // Se avisa aquí del nombre mal escrito para no descubrirlo recién al
+          // subir el archivo. El servicio vuelve a validarlo contra la BD.
+          if (couriers) {
+            const valid = courierNamesRef.current.map((n) => n.toLowerCase());
+            const unknown = couriers
+              .split(',')
+              .map((n) => n.trim())
+              .filter((n) => n && !valid.includes(n.toLowerCase()));
+            if (unknown.length > 0) {
+              rowErrors.push(`Fila ${rowNum}: courier no reconocido "${unknown.join('", "')}". Revisa la hoja "Couriers" de la plantilla.`);
+              return;
+            }
+          }
 
           const resolvedLocation = resolveLocation(province, canton, district);
           if (!resolvedLocation) {
@@ -79,6 +109,7 @@ export const useImportCustomers = (onClose: () => void) => {
             email,
             phone,
             customer_code: customerCode || undefined,
+            couriers,
             province: resolvedLocation.province,
             canton: resolvedLocation.canton,
             district: resolvedLocation.district,
@@ -134,17 +165,29 @@ export const useImportCustomers = (onClose: () => void) => {
   const downloadTemplate = useCallback(() => {
     const headers = [
       'cedula', 'tipo_identificacion', 'nombre', 'apellidos', 'email', 'telefono',
-      'codigo_magastore', 'provincia', 'canton', 'distrito', 'direccion_exacta', 'etiqueta', 'es_principal',
+      'codigo_magastore', 'couriers', 'provincia', 'canton', 'distrito', 'direccion_exacta', 'etiqueta', 'es_principal',
     ];
+    // La columna `couriers` acepta varios nombres separados por coma — uno por
+    // casillero. Vacía significa "usar el courier predeterminado", que es lo
+    // que hacían todas las importaciones antes de que existiera la columna.
     const example = [
       '123456789', 'FISICA', 'Juan', 'Pérez González', 'juan@email.com', '88881234',
-      '', 'San José', 'Central', 'Carmen', 'Casa 123 frente al parque', 'Casa', 'Si',
+      '', courierNames.slice(0, 2).join(', '), 'San José', 'Central', 'Carmen', 'Casa 123 frente al parque', 'Casa', 'Si',
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, example]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+
+    // Hoja de referencia: el nombre del courier debe coincidir exacto, así que
+    // se lista el catálogo real en vez de dejar que el operador lo adivine.
+    const refRows = [
+      ['Couriers disponibles', 'Origen', 'Tipo'],
+      ...courierRates.map((r) => [r.name, r.origin, r.package_type]),
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(refRows), 'Couriers');
+
     XLSX.writeFile(wb, 'template_importacion_clientes.xlsx');
-  }, []);
+  }, [courierRates, courierNames]);
 
   const uniqueCustomers = new Map<string, CustomerImportRow>();
   for (const r of parsedRows) uniqueCustomers.set(r.id_card, r);

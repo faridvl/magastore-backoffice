@@ -1,15 +1,13 @@
 import React from 'react';
 import { X, CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { BillingDetail } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos CR',
-  TRACOPA:    'Tracopa',
-  RETIRO:     'Retiro',
-};
+const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 interface Props {
   billingDetail: BillingDetail | null;
@@ -17,7 +15,7 @@ interface Props {
   onClose: () => void;
   onMarkAsPaid: () => void;
   isMarkingPaid: boolean;
-  onDownloadPdf: (uuid: string) => void;
+  onDownloadPdf: (uuid: string, invoiceNumber?: number) => void;
   isDownloadingPdf: boolean;
 }
 
@@ -29,7 +27,27 @@ export const BillingDetailModal: React.FC<Props> = ({
   isMarkingPaid,
   onDownloadPdf,
   isDownloadingPdf,
-}) => (
+}) => {
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const deliveryMethodLabel = resolveDeliveryMethodLabel(billingDetail?.delivery_method, deliveryMethodsData?.data);
+
+  // Mismo desglose que el PDF de la factura: sale del monto real y no de la
+  // tarifa de lista, para que las líneas cuadren con el total en clientes con
+  // regla de cobro especial.
+  const breakdown = billingDetail
+    ? buildBillingBreakdown({
+        packages: billingDetail.packages ?? [],
+        amountCrc: billingDetail.total_amount_crc,
+        deliveryFeeCrc: billingDetail.delivery_fee_crc,
+        totalWeightCharged: billingDetail.total_weight_charged,
+        appliedRateUsd: billingDetail.applied_rate_usd,
+        appliedExchange: billingDetail.applied_exchange,
+        billingMode: billingDetail.applied_billing_mode,
+        discountPercent: billingDetail.applied_discount_percent,
+      })
+    : null;
+
+  return (
   <div
     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     onClick={onClose}
@@ -50,7 +68,7 @@ export const BillingDetailModal: React.FC<Props> = ({
                 {billingDetail.customer_name}
               </Typography>
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                {billingDetail.customer_code} · {billingDetail.customer_email}
+                {formatInvoiceNumber(billingDetail.invoice_number)} · {billingDetail.customer_code} · {billingDetail.customer_email}
               </p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
@@ -66,12 +84,19 @@ export const BillingDetailModal: React.FC<Props> = ({
               value={`${billingDetail.total_weight_charged} lb`}
             />
             <BillingRow
-              label={`Flete internacional ($${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`}
-              value={formatCRC(billingDetail.total_weight_charged * billingDetail.applied_rate_usd * billingDetail.applied_exchange)}
+              label={
+                breakdown?.isNormal === false
+                  ? `Flete internacional (lista $${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`
+                  : `Flete internacional ($${billingDetail.applied_rate_usd}/lb × ₡${billingDetail.applied_exchange})`
+              }
+              value={formatCRC(breakdown?.isNormal === false ? breakdown.fleteLista : breakdown?.flete ?? 0)}
             />
+            {breakdown && !breakdown.isNormal && (
+              <BillingRow label={breakdown.ruleLabel ?? 'Ajuste'} value={`- ${formatCRC(breakdown.descuento)}`} />
+            )}
             {billingDetail.delivery_method && (
               <BillingRow
-                label={`Envío local — ${DELIVERY_LABELS[billingDetail.delivery_method]}`}
+                label={`Envío local — ${deliveryMethodLabel}`}
                 value={billingDetail.delivery_fee_crc > 0 ? formatCRC(billingDetail.delivery_fee_crc) : 'Sin cargo'}
               />
             )}
@@ -120,7 +145,7 @@ export const BillingDetailModal: React.FC<Props> = ({
 
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => onDownloadPdf(billingDetail.uuid)}
+              onClick={() => onDownloadPdf(billingDetail.uuid, billingDetail.invoice_number)}
               disabled={isDownloadingPdf}
               className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-all disabled:opacity-50"
             >
@@ -160,7 +185,8 @@ export const BillingDetailModal: React.FC<Props> = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 const BillingRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center text-sm">

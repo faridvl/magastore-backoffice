@@ -9,7 +9,12 @@ import { useAssignPackagesToOrderMutation } from '@/shared/api/mutations/shipmen
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { buildWhatsAppUrl, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import { downloadPdf } from '@/shared/utils/download-pdf';
+import { notifyWhatsApp, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
@@ -40,6 +45,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
 
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
+  const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
 
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [isDownloadingBillingPdf, setIsDownloadingBillingPdf] = useState(false);
@@ -47,6 +53,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
 
   // Detalle de la factura para el modal — solo se consulta al abrirlo
   const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
@@ -141,15 +148,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   const handleDownloadPreBillingPDF = async (preBillingUuid: string, customerCode: string) => {
     try {
-      const response = await fetch(`/api/billing/pre-billing-pdf?uuid=${preBillingUuid}`);
-      if (!response.ok) throw new Error('No se pudo generar el PDF');
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `estimado-${customerCode}-${preBillingUuid.slice(-8).toUpperCase()}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await downloadPdf(
+        `/api/billing/pre-billing-pdf?uuid=${preBillingUuid}`,
+        `PREFACTURA-${customerCode}-${preBillingUuid.slice(-8).toUpperCase()}.pdf`,
+      );
     } catch {
       toast.error('No se pudo descargar el PDF. Intenta de nuevo.');
     }
@@ -184,20 +186,11 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleDownloadBillingPdf = async (billingUuid: string) => {
+  const handleDownloadBillingPdf = async (billingUuid: string, invoiceNumber?: number) => {
     setIsDownloadingBillingPdf(true);
     try {
-      const response = await fetch(`/api/billing/pdf?uuid=${billingUuid}`);
-      if (!response.ok) throw new Error('No se pudo generar el PDF');
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `factura-${billingUuid.slice(-8).toUpperCase()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      const label = invoiceNumber != null ? `F-${String(invoiceNumber).padStart(4, '0')}` : billingUuid.slice(-8).toUpperCase();
+      await downloadPdf(`/api/billing/pdf?uuid=${billingUuid}`, `FACTURA-${label}.pdf`);
     } catch {
       toast.error('No se pudo descargar el PDF. Intenta de nuevo más tarde.');
     } finally {
@@ -312,15 +305,24 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         weightLb: Number(detail.total_weight_lb),
-        deliveryMethod: detail.pre_billing_delivery_method,
+        deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
+        amountCrc: detail.pre_billing_amount,
+        packages: (detail.packages ?? []).map((p) => ({
+          storeName: p.store_name,
+          trackingNumber: p.tracking_number,
+          weightLb: Number(p.weight_lb),
+        })),
+        templateBody: preBillingTemplateBody,
       });
-      window.open(buildWhatsAppUrl(detail.customer_phone, message), '_blank');
-
+      // notified_at se estampa ANTES de notificar: fuera de iPad se navega a
+      // WhatsApp en la misma vista y nada de lo que quede después se ejecuta.
       await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
         action: 'notify-pre-billing',
         consolidationUuid: uuid,
       });
       await detailQuery.invalidate();
+
+      await notifyWhatsApp(detail.customer_phone, message);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar la notificación.');
     } finally {

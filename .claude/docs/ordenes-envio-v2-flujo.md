@@ -1,7 +1,9 @@
 # Rediseño Flujo Órdenes de Envío v2 — Paradigma Paquete-Céntrico
 
-**Estado: EN IMPLEMENTACIÓN — Etapas 1–4 completadas y commiteadas.** Documento de decisiones acordadas con el dueño de Magastore.
-Última actualización: 2026-07-13 (todo commiteado hasta `289dc39`; solo queda Etapa 5 con alcance reducido).
+**Estado: COMPLETO — Etapas 1–4 completadas y commiteadas.** Documento de decisiones acordadas con el dueño de Magastore.
+Última actualización: 2026-07-25. No hay Etapa 5 de código — el encabezado anterior quedó desactualizado; todo lo previsto para ella se resolvió como "Extras post-Etapa 3/4" (ver Etapa 4, línea ~94). Todo commiteado hasta `289dc39` (más `9406650`, `fa7e0a9`, `4450498` de trabajo relacionado posterior).
+
+**Único pendiente restante, no de código:** el texto exacto de la Plantilla 2 de WhatsApp ("Enviar prefactura", ver Etapa 4) sigue siendo un borrador — falta que el dueño lo apruebe y decida si agrega datos de pago (SINPE/cuenta).
 
 ## Progreso
 

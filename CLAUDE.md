@@ -236,7 +236,7 @@ The `billing` row stores snapshots of the applied values (`applied_rate_usd`, `a
 
 ### Auth
 
-JWT tokens expire in `12h` — `auth.service.ts`. The fallback secret is the hardcoded string `'clave_secreta_por_defecto'` when `JWT_SECRET` is absent — **do not deploy without this variable**. `UserRole` enum has two values: `ADMIN` and `OPERADOR` — `types/auth/auth.ts`.
+JWT tokens expire in `7d` — `auth.service.ts`. The session cookie in `cookies-manager.ts` uses the same window; keep both in sync or the cookie will outlive the token (or vice versa). The fallback secret is the hardcoded string `'clave_secreta_por_defecto'` when `JWT_SECRET` is absent — **do not deploy without this variable**. `UserRole` enum has two values: `ADMIN` and `OPERADOR` — `types/auth/auth.ts`.
 
 ### Critical Flows (High Risk of Regression)
 

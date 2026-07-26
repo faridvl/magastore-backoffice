@@ -16,7 +16,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
   });
 
   const packageQuery = usePackageDetailQuery(uuid as string);
-  const { data: apiData, isLoading: isLoadingPackage, isError } = packageQuery.useQuery();
+  const { data: apiData, isLoading: isLoadingPackage, isError, error, refetch } = packageQuery.useQuery();
 
   const { data: settingsRes } = useSettingsQuery();
   const settings = settingsRes?.current;
@@ -48,6 +48,10 @@ export const usePackageDetailContainer = (uuid?: string) => {
     appliedExchange: null as number | null,
     totalWeightCharged: null as number | null,
     appliedFeeCrc: null as number | null,
+    // Regla de cobro congelada en la factura — el flete mostrado debe salir de
+    // aquí y no de la tarifa de lista.
+    appliedBillingMode: null as string | null,
+    appliedDiscountPercent: null as number | null,
   });
 
   // Sincronizar datos del paquete + cliente
@@ -75,6 +79,8 @@ export const usePackageDetailContainer = (uuid?: string) => {
         appliedExchange:     apiData.applied_exchange != null ? Number(apiData.applied_exchange) : null,
         totalWeightCharged:  apiData.total_weight_charged != null ? Number(apiData.total_weight_charged) : null,
         appliedFeeCrc:       apiData.applied_fee_crc != null ? Number(apiData.applied_fee_crc) : null,
+        appliedBillingMode:  apiData.applied_billing_mode ?? null,
+        appliedDiscountPercent: apiData.applied_discount_percent != null ? Number(apiData.applied_discount_percent) : null,
       }));
     }
   }, [apiData]);
@@ -174,6 +180,8 @@ export const usePackageDetailContainer = (uuid?: string) => {
     tieneFactura,
     isLoading: !uuid || isLoadingPackage,
     isError,
+    error,
+    refetch,
     isEditingFinancial,
     isSavingWeight,
     setIsEditingFinancial,

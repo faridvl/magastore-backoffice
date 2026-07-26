@@ -3,6 +3,7 @@ import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import { BillingService } from '@/shared/api/services/billing.service';
+import { DeliveryMethodsRepository } from '@/shared/api/repositories/delivery-methods.repo';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { BillingInvoicePDF } from '@/components/pdf/billing-invoice';
 
@@ -29,13 +30,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const detail = await BillingService.getBillingDetail(uuid);
     if (!detail) return res.status(404).json({ message: 'Factura no encontrada.' });
 
+    const methods = await DeliveryMethodsRepository.getAll();
+    const deliveryMethodLabel = detail.delivery_method
+      ? methods.find((m) => m.code === detail.delivery_method)?.name ?? null
+      : null;
+
     const buffer = await renderToBuffer(
-      React.createElement(BillingInvoicePDF, { detail }) as unknown as React.ReactElement<DocumentProps>,
+      React.createElement(BillingInvoicePDF, { detail, deliveryMethodLabel }) as unknown as React.ReactElement<DocumentProps>,
     );
 
-    const shortId = uuid.slice(-8).toUpperCase();
+    const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
+    // El casillero va antes del número para que al ordenar la carpeta queden
+    // juntos todos los archivos de un mismo cliente. Se sanea porque el nombre
+    // termina en una cabecera HTTP.
+    const codeSlug = (detail.customer_code ?? '').replace(/[^A-Za-z0-9-]/g, '');
+    const fileName = codeSlug
+      ? `FACTURA-${codeSlug}-${invoiceLabel}.pdf`
+      : `FACTURA-${invoiceLabel}.pdf`;
+
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="factura-${shortId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', buffer.length);
     return res.status(200).end(buffer);
   } catch (error: any) {

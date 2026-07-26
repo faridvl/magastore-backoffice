@@ -12,6 +12,7 @@ import {
   BarChart2,
   BarChart3,
   MapPin,
+  MessageCircle,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -133,6 +134,34 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: Settings,
         labelKey: 'Tarifas',
         route: routesPrivate.admin.settings,
+        adminOnly: true,
+      },
+      {
+        menuKey: 'courier-rates',
+        icon: Truck,
+        labelKey: 'Couriers y Casilleros',
+        route: routesPrivate.admin.courierRates,
+        adminOnly: true,
+      },
+      {
+        menuKey: 'customer-types',
+        icon: Users,
+        labelKey: 'Tipos de Cliente',
+        route: routesPrivate.admin.customerTypes,
+        adminOnly: true,
+      },
+      {
+        menuKey: 'whatsapp-templates',
+        icon: MessageCircle,
+        labelKey: 'Plantillas de WhatsApp',
+        route: routesPrivate.admin.whatsappTemplates,
+        adminOnly: true,
+      },
+      {
+        menuKey: 'delivery-methods',
+        icon: Truck,
+        labelKey: 'Métodos de Entrega',
+        route: routesPrivate.admin.deliveryMethods,
         adminOnly: true,
       },
       {

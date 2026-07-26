@@ -21,15 +21,19 @@ import {
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
+import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
+import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
 import {
   ConsolidationStatus,
   ConsolidationPackage,
   ConsolidationDetail,
-  DeliveryMethod,
   AvailablePackage,
+  ProfitShareStatus,
 } from '@/types/logistics/logistics.types';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -50,12 +54,6 @@ const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
   CERRADO: 'Marcar como Despachado',
   DESPACHADO: 'Marcar como Entregado',
   ENTREGADO: null,
-};
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
 };
 
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
@@ -117,6 +115,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleNotifyPreBilling,
     isNotifyingPreBilling,
   } = useShipmentOrderDetail(resolvedUuid);
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
   if (isLoadingDetail || !resolvedUuid) {
     return (
@@ -151,9 +151,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           <button onClick={handleBack} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
             <ChevronLeft size={14} /> Volver a órdenes de envío
           </button>
-          <Typography variant={TypographyVariant.HEADER} className="tracking-tighter">
-            {detail.customer_name}
-          </Typography>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Typography variant={TypographyVariant.HEADER} className="tracking-tighter">
+              {detail.customer_name}
+            </Typography>
+            {detail.customer_type_name && detail.customer_type_billing_mode !== 'NORMAL' && (
+              <CustomerTypeBadge
+                name={detail.customer_type_name}
+                mode={detail.customer_type_billing_mode as CustomerBillingMode}
+                discount={detail.customer_type_discount_percent}
+              />
+            )}
+          </div>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
             {detail.customer_code} · {detail.customer_email}
           </p>
@@ -227,7 +236,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           <div className="min-w-0">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Método de envío</p>
             {detail.delivery_method ? (
-              <p className="text-sm font-bold text-slate-800">{DELIVERY_LABELS[detail.delivery_method]}</p>
+              <p className="text-sm font-bold text-slate-800">{resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData?.data)}</p>
             ) : (
               <p className="text-sm text-slate-400 italic">Sin elegir — se pedirá al generar el estimado</p>
             )}
@@ -304,7 +313,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <p className="text-xs font-black text-amber-900">Estimado pendiente de confirmación</p>
                   <p className="text-[10px] text-amber-700 mt-0.5">
                     {detail.pre_billing_delivery_method
-                      ? `Entrega: ${DELIVERY_LABELS[detail.pre_billing_delivery_method]}`
+                      ? `Entrega: ${resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data)}`
                       : ''}
                     {detail.pre_billing_notified_at && (
                       <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
@@ -330,7 +339,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? 'RETIRO');
+                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? activeDeliveryMethods[0]?.code ?? '');
                       setShowPreBillingModal(true);
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
@@ -543,18 +552,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 Método de entrega
               </label>
               <div className="space-y-2">
-                {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                {activeDeliveryMethods.map((dm) => (
                   <button
-                    key={method}
-                    onClick={() => setPreBillingDeliveryMethod(method)}
+                    key={dm.code}
+                    onClick={() => setPreBillingDeliveryMethod(dm.code)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                      preBillingDeliveryMethod === method
+                      preBillingDeliveryMethod === dm.code
                         ? 'bg-slate-900 text-white border-slate-900'
                         : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                     }`}
                   >
-                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                    {preBillingDeliveryMethod === method && (
+                    <span className="font-bold text-sm">{dm.name}</span>
+                    {preBillingDeliveryMethod === dm.code && (
                       <CheckCircle size={16} className="text-amber-400" />
                     )}
                   </button>
@@ -667,18 +676,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             </div>
 
             <div className="space-y-2 mb-6">
-              {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+              {activeDeliveryMethods.map((dm) => (
                 <button
-                  key={method}
-                  onClick={() => setSelectedMethod(method)}
+                  key={dm.code}
+                  onClick={() => setSelectedMethod(dm.code)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                    selectedMethod === method
+                    selectedMethod === dm.code
                       ? 'bg-slate-900 text-white border-slate-900'
                       : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                   }`}
                 >
-                  <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                  {selectedMethod === method && (
+                  <span className="font-bold text-sm">{dm.name}</span>
+                  {selectedMethod === dm.code && (
                     <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                   )}
                 </button>
@@ -794,30 +803,21 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   );
 };
 
-const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
-  // Cobro con las tarifas del snapshot de la prefactura; si la orden sigue
-  // abierta, con las vigentes de system_settings (el monto puede variar hasta
-  // que se genere el estimado).
-  const usingSnapshot = detail.pre_billing_rate_usd != null && detail.pre_billing_exchange != null;
-  const rateUsd = Number(usingSnapshot ? detail.pre_billing_rate_usd : detail.current_price_per_lb);
-  const exchange = Number(usingSnapshot ? detail.pre_billing_exchange : detail.current_exchange_rate);
+const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => (
+  detail.billing_uuid ? <BilledProfitCard detail={detail} /> : <EstimatedProfitCard detail={detail} />
+);
 
-  const rows = detail.packages.map((pkg) => {
-    const weight = Number(pkg.weight_lb);
-    const cobro = weight * rateUsd * exchange;
-    const hasCost = pkg.courier_cost_usd != null && pkg.tc_banco != null;
-    const costo = hasCost ? Number(pkg.courier_cost_usd) * Number(pkg.tc_banco) : null;
-    return { pkg, cobro, costo, ganancia: costo != null ? cobro - costo : null };
-  });
-
-  const totalWeight = Number(detail.total_weight_lb);
-  const chargedWeight = Math.max(totalWeight, Number(detail.current_min_weight));
-  const cobroTotal = chargedWeight * rateUsd * exchange;
-  const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0);
-  const missingCost = rows.some((r) => r.costo == null);
-  const gananciaTotal = cobroTotal - costoTotal;
-  const margen = cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : 0;
-  const minApplied = chargedWeight > totalWeight;
+// Cuando ya existe factura, la ganancia mostrada es la congelada en `billing`
+// al momento de confirmar (migración 018) — no se recalcula con datos en vivo,
+// para que editar/desactivar una tarifa después no altere retroactivamente el
+// número de una factura ya emitida.
+const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+  const cobroTotal = Number(detail.billing_total_amount_crc ?? 0);
+  const courierCost = detail.billing_courier_cost_crc != null ? Number(detail.billing_courier_cost_crc) : null;
+  const deliveryCost = detail.billing_delivery_cost_crc != null ? Number(detail.billing_delivery_cost_crc) : null;
+  const gananciaTotal = detail.billing_profit_crc != null ? Number(detail.billing_profit_crc) : null;
+  const margen = gananciaTotal != null && cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : null;
+  const hasUnknownCost = detail.billing_has_unknown_cost === true;
 
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
@@ -828,9 +828,175 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
             Rentabilidad · Solo interno
           </p>
         </div>
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-          {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
+        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
+          Ganancia final (facturada)
         </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo courier</p>
+          <p className="text-xs font-bold text-slate-700">{courierCost != null ? formatCRC(courierCost) : '—'}</p>
+        </div>
+        <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo entrega</p>
+          <p className="text-xs font-bold text-slate-700">
+            {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Sin dato al facturar</span>}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro total</p>
+          <p className="text-sm font-black text-white">{formatCRC(cobroTotal)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
+          <p className="text-sm font-black text-white">
+            {formatCRC((courierCost ?? 0) + (deliveryCost ?? 0))}{hasUnknownCost ? ' *' : ''}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+          <p className={`text-sm font-black ${gananciaTotal != null && gananciaTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {gananciaTotal != null ? formatCRC(gananciaTotal) : '—'}
+            {margen != null && <span className="text-[10px] font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>}
+          </p>
+        </div>
+      </div>
+
+      <ProfitShareRow detail={detail} />
+
+      {hasUnknownCost && (
+        <p className="mt-3 text-[10px] text-amber-600">
+          * El costo real de la entrega no estaba confirmado al momento de facturar — la ganancia mostrada no lo descuenta.
+        </p>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Reparto de la ganancia de esta orden: cuánto le toca a Farid y cuánto queda.
+ * Solo existe desde que se genera el estimado — antes de eso no hay fila que
+ * mostrar. Mientras siga en ESTIMADO se marca como provisional, porque
+ * reabrir la orden o mover paquetes lo descarta y lo vuelve a calcular.
+ */
+const ProfitShareRow: React.FC<{
+  detail: ConsolidationDetail;
+  // La tarjeta del estimado calcula la ganancia en vivo (billing_profit_crc aún
+  // es null porque no hay factura); la tarjeta facturada usa la congelada.
+  profitOverride?: number;
+}> = ({ detail, profitOverride }) => {
+  if (detail.profit_share_crc == null) return null;
+
+  const share = Number(detail.profit_share_crc);
+  const percent = detail.profit_share_percent != null ? Number(detail.profit_share_percent) : null;
+  const isEstimated = detail.profit_share_status === ProfitShareStatus.ESTIMADO;
+
+  const profit = profitOverride ?? (detail.billing_profit_crc != null ? Number(detail.billing_profit_crc) : null);
+  const neto = profit != null ? profit - share : null;
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-violet-50 rounded-2xl">
+      <div>
+        <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+          Farid{percent != null ? ` · ${percent}%` : ''}
+          {isEstimated && <span className="ml-1 text-slate-400">(provisional)</span>}
+        </p>
+        <p className="text-sm font-black text-violet-700">{formatCRC(share)}</p>
+      </div>
+      {neto != null && (
+        <div className="text-right">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Neto Magastore</p>
+          <p className={`text-sm font-black ${neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+            {formatCRC(neto)}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+
+  // Cobro con las tarifas del snapshot de la prefactura; si la orden sigue
+  // abierta, con las vigentes de system_settings (el monto puede variar hasta
+  // que se genere el estimado).
+  const usingSnapshot = detail.pre_billing_rate_usd != null && detail.pre_billing_exchange != null;
+  const rateUsd = Number(usingSnapshot ? detail.pre_billing_rate_usd : detail.current_price_per_lb);
+  const exchange = Number(usingSnapshot ? detail.pre_billing_exchange : detail.current_exchange_rate);
+
+  // Regla de cobro del cliente. Sin esto la rentabilidad muestra margen sobre
+  // precio de lista: para un cliente AL_COSTO la ganancia real es ₡0 y para uno
+  // con descuento el margen queda inflado.
+  const billingMode = detail.customer_type_billing_mode ?? CustomerBillingMode.NORMAL;
+  const discountPercent = Number(detail.customer_type_discount_percent ?? 0);
+  const isAlCosto = billingMode === CustomerBillingMode.AL_COSTO;
+  const discountFactor = billingMode === CustomerBillingMode.DESCUENTO ? 1 - discountPercent / 100 : 1;
+
+  const rows = detail.packages.map((pkg) => {
+    const weight = Number(pkg.weight_lb);
+    const hasCost = pkg.courier_cost_usd != null && pkg.tc_banco != null;
+    const costo = hasCost ? Number(pkg.courier_cost_usd) * Number(pkg.tc_banco) : null;
+    // AL_COSTO cobra exactamente el costo real del paquete, no la tarifa por peso.
+    const cobro = isAlCosto ? (costo ?? 0) : weight * rateUsd * exchange * discountFactor;
+    return { pkg, cobro, costo, ganancia: costo != null ? cobro - costo : null };
+  });
+
+  const totalWeight = Number(detail.total_weight_lb);
+  const chargedWeight = Math.max(totalWeight, Number(detail.current_min_weight));
+
+  // Entrega: cobro del snapshot de la prefactura si existe; si no, la tarifa
+  // vigente que matchea método/zona/peso. El costo real siempre es el vigente
+  // de delivery_rates (no se snapshotea).
+  const deliveryMethod = detail.pre_billing_delivery_method ?? detail.delivery_method;
+  const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === deliveryMethod);
+  const hasDelivery = deliveryMethod != null && !deliveryMethodEntity?.is_pickup;
+  const deliveryFee = hasDelivery
+    ? Number(detail.pre_billing_fee_crc ?? detail.delivery_fee_estimate_crc ?? 0)
+    : 0;
+  const deliveryCost = hasDelivery ? detail.delivery_cost_crc : 0;
+  const missingDeliveryCost = hasDelivery && deliveryCost == null;
+
+  // El flete sigue la regla del cliente; la entrega local se cobra completa en
+  // todos los modos — es un costo trasladado, no margen propio (ver generatePreBilling).
+  const fleteTotal = isAlCosto
+    ? rows.reduce((acc, r) => acc + (r.costo ?? 0), 0)
+    : chargedWeight * rateUsd * exchange * discountFactor;
+  const cobroTotal = fleteTotal + deliveryFee;
+  const costoTotal = rows.reduce((acc, r) => acc + (r.costo ?? 0), 0) + (deliveryCost ?? 0);
+  const missingCost = rows.some((r) => r.costo == null);
+  const gananciaTotal = cobroTotal - costoTotal;
+  const margen = cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : 0;
+  // En AL_COSTO el cobro sale de los costos reales, no del peso: el mínimo no
+  // interviene, así que avisar de él sería engañoso.
+  const minApplied = chargedWeight > totalWeight && !isAlCosto;
+
+  return (
+    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={14} className="text-slate-400" />
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            Rentabilidad · Solo interno
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* La regla de cobro explica por qué el margen no es el de lista. */}
+          {billingMode !== CustomerBillingMode.NORMAL && (
+            <CustomerTypeBadge
+              name={detail.customer_type_name ?? 'Tipo especial'}
+              mode={billingMode as CustomerBillingMode}
+              discount={discountPercent}
+            />
+          )}
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -860,6 +1026,33 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
             </div>
           </div>
         ))}
+
+        {hasDelivery && (
+          <div className="px-4 py-3 bg-slate-50 rounded-2xl">
+            <p className="text-sm font-bold text-slate-800">Entrega · {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)}</p>
+            <p className="text-[10px] text-slate-400 mb-2">
+              {detail.pre_billing_fee_crc != null ? 'Cobro del estimado' : 'Cobro con tarifa vigente'}
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro</p>
+                <p className="text-xs font-bold text-slate-700">{formatCRC(deliveryFee)}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo real</p>
+                <p className="text-xs font-bold text-slate-700">
+                  {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Por confirmar</span>}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+                <p className={`text-xs font-black ${deliveryCost == null ? 'text-slate-400' : deliveryFee - deliveryCost >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {deliveryCost != null ? formatCRC(deliveryFee - deliveryCost) : '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
@@ -870,7 +1063,7 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
           <p className="text-sm font-black text-white">
-            {formatCRC(costoTotal)}{missingCost ? ' *' : ''}
+            {formatCRC(costoTotal)}{missingCost || missingDeliveryCost ? ' *' : ''}
           </p>
         </div>
         <div>
@@ -882,10 +1075,17 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
         </div>
       </div>
 
+      <ProfitShareRow detail={detail} profitOverride={gananciaTotal} />
+
       <div className="mt-3 space-y-0.5">
         {missingCost && (
           <p className="text-[10px] text-amber-600">
             * Ganancia parcial: hay paquetes registrados sin costo de courier o sin tipo de cambio del banco.
+          </p>
+        )}
+        {missingDeliveryCost && (
+          <p className="text-[10px] text-amber-600">
+            * El costo real de la entrega está por confirmar en la tarifa de {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)} — no se incluye en el costo total.
           </p>
         )}
         {minApplied && (

@@ -9,7 +9,7 @@ type CookieConfig = Cookies.CookieAttributes;
 
 export class CookiesManager {
   private static readonly config: CookieConfig = {
-    expires: 1, // 1 día
+    expires: 7, // 7 días — debe coincidir con expiresIn del JWT en auth.service.ts
     path: '/',
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',

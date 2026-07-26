@@ -18,19 +18,24 @@ export const LoginContainer: React.FC = () => {
             <div className="max-w-md w-full">
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 relative overflow-hidden">
 
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -mr-16 -mt-16 z-0" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-accent-soft rounded-full -mr-16 -mt-16 z-0" />
 
                     <div className="relative z-10">
-                        {/* Logo Magastore */}
+                        {/* Logo Magastore.
+                            Va sobre un bloque oscuro porque el arte tiene el
+                            texto en blanco: sobre el fondo claro de la tarjeta
+                            "MAGASTORE" resultaría invisible. */}
                         <div className="flex flex-col items-center mb-10">
-                            <Image
-                                src="/logo/magastore-perfil.png"
-                                alt="Magastore"
-                                width={220}
-                                height={220}
-                                className="h-56 w-56 object-contain"
-                                priority
-                            />
+                            <div className="bg-neutral-900 rounded-3xl px-8 py-6 w-full flex justify-center">
+                                <Image
+                                    src="/logo/magastore-logo-2026.png"
+                                    alt="Magastore — Compras por Internet"
+                                    width={1126}
+                                    height={718}
+                                    className="h-24 w-auto object-contain"
+                                    priority
+                                />
+                            </div>
                         </div>
 
                         {error && (

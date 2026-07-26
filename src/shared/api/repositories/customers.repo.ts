@@ -2,10 +2,74 @@ import sql from '@/lib/db';
 import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 import { WarehouseRoutesRepository } from './warehouse-routes.repo';
 
-// Única ruta real hoy (ver warehouse_routes seed en scripts/013). Cuando exista
-// una segunda ruta activa, esto deja de ser una constante fija.
-const DEFAULT_WAREHOUSE_ORIGIN = 'USA';
-const DEFAULT_WAREHOUSE_PACKAGE_TYPE = 'AEREO';
+/**
+ * Resuelve los casilleros de un cliente nuevo: uno por cada ruta elegida.
+ *
+ * El primero manda — su código es el que se guarda en `customers.customer_code`,
+ * la columna que el resto del sistema usa para buscar y mostrar al cliente. Un
+ * código explícito (cliente que ya tenía casillero antes de entrar al sistema)
+ * solo aplica a esa primera ruta; las demás se generan.
+ *
+ * Debe llamarse dentro de una transacción — el incremento de los contadores
+ * solo se revierte si el ROLLBACK lo alcanza.
+ */
+async function resolveCustomerCodes(
+  explicitCode?: string | null,
+  routeIds?: number[],
+): Promise<{ primaryCode: string; assignments: { warehouseRouteId: number; code: string }[] }> {
+  const trimmed = explicitCode?.trim();
+
+  // Sin rutas explícitas se usa la del courier predeterminado, para que ningún
+  // cliente quede sin casillero (import masivo y altas rápidas).
+  // Deduplicadas: la tabla de unión rechaza dos filas del mismo par
+  // (cliente, ruta) y abortaría la transacción a mitad del alta.
+  let routes = Array.from(new Set(routeIds ?? []));
+  if (routes.length === 0) {
+    const fallback = await WarehouseRoutesRepository.getDefaultRoute();
+    // Sin courier predeterminado configurado, un código explícito se respeta
+    // tal cual y el cliente queda sin casillero vinculado — es lo que ya hacía
+    // el flujo anterior cuando no existía la ruta.
+    if (!fallback) {
+      if (!trimmed) throw new Error('No hay un courier predeterminado configurado. Elige al menos un courier para el cliente.');
+      return { primaryCode: trimmed, assignments: [] };
+    }
+    routes = [fallback.id];
+  }
+
+  const assignments: { warehouseRouteId: number; code: string }[] = [];
+
+  for (let index = 0; index < routes.length; index++) {
+    const routeId = routes[index];
+    // El código explícito solo pisa a la primera ruta; para el resto no hay
+    // forma de saber qué número le tocaría, así que se genera.
+    if (index === 0 && trimmed) {
+      const route = await WarehouseRoutesRepository.getById(routeId);
+      // Si el código sigue el prefijo de la ruta, se adelanta el contador para
+      // que la próxima alta automática no genere ese mismo número.
+      if (route && trimmed.startsWith(route.code_prefix)) {
+        const counterValue = parseInt(trimmed.slice(route.code_prefix.length), 10);
+        if (!Number.isNaN(counterValue)) {
+          await WarehouseRoutesRepository.advanceCounterIfHigher(route.origin, route.package_type, counterValue);
+        }
+      }
+      assignments.push({ warehouseRouteId: routeId, code: trimmed });
+      continue;
+    }
+
+    const code = await WarehouseRoutesRepository.incrementAndGetCodeById(routeId);
+    assignments.push({ warehouseRouteId: routeId, code });
+  }
+
+  return { primaryCode: assignments[0].code, assignments };
+}
+
+/**
+ * Verifica si ya existe un cliente con ese código de casillero.
+ */
+export const existsByCustomerCode = async (code: string): Promise<boolean> => {
+  const rows = await sql`SELECT 1 FROM customers WHERE customer_code = ${code} LIMIT 1`;
+  return rows.length > 0;
+};
 
 /**
  * Verifica si ya existe un cliente por identificación o email
@@ -28,12 +92,11 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
   try {
     await sql`BEGIN`;
 
-    // Incremento atómico del contador de la ruta (único casillero real hoy:
-    // USA/AEREO) antes de insertar — si algo falla después, el ROLLBACK
-    // también revierte el contador.
-    const { code, warehouseRouteId } = await WarehouseRoutesRepository.incrementAndGetCode(
-      DEFAULT_WAREHOUSE_ORIGIN,
-      DEFAULT_WAREHOUSE_PACKAGE_TYPE,
+    // Un casillero por cada courier elegido. Si algo falla después, el ROLLBACK
+    // también revierte los contadores.
+    const { primaryCode: code, assignments } = await resolveCustomerCodes(
+      data.customer_code,
+      data.warehouse_route_ids,
     );
 
     const rows = await sql`
@@ -45,7 +108,8 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
           last_name,
           email,
           phone,
-          customer_code
+          customer_code,
+          customer_type_id
         )
         VALUES (
           ${data.id_card},
@@ -54,7 +118,11 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
           ${data.last_name},
           ${data.email},
           ${data.phone},
-          ${code}
+          ${code},
+          COALESCE(
+            ${data.customer_type_id ?? null},
+            (SELECT id FROM customer_types WHERE billing_mode = 'NORMAL' AND is_active = true ORDER BY id LIMIT 1)
+          )
         )
         RETURNING *
       ),
@@ -83,7 +151,9 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
       throw new Error('Error crítico: La base de datos no retornó el registro creado.');
     }
 
-    await WarehouseRoutesRepository.assignCodeToCustomer(rows[0].id, warehouseRouteId, code);
+    for (const a of assignments) {
+      await WarehouseRoutesRepository.assignCodeToCustomer(rows[0].id, a.warehouseRouteId, a.code);
+    }
 
     await sql`COMMIT`;
     return mapRowToCustomer(rows[0]);
@@ -102,7 +172,20 @@ export const getPaginatedCustomers = async (
   const offset = (page - 1) * limit;
 
   const [customers, totalResult] = await Promise.all([
-    sql`SELECT * FROM customers ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`,
+    // El tipo de cliente viaja en el listado porque el alta de paquetes calcula
+    // el cobro en vivo desde el cliente seleccionado aquí: sin billing_mode
+    // mostraría precio de lista a un cliente AL_COSTO o con descuento.
+    sql`
+      SELECT c.id, c.id_card, c.id_type, c.first_name, c.last_name, c.email, c.phone,
+             c.customer_code, c.is_active, c.created_at, c.customer_type_id,
+             ct.name AS customer_type_name,
+             ct.billing_mode AS customer_type_billing_mode,
+             ct.discount_percent AS customer_type_discount_percent
+      FROM customers c
+      LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+      ORDER BY c.created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `,
     sql`SELECT COUNT(*) as total FROM customers`,
   ]);
 
@@ -128,8 +211,13 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
         FROM customer_warehouse_codes cwc
         JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
         WHERE cwc.customer_id = c.id
-      ) as warehouse_codes_list
-    FROM customers c WHERE c.id = ${id} LIMIT 1
+      ) as warehouse_codes_list,
+      ct.name AS customer_type_name,
+      ct.billing_mode AS customer_type_billing_mode,
+      ct.discount_percent AS customer_type_discount_percent
+    FROM customers c
+    LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+    WHERE c.id = ${id} LIMIT 1
   `;
 
   if (!rows || rows.length === 0) return null;
@@ -183,7 +271,8 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
       phone      = ${data.phone},
       is_active  = ${data.is_active},
       id_card    = COALESCE(${data.id_card ?? null}, id_card),
-      id_type    = COALESCE(${data.id_type ?? null}, id_type)
+      id_type    = COALESCE(${data.id_type ?? null}, id_type),
+      customer_type_id = COALESCE(${data.customer_type_id ?? null}, customer_type_id)
     WHERE id = ${id}
   `;
 
@@ -306,6 +395,7 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
           email: row.email,
           phone: row.phone,
           customer_code: row.customer_code,
+          warehouse_route_ids: row.warehouse_route_ids,
         },
         addresses: [{
           province: row.province,
@@ -342,30 +432,12 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
       try {
         // Código explícito de importación (cliente real ya asignado en otro
         // sistema) vs. generado atómico para altas nuevas sin código propio.
-        let finalCode = meta.customer_code;
-        let warehouseRouteId: number | null = null;
-        if (!finalCode) {
-          const generated = await WarehouseRoutesRepository.incrementAndGetCode(
-            DEFAULT_WAREHOUSE_ORIGIN,
-            DEFAULT_WAREHOUSE_PACKAGE_TYPE,
-          );
-          finalCode = generated.code;
-          warehouseRouteId = generated.warehouseRouteId;
-        } else {
-          const route = await WarehouseRoutesRepository.getActiveRoute(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE);
-          if (route) {
-            warehouseRouteId = route.id;
-            // Si el código explícito sigue el patrón del prefijo de la ruta,
-            // avanza el contador para que la próxima alta manual no colisione.
-            if (finalCode.startsWith(route.code_prefix)) {
-              const suffix = finalCode.slice(route.code_prefix.length);
-              const counterValue = parseInt(suffix, 10);
-              if (!Number.isNaN(counterValue)) {
-                await WarehouseRoutesRepository.advanceCounterIfHigher(DEFAULT_WAREHOUSE_ORIGIN, DEFAULT_WAREHOUSE_PACKAGE_TYPE, counterValue);
-              }
-            }
-          }
-        }
+        // Las rutas vienen resueltas desde el servicio a partir de la columna
+        // `couriers` de la plantilla; sin ella se usa el predeterminado.
+        const { primaryCode: finalCode, assignments } = await resolveCustomerCodes(
+          meta.customer_code,
+          meta.warehouse_route_ids,
+        );
 
         const [newCustomer] = await sql`
           WITH new_cust AS (
@@ -397,8 +469,10 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
           SELECT new_cust.id FROM new_cust
         `;
 
-        if (warehouseRouteId && newCustomer) {
-          await WarehouseRoutesRepository.assignCodeToCustomer(newCustomer.id, warehouseRouteId, finalCode);
+        if (newCustomer) {
+          for (const a of assignments) {
+            await WarehouseRoutesRepository.assignCodeToCustomer(newCustomer.id, a.warehouseRouteId, a.code);
+          }
         }
 
         await sql`COMMIT`;
@@ -436,6 +510,10 @@ const mapRowToCustomer = (raw: any): Customer => ({
   customer_code: raw.customer_code,
   is_active: raw.is_active,
   created_at: raw.created_at,
+  customer_type_id: raw.customer_type_id ?? null,
+  customer_type_name: raw.customer_type_name ?? null,
+  customer_type_billing_mode: raw.customer_type_billing_mode ?? null,
+  customer_type_discount_percent: raw.customer_type_discount_percent != null ? Number(raw.customer_type_discount_percent) : null,
   addresses: (raw.addresses_list || []).map((addr: any) => ({
     id: addr.id,
     customer_id: addr.customer_id,

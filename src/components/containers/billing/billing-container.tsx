@@ -5,15 +5,12 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { useBilling, PaidFilterValue } from './use-billing';
-import { BillingListItem, DeliveryMethod, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { BillingListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos CR',
-  TRACOPA:    'Tracopa',
-  RETIRO:     'Retiro',
-};
+const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 const ORDER_STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -43,8 +40,18 @@ export const BillingContainer: React.FC = () => {
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
   } = useBilling();
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
 
   const billingColumns: Column<BillingListItem>[] = [
+    {
+      header: 'Factura',
+      accessor: 'invoice_number',
+      render: (row) => (
+        <span className="font-mono text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
+          {formatInvoiceNumber(row.invoice_number)}
+        </span>
+      ),
+    },
     {
       header: 'Cliente',
       accessor: 'customer_name',
@@ -77,7 +84,7 @@ export const BillingContainer: React.FC = () => {
       render: (row) => row.delivery_method ? (
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-            {DELIVERY_LABELS[row.delivery_method]}
+            {resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data)}
           </span>
           {row.delivery_fee_crc > 0 && (
             <span className="text-[10px] text-slate-400">{formatCRC(row.delivery_fee_crc)}</span>
@@ -150,7 +157,7 @@ export const BillingContainer: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar por cliente o casillero..."
+            placeholder="Buscar por cliente, casillero o N.º de factura..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-slate-50 pl-10 pr-4 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
@@ -256,7 +263,7 @@ export const BillingContainer: React.FC = () => {
               </div>
               <div className="flex justify-between items-end">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? DELIVERY_LABELS[row.delivery_method] : '—'}</span>
+                  <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data) : '—'}</span>
                   <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
                 </div>
                 <span className="text-xl font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>

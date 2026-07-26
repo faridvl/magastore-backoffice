@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { buildWhatsAppUrl, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { notifyWhatsApp, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
+import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { AvailablePackage, CustomerWithAvailablePackages } from '@/types/logistics/logistics.types';
 
 /**
@@ -10,12 +12,12 @@ import { AvailablePackage, CustomerWithAvailablePackages } from '@/types/logisti
  * al menos un paquete sin orden — independiente de cualquier selección de
  * paquetes en la tabla de Logística.
  *
- * Envío por botón individual, no por lote automático: Safari/iPad (uso
- * principal de este sistema) solo permite abrir una pestaña por gesto directo
- * del usuario, incluso llamando window.open() de forma síncrona. Abrir varias
- * pestañas con un solo click no es viable ahí, así que cada cliente tiene su
- * propio botón "Enviar" — cada toque es su propio gesto de usuario y nunca
- * se bloquea.
+ * Envío por botón individual, no por lote automático: en iPad (uso principal
+ * de este sistema) cada cliente se notifica copiando su mensaje al
+ * portapapeles para pegarlo en WhatsApp Web, así que el envío es
+ * necesariamente de a uno. Fuera de iPad aplica además la restricción de
+ * Safari de una pestaña por gesto directo del usuario. En ambos casos cada
+ * cliente tiene su propio botón "Enviar" y cada toque es su propio gesto.
  */
 export function useNotifyMultipleCustomers() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +25,7 @@ export function useNotifyMultipleCustomers() {
   const [customers, setCustomers] = useState<CustomerWithAvailablePackages[]>([]);
   const [sentCustomerIds, setSentCustomerIds] = useState<string[]>([]);
   const [sendingCustomerId, setSendingCustomerId] = useState<string | null>(null);
+  const templateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PACKAGES_AVAILABLE);
 
   const open = async () => {
     setIsOpen(true);
@@ -69,15 +72,24 @@ export function useNotifyMultipleCustomers() {
           trackingNumber: p.tracking_number,
           weightLb: Number(p.weight_lb),
         })),
+        templateBody,
       });
 
-      window.open(buildWhatsAppUrl(customer.phone, message), '_blank');
-
+      // Bitácora y estado local van ANTES de notificar: fuera de iPad se
+      // navega a WhatsApp en la misma vista y nada de lo que quede después
+      // llega a ejecutarse.
       await ApiServiceClient(env.API.BASE_URL).post('/logistics?action=log-notified', {
         packageUuids: packages.map((p: AvailablePackage) => p.uuid),
       });
 
       setSentCustomerIds((prev) => [...prev, customerId]);
+      // Reflejar de inmediato el estado persistido: todos sus paquetes
+      // disponibles quedaron notificados.
+      setCustomers((prev) =>
+        prev.map((c) => (c.customer_id === customerId ? { ...c, unnotified_count: 0 } : c)),
+      );
+
+      await notifyWhatsApp(customer.phone, message);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo preparar la notificación de WhatsApp.');
     } finally {

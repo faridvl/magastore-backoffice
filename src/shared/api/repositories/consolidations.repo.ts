@@ -211,6 +211,9 @@ export const ConsolidationsRepository = {
         c.customer_code,
         c.email AS customer_email,
         c.phone AS customer_phone,
+        ct.name AS customer_type_name,
+        ct.billing_mode AS customer_type_billing_mode,
+        ct.discount_percent AS customer_type_discount_percent,
         COALESCE(
           json_agg(
             json_build_object(
@@ -230,6 +233,7 @@ export const ConsolidationsRepository = {
         pb.uuid AS pre_billing_uuid,
         pb.estimated_amount_crc AS pre_billing_amount,
         pb.delivery_fee_crc AS pre_billing_fee_crc,
+        pb.delivery_cost_crc AS pre_billing_delivery_cost_crc,
         pb.delivery_method AS pre_billing_delivery_method,
         pb.is_confirmed AS pre_billing_confirmed,
         pb.confirmed_at AS pre_billing_confirmed_at,
@@ -241,26 +245,45 @@ export const ConsolidationsRepository = {
         ss.min_weight AS current_min_weight,
         b.uuid AS billing_uuid,
         b.is_paid AS billing_is_paid,
+        b.total_amount_crc AS billing_total_amount_crc,
+        b.courier_cost_crc AS billing_courier_cost_crc,
+        b.delivery_cost_crc AS billing_delivery_cost_crc,
+        b.profit_crc AS billing_profit_crc,
+        b.has_unknown_cost AS billing_has_unknown_cost,
+        ps.share_crc AS profit_share_crc,
+        ps.share_percent AS profit_share_percent,
+        ps.status AS profit_share_status,
         con.delivery_method,
         con.delivery_address_id,
         ca.address_label AS delivery_address_label,
         ca.exact_address AS delivery_exact_address,
         ca.district AS delivery_district,
         ca.canton AS delivery_canton,
-        ca.province AS delivery_province
+        ca.province AS delivery_province,
+        COALESCE(
+          ca.canton,
+          (SELECT canton FROM customer_addresses
+           WHERE customer_id = con.customer_id
+           ORDER BY is_default DESC LIMIT 1)
+        ) AS zone_canton
       FROM consolidations con
       LEFT JOIN customers c ON c.id = con.customer_id
+      LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
       LEFT JOIN packages p ON p.consolidation_id = con.id
       LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
       LEFT JOIN billing b ON b.consolidation_id = con.id
+      LEFT JOIN profit_shares ps ON ps.consolidation_id = con.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
       CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
                con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
-               pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
+               ct.name, ct.billing_mode, ct.discount_percent,
+               pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_cost_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
                pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
-               b.uuid, b.is_paid, con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
+               b.uuid, b.is_paid, b.total_amount_crc, b.courier_cost_crc, b.delivery_cost_crc, b.profit_crc, b.has_unknown_cost,
+               ps.share_crc, ps.share_percent, ps.status,
+               con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
     return row ? (row as ConsolidationDetail) : null;
@@ -383,6 +406,10 @@ export const ConsolidationsRepository = {
           await sql`DELETE FROM billing WHERE consolidation_id = ${current.id}`;
         }
         await sql`DELETE FROM pre_billing WHERE consolidation_id = ${current.id}`;
+        // La participación de Farid se calculó sobre ese estimado/factura que se
+        // acaba de descartar: dejarla viva la seguiría sumando al total del mes
+        // por un cobro que ya no existe. Se regenera al volver a estimar.
+        await sql`DELETE FROM profit_shares WHERE consolidation_id = ${current.id}`;
       }
 
       const [row] = await sql`
@@ -423,6 +450,7 @@ export const ConsolidationsRepository = {
         c.last_name,
         c.phone,
         COUNT(p.id) AS package_count,
+        COUNT(p.id) FILTER (WHERE p.notified_at IS NULL) AS unnotified_count,
         COALESCE(SUM(p.weight_lb), 0) AS total_weight_lb
       FROM packages p
       JOIN customers c ON c.id = p.customer_id
@@ -488,6 +516,12 @@ export const ConsolidationsRepository = {
         DELETE FROM pre_billing WHERE consolidation_id = ${consolidationId}
       `;
 
+      // Cambió el peso de la orden: la participación calculada sobre el estimado
+      // anterior ya no corresponde. Se regenera al volver a estimar.
+      await sql`
+        DELETE FROM profit_shares WHERE consolidation_id = ${consolidationId}
+      `;
+
       await sql`COMMIT`;
     } catch (error) {
       await sql`ROLLBACK`;
@@ -534,6 +568,12 @@ export const ConsolidationsRepository = {
 
       await sql`
         DELETE FROM pre_billing WHERE consolidation_id = ${con.id}
+      `;
+
+      // Mismo criterio que unassignPackage: cambió el peso, la participación
+      // calculada sobre el estimado anterior deja de corresponder.
+      await sql`
+        DELETE FROM profit_shares WHERE consolidation_id = ${con.id}
       `;
 
       await sql`COMMIT`;

@@ -3,6 +3,7 @@ import {
   BillingListItem,
   BillingDetail,
   BillingMonthlyReport,
+  ProfitShareMonthlyReport,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 
@@ -57,6 +58,39 @@ export const BillingService = {
     } catch (error: unknown) {
       console.error('[BillingService.getBillingReports]:', error);
       throw new Error('Error al obtener el reporte de facturación.');
+    }
+  },
+
+  getProfitShareReport: async (from: string, to: string): Promise<ProfitShareMonthlyReport[]> => {
+    if (!from || !to) throw new Error('Las fechas de inicio y fin son requeridas.');
+
+    // El reporte agrupa por period (YYYY-MM), no por fecha: se normalizan los
+    // extremos del rango al mes que los contiene.
+    const fromPeriod = from.slice(0, 7);
+    const toPeriod = to.slice(0, 7);
+
+    try {
+      return await BillingRepository.getProfitShareReport(fromPeriod, toPeriod);
+    } catch (error: unknown) {
+      console.error('[BillingService.getProfitShareReport]:', error);
+      throw new Error('Error al obtener el reporte de participación.');
+    }
+  },
+
+  markProfitSharePeriodPaid: async (
+    period: string,
+    isPaid: boolean,
+    userName: string,
+  ): Promise<{ period: string; is_paid: boolean; paid_at: string | null }> => {
+    if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+      throw new Error('El período es requerido en formato YYYY-MM.');
+    }
+
+    try {
+      return await BillingRepository.markProfitSharePeriodPaid(period, isPaid, userName);
+    } catch (error: unknown) {
+      console.error('[BillingService.markProfitSharePeriodPaid]:', error);
+      throw new Error('Error al actualizar el estado de pago del período.');
     }
   },
 

@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import Image from 'next/image';
 import { LogOut, Search, ChevronLeft, Menu as MenuIcon } from 'lucide-react';
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { useHeader } from './use-header';
@@ -22,7 +23,7 @@ export function Header({
   primaryAction,
   onMenuToggle,
 }: HeaderProps) {
-  const { userName, userRole, initials, isLoading, handleLogout } = useHeader();
+  const { userName, userRole, isLoading, handleLogout } = useHeader();
   const nav = useNavigation();
 
   return (
@@ -92,8 +93,16 @@ export function Header({
                   {userRole}
                 </Typography>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center font-black text-white uppercase text-xs shadow-md">
-                {isLoading ? '?' : initials}
+              {/* Fondo oscuro: el isotipo es dorado y sobre el verde de
+                  `bg-primary` perdía contraste. */}
+              <div className="h-10 w-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-md overflow-hidden shrink-0">
+                <Image
+                  src="/logo/magastore-isotipo-2026.png"
+                  alt={userName}
+                  width={741}
+                  height={485}
+                  className="h-full w-full object-contain p-1.5"
+                />
               </div>
             </MenuButton>
 

@@ -37,11 +37,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ data: updated });
     }
 
+    if (req.method === 'DELETE') {
+      const { uuid } = req.body;
+      if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
+      await DeliveryRatesService.remove(uuid);
+      return res.status(200).json({ data: { deleted: true } });
+    }
+
     return res.status(405).json({ message: 'Método no permitido.' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
     const status = message.includes('no encontrad') ? 404
-      : message.includes('requerido') || message.includes('solapa') || message.includes('debe ser') || message.includes('no puede ser')
+      : message.includes('requerido') || message.includes('solapa') || message.includes('debe ser') || message.includes('no puede ser') || message.includes('no existe')
         ? 400
         : 500;
     return res.status(status).json({ message });

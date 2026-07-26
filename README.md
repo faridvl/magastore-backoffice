@@ -31,13 +31,17 @@ JWT_SECRET=your-secret-key
 RESEND_API_KEY=re_...
 EMAIL_FROM=notificaciones@tudominio.com
 EMAIL_LOGO_URL=https://tudominio.com/logo.png   # opcional
+NEXT_PUBLIC_SITE_URL=https://magastorecr.com    # opcional
+NEXT_PUBLIC_WHATSAPP_NUMBER=506XXXXXXXX         # opcional
 ```
 
 - `MAGASTORE_DB_POSTGRES_URL` — string de conexión a Neon PostgreSQL
-- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 12h). Si está ausente, el sistema cae a un fallback hardcodeado — **no usar en producción sin esta variable**
+- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 7 días). Si está ausente, el sistema cae a un fallback hardcodeado — **no usar en producción sin esta variable**
 - `RESEND_API_KEY` — para notificaciones de entrega y facturas por email
 - `EMAIL_FROM` — dirección remitente que debe estar verificada en Resend
 - `EMAIL_LOGO_URL` — URL pública del logo para los emails (opcional)
+- `NEXT_PUBLIC_SITE_URL` — dominio público usado en las meta tags OG/canonical del landing (opcional, default `https://magastorecr.com`)
+- `NEXT_PUBLIC_WHATSAPP_NUMBER` — número de contacto del negocio en formato `506XXXXXXXX`, sin `+` ni espacios. Alimenta los CTA del landing; si está ausente, los botones apuntan a `/tracking` (opcional)
 
 ---
 
