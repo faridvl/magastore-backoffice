@@ -13,7 +13,7 @@ const PackageDetailPage: React.FC = () => {
             </Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Detalle del Envío"
+                title="Detalle del Paquete"
             >
                 <PackageDetailContainer />
             </DashboardLayout>
