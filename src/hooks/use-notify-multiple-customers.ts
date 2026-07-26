@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
-import { buildWhatsAppUrl, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
+import { openWhatsApp, buildPackagesAvailableMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { AvailablePackage, CustomerWithAvailablePackages } from '@/types/logistics/logistics.types';
@@ -75,8 +75,9 @@ export function useNotifyMultipleCustomers() {
         templateBody,
       });
 
-      window.open(buildWhatsAppUrl(customer.phone, message), '_blank');
-
+      // Bitácora y estado local van ANTES de abrir WhatsApp: en iPad
+      // openWhatsApp navega en la misma vista y nada de lo que quede después
+      // llega a ejecutarse.
       await ApiServiceClient(env.API.BASE_URL).post('/logistics?action=log-notified', {
         packageUuids: packages.map((p: AvailablePackage) => p.uuid),
       });
@@ -87,6 +88,8 @@ export function useNotifyMultipleCustomers() {
       setCustomers((prev) =>
         prev.map((c) => (c.customer_id === customerId ? { ...c, unnotified_count: 0 } : c)),
       );
+
+      openWhatsApp(customer.phone, message);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo preparar la notificación de WhatsApp.');
     } finally {

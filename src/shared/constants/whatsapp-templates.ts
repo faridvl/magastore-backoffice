@@ -5,13 +5,61 @@ export function interpolate(template: string, vars: WhatsAppTemplateVars): strin
 }
 
 /**
- * Arma el link wa.me a partir de un teléfono guardado en formato "+506 XXXX-XXXX"
- * (u otras variantes). wa.me requiere solo dígitos con código de país, sin "+".
+ * Normaliza un teléfono guardado en formato "+506 XXXX-XXXX" (u otras variantes)
+ * a solo dígitos con código de país, sin "+" — el formato que exigen wa.me y
+ * web.whatsapp.com.
+ */
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith('506') ? digits : `506${digits}`;
+}
+
+/**
+ * iPad no admite WhatsApp Business nativo: ahí el flujo real es WhatsApp Web.
+ * iPadOS 13+ reporta "Macintosh" en el userAgent, así que se detecta por la
+ * combinación de plataforma Mac + pantalla táctil (maxTouchPoints > 1), que es
+ * la única señal fiable.
+ */
+function isIpad(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua)) return true;
+  return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+}
+
+/**
+ * Arma el link de WhatsApp para el teléfono y mensaje dados.
+ *
+ * En iPad se apunta directo a web.whatsapp.com/send: wa.me es una página
+ * intermedia que intenta abrir el esquema whatsapp:// , falla al no haber app
+ * nativa, y recién entonces redirige a WhatsApp Web — ese salto extra es lo que
+ * hace que abrir el chat tarde muchísimo en iPad. En el resto de dispositivos se
+ * mantiene wa.me, que sí resuelve a la app nativa.
  */
 export function buildWhatsAppUrl(phone: string, message: string): string {
-  const digits = phone.replace(/\D/g, '');
-  const withCountryCode = digits.startsWith('506') ? digits : `506${digits}`;
-  return `https://wa.me/${withCountryCode}?text=${encodeURIComponent(message)}`;
+  const withCountryCode = normalizePhone(phone);
+  const text = encodeURIComponent(message);
+  return isIpad()
+    ? `https://web.whatsapp.com/send?phone=${withCountryCode}&text=${text}`
+    : `https://wa.me/${withCountryCode}?text=${text}`;
+}
+
+/**
+ * Abre WhatsApp con el mensaje precargado.
+ *
+ * En iPad la app corre como PWA standalone: window.open(..., '_blank') no puede
+ * activar el ícono de WhatsApp Web agregado a inicio (iOS no hace deep-link
+ * entre dos PWAs instaladas), así que abre una vista in-app nueva por cada
+ * click y esas vistas se van acumulando. Navegar en la misma vista evita la
+ * acumulación y deja al operador volver con el gesto de "atrás" del sistema.
+ */
+export function openWhatsApp(phone: string, message: string): void {
+  const url = buildWhatsAppUrl(phone, message);
+  if (isIpad()) {
+    window.location.href = url;
+    return;
+  }
+  window.open(url, '_blank');
 }
 
 export const WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE = `📦 Estimado(a), {{nombre}}.
