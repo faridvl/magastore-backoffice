@@ -93,12 +93,14 @@ export function Header({
                   {userRole}
                 </Typography>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-md overflow-hidden shrink-0">
+              {/* Fondo oscuro: el isotipo es dorado y sobre el verde de
+                  `bg-primary` perdía contraste. */}
+              <div className="h-10 w-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-md overflow-hidden shrink-0">
                 <Image
-                  src="/logo/magastore-icon.png"
+                  src="/logo/magastore-isotipo-2026.png"
                   alt={userName}
-                  width={40}
-                  height={40}
+                  width={741}
+                  height={485}
                   className="h-full w-full object-contain p-1.5"
                 />
               </div>

@@ -6,7 +6,7 @@ import { DeliveryMethod } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
 const LOGO_BUFFER = fs.readFileSync(
-  path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-transparent.png'),
+  path.join(process.cwd(), 'public', 'logo', 'magastore-logo-2026.png'),
 );
 
 const fmtCRC = (n: number | string) =>
@@ -21,7 +21,9 @@ const s = StyleSheet.create({
     alignItems: 'flex-start', paddingTop: 20, paddingBottom: 20, paddingLeft: 32, paddingRight: 32,
   },
   brandBlock: { flexDirection: 'row', alignItems: 'center' },
-  brandLogo: { width: 110, height: 110 },
+  // El logo es apaisado (1126x718). Se respeta esa proporción: forzarlo a un
+  // cuadrado lo deformaba.
+  brandLogo: { width: 130, height: 83 },
   headerMeta: { flexDirection: 'column', alignItems: 'flex-end' },
   headerMetaRow: { flexDirection: 'row', marginBottom: 4 },
   headerMetaLabel: { fontSize: 8, color: '#93c5fd', marginRight: 6, fontFamily: 'Helvetica-Bold' },
