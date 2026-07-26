@@ -79,11 +79,13 @@ export const LogisticsContainer: React.FC = () => {
             render: (row) => (
                 <button
                     onClick={(e) => { e.stopPropagation(); router.push(`/admin/logistics/${row.uuid}`); }}
-                    className="flex flex-col text-left hover:underline decoration-amber-300 underline-offset-2"
-                    title="Ver detalle del paquete"
+                    className="flex flex-col text-left hover:underline decoration-amber-300 underline-offset-2 max-w-[180px]"
+                    title={row.tracking_number}
                 >
                     <span className="text-amber-600 italic font-black text-[10px]">#{row.id_paquete || row.id?.substring(0, 8)}</span>
-                    <span className="font-mono text-slate-600 text-[11px] uppercase font-bold tracking-tight">{row.tracking_number}</span>
+                    {/* max-w + truncate: un tracking de courier puede pasar de 30
+                        caracteres y ensanchaba la columna sobre las demás. */}
+                    <span className="font-mono text-slate-600 text-[11px] uppercase font-bold tracking-tight truncate w-full">{row.tracking_number}</span>
                 </button>
             )
         },
@@ -376,9 +378,12 @@ export const LogisticsContainer: React.FC = () => {
                             )}
                             <div className="flex-1 min-w-0">
                                 {showSelection ? (
+                                    // block + w-full: en un <button> inline el truncate no
+                                    // recorta, y un tracking largo ensanchaba la tarjeta
+                                    // empujando el estado y el casillero fuera de pantalla.
                                     <button
                                         onClick={(e) => { e.stopPropagation(); router.push(`/admin/logistics/${pkg.uuid}`); }}
-                                        className="font-mono text-slate-600 text-xs font-bold uppercase truncate hover:underline decoration-amber-300 underline-offset-2 text-left"
+                                        className="block w-full font-mono text-slate-600 text-xs font-bold uppercase truncate hover:underline decoration-amber-300 underline-offset-2 text-left"
                                     >
                                         {pkg.tracking_number}
                                     </button>
@@ -389,10 +394,10 @@ export const LogisticsContainer: React.FC = () => {
                                 <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR')} · {pkg.weight_lb} lb</p>
                             </div>
                             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                                <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                     {statusLabels[pkg.status] || pkg.status}
                                 </span>
-                                <span className="text-[10px] font-mono text-amber-400 uppercase">{pkg.customer_code}</span>
+                                <span className="text-[10px] font-mono text-amber-400 uppercase whitespace-nowrap">{pkg.customer_code}</span>
                             </div>
                         </div>
                     );

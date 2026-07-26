@@ -481,10 +481,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
                             : <Square size={18} className="text-slate-300 flex-shrink-0" />
                           }
                           <div className="flex-1 min-w-0">
-                            <p className="font-mono text-sm font-bold text-slate-800 truncate">
+                            <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>
                               {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                             </p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-slate-400 truncate">
                               {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
                             </p>
                           </div>

@@ -49,7 +49,18 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
             </div>
             <div>
               <h2 className="font-bold text-slate-800 text-sm">Importar Clientes</h2>
-              <p className="text-[11px] text-slate-400">Carga masiva desde archivo Excel</p>
+              {/* El template vive aquí, junto a la explicación: era un botón
+                  suelto en el toolbar que competía con "Importar" sin que se
+                  entendiera que uno es paso previo del otro. */}
+              <p className="text-[11px] text-slate-400">
+                Carga masiva desde archivo Excel,{' '}
+                <button
+                  onClick={downloadTemplate}
+                  className="text-amber-600 font-semibold underline hover:text-amber-700 transition-colors"
+                >
+                  descargar template
+                </button>
+              </p>
             </div>
           </div>
           <button
@@ -61,15 +72,6 @@ export const ImportCustomersModal: React.FC<ImportCustomersModalProps> = ({ onCl
         </div>
 
         <div className="px-6 py-5 flex flex-col gap-4">
-
-          {/* Descarga template */}
-          <button
-            onClick={downloadTemplate}
-            className="flex items-center gap-2 text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors w-fit"
-          >
-            <Download size={13} />
-            Descargar template de ejemplo
-          </button>
 
           {/* Zona de carga */}
           {!result && (
