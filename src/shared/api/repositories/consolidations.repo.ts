@@ -401,6 +401,10 @@ export const ConsolidationsRepository = {
           await sql`DELETE FROM billing WHERE consolidation_id = ${current.id}`;
         }
         await sql`DELETE FROM pre_billing WHERE consolidation_id = ${current.id}`;
+        // La participación de Farid se calculó sobre ese estimado/factura que se
+        // acaba de descartar: dejarla viva la seguiría sumando al total del mes
+        // por un cobro que ya no existe. Se regenera al volver a estimar.
+        await sql`DELETE FROM profit_shares WHERE consolidation_id = ${current.id}`;
       }
 
       const [row] = await sql`
@@ -507,6 +511,12 @@ export const ConsolidationsRepository = {
         DELETE FROM pre_billing WHERE consolidation_id = ${consolidationId}
       `;
 
+      // Cambió el peso de la orden: la participación calculada sobre el estimado
+      // anterior ya no corresponde. Se regenera al volver a estimar.
+      await sql`
+        DELETE FROM profit_shares WHERE consolidation_id = ${consolidationId}
+      `;
+
       await sql`COMMIT`;
     } catch (error) {
       await sql`ROLLBACK`;
@@ -553,6 +563,12 @@ export const ConsolidationsRepository = {
 
       await sql`
         DELETE FROM pre_billing WHERE consolidation_id = ${con.id}
+      `;
+
+      // Mismo criterio que unassignPackage: cambió el peso, la participación
+      // calculada sobre el estimado anterior deja de corresponder.
+      await sql`
+        DELETE FROM profit_shares WHERE consolidation_id = ${con.id}
       `;
 
       await sql`COMMIT`;
