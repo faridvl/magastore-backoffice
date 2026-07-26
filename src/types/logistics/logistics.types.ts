@@ -146,7 +146,31 @@ export interface Consolidation {
   updated_at: Date;
 }
 
-export type DeliveryMethod = 'CORREOS_CR' | 'TRACOPA' | 'RETIRO';
+// Deja de ser union type fijo: el catálogo real vive en delivery_methods (código
+// estable, editable en /admin/delivery-methods). El string sigue siendo el mismo
+// code guardado como snapshot en pre_billing/billing, así que el tipo se mantiene
+// como string para no romper esos snapshots ni el resto del código que lo trata
+// como valor de texto.
+export type DeliveryMethod = string;
+
+export interface DeliveryMethodEntity {
+  id: number;
+  uuid: string;
+  code: string;
+  name: string;
+  requires_zone: boolean;
+  is_pickup: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeliveryMethodInput {
+  code: string;
+  name: string;
+  requires_zone: boolean;
+  is_pickup: boolean;
+}
 
 export interface Billing {
   id: number;

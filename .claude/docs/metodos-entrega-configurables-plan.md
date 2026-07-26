@@ -1,6 +1,8 @@
 # Plan: Métodos de entrega configurables (reemplazo del enum `DeliveryMethod`)
 
-**Estado:** PENDIENTE — no se ha escrito código. Última actualización: 2026-07-25.
+**Estado:** 5/5 ETAPAS COMPLETADAS (código) — pendiente de aplicar `scripts/022-delivery-methods.sql`
+en Neon (el usuario lo aplicará manualmente) y de commit/push. `tsc --noEmit` y `npm run lint`
+limpios. Última actualización: 2026-07-25.
 
 ## Problema
 

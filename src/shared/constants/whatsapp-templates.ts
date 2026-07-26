@@ -65,17 +65,14 @@ export function buildPackagesAvailableMessage(params: {
   });
 }
 
-const DELIVERY_METHOD_LABELS: Record<string, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
-
 export function buildPreBillingReadyMessage(params: {
   firstName: string;
   orderShortId: string;
   weightLb: number;
-  deliveryMethod: string | null;
+  /** Name ya resuelto del método de entrega (delivery_methods.name) — el caller lo
+   * resuelve porque tiene acceso al catálogo vía React Query; esta función es
+   * un constructor de texto puro, no debe conocer la fuente del label. */
+  deliveryMethodLabel: string | null;
   /** Total del estimado en colones. */
   amountCrc?: number | null;
   /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
@@ -85,7 +82,7 @@ export function buildPreBillingReadyMessage(params: {
     nombre: params.firstName,
     id_orden: params.orderShortId,
     peso_total: params.weightLb.toFixed(2),
-    metodo_entrega: params.deliveryMethod ? (DELIVERY_METHOD_LABELS[params.deliveryMethod] ?? params.deliveryMethod) : '—',
+    metodo_entrega: params.deliveryMethodLabel ?? '—',
     monto: params.amountCrc != null ? `₡${Math.round(Number(params.amountCrc)).toLocaleString('es-CR')}` : '—',
   });
 }

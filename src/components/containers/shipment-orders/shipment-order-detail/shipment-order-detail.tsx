@@ -28,10 +28,11 @@ import {
   ConsolidationStatus,
   ConsolidationPackage,
   ConsolidationDetail,
-  DeliveryMethod,
   AvailablePackage,
 } from '@/types/logistics/logistics.types';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -52,12 +53,6 @@ const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
   CERRADO: 'Marcar como Despachado',
   DESPACHADO: 'Marcar como Entregado',
   ENTREGADO: null,
-};
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
 };
 
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
@@ -119,6 +114,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleNotifyPreBilling,
     isNotifyingPreBilling,
   } = useShipmentOrderDetail(resolvedUuid);
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
   if (isLoadingDetail || !resolvedUuid) {
     return (
@@ -238,7 +235,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           <div className="min-w-0">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Método de envío</p>
             {detail.delivery_method ? (
-              <p className="text-sm font-bold text-slate-800">{DELIVERY_LABELS[detail.delivery_method]}</p>
+              <p className="text-sm font-bold text-slate-800">{resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData?.data)}</p>
             ) : (
               <p className="text-sm text-slate-400 italic">Sin elegir — se pedirá al generar el estimado</p>
             )}
@@ -315,7 +312,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <p className="text-xs font-black text-amber-900">Estimado pendiente de confirmación</p>
                   <p className="text-[10px] text-amber-700 mt-0.5">
                     {detail.pre_billing_delivery_method
-                      ? `Entrega: ${DELIVERY_LABELS[detail.pre_billing_delivery_method]}`
+                      ? `Entrega: ${resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data)}`
                       : ''}
                     {detail.pre_billing_notified_at && (
                       <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
@@ -341,7 +338,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? 'RETIRO');
+                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? activeDeliveryMethods[0]?.code ?? '');
                       setShowPreBillingModal(true);
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
@@ -554,18 +551,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 Método de entrega
               </label>
               <div className="space-y-2">
-                {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                {activeDeliveryMethods.map((dm) => (
                   <button
-                    key={method}
-                    onClick={() => setPreBillingDeliveryMethod(method)}
+                    key={dm.code}
+                    onClick={() => setPreBillingDeliveryMethod(dm.code)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                      preBillingDeliveryMethod === method
+                      preBillingDeliveryMethod === dm.code
                         ? 'bg-slate-900 text-white border-slate-900'
                         : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                     }`}
                   >
-                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                    {preBillingDeliveryMethod === method && (
+                    <span className="font-bold text-sm">{dm.name}</span>
+                    {preBillingDeliveryMethod === dm.code && (
                       <CheckCircle size={16} className="text-amber-400" />
                     )}
                   </button>
@@ -678,18 +675,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             </div>
 
             <div className="space-y-2 mb-6">
-              {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+              {activeDeliveryMethods.map((dm) => (
                 <button
-                  key={method}
-                  onClick={() => setSelectedMethod(method)}
+                  key={dm.code}
+                  onClick={() => setSelectedMethod(dm.code)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                    selectedMethod === method
+                    selectedMethod === dm.code
                       ? 'bg-slate-900 text-white border-slate-900'
                       : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                   }`}
                 >
-                  <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                  {selectedMethod === method && (
+                  <span className="font-bold text-sm">{dm.name}</span>
+                  {selectedMethod === dm.code && (
                     <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                   )}
                 </button>
@@ -878,6 +875,8 @@ const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail })
 };
 
 const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+
   // Cobro con las tarifas del snapshot de la prefactura; si la orden sigue
   // abierta, con las vigentes de system_settings (el monto puede variar hasta
   // que se genere el estimado).
@@ -900,7 +899,8 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
   // vigente que matchea método/zona/peso. El costo real siempre es el vigente
   // de delivery_rates (no se snapshotea).
   const deliveryMethod = detail.pre_billing_delivery_method ?? detail.delivery_method;
-  const hasDelivery = deliveryMethod != null && deliveryMethod !== 'RETIRO';
+  const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === deliveryMethod);
+  const hasDelivery = deliveryMethod != null && !deliveryMethodEntity?.is_pickup;
   const deliveryFee = hasDelivery
     ? Number(detail.pre_billing_fee_crc ?? detail.delivery_fee_estimate_crc ?? 0)
     : 0;
@@ -958,7 +958,7 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
 
         {hasDelivery && (
           <div className="px-4 py-3 bg-slate-50 rounded-2xl">
-            <p className="text-sm font-bold text-slate-800">Entrega · {DELIVERY_LABELS[deliveryMethod]}</p>
+            <p className="text-sm font-bold text-slate-800">Entrega · {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)}</p>
             <p className="text-[10px] text-slate-400 mb-2">
               {detail.pre_billing_fee_crc != null ? 'Cobro del estimado' : 'Cobro con tarifa vigente'}
             </p>
@@ -1012,7 +1012,7 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
         )}
         {missingDeliveryCost && (
           <p className="text-[10px] text-amber-600">
-            * El costo real de la entrega está por confirmar en la tarifa de {DELIVERY_LABELS[deliveryMethod!]} — no se incluye en el costo total.
+            * El costo real de la entrega está por confirmar en la tarifa de {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)} — no se incluye en el costo total.
           </p>
         )}
         {minApplied && (

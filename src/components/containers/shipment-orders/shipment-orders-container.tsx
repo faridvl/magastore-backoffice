@@ -16,13 +16,8 @@ import {
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useShipmentOrders, ShipmentOrderPaymentFilter } from './use-shipment-orders';
-import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
+import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, AvailablePackage } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -95,6 +90,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
     isCreatingOrder,
     setCreateStep,
   } = useShipmentOrders();
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
   const listColumns: Column<ConsolidationListItem>[] = [
     {
@@ -549,18 +546,18 @@ export const ShipmentOrdersContainer: React.FC = () => {
                   Método de envío
                 </p>
                 <div className="space-y-2 mb-6">
-                  {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                  {activeDeliveryMethods.map((dm) => (
                     <button
-                      key={method}
-                      onClick={() => setCreateDeliveryMethod(method)}
+                      key={dm.code}
+                      onClick={() => setCreateDeliveryMethod(dm.code)}
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                        createDeliveryMethod === method
+                        createDeliveryMethod === dm.code
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                       }`}
                     >
-                      <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                      {createDeliveryMethod === method && (
+                      <span className="font-bold text-sm">{dm.name}</span>
+                      {createDeliveryMethod === dm.code && (
                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                       )}
                     </button>

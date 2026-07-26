@@ -6,13 +6,9 @@ import { routesPrivate } from '@/shared/navigation/routes';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useSettings } from './use-settings';
 import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { SettingsHistory } from '@/types/settings/settings.types';
-import { DeliveryRate, DeliveryMethod, DeliveryZone } from '@/types/logistics/logistics.types';
-
-const DELIVERY_METHOD_OPTIONS: { value: DeliveryMethod; label: string }[] = [
-    { value: 'CORREOS_CR', label: 'Correos CR' },
-    { value: 'TRACOPA', label: 'Tracopa' },
-];
+import { DeliveryRate, DeliveryZone } from '@/types/logistics/logistics.types';
 
 const ZONE_OPTIONS: { value: DeliveryZone | ''; label: string }[] = [
     { value: '', label: 'Sin zona' },
@@ -95,6 +91,11 @@ export const SettingsContainer: React.FC = () => {
         confirmDelete,
         isDeleting,
     } = useDeliveryRates();
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    // Solo métodos que cobran entrega tienen tarifas por rango — retiro no aplica.
+    const deliveryMethodOptions = (deliveryMethodsData?.data ?? [])
+        .filter((m) => m.is_active && !m.is_pickup)
+        .map((m) => ({ value: m.code, label: m.name }));
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -312,6 +313,7 @@ export const SettingsContainer: React.FC = () => {
                                 onSave={saveNewRow}
                                 onCancel={cancelNewRow}
                                 isSaving={isCreating}
+                                deliveryMethodOptions={deliveryMethodOptions}
                             />
                         )}
                         {isLoadingRates ? (
@@ -327,13 +329,14 @@ export const SettingsContainer: React.FC = () => {
                                     onSave={saveEdit}
                                     onCancel={cancelEdit}
                                     isSaving={isUpdating}
+                                    deliveryMethodOptions={deliveryMethodOptions}
                                 />
                             ) : (
                                 <div key={rate.uuid} className={`px-5 py-3.5 ${!rate.is_active ? 'opacity-40' : ''}`}>
                                     <div className="flex items-center justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="text-xs font-bold text-slate-700">
-                                                {DELIVERY_METHOD_OPTIONS.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
+                                                {deliveryMethodOptions.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
                                                 <span className="ml-1.5 font-medium text-slate-400">{rate.zone ?? 'Sin zona'}</span>
                                             </p>
                                             <p className="text-[11px] text-slate-500 font-mono mt-0.5">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</p>
@@ -385,6 +388,7 @@ export const SettingsContainer: React.FC = () => {
                                         onSave={saveNewRow}
                                         onCancel={cancelNewRow}
                                         isSaving={isCreating}
+                                        deliveryMethodOptions={deliveryMethodOptions}
                                     />
                                 )}
                                 {isLoadingRates ? (
@@ -400,11 +404,12 @@ export const SettingsContainer: React.FC = () => {
                                             onSave={saveEdit}
                                             onCancel={cancelEdit}
                                             isSaving={isUpdating}
+                                            deliveryMethodOptions={deliveryMethodOptions}
                                         />
                                     ) : (
                                         <tr key={rate.uuid} className={!rate.is_active ? 'opacity-40' : ''}>
                                             <td className="px-4 py-2.5 text-xs font-bold text-slate-700">
-                                                {DELIVERY_METHOD_OPTIONS.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
+                                                {deliveryMethodOptions.find((o) => o.value === rate.delivery_method)?.label ?? rate.delivery_method}
                                             </td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">{rate.zone ?? '—'}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</td>
@@ -653,12 +658,14 @@ function DeliveryRateCardForm({
     onSave,
     onCancel,
     isSaving,
+    deliveryMethodOptions,
 }: {
     draft: DeliveryRateDraft;
     onChange: (field: keyof DeliveryRateDraft, value: string) => void;
     onSave: () => void;
     onCancel: () => void;
     isSaving: boolean;
+    deliveryMethodOptions: { value: string; label: string }[];
 }) {
     const inputClass = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
     const labelClass = 'text-[10px] font-semibold text-slate-500 uppercase tracking-wider';
@@ -669,7 +676,7 @@ function DeliveryRateCardForm({
                 <div className="flex flex-col gap-1">
                     <label className={labelClass}>Método</label>
                     <select value={draft.delivery_method} onChange={(e) => onChange('delivery_method', e.target.value)} className={inputClass}>
-                        {DELIVERY_METHOD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -723,12 +730,14 @@ function DeliveryRateRow({
     onSave,
     onCancel,
     isSaving,
+    deliveryMethodOptions,
 }: {
     draft: DeliveryRateDraft;
     onChange: (field: keyof DeliveryRateDraft, value: string) => void;
     onSave: () => void;
     onCancel: () => void;
     isSaving: boolean;
+    deliveryMethodOptions: { value: string; label: string }[];
 }) {
     const cellInputClass = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400';
 
@@ -740,7 +749,7 @@ function DeliveryRateRow({
                     onChange={(e) => onChange('delivery_method', e.target.value)}
                     className={cellInputClass}
                 >
-                    {DELIVERY_METHOD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
             </td>
             <td className="px-4 py-2">

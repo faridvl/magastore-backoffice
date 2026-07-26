@@ -84,16 +84,10 @@ import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
-import { DeliveryMethod } from '@/types/logistics/logistics.types';
 import { buildWhatsAppUrl, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 
 export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
     const router = useRouter();
@@ -136,6 +130,8 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         addNewAddress,
         saveEdit,
     } = useCustomerDetail(id);
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
     if (isLoading || !customer) {
         return (
@@ -579,18 +575,18 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             Método de envío
                         </p>
                         <div className="space-y-2 mb-6">
-                            {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                            {activeDeliveryMethods.map((dm) => (
                                 <button
-                                    key={method}
-                                    onClick={() => setSelectedDeliveryMethod(method)}
+                                    key={dm.code}
+                                    onClick={() => setSelectedDeliveryMethod(dm.code)}
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                                        selectedDeliveryMethod === method
+                                        selectedDeliveryMethod === dm.code
                                             ? 'bg-slate-900 text-white border-slate-900'
                                             : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                                     }`}
                                 >
-                                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                                    {selectedDeliveryMethod === method && (
+                                    <span className="font-bold text-sm">{dm.name}</span>
+                                    {selectedDeliveryMethod === dm.code && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                                     )}
                                 </button>

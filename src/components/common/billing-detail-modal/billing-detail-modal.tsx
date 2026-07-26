@@ -1,16 +1,12 @@
 import React from 'react';
 import { X, CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { BillingDetail } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos CR',
-  TRACOPA:    'Tracopa',
-  RETIRO:     'Retiro',
-};
 
 interface Props {
   billingDetail: BillingDetail | null;
@@ -30,7 +26,11 @@ export const BillingDetailModal: React.FC<Props> = ({
   isMarkingPaid,
   onDownloadPdf,
   isDownloadingPdf,
-}) => (
+}) => {
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const deliveryMethodLabel = resolveDeliveryMethodLabel(billingDetail?.delivery_method, deliveryMethodsData?.data);
+
+  return (
   <div
     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     onClick={onClose}
@@ -72,7 +72,7 @@ export const BillingDetailModal: React.FC<Props> = ({
             />
             {billingDetail.delivery_method && (
               <BillingRow
-                label={`Envío local — ${DELIVERY_LABELS[billingDetail.delivery_method]}`}
+                label={`Envío local — ${deliveryMethodLabel}`}
                 value={billingDetail.delivery_fee_crc > 0 ? formatCRC(billingDetail.delivery_fee_crc) : 'Sin cargo'}
               />
             )}
@@ -161,7 +161,8 @@ export const BillingDetailModal: React.FC<Props> = ({
       )}
     </div>
   </div>
-);
+  );
+};
 
 const BillingRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center text-sm">

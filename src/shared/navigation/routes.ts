@@ -42,6 +42,7 @@ export const routesPrivate = {
     settings: '/admin/settings',
     courierRates: '/admin/courier-rates',
     customerTypes: '/admin/customer-types',
+    deliveryMethods: '/admin/delivery-methods',
     whatsappTemplates: '/admin/whatsapp-templates',
     whatsappTemplateDetail: (uuid: string) => `/admin/whatsapp-templates/${uuid}`,
   },

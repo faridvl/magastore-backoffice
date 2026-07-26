@@ -4,12 +4,8 @@ import { Truck, ChevronLeft, History, MapPin, Edit3, Save, DollarSign, AlertCirc
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { usePackageDetailContainer } from './use-logistics-detail';
 import { PackageStatus } from '@/types/logistics/logistics.types';
-
-const DELIVERY_LABELS: Record<string, string> = {
-    CORREOS_CR: 'Correos de Costa Rica',
-    TRACOPA: 'Tracopa',
-    RETIRO: 'Retiro en oficina',
-};
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const STATUS_LABELS: Record<PackageStatus, string> = {
     [PackageStatus.PANAMA]:     'En Bodega Panamá',
@@ -26,6 +22,7 @@ export const PackageDetailContainer: React.FC = () => {
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -266,7 +263,7 @@ export const PackageDetailContainer: React.FC = () => {
 
                                         <FinanceRow label="Tipo de Cambio" value={`₡${Number(data.appliedExchange ?? 0).toLocaleString()}`} />
                                         {data.deliveryMethod && (
-                                            <FinanceRow label="Método de Entrega" value={DELIVERY_LABELS[data.deliveryMethod] ?? data.deliveryMethod} />
+                                            <FinanceRow label="Método de Entrega" value={resolveDeliveryMethodLabel(data.deliveryMethod, deliveryMethodsData?.data)} />
                                         )}
                                         {data.deliveryFeeCrc !== null && data.deliveryFeeCrc > 0 && (
                                             <FinanceRow label="Costo de Entrega" value={`₡${Number(data.deliveryFeeCrc).toLocaleString()}`} />

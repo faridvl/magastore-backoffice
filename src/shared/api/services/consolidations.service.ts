@@ -1,5 +1,6 @@
 import { ConsolidationsRepository } from '../repositories/consolidations.repo';
 import { DeliveryRatesRepository } from '../repositories/delivery-rates.repo';
+import { DeliveryMethodsRepository } from '../repositories/delivery-methods.repo';
 import { getSettings } from '../repositories/settings.repo';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
@@ -58,7 +59,9 @@ export const ConsolidationsService = {
     let deliveryCost: number | null = null;
     let deliveryFeeEstimate: number | null = null;
 
-    if (method === 'RETIRO') {
+    const methodEntity = method ? await DeliveryMethodsRepository.findByCode(method) : null;
+
+    if (methodEntity?.is_pickup) {
       deliveryCost = 0;
       deliveryFeeEstimate = 0;
     } else if (method && detail.pre_billing_delivery_cost_crc != null) {
@@ -72,7 +75,7 @@ export const ConsolidationsService = {
       const kgPerLb = Number(settings?.kg_per_lb ?? 0.453592);
       const minLb = Number(settings?.min_weight ?? 1);
       const chargedLb = Math.max(Number(detail.total_weight_lb), minLb);
-      const zone = resolveZone(detail.zone_canton ?? '');
+      const zone = methodEntity?.requires_zone === false ? 'RESTO' : resolveZone(detail.zone_canton ?? '');
       const rate = await DeliveryRatesRepository.findMatchingRate(method, zone, chargedLb * kgPerLb);
       deliveryCost = rate?.cost_crc != null ? Number(rate.cost_crc) : null;
       deliveryFeeEstimate = rate ? Number(rate.fee_crc) : null;

@@ -12,6 +12,8 @@ import { env } from '@/shared/api/config';
 import { buildWhatsAppUrl, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
@@ -50,6 +52,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
 
   // Detalle de la factura para el modal — solo se consulta al abrirlo
   const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
@@ -316,7 +319,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         weightLb: Number(detail.total_weight_lb),
-        deliveryMethod: detail.pre_billing_delivery_method,
+        deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
         templateBody: preBillingTemplateBody,
       });

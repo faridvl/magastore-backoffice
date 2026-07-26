@@ -132,12 +132,17 @@ export const LogisticsRepository = {
         flete = chargedWeight * price_lb * exchange;
       }
 
-      // Snapshot del costo real de la entrega al momento del estimado. 0 para
-      // RETIRO (sin entrega); null si la tarifa matcheada no tiene cost_crc
-      // cargado ("por confirmar") o si se usó el fee de fallback de settings.
+      const [methodRow] = await sql`
+        SELECT is_pickup, requires_zone FROM delivery_methods WHERE code = ${deliveryMethod}
+      `;
+      if (!methodRow) throw new Error(`El método de entrega "${deliveryMethod}" no existe o fue eliminado.`);
+
+      // Snapshot del costo real de la entrega al momento del estimado. 0 para un
+      // método de retiro (sin entrega); null si la tarifa matcheada no tiene
+      // cost_crc cargado ("por confirmar") o si se usó el fee de fallback de settings.
       let deliveryFee = 0;
       let deliveryCost: number | null = 0;
-      if (deliveryMethod === 'CORREOS_CR' || deliveryMethod === 'TRACOPA') {
+      if (!methodRow.is_pickup) {
         // Misma dirección que confirmPreBilling usa para el snapshot: la fijada
         // en la orden, o la default del cliente si la orden no tiene una propia.
         const [addressRow] = c.delivery_address_id
@@ -148,7 +153,9 @@ export const LogisticsRepository = {
               ORDER BY is_default DESC LIMIT 1
             `;
 
-        const zone = resolveZone(addressRow?.canton ?? '');
+        // Métodos que no distinguen GAM/Resto (requires_zone = false) buscan la
+        // tarifa sin zona: findMatchingRate ya matchea filas con zone IS NULL.
+        const zone = methodRow.requires_zone ? resolveZone(addressRow?.canton ?? '') : 'RESTO';
         const weightKg = chargedWeight * kgPerLb;
         const matchedRate = await DeliveryRatesRepository.findMatchingRate(deliveryMethod, zone, weightKg);
 
@@ -156,7 +163,9 @@ export const LogisticsRepository = {
           ? Number(matchedRate.fee_crc)
           : deliveryMethod === 'CORREOS_CR'
             ? Number(settings.correos_fee_crc ?? 4500)
-            : Number(settings.tracopa_fee_crc ?? 3000);
+            : deliveryMethod === 'TRACOPA'
+              ? Number(settings.tracopa_fee_crc ?? 3000)
+              : 0;
 
         deliveryCost = matchedRate?.cost_crc != null ? Number(matchedRate.cost_crc) : null;
       }
@@ -268,7 +277,11 @@ export const LogisticsRepository = {
       `;
       const courierCostCrc = Number(courierCostRow.total);
       const deliveryCostCrc = pre.delivery_cost_crc != null ? Number(pre.delivery_cost_crc) : null;
-      const hasUnknownCost = deliveryCostCrc == null && pre.delivery_method !== 'RETIRO' && pre.delivery_method != null;
+
+      const [methodRow] = pre.delivery_method
+        ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${pre.delivery_method}`
+        : [null];
+      const hasUnknownCost = deliveryCostCrc == null && pre.delivery_method != null && !methodRow?.is_pickup;
       const profitCrc = Number(pre.estimated_amount_crc) - courierCostCrc - (deliveryCostCrc ?? 0);
 
       const [bill] = await sql`

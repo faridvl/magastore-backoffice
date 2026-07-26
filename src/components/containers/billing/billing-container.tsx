@@ -5,16 +5,12 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { useBilling, PaidFilterValue } from './use-billing';
-import { BillingListItem, DeliveryMethod, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { BillingListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
 const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos CR',
-  TRACOPA:    'Tracopa',
-  RETIRO:     'Retiro',
-};
 
 const ORDER_STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -44,6 +40,7 @@ export const BillingContainer: React.FC = () => {
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
   } = useBilling();
+  const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
 
   const billingColumns: Column<BillingListItem>[] = [
     {
@@ -87,7 +84,7 @@ export const BillingContainer: React.FC = () => {
       render: (row) => row.delivery_method ? (
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-            {DELIVERY_LABELS[row.delivery_method]}
+            {resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data)}
           </span>
           {row.delivery_fee_crc > 0 && (
             <span className="text-[10px] text-slate-400">{formatCRC(row.delivery_fee_crc)}</span>
@@ -266,7 +263,7 @@ export const BillingContainer: React.FC = () => {
               </div>
               <div className="flex justify-between items-end">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? DELIVERY_LABELS[row.delivery_method] : '—'}</span>
+                  <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data) : '—'}</span>
                   <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
                 </div>
                 <span className="text-xl font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>

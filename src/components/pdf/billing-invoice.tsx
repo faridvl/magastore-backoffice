@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
 import fs from 'fs';
-import { BillingDetail, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { BillingDetail } from '@/types/logistics/logistics.types';
 
 const LOGO_BUFFER = fs.readFileSync(
   path.join(process.cwd(), 'public', 'logo', 'magastore-perfil-transparent.png'),
@@ -13,12 +13,6 @@ const fmtCRC = (n: number | string) =>
 
 const fmtUSD = (n: number | string) =>
   `$ ${Number(n).toFixed(2)}`;
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa / Encomienda',
-  RETIRO: 'Retiro en Oficina',
-};
 
 const s = StyleSheet.create({
   page: {
@@ -229,9 +223,10 @@ const s = StyleSheet.create({
 
 interface Props {
   detail: BillingDetail;
+  deliveryMethodLabel: string | null;
 }
 
-export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
+export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel }) => {
   const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
   const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -352,7 +347,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail }) => {
             {detail.delivery_method && (
               <View style={s.summaryRow}>
                 <Text style={s.summaryLabel}>
-                  {`Envío — ${DELIVERY_LABELS[detail.delivery_method]}`}
+                  {`Envío — ${deliveryMethodLabel ?? detail.delivery_method}`}
                 </Text>
                 <Text style={s.summaryValue}>
                   {detail.delivery_fee_crc > 0 ? fmtCRC(detail.delivery_fee_crc) : 'Sin cargo'}

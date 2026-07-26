@@ -5,13 +5,8 @@ import { Search, User, Calendar, Plus, Box, PackageCheck, MapPin, CheckCircle, M
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { usePackages } from './use-logistics';
 import { Column, NewTable } from '@/components/common/new-table/new-table';
-import { LogisticsPackage, DeliveryMethod } from '@/types/logistics/logistics.types';
-
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa',
-  RETIRO: 'Retiro en oficina',
-};
+import { LogisticsPackage } from '@/types/logistics/logistics.types';
+import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
@@ -53,6 +48,8 @@ export const LogisticsContainer: React.FC = () => {
         selectedDeliveryMethod, setSelectedDeliveryMethod,
         handleConfirmCreateOrderWithAddress,
     } = usePackages(PAGE_SIZE);
+    const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
 
     const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
     const visibleSelectedCount = packages.filter((p) => selectedUuids.includes(p.uuid)).length;
@@ -492,18 +489,18 @@ export const LogisticsContainer: React.FC = () => {
                             Método de envío
                         </p>
                         <div className="space-y-2 mb-6">
-                            {(['CORREOS_CR', 'TRACOPA', 'RETIRO'] as DeliveryMethod[]).map((method) => (
+                            {activeDeliveryMethods.map((dm) => (
                                 <button
-                                    key={method}
-                                    onClick={() => setSelectedDeliveryMethod(method)}
+                                    key={dm.code}
+                                    onClick={() => setSelectedDeliveryMethod(dm.code)}
                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                                        selectedDeliveryMethod === method
+                                        selectedDeliveryMethod === dm.code
                                             ? 'bg-slate-900 text-white border-slate-900'
                                             : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                                     }`}
                                 >
-                                    <span className="font-bold text-sm">{DELIVERY_LABELS[method]}</span>
-                                    {selectedDeliveryMethod === method && (
+                                    <span className="font-bold text-sm">{dm.name}</span>
+                                    {selectedDeliveryMethod === dm.code && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                                     )}
                                 </button>

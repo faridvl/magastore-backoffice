@@ -13,12 +13,6 @@ const fmtCRC = (n: number | string) =>
 
 const fmtUSD = (n: number | string) => `$ ${Number(n).toFixed(2)}`;
 
-const DELIVERY_LABELS: Record<DeliveryMethod, string> = {
-  CORREOS_CR: 'Correos de Costa Rica',
-  TRACOPA: 'Tracopa / Encomienda',
-  RETIRO: 'Retiro en Oficina',
-};
-
 const s = StyleSheet.create({
   page: { fontFamily: 'Helvetica', fontSize: 9, color: '#1e293b', backgroundColor: '#ffffff' },
   header: {
@@ -108,9 +102,10 @@ export interface PreBillingPDFData {
 
 interface Props {
   data: PreBillingPDFData;
+  deliveryMethodLabel: string | null;
 }
 
-export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
+export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabel }) => {
   const shortId = data.uuid.slice(-8).toUpperCase();
   const createdDate = new Date(data.created_at).toLocaleDateString('es-CR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -222,7 +217,7 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data }) => {
             {data.delivery_method && (
               <View style={s.summaryRow}>
                 <Text style={s.summaryLabel}>
-                  {`Envío — ${DELIVERY_LABELS[data.delivery_method]}`}
+                  {`Envío — ${deliveryMethodLabel ?? data.delivery_method}`}
                 </Text>
                 <Text style={s.summaryValue}>
                   {data.delivery_fee_crc > 0 ? fmtCRC(data.delivery_fee_crc) : 'Sin cargo'}

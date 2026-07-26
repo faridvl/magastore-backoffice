@@ -158,6 +158,13 @@ export const NAV_GROUPS: NavGroup[] = [
         adminOnly: true,
       },
       {
+        menuKey: 'delivery-methods',
+        icon: Truck,
+        labelKey: 'Métodos de Entrega',
+        route: routesPrivate.admin.deliveryMethods,
+        adminOnly: true,
+      },
+      {
         menuKey: 'addresses',
         icon: MapPin,
         labelKey: 'Datos de Direcciones',

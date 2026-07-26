@@ -3,6 +3,7 @@ import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import { BillingService } from '@/shared/api/services/billing.service';
+import { DeliveryMethodsRepository } from '@/shared/api/repositories/delivery-methods.repo';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { BillingInvoicePDF } from '@/components/pdf/billing-invoice';
 
@@ -29,8 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const detail = await BillingService.getBillingDetail(uuid);
     if (!detail) return res.status(404).json({ message: 'Factura no encontrada.' });
 
+    const methods = await DeliveryMethodsRepository.getAll();
+    const deliveryMethodLabel = detail.delivery_method
+      ? methods.find((m) => m.code === detail.delivery_method)?.name ?? null
+      : null;
+
     const buffer = await renderToBuffer(
-      React.createElement(BillingInvoicePDF, { detail }) as unknown as React.ReactElement<DocumentProps>,
+      React.createElement(BillingInvoicePDF, { detail, deliveryMethodLabel }) as unknown as React.ReactElement<DocumentProps>,
     );
 
     const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;

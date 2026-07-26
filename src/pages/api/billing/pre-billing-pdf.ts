@@ -4,6 +4,7 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { PreBillingInvoicePDF, PreBillingPDFData } from '@/components/pdf/pre-billing-invoice';
+import { DeliveryMethodsRepository } from '@/shared/api/repositories/delivery-methods.repo';
 import sql from '@/lib/db';
 
 async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | null> {
@@ -88,8 +89,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data = await getPreBillingDetail(uuid);
     if (!data) return res.status(404).json({ message: 'Prefactura no encontrada.' });
 
+    const methods = await DeliveryMethodsRepository.getAll();
+    const deliveryMethodLabel = data.delivery_method
+      ? methods.find((m) => m.code === data.delivery_method)?.name ?? null
+      : null;
+
     const buffer = await renderToBuffer(
-      React.createElement(PreBillingInvoicePDF, { data }) as unknown as React.ReactElement<DocumentProps>,
+      React.createElement(PreBillingInvoicePDF, { data, deliveryMethodLabel }) as unknown as React.ReactElement<DocumentProps>,
     );
 
     const shortId = uuid.slice(-8).toUpperCase();
