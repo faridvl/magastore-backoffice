@@ -5,13 +5,6 @@ import { useProfitShareQuery } from '@/shared/api/querys/billing/use-profit-shar
 import { useMarkProfitSharePaidMutation } from '@/shared/api/mutations/billing/use-mark-profit-share-paid-mutation';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 
-function getDefaultRange(): { from: string; to: string } {
-  const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const to   = now.toISOString().slice(0, 10);
-  return { from, to };
-}
-
 // Último día del mes en formato YYYY-MM-DD, usando fecha local (evita el
 // corrimiento de un día que da new Date(y, m, 0).toISOString() en huso UTC-6).
 function lastDayOfMonth(year: number, month: number): string {
@@ -20,15 +13,17 @@ function lastDayOfMonth(year: number, month: number): string {
 }
 
 export function useBillingReports() {
-  const defaults = getDefaultRange();
-  const [from, setFrom] = useState(defaults.from);
-  const [to,   setTo]   = useState(defaults.to);
-
-  // Selector de mes/año: atajo que setea from/to al rango completo de ese mes.
-  // '' = no hay mes seleccionado (se está usando el rango Desde/Hasta libre).
+  // Por defecto se filtra el mes y año actuales completos. El rango libre
+  // Desde/Hasta queda oculto en la UI por ahora, pero el estado se conserva
+  // para no tener que tocar las queries si se vuelve a exponer más adelante.
   const now = new Date();
-  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const currentYear = now.getFullYear();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [from, setFrom] = useState(`${currentYear}-${currentMonth}-01`);
+  const [to,   setTo]   = useState(lastDayOfMonth(currentYear, Number(currentMonth)));
 
   const applyMonthFilter = (year: number, month: string) => {
     setSelectedYear(year);

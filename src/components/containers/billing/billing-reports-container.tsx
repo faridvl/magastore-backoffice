@@ -1,5 +1,5 @@
-import React from 'react';
-import { BarChart3, Wallet, Check, Undo2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, Wallet, Check, Undo2, Info } from 'lucide-react';
 import { useBillingReports } from './use-billing-reports';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 import { SectionHeader } from '@/components/common/section-header/section-header';
@@ -26,7 +26,6 @@ const MONTH_OPTIONS: { value: string; label: string }[] = [
 
 export const BillingReportsContainer: React.FC = () => {
   const {
-    from, setFrom, to, setTo,
     selectedYear, selectedMonth, applyMonthFilter,
     rows, isLoading,
     shareRows, isLoadingShare, togglePeriodPaid, isMarkingPaid,
@@ -54,12 +53,6 @@ export const BillingReportsContainer: React.FC = () => {
   return (
     <div className="space-y-6">
 
-      {/* Header */}
-      <SectionHeader
-        title="Reportes de Facturación"
-        tooltip="Resumen mensual de ingresos facturados, pagados, pendientes y ganancia estimada por mes."
-      />
-
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-4 bg-white border border-slate-200 rounded-xl p-4">
         <div className="flex flex-col gap-1">
@@ -69,7 +62,6 @@ export const BillingReportsContainer: React.FC = () => {
             onChange={(e) => applyMonthFilter(selectedYear, e.target.value)}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
           >
-            <option value="">— Rango libre —</option>
             {MONTH_OPTIONS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
@@ -83,24 +75,6 @@ export const BillingReportsContainer: React.FC = () => {
             {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Desde</label>
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Hasta</label>
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-        </div>
       </div>
 
       {/* Resumen del período: facturado → ganancia → Farid → neto.
@@ -110,7 +84,7 @@ export const BillingReportsContainer: React.FC = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryFigure
             label="Facturado"
-            hint={`${totalInvoices} factura${totalInvoices !== 1 ? 's' : ''} en el período`}
+            hint={`${totalInvoices} factura${totalInvoices !== 1 ? 's' : ''} confirmada${totalInvoices !== 1 ? 's' : ''} en el período`}
             value={formatCRC(totalInvoiced)}
             valueClass="text-slate-800"
           />
@@ -152,11 +126,36 @@ export const BillingReportsContainer: React.FC = () => {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
-        <KpiCard label="Total Facturado" value={formatCRC(totalInvoiced)} color="text-slate-800" />
-        <KpiCard label="Pagado"          value={formatCRC(totalPaid)}     color="text-emerald-600" />
-        <KpiCard label="Pendiente"       value={formatCRC(totalPending)}  color="text-orange-500" />
-        <KpiCard label="Ganancia Est."   value={formatCRC(totalGanancia)} color="text-amber-600" />
-        <KpiCard label="Facturas"        value={String(totalInvoices)}    color="text-amber-600" />
+        <KpiCard
+          label="Total Facturado"
+          value={formatCRC(totalInvoiced)}
+          color="text-slate-800"
+          tooltip="Suma de todas las facturas ya emitidas (confirmadas) en el período. No incluye órdenes con solo estimado generado, aún sin facturar."
+        />
+        <KpiCard
+          label="Pagado"
+          value={formatCRC(totalPaid)}
+          color="text-emerald-600"
+          tooltip="Del total facturado, la parte marcada como pagada por el cliente."
+        />
+        <KpiCard
+          label="Pendiente"
+          value={formatCRC(totalPending)}
+          color="text-orange-500"
+          tooltip="Del total facturado, la parte que el cliente todavía no ha pagado."
+        />
+        <KpiCard
+          label="Ganancia"
+          value={formatCRC(totalGanancia)}
+          color="text-amber-600"
+          tooltip="Ganancia real de las facturas ya emitidas: facturado − costo courier − costo de entrega. No es una proyección — solo cuenta facturas confirmadas, con costos reales ya conocidos."
+        />
+        <KpiCard
+          label="Facturas"
+          value={String(totalInvoices)}
+          color="text-amber-600"
+          tooltip="Cantidad de facturas confirmadas en el período (no cuenta órdenes con solo estimado)."
+        />
       </div>
 
       {totalUnknownCost > 0 && (
@@ -182,12 +181,27 @@ export const BillingReportsContainer: React.FC = () => {
             <thead>
               <tr className="bg-[#0f1a2e] text-white">
                 <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wide">Mes</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Facturas</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Pagadas</th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Facturas
+                    <InfoTooltip text="Cantidad de facturas confirmadas emitidas ese mes." />
+                  </span>
+                </th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Pagadas
+                    <InfoTooltip text="De esas facturas, cuántas ya fueron marcadas como pagadas por el cliente." />
+                  </span>
+                </th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Total Facturado</th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Pagado</th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Pendiente</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Ganancia Est.</th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Ganancia
+                    <InfoTooltip text="Ganancia real de las facturas de ese mes: facturado − costo courier − costo de entrega. Ya son costos reales conocidos, no una proyección." />
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -288,11 +302,36 @@ const ProfitShareSection: React.FC<ProfitShareSectionProps> = ({
             <thead>
               <tr className="bg-[#0f1a2e] text-white">
                 <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wide">Mes</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Órdenes</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Ganancia Base</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Farid (Facturado)</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Utilidad Neta</th>
-                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">En Estimados</th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Órdenes
+                    <InfoTooltip text="Cantidad de órdenes de envío ya facturadas ese mes (no incluye órdenes con solo estimado)." />
+                  </span>
+                </th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Ganancia Base
+                    <InfoTooltip text="Ganancia real de esas órdenes (facturado − costo courier − costo entrega), antes de restar la participación de Farid. Es la misma cifra que 'Ganancia' en la tabla de arriba, agrupada aquí solo por órdenes con participación registrada." />
+                  </span>
+                </th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Farid (Facturado)
+                    <InfoTooltip text="Lo que le corresponde a Farid sobre la ganancia real ya facturada: 20% de la Ganancia Base. Plata real que se le debe pagar, no una proyección." />
+                  </span>
+                </th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    Utilidad Neta
+                    <InfoTooltip text="Ganancia Base menos lo que le corresponde a Farid: lo que le queda a Magastore después del reparto." />
+                  </span>
+                </th>
+                <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1.5">
+                    En Estimados
+                    <InfoTooltip text="Participación proyectada de Farid sobre órdenes que ya tienen un estimado generado pero todavía NO se han facturado. Es plata que podría cambiar o nunca llegar a cobrarse — no se suma al total facturado." />
+                  </span>
+                </th>
                 <th className="text-center px-4 py-3 font-semibold text-xs uppercase tracking-wide">Estado</th>
                 <th className="text-right px-4 py-3 font-semibold text-xs uppercase tracking-wide">Acción</th>
               </tr>
@@ -391,11 +430,43 @@ interface KpiCardProps {
   label: string;
   value: string;
   color: string;
+  tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ label, value, color }) => (
+const KpiCard: React.FC<KpiCardProps> = ({ label, value, color, tooltip }) => (
   <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-1">
-    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</span>
+    <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+      {label}
+      {tooltip && <InfoTooltip text={tooltip} />}
+    </span>
     <span className={`text-xl font-black ${color}`}>{value}</span>
   </div>
 );
+
+/**
+ * Mismo patrón visual del ícono de SectionHeader, pero anclable a cualquier
+ * elemento inline (card, celda de encabezado de tabla) en vez de solo al
+ * título de una sección completa.
+ */
+const InfoTooltip: React.FC<{ text: string }> = ({ text }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={(e) => e.preventDefault()}
+        className="text-slate-400 hover:text-amber-500 transition-colors normal-case"
+      >
+        <Info size={12} />
+      </button>
+      {show && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-[70] w-56 bg-slate-800 text-white text-[11px] font-medium normal-case tracking-normal rounded-xl px-3 py-2 shadow-xl leading-snug">
+          {text}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-full w-2 h-2 bg-slate-800 rotate-45 mt-1" />
+        </div>
+      )}
+    </span>
+  );
+};

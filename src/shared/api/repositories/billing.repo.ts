@@ -140,7 +140,7 @@ export const BillingRepository = {
         COUNT(CASE WHEN b.has_unknown_cost THEN 1 END)::int    AS unknown_cost_count
       FROM billing b
       WHERE b.created_at >= ${from}::timestamptz
-        AND b.created_at <  ${to}::timestamptz
+        AND b.created_at <  (${to}::date + INTERVAL '1 day')
       GROUP BY DATE_TRUNC('month', b.created_at)
       ORDER BY DATE_TRUNC('month', b.created_at) ASC
     `;
