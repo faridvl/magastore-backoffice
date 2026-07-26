@@ -159,13 +159,21 @@ export const LogisticsRepository = {
         const weightKg = chargedWeight * kgPerLb;
         const matchedRate = await DeliveryRatesRepository.findMatchingRate(deliveryMethod, zone, weightKg);
 
-        deliveryFee = matchedRate
-          ? Number(matchedRate.fee_crc)
-          : deliveryMethod === 'CORREOS_CR'
-            ? Number(settings.correos_fee_crc ?? 4500)
-            : deliveryMethod === 'TRACOPA'
-              ? Number(settings.tracopa_fee_crc ?? 3000)
-              : 0;
+        if (matchedRate) {
+          deliveryFee = Number(matchedRate.fee_crc);
+        } else if (deliveryMethod === 'CORREOS_CR') {
+          deliveryFee = Number(settings.correos_fee_crc ?? 4500);
+        } else if (deliveryMethod === 'TRACOPA') {
+          deliveryFee = Number(settings.tracopa_fee_crc ?? 3000);
+        } else {
+          // Método sin fallback legacy en system_settings: si no hay ninguna tarifa
+          // configurada en delivery_rates para su peso/zona, no hay forma de saber
+          // cuánto cobrar. Cobrar ₡0 en silencio sería regalar el tramo local —
+          // igual criterio que AL_COSTO bloquea el flete sin costo conocido.
+          throw new Error(
+            `No hay tarifa configurada para "${deliveryMethod}" en este rango de peso/zona. Carga una tarifa en Configuración antes de generar el estimado.`,
+          );
+        }
 
         deliveryCost = matchedRate?.cost_crc != null ? Number(matchedRate.cost_crc) : null;
       }

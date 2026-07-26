@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
     const status = message.includes('no encontrad') ? 404
-      : message.includes('requerido') || message.includes('solapa') || message.includes('debe ser') || message.includes('no puede ser')
+      : message.includes('requerido') || message.includes('solapa') || message.includes('debe ser') || message.includes('no puede ser') || message.includes('no existe')
         ? 400
         : 500;
     return res.status(status).json({ message });

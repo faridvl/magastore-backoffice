@@ -19,7 +19,9 @@ export type DeliveryRateDraft = {
 };
 
 const EMPTY_DRAFT: DeliveryRateDraft = {
-  delivery_method: 'CORREOS_CR',
+  // Vacío a propósito: fuerza al operador a elegir el método explícitamente en
+  // vez de dejar preseleccionado un valor que podría guardarse sin querer.
+  delivery_method: '',
   zone: null,
   min_weight_kg: '',
   max_weight_kg: '',

@@ -676,6 +676,7 @@ function DeliveryRateCardForm({
                 <div className="flex flex-col gap-1">
                     <label className={labelClass}>Método</label>
                     <select value={draft.delivery_method} onChange={(e) => onChange('delivery_method', e.target.value)} className={inputClass}>
+                        <option value="" disabled>Selecciona un método</option>
                         {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                 </div>
@@ -705,7 +706,7 @@ function DeliveryRateCardForm({
             <div className="flex gap-2">
                 <button
                     onClick={onSave}
-                    disabled={isSaving}
+                    disabled={isSaving || !draft.delivery_method}
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-40"
                 >
                     <Check size={14} /> Guardar
@@ -749,6 +750,7 @@ function DeliveryRateRow({
                     onChange={(e) => onChange('delivery_method', e.target.value)}
                     className={cellInputClass}
                 >
+                    <option value="" disabled>Selecciona</option>
                     {deliveryMethodOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
             </td>
@@ -779,7 +781,7 @@ function DeliveryRateRow({
                 <div className="flex items-center justify-end gap-1.5">
                     <button
                         onClick={onSave}
-                        disabled={isSaving}
+                        disabled={isSaving || !draft.delivery_method}
                         title="Guardar"
                         className="p-2.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
                     >

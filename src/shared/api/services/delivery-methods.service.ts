@@ -38,6 +38,16 @@ export const DeliveryMethodsService = {
 
   toggleActive: async (uuid: string, isActive: boolean) => {
     if (!uuid) throw new Error('Se requiere el UUID del método de entrega.');
+    if (!isActive) {
+      const code = await DeliveryMethodsRepository.getCodeByUuid(uuid);
+      if (!code) throw new Error('Método de entrega no encontrado.');
+      const activeUsages = await DeliveryMethodsRepository.countActiveUsages(code);
+      if (activeUsages > 0) {
+        throw new Error(
+          `No se puede desactivar: hay ${activeUsages} orden(es) sin facturar o tarifa(s) activa(s) usando este método. Ciérralas o reasígnalas primero.`,
+        );
+      }
+    }
     return DeliveryMethodsRepository.toggleActive(uuid, isActive);
   },
 

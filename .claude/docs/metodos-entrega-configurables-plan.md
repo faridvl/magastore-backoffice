@@ -1,8 +1,10 @@
 # Plan: Métodos de entrega configurables (reemplazo del enum `DeliveryMethod`)
 
-**Estado:** 5/5 ETAPAS COMPLETADAS (código) — pendiente de aplicar `scripts/022-delivery-methods.sql`
-en Neon (el usuario lo aplicará manualmente) y de commit/push. `tsc --noEmit` y `npm run lint`
-limpios. Última actualización: 2026-07-25.
+**Estado:** 5/5 ETAPAS COMPLETADAS y commiteadas (`5621195`, pusheado a `develop`). Migración
+`scripts/022-delivery-methods.sql` aplicada en Neon por el usuario. Los 4 pendientes de la
+auditoría post-implementación (ver sección al final) **ya están corregidos en código**,
+`tsc --noEmit` y `npm run lint` limpios, **sin commitear todavía**. Última actualización:
+2026-07-25.
 
 ## Problema
 
@@ -223,3 +225,52 @@ desde el detalle del cliente.
 
 - **Backfill de `profit_crc`**: innecesario, no hay facturas en producción.
 - **Courier "Prueba" sin casillero**: dato de prueba del dueño, no un pendiente.
+
+---
+
+## Pendientes de la auditoría post-implementación (2026-07-25) — RESUELTOS
+
+Encontrados con `Explore` después del commit `5621195`. Corregidos en la misma sesión,
+sin commitear todavía. `tsc --noEmit` y `npm run lint` limpios tras los 4 cambios.
+
+### 1. RESUELTO — Fallback silencioso a ₡0 para métodos nuevos sin tarifa
+
+`src/shared/api/repositories/logistics.repo.ts` (`generatePreBilling`). Si no hay
+`matchedRate` y el código no es `CORREOS_CR`/`TRACOPA` (los únicos con fallback legacy en
+`system_settings`), ahora lanza `Error` explícito en vez de caer a `deliveryFee = 0`: "No hay
+tarifa configurada para "X" en este rango de peso/zona. Carga una tarifa en Configuración
+antes de generar el estimado."
+
+### 2. RESUELTO — Error crudo de Postgres al crear una tarifa con método inexistente
+
+`src/shared/api/services/delivery-rates.service.ts`: nueva función
+`assertDeliveryMethodExists` que consulta `DeliveryMethodsRepository.findByCode` antes de
+`create`/`update`, y lanza un error legible si el code no existe — nunca llega a golpear el
+FK de Postgres en el flujo normal. `src/pages/api/delivery-rates/index.ts` suma `'no existe'`
+al mapeo de status (400) para este caso.
+
+### 3. RESUELTO — `toggleActive` no bloqueaba desactivar un método en uso
+
+Criterio acordado con el dueño: bloquear solo por uso **activo**, no histórico (una factura
+vieja con ese code no debe impedir desactivarlo). Nuevo método
+`DeliveryMethodsRepository.countActiveUsages` cuenta: (a) `consolidations` con ese
+`delivery_method` que todavía no tienen `billing` asociado, y (b) `delivery_rates` activas
+para ese método. `delivery-methods.service.ts::toggleActive` lo consulta antes de desactivar
+y tira error si hay algo dependiendo. `countUsages` (para `remove`) queda igual — sigue
+contando todo el historial, ahí sí tiene sentido ser estricto porque es borrado permanente.
+
+### 4. RESUELTO — Draft de nueva tarifa preseleccionado en `CORREOS_CR`
+
+`use-delivery-rates.ts::EMPTY_DRAFT.delivery_method` ahora arranca en `''`. El `<select>` de
+método (`DeliveryRateCardForm` y `DeliveryRateRow` en `settings-container.tsx`) muestra una
+opción disabled "Selecciona un método"/"Selecciona", y el botón Guardar queda deshabilitado
+mientras no se elija uno explícitamente.
+
+### Confirmado que NO hace falta tocar (de la misma auditoría)
+
+Repos sin `SELECT *`, sin residuos de `Record<DeliveryMethod,string>` ni arrays fijos,
+selectores 100% dinámicos vía `useDeliveryMethodsQuery`, PDFs y WhatsApp reciben el label ya
+resuelto, `generatePreBilling`/`confirmPreBilling`/`consolidations.service.ts` migrados
+correctamente a `is_pickup`/`requires_zone` salvo el punto 1, y el `useState('RETIRO')` de
+`use-shipment-order-detail.ts` es un fallback inofensivo que siempre pasa por el modal antes
+de persistirse.

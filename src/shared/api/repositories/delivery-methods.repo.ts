@@ -45,6 +45,12 @@ export const DeliveryMethodsRepository = {
     return row as DeliveryMethodEntity;
   },
 
+  /** Resuelve el code a partir del uuid — paso previo a toggleActive/remove para chequear uso. */
+  getCodeByUuid: async (uuid: string): Promise<string | null> => {
+    const [row] = await sql`SELECT code FROM delivery_methods WHERE uuid = ${uuid}`;
+    return row?.code ?? null;
+  },
+
   /** Lookup liviano por code — usado en cálculos de rentabilidad que solo necesitan is_pickup. */
   findByCode: async (code: string): Promise<Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone'> | null> => {
     const [row] = await sql`
@@ -53,7 +59,7 @@ export const DeliveryMethodsRepository = {
     return (row as Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone'>) ?? null;
   },
 
-  /** Cuántas órdenes/tarifas usan este código — para avisar antes de desactivarlo o bloquear el borrado. */
+  /** Cualquier rastro histórico del código — para bloquear el borrado (nunca perder historia). */
   countUsages: async (code: string): Promise<number> => {
     const [row] = await sql`
       SELECT (
@@ -61,6 +67,25 @@ export const DeliveryMethodsRepository = {
         (SELECT COUNT(*) FROM pre_billing WHERE delivery_method = ${code}) +
         (SELECT COUNT(*) FROM billing WHERE delivery_method = ${code}) +
         (SELECT COUNT(*) FROM delivery_rates WHERE delivery_method = ${code})
+      )::int AS total
+    `;
+    return Number(row?.total ?? 0);
+  },
+
+  /**
+   * Uso "activo" del código — para bloquear desactivar (no borrar). Una factura ya
+   * emitida con este código es historial esperado y no debe impedir desactivarlo;
+   * lo que sí importa es una orden todavía sin facturar que necesita seguir
+   * ofreciendo este método en sus selectores, o una tarifa activa configurada
+   * para él (quedaría huérfana del catálogo si el método desaparece de la UI).
+   */
+  countActiveUsages: async (code: string): Promise<number> => {
+    const [row] = await sql`
+      SELECT (
+        (SELECT COUNT(*) FROM consolidations con
+           WHERE con.delivery_method = ${code}
+             AND NOT EXISTS (SELECT 1 FROM billing b WHERE b.consolidation_id = con.id)) +
+        (SELECT COUNT(*) FROM delivery_rates WHERE delivery_method = ${code} AND is_active = true)
       )::int AS total
     `;
     return Number(row?.total ?? 0);
