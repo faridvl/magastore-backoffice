@@ -19,6 +19,19 @@ export interface CustomerAddressUpdateInput {
   is_default?: boolean;
 }
 
+/**
+ * Casillero que se le asigna a un cliente al darlo de alta. El código es
+ * opcional: si viene vacío se genera el siguiente de la ruta, y si viene
+ * explícito (cliente que ya tenía casillero antes de entrar al sistema) se
+ * respeta tal cual PARA ESA RUTA. Antes había un único `customer_code` suelto
+ * que se aplicaba siempre a la primera ruta del arreglo, así que el código
+ * manual podía caer en el courier equivocado según el orden de clic.
+ */
+export interface CustomerWarehouseCodeInput {
+  warehouse_route_id: number;
+  code?: string | null;
+}
+
 export interface CustomerInput {
   id_card: string;
   id_type: IdType;
@@ -27,15 +40,13 @@ export interface CustomerInput {
   email: string;
   phone: string;
   addresses: CustomerAddressInput[];
-  /** Código de casillero explícito. Si se omite, se genera el siguiente de la ruta. */
-  customer_code?: string | null;
   /**
-   * Rutas de casillero (warehouse_routes.id) que se le asignan al cliente al
-   * darlo de alta — una por cada courier con el que va a operar. Si llega vacío
-   * se usa el courier predeterminado, para que ningún cliente quede sin
-   * casillero. El customer_code de la tabla customers es el de la primera.
+   * Casilleros que se le asignan al cliente — uno por cada courier con el que
+   * va a operar, cada uno con su código opcional. Si llega vacío se usa el
+   * courier predeterminado, para que ningún cliente quede sin casillero. El
+   * customer_code de la tabla customers es el del primero.
    */
-  warehouse_route_ids?: number[];
+  warehouse_codes?: CustomerWarehouseCodeInput[];
   /** Tipo de cliente (regla de cobro). Si se omite, se asigna el NORMAL por defecto. */
   customer_type_id?: number | null;
 }
@@ -60,6 +71,10 @@ export interface CustomerAddress extends CustomerAddressInput {
 
 export interface CustomerWarehouseCodeDisplay {
   code: string;
+  /** Ruta a la que pertenece el código — identifica el casillero sin ambigüedad. */
+  warehouse_route_id: number;
+  /** Courier dueño del casillero — es como el operador lo reconoce (CPF, Aéreo USA…). */
+  courier_name: string;
   origin: string;
   package_type: string;
   address_line: string | null;
@@ -101,11 +116,15 @@ export interface CustomerImportRow {
   /**
    * Nombres de courier separados por coma, tal como los escribe el operador en
    * la columna `couriers` de la plantilla. El servicio los traduce a
-   * warehouse_route_ids; vacío significa "usar el predeterminado".
+   * warehouse_codes; vacío significa "usar el predeterminado".
    */
   couriers?: string;
-  /** Resuelto por el servicio a partir de `couriers`. No viene del archivo. */
-  warehouse_route_ids?: number[];
+  /**
+   * Resuelto por el servicio a partir de `couriers` + `customer_code`. No viene
+   * del archivo. La plantilla solo admite un código manual por cliente, así que
+   * se aplica al primer courier de la lista.
+   */
+  warehouse_codes?: CustomerWarehouseCodeInput[];
   province: string;
   canton: string;
   district: string;
@@ -127,6 +146,8 @@ export interface CustomerImportResult {
 export interface WarehouseRoute {
   id: number;
   uuid: string;
+  /** Courier dueño de este casillero — la relación es 1—1. */
+  courier_rate_id: number;
   origin: string;
   package_type: string;
   code_prefix: string;
@@ -185,6 +206,8 @@ export interface WarehouseRouteInput {
 export interface CustomerWarehouseRoute {
   warehouse_route_id: number;
   code: string;
+  /** Nombre del courier dueño del casillero — es como el operador lo reconoce. */
+  courier_name: string;
   origin: string;
   package_type: string;
   address_line: string | null;
