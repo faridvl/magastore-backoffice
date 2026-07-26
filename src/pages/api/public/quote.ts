@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import * as SettingsService from '@/shared/api/services/settings.service';
 import type { PublicDeliveryMethod } from '@/types/settings/settings.types';
 
-const VALID_METHODS: PublicDeliveryMethod[] = ['CORREOS', 'TRACOPA', 'RETIRO'];
+const VALID_METHODS: PublicDeliveryMethod[] = ['CORREOS', 'RETIRO'];
 
 /**
  * Endpoint público (sin token) que alimenta la calculadora del landing.

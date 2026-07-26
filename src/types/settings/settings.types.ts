@@ -28,21 +28,23 @@ export type SettingsDashboardResponse = {
 };
 
 /**
- * Tarifas públicas expuestas al landing.
+ * Tarifas públicas expuestas al landing. Todo se publica en USD.
  *
- * NUNCA incluye `exchange_rate` ni `price_per_lb` en USD. El precio por libra
- * se publica ya convertido a colones (`price_per_lb_crc`): si se expusiera el
- * monto en USD junto al total en CRC, el tipo de cambio se despejaría con una
- * simple división. Todo cálculo se resuelve en el servidor.
+ * NUNCA incluye `exchange_rate`. Al mostrar únicamente dólares no queda ningún
+ * par USD/CRC del que se pueda despejar el tipo de cambio: las tarifas de
+ * entrega, que en BD viven en colones, se convierten en el servidor.
  */
 export type PublicRates = {
-  price_per_lb_crc: number;
+  price_per_lb_usd: number;
   min_weight: number;
-  correos_fee_crc: number;
-  tracopa_fee_crc: number;
+  correos_fee_usd: number;
 };
 
-export type PublicDeliveryMethod = 'CORREOS' | 'TRACOPA' | 'RETIRO';
+/**
+ * Métodos ofrecidos en el landing. `TRACOPA` existe en el sistema pero no se
+ * publica: de cara al cliente solo hay retiro o envío por Correos.
+ */
+export type PublicDeliveryMethod = 'CORREOS' | 'RETIRO';
 
 export type PublicQuoteInput = {
   weight_lb: number;
@@ -50,11 +52,11 @@ export type PublicQuoteInput = {
 };
 
 /**
- * Resultado de la calculadora pública. Únicamente montos en CRC.
+ * Resultado de la calculadora pública. Únicamente montos en USD.
  */
 export type PublicQuote = {
   charged_weight_lb: number;
-  shipping_crc: number;
-  delivery_fee_crc: number;
-  total_crc: number;
+  shipping_usd: number;
+  delivery_fee_usd: number;
+  total_usd: number;
 };

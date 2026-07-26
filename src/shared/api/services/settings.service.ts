@@ -10,37 +10,42 @@ export const getSystemDashboardData = async () => {
   return await Repo.getSettingsWithHistory();
 };
 
-const resolveDeliveryFee = (
+const round2 = (value: number): number => Math.round(value * 100) / 100;
+
+/**
+ * Tarifa de entrega en USD. En BD vive en colones, así que la conversión ocurre
+ * acá: el tipo de cambio se usa pero nunca se publica.
+ */
+const resolveDeliveryFeeUsd = (
   method: PublicDeliveryMethod,
   correosFeeCrc: number,
-  tracopaFeeCrc: number,
+  exchangeRate: number,
 ): number => {
-  if (method === 'CORREOS') return correosFeeCrc;
-  if (method === 'TRACOPA') return tracopaFeeCrc;
+  if (method === 'CORREOS') return round2(correosFeeCrc / exchangeRate);
   return 0;
 };
 
 /**
- * Tarifas para el landing público. Convierte el precio por libra a colones
- * antes de devolverlo para que el tipo de cambio nunca salga del servidor.
+ * Tarifas para el landing público, todas en USD.
  */
 export const getPublicRates = async (): Promise<PublicRates> => {
   const settings = await Repo.getSettings();
   if (!settings) throw new Error('No se encontró la configuración del sistema.');
 
+  const exchangeRate = Number(settings.exchange_rate);
+  if (!exchangeRate) throw new Error('El tipo de cambio configurado no es válido.');
+
   return {
-    price_per_lb_crc: Math.round(Number(settings.price_per_lb) * Number(settings.exchange_rate)),
+    price_per_lb_usd: round2(Number(settings.price_per_lb)),
     min_weight: Number(settings.min_weight),
-    correos_fee_crc: Number(settings.correos_fee_crc),
-    tracopa_fee_crc: Number(settings.tracopa_fee_crc),
+    correos_fee_usd: round2(Number(settings.correos_fee_crc) / exchangeRate),
   };
 };
 
 /**
- * Calcula un estimado para la calculadora del landing usando la misma fórmula
- * que la facturación real: MAX(peso, min_weight) x price_per_lb x exchange_rate
- * + tarifa de entrega. Se resuelve en el servidor: el navegador solo recibe
- * montos en CRC.
+ * Calcula un estimado para la calculadora del landing con la misma base que la
+ * facturación real: MAX(peso, min_weight) x price_per_lb, más la tarifa de
+ * entrega. El resultado se entrega en USD.
  */
 export const getPublicQuote = async ({
   weight_lb,
@@ -53,21 +58,22 @@ export const getPublicQuote = async ({
   const settings = await Repo.getSettings();
   if (!settings) throw new Error('No se encontró la configuración del sistema.');
 
+  const exchangeRate = Number(settings.exchange_rate);
+  if (!exchangeRate) throw new Error('El tipo de cambio configurado no es válido.');
+
   const chargedWeight = Math.max(weight_lb, Number(settings.min_weight));
-  const shippingCrc = Math.round(
-    chargedWeight * Number(settings.price_per_lb) * Number(settings.exchange_rate),
-  );
-  const deliveryFeeCrc = resolveDeliveryFee(
+  const shippingUsd = round2(chargedWeight * Number(settings.price_per_lb));
+  const deliveryFeeUsd = resolveDeliveryFeeUsd(
     delivery_method,
     Number(settings.correos_fee_crc),
-    Number(settings.tracopa_fee_crc),
+    exchangeRate,
   );
 
   return {
     charged_weight_lb: chargedWeight,
-    shipping_crc: shippingCrc,
-    delivery_fee_crc: deliveryFeeCrc,
-    total_crc: shippingCrc + deliveryFeeCrc,
+    shipping_usd: shippingUsd,
+    delivery_fee_usd: deliveryFeeUsd,
+    total_usd: round2(shippingUsd + deliveryFeeUsd),
   };
 };
 
