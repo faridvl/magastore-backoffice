@@ -1,5 +1,7 @@
 import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
+import { CourierRatesRepository } from '../repositories/courier-rates.repo';
+import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
 import { PaginatedResponse } from '@/types/paginate.types';
 import { resolveLocation } from '@/shared/constants/costa-rica-locations';
 
@@ -11,6 +13,48 @@ function validateAndNormalizeAddress<T extends CustomerAddressInput | CustomerAd
     );
   }
   return { ...addr, ...resolved };
+}
+
+/**
+ * Traduce la columna `couriers` de la plantilla (nombres separados por coma) a
+ * los ids de ruta de casillero que el repositorio necesita. Se hace una sola
+ * vez para todo el archivo — no una consulta por fila — y se falla antes de
+ * insertar nada: un nombre mal escrito debe detener la importación completa,
+ * no dejar la mitad de los clientes con el casillero equivocado.
+ */
+async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
+  const needsResolution = rows.some((r) => r.couriers?.trim());
+  if (!needsResolution) return;
+
+  const rates = await CourierRatesRepository.getAllWithWarehouse();
+  const byName = new Map(rates.map((r) => [r.name.trim().toLowerCase(), r]));
+
+  for (const row of rows) {
+    const raw = row.couriers?.trim();
+    if (!raw) continue;
+
+    const names = raw.split(',').map((n) => n.trim()).filter(Boolean);
+    const routeIds: number[] = [];
+
+    for (const name of names) {
+      const rate = byName.get(name.toLowerCase());
+      if (!rate) {
+        throw new Error(`Fila con cédula ${row.id_card}: el courier "${name}" no existe. Couriers disponibles: ${rates.map((r) => r.name).join(', ')}.`);
+      }
+      if (!rate.is_active) {
+        throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" está inactivo y no puede asignarse.`);
+      }
+      const route = await WarehouseRoutesRepository.getActiveRoute(rate.origin, rate.package_type);
+      if (!route) {
+        throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" no tiene casillero configurado.`);
+      }
+      // Un cliente no puede tener dos veces la misma ruta: la tabla de unión lo
+      // rechazaría a mitad de la importación.
+      if (!routeIds.includes(route.id)) routeIds.push(route.id);
+    }
+
+    row.warehouse_route_ids = routeIds;
+  }
 }
 
 /**
@@ -125,6 +169,8 @@ export const CustomerService = {
         seen.set(row.id_card, { email: row.email, first_name: row.first_name, last_name: row.last_name });
       }
     }
+
+    await resolveImportCouriers(rows);
 
     return CustomerRepo.importCustomers(rows);
   },

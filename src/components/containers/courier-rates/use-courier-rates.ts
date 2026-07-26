@@ -37,8 +37,6 @@ const EMPTY_DRAFT: CourierRateDraft = {
   contact_phone: '',
 };
 
-const orNull = (v: string): string | null => (v.trim() === '' ? null : v.trim());
-
 function draftToInput(draft: CourierRateDraft): CourierRateInput {
   return {
     name: draft.name.trim(),
@@ -47,12 +45,42 @@ function draftToInput(draft: CourierRateDraft): CourierRateInput {
     rate_usd: Number(draft.rate_usd),
     insurance_usd: draft.insurance_usd.trim() === '' ? 0 : Number(draft.insurance_usd),
     code_prefix: draft.code_prefix.trim(),
-    address_line: orNull(draft.address_line),
-    city: orNull(draft.city),
-    state: orNull(draft.state),
-    postal_code: orNull(draft.postal_code),
-    contact_phone: orNull(draft.contact_phone),
+    address_line: draft.address_line.trim(),
+    city: draft.city.trim(),
+    state: draft.state.trim(),
+    postal_code: draft.postal_code.trim(),
+    contact_phone: draft.contact_phone.trim(),
   };
+}
+
+/**
+ * Etiquetas de los campos obligatorios, en el mismo orden en que aparecen en el
+ * formulario — el mensaje de error nombra el primero que falta para que el
+ * operador sepa dónde mirar sin contar campos. El servicio valida lo mismo:
+ * esto solo evita el viaje al servidor.
+ */
+const REQUIRED_FIELDS: [keyof CourierRateDraft, string][] = [
+  ['name', 'el nombre'],
+  ['origin', 'el origen'],
+  ['rate_usd', 'la tarifa por libra'],
+  ['code_prefix', 'el prefijo de código'],
+  ['address_line', 'la dirección del casillero'],
+  ['city', 'la ciudad'],
+  ['state', 'el estado/provincia'],
+  ['postal_code', 'el código postal'],
+  ['contact_phone', 'el teléfono de contacto'],
+];
+
+/** Devuelve el mensaje del primer campo vacío, o null si el draft está completo. */
+function findMissingField(draft: CourierRateDraft): string | null {
+  for (const [field, label] of REQUIRED_FIELDS) {
+    if (!String(draft[field] ?? '').trim()) return `Falta ${label}.`;
+  }
+  if (Number(draft.rate_usd) <= 0) return 'La tarifa por libra debe ser mayor a 0.';
+  if (draft.insurance_usd.trim() !== '' && Number(draft.insurance_usd) < 0) {
+    return 'El seguro no puede ser negativo.';
+  }
+  return null;
 }
 
 function rateToDraft(rate: CourierRateWithWarehouse): CourierRateDraft {
@@ -103,6 +131,11 @@ export const useCourierRates = () => {
 
   const saveEdit = async () => {
     if (!editingUuid) return;
+    const missing = findMissingField(editDraft);
+    if (missing) {
+      toast.error(missing);
+      return;
+    }
     try {
       await updateCourierRate({ uuid: editingUuid, ...draftToInput(editDraft) });
       toast.success('Tarifa actualizada');
@@ -127,6 +160,11 @@ export const useCourierRates = () => {
   };
 
   const saveNewRow = async () => {
+    const missing = findMissingField(newDraft);
+    if (missing) {
+      toast.error(missing);
+      return;
+    }
     try {
       await createCourierRate(draftToInput(newDraft));
       toast.success('Tarifa creada');

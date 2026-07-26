@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useCreateCustomerMutation } from '@/shared/api/mutations/customers/use-create-customer-mutation';
 import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
+import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useNavigation } from '@/hooks/use-navigation';
 
 interface FormErrors {
@@ -64,6 +65,11 @@ export const useCreateCustomer = () => {
   const { execute, isPending } = useCreateCustomerMutation();
   const { data: customerTypesRes } = useCustomerTypesQuery();
   const customerTypes = (customerTypesRes?.data ?? []).filter((t) => t.is_active);
+  const { data: courierRatesRes } = useCourierRatesQuery();
+  const courierRates = useMemo(
+    () => (Array.isArray(courierRatesRes) ? courierRatesRes : []),
+    [courierRatesRes],
+  );
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -89,6 +95,25 @@ export const useCreateCustomer = () => {
   ]);
 
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Couriers con los que el cliente va a operar: uno por casillero. Se
+  // preselecciona el predeterminado para que el alta rápida siga siendo un
+  // solo clic, pero el operador puede desmarcarlo y elegir otros.
+  const [selectedRouteIds, setSelectedRouteIds] = useState<number[]>([]);
+  const [routesTouched, setRoutesTouched] = useState(false);
+
+  useEffect(() => {
+    if (routesTouched || courierRates.length === 0) return;
+    const preselected = courierRates.find((r) => r.is_default) ?? courierRates[0];
+    if (preselected?.warehouse_route_id) setSelectedRouteIds([preselected.warehouse_route_id]);
+  }, [courierRates, routesTouched]);
+
+  const toggleCourierRoute = (routeId: number) => {
+    setRoutesTouched(true);
+    setSelectedRouteIds((prev) =>
+      prev.includes(routeId) ? prev.filter((id) => id !== routeId) : [...prev, routeId],
+    );
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -186,6 +211,8 @@ export const useCreateCustomer = () => {
       customer_code: formData.customerCode.trim() || null,
       // Vacío = el backend asigna el tipo NORMAL por defecto.
       customer_type_id: formData.customerTypeId ? Number(formData.customerTypeId) : null,
+      // Vacío = el backend usa el courier predeterminado.
+      warehouse_route_ids: selectedRouteIds,
       addresses: addresses.map(({ id, ...rest }) => rest),
     };
 
@@ -208,6 +235,9 @@ export const useCreateCustomer = () => {
     addresses,
     errors,
     customerTypes,
+    courierRates,
+    selectedRouteIds,
+    toggleCourierRoute,
     handleInputChange,
     addAddressField,
     removeAddress,

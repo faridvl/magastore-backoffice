@@ -11,6 +11,14 @@ function validateInput(data: CourierRateInput): void {
   if (!data.code_prefix?.trim()) {
     throw new Error('El prefijo de código del casillero es requerido (ej. MGA-2453-C-).');
   }
+  // La dirección completa del casillero no es opcional: es el dato que el
+  // cliente copia para enviar su mercancía. Un courier con la dirección a
+  // medias produce casilleros que no sirven para nada.
+  if (!data.address_line?.trim()) throw new Error('La dirección del casillero es requerida.');
+  if (!data.city?.trim()) throw new Error('La ciudad del casillero es requerida.');
+  if (!data.state?.trim()) throw new Error('El estado/provincia del casillero es requerido.');
+  if (!data.postal_code?.trim()) throw new Error('El código postal del casillero es requerido.');
+  if (!data.contact_phone?.trim()) throw new Error('El teléfono de contacto del casillero es requerido.');
 }
 
 /**

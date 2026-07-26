@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PackageStatus, PackageType, CourierRate } from '@/types/logistics/logistics.types';
 import { useCreatePackageMutation } from '@/shared/api/mutations/logistics/use-add-package-mutation';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useCustomerAddressesQuery } from '@/shared/api/querys/customers/use-customer-addresses-query';
+import { useCustomerWarehouseCodesQuery } from '@/shared/api/querys/customers/use-customer-warehouse-codes-query';
 import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
@@ -13,6 +15,7 @@ import { env } from '@/shared/api/config';
 const TC_BANCO_KEY = 'magastore_tc_banco';
 
 export const usePackageCalculator = () => {
+  const queryClient = useQueryClient();
   const { data: customersRes, isLoading: loadingCustomers } = useCustomersQuery();
   const { data: settingsRes, isLoading: loadingSettings } = useSettingsQuery();
   const { data: courierRates, isLoading: loadingRates } = useCourierRatesQuery();
@@ -78,7 +81,39 @@ export const usePackageCalculator = () => {
 
   // Este endpoint devuelve el array plano; se normaliza una vez para que el
   // resto del hook no dependa de la forma exacta de la respuesta.
-  const rates: CourierRate[] = Array.isArray(courierRates) ? courierRates : [];
+  const allRates: CourierRate[] = useMemo(
+    () => (Array.isArray(courierRates) ? courierRates : []),
+    [courierRates],
+  );
+
+  const { data: warehouseRes, isLoading: loadingWarehouseCodes } = useCustomerWarehouseCodesQuery(
+    formData.customer_id || undefined,
+  );
+  const customerWarehouseRoutes = useMemo(() => warehouseRes?.data ?? [], [warehouseRes]);
+
+  /**
+   * Solo los couriers donde el cliente tiene casillero. Un courier sin casillero
+   * asignado no es una opción válida: el paquete tendría que haber llegado a una
+   * dirección que el cliente nunca recibió. Se cruzan por (origin, package_type),
+   * la clave natural que comparten courier_rates y warehouse_routes.
+   *
+   * Sin cliente elegido todavía se muestran todas, para que el operador vea el
+   * catálogo antes de empezar.
+   */
+  const rates = useMemo(() => {
+    if (!formData.customer_id) return allRates;
+    const owned = new Set(customerWarehouseRoutes.map((r) => `${r.origin}|${r.package_type}`));
+    return allRates.filter((r) => owned.has(`${r.origin}|${r.package_type}`));
+  }, [allRates, customerWarehouseRoutes, formData.customer_id]);
+
+  /**
+   * El cliente no tiene ningún casillero: se avisa al elegirlo, no al guardar —
+   * el operador no debería cargar tracking y peso para descubrir entonces que
+   * falta un paso previo. `hasNoWarehouse` alimenta el mismo modal que ya usa
+   * el fallo de casillero en una ruta concreta.
+   */
+  const hasNoWarehouse =
+    !!formData.customer_id && !loadingWarehouseCodes && customerWarehouseRoutes.length === 0;
 
   // Preseleccionar el courier marcado como predeterminado en su mantenimiento.
   // Si ninguno lo está (todos desactivados, por ejemplo), cae al primero activo.
@@ -86,6 +121,15 @@ export const usePackageCalculator = () => {
     if (rates.length === 0 || formData.courier_rate_id) return;
     const defaultRate = rates.find((r) => r.is_default) ?? rates[0];
     if (defaultRate) setFormData((prev) => ({ ...prev, courier_rate_id: defaultRate.uuid }));
+  }, [rates]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Al cambiar de cliente, el courier ya elegido puede no estar entre sus
+  // casilleros — se limpia para que no quede seleccionado algo que el select
+  // ya no ofrece y el paquete se registre contra la ruta equivocada.
+  useEffect(() => {
+    if (!formData.courier_rate_id) return;
+    if (rates.some((r) => r.uuid === formData.courier_rate_id)) return;
+    setFormData((prev) => ({ ...prev, courier_rate_id: null }));
   }, [rates]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedCourierRate = rates.find((r) => r.uuid === formData.courier_rate_id) ?? null;
@@ -190,18 +234,32 @@ export const usePackageCalculator = () => {
     }
   };
 
-  /** Asigna el casillero faltante y reintenta el registro. */
-  const handleAssignWarehouseCode = async () => {
-    if (!missingWarehouse) return;
+  /**
+   * Asigna un casillero al cliente. `courierRateUuid` viene del aviso de
+   * "cliente sin ningún casillero", donde el operador elige el courier; sin él
+   * se usa la ruta que el backend señaló como faltante y se reintenta el
+   * registro que quedó a medias.
+   */
+  const handleAssignWarehouseCode = async (courierRateUuid?: string) => {
+    if (!courierRateUuid && !missingWarehouse) return;
+    if (!formData.customer_id) return;
     setIsAssigningCode(true);
     try {
       const res: any = await ApiServiceClient(env.API.BASE_URL).post('/customers/assign-warehouse-code', {
         customerId: formData.customer_id,
-        warehouseRouteId: missingWarehouse.routeId,
+        ...(courierRateUuid ? { courierRateUuid } : { warehouseRouteId: missingWarehouse!.routeId }),
       });
       toast.success(`Casillero asignado: ${res?.data?.code ?? ''}`);
+      // El selector de couriers se arma con esta query — sin invalidarla el
+      // courier recién habilitado seguiría sin aparecer en la lista.
+      await queryClient.invalidateQueries({ queryKey: ['customer-warehouse-codes', formData.customer_id] });
+
+      // Reintento solo cuando veníamos de un submit fallido. Si el operador
+      // asignó el casillero desde el aviso inicial, el formulario todavía está
+      // a medio llenar y reintentar solo produciría un error de validación.
+      const shouldRetry = !courierRateUuid;
       setMissingWarehouse(null);
-      await submitPackage();
+      if (shouldRetry) await submitPackage();
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo asignar el casillero.');
     } finally {
@@ -229,6 +287,10 @@ export const usePackageCalculator = () => {
     dismissMissingWarehouse: () => setMissingWarehouse(null),
     handleAssignWarehouseCode,
     isAssigningCode,
+    hasNoWarehouse,
+    /** Catálogo completo — el aviso de "sin casillero" ofrece elegir de aquí. */
+    allCourierRates: allRates,
+    customerWarehouseRoutes,
     isLoading: loadingCustomers || loadingSettings || loadingRates,
   };
 };

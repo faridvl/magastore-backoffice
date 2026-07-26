@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { WarehouseRoute, WarehouseRouteInput } from '@/types/customer/customer.types';
+import { WarehouseRoute, WarehouseRouteInput, CustomerWarehouseRoute } from '@/types/customer/customer.types';
 
 /**
  * Formatea el contador con padding de 2 dígitos (00, 01... 99). Por encima de
@@ -70,6 +70,70 @@ export const WarehouseRoutesRepository = {
       LIMIT 1
     `;
     return (row as WarehouseRoute) ?? null;
+  },
+
+  getById: async (routeId: number): Promise<WarehouseRoute | null> => {
+    const [row] = await sql`
+      SELECT id, uuid, origin, package_type, code_prefix, current_counter,
+             address_line, city, state, postal_code, contact_phone, is_active, created_at
+      FROM warehouse_routes
+      WHERE id = ${routeId}
+      LIMIT 1
+    `;
+    return (row as WarehouseRoute) ?? null;
+  },
+
+  /**
+   * Igual que incrementAndGetCode pero direccionando la ruta por id — el alta
+   * de cliente ya conoce los ids elegidos y no tiene por qué reconstruir la
+   * clave natural (origin, package_type).
+   */
+  incrementAndGetCodeById: async (routeId: number): Promise<string> => {
+    const [route] = await sql`
+      UPDATE warehouse_routes
+      SET current_counter = current_counter + 1
+      WHERE id = ${routeId} AND is_active = true
+      RETURNING code_prefix, current_counter
+    `;
+    if (!route) throw new Error(`No hay un casillero activo para la ruta ${routeId}.`);
+    return formatCode(route.code_prefix, route.current_counter);
+  },
+
+  /**
+   * Ruta del courier marcado como predeterminado. Es el fallback cuando se da
+   * de alta un cliente sin elegir couriers explícitamente — antes esto era la
+   * constante USA/AEREO, que dejaba de ser cierta al existir más de una ruta.
+   */
+  getDefaultRoute: async (): Promise<WarehouseRoute | null> => {
+    const [row] = await sql`
+      SELECT wr.id, wr.uuid, wr.origin, wr.package_type, wr.code_prefix, wr.current_counter,
+             wr.address_line, wr.city, wr.state, wr.postal_code, wr.contact_phone,
+             wr.is_active, wr.created_at
+      FROM courier_rates cr
+      JOIN warehouse_routes wr
+        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      WHERE cr.is_default = true AND cr.is_active = true AND wr.is_active = true
+      LIMIT 1
+    `;
+    return (row as WarehouseRoute) ?? null;
+  },
+
+  /**
+   * Rutas activas que el cliente ya tiene asignadas, con su código y los datos
+   * del casillero. Es la lista que filtra el selector de courier al registrar
+   * un paquete: solo se puede registrar contra un casillero que el cliente
+   * realmente tiene.
+   */
+  getCustomerRoutes: async (customerId: string): Promise<CustomerWarehouseRoute[]> => {
+    const rows = await sql`
+      SELECT wr.id AS warehouse_route_id, cwc.code, wr.origin, wr.package_type,
+             wr.address_line, wr.city, wr.state, wr.postal_code, wr.contact_phone
+      FROM customer_warehouse_codes cwc
+      JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
+      WHERE cwc.customer_id = ${customerId} AND wr.is_active = true
+      ORDER BY wr.origin ASC, wr.package_type ASC
+    `;
+    return rows as CustomerWarehouseRoute[];
   },
 
   getAll: async (): Promise<WarehouseRoute[]> => {

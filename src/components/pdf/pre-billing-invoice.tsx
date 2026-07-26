@@ -121,6 +121,7 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
 
         <View style={s.header}>
           <View style={s.brandBlock}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf/renderer, no <img>: no acepta alt */}
             <Image style={s.brandLogo} src={LOGO_BUFFER} />
           </View>
           <View style={s.headerMeta}>

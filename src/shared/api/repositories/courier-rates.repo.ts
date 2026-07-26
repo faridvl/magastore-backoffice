@@ -56,6 +56,23 @@ export const CourierRatesRepository = {
       : null;
   },
 
+  /** Igual que getWarehouseRouteForRate pero por uuid — es lo que maneja la UI. */
+  getWarehouseRouteByUuid: async (
+    uuid: string,
+  ): Promise<{ route_id: number | null; rate_name: string } | null> => {
+    const [row] = await sql`
+      SELECT wr.id AS route_id, cr.name AS rate_name
+      FROM courier_rates cr
+      LEFT JOIN warehouse_routes wr
+        ON wr.origin = cr.origin AND wr.package_type = cr.package_type
+      WHERE cr.uuid = ${uuid}
+      LIMIT 1
+    `;
+    return row
+      ? { route_id: row.route_id != null ? Number(row.route_id) : null, rate_name: row.rate_name as string }
+      : null;
+  },
+
   create: async (data: CourierRateInput): Promise<CourierRate> => {
     const [row] = await sql`
       INSERT INTO courier_rates (name, origin, package_type, rate_usd, insurance_usd)

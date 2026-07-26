@@ -23,7 +23,8 @@ const BILLING_MODE_DESC = (mode: string, discount: number): string => {
 export const CreateCustomerContainer: React.FC = () => {
     const {
         formData, addresses, errors, customerTypes, handleInputChange,
-        addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending
+        addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending,
+        courierRates, selectedRouteIds, toggleCourierRoute
     } = useCreateCustomer();
 
     return (
@@ -65,6 +66,50 @@ export const CreateCustomerContainer: React.FC = () => {
                         placeholder="Se genera automáticamente si lo dejas vacío"
                         error={errors.customerCode}
                     />
+                </div>
+
+                {/* SECCIÓN 1B: CASILLEROS (couriers con los que va a operar) */}
+                <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-4 mb-2">
+                        <Typography variant={TypographyVariant.SUBTITLE}>Casilleros</Typography>
+                        <p className="text-xs font-medium text-slate-400 mt-1">
+                            Se le genera un código por cada courier que marques. Solo podrá recibir paquetes de los couriers seleccionados.
+                        </p>
+                    </div>
+
+                    {courierRates.length === 0 ? (
+                        <p className="text-xs font-medium text-red-500">
+                            No hay couriers activos. Configura uno en Couriers y Casilleros antes de registrar clientes.
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {courierRates.map((rate) => {
+                                const routeId = rate.warehouse_route_id;
+                                const isSelected = !!routeId && selectedRouteIds.includes(routeId);
+                                return (
+                                    <button
+                                        type="button"
+                                        key={rate.uuid}
+                                        // Un courier sin casillero configurado no puede generar códigos.
+                                        disabled={!routeId}
+                                        onClick={() => routeId && toggleCourierRoute(routeId)}
+                                        className={`text-left p-5 rounded-3xl border-2 transition-all flex items-start gap-3 disabled:opacity-40 disabled:cursor-not-allowed ${isSelected ? 'border-amber-600 bg-amber-50/30 shadow-md' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
+                                    >
+                                        <span className={`mt-0.5 w-4 h-4 rounded-md border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-600' : 'border-slate-300'}`}>
+                                            {isSelected && <span className="text-white text-[10px] font-black leading-none">✓</span>}
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-bold text-slate-700 truncate">{rate.name}</span>
+                                            <span className="block text-[11px] font-medium text-slate-400 mt-0.5">
+                                                {rate.origin} · {rate.package_type}
+                                                {!routeId && ' · sin casillero configurado'}
+                                            </span>
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* SECCIÓN 2: TIPO DE CLIENTE (regla de cobro) */}

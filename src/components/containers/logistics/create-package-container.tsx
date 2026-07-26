@@ -9,8 +9,13 @@ export const CreatePackageContainer: React.FC = () => {
         formData, setFormData, calculations, settings, courierRates, selectedCourierRate,
         customers, selectedCustomer, customerAddresses, searchTerm, setSearchTerm,
         isOpen, setIsOpen, handleSave, isSaving, isLoading,
-        missingWarehouse, dismissMissingWarehouse, handleAssignWarehouseCode, isAssigningCode
+        missingWarehouse, dismissMissingWarehouse, handleAssignWarehouseCode, isAssigningCode,
+        hasNoWarehouse, allCourierRates
     } = usePackageCalculator();
+
+    // Courier elegido en el aviso de "cliente sin casillero". Se guarda aquí
+    // porque solo existe mientras ese modal está abierto.
+    const [routeToAssign, setRouteToAssign] = React.useState<string>('');
 
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
 
@@ -125,7 +130,9 @@ export const CreatePackageContainer: React.FC = () => {
                             {courierRates.length === 0 ? (
                                 <div className="p-4 bg-red-50 rounded-2xl border border-red-100 space-y-2">
                                     <p className="text-xs text-red-600 font-semibold">
-                                        No hay tarifas de courier activas. Todo paquete debe registrar su costo real.
+                                        {formData.customer_id
+                                            ? 'Este cliente no tiene casillero en ningún courier activo. Asígnale uno desde su ficha.'
+                                            : 'No hay tarifas de courier activas. Todo paquete debe registrar su costo real.'}
                                     </p>
                                     <Link
                                         href={routesPrivate.admin.courierRates}
@@ -262,6 +269,62 @@ export const CreatePackageContainer: React.FC = () => {
                 </div>
             </div>
 
+            {/* El cliente no tiene NINGÚN casillero: se avisa al elegirlo, antes
+                de que el operador cargue tracking y peso para nada. */}
+            {hasNoWarehouse && !missingWarehouse && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
+                                <AlertTriangle size={20} className="text-amber-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-800">Este cliente no tiene casilleros</h3>
+                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                                    {selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : 'El cliente'} no
+                                    tiene ningún courier configurado, así que no hay dirección a la que su mercancía haya podido llegar.
+                                    Asígnale uno para poder registrar paquetes.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Courier</label>
+                            <select
+                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none"
+                                value={routeToAssign}
+                                onChange={(e) => setRouteToAssign(e.target.value)}
+                            >
+                                <option value="">Selecciona un courier...</option>
+                                {allCourierRates.map((r) => (
+                                    <option key={r.uuid} value={r.uuid}>{r.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                                onClick={async () => {
+                                    await handleAssignWarehouseCode(routeToAssign);
+                                    setRouteToAssign('');
+                                }}
+                                disabled={isAssigningCode || !routeToAssign}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
+                            >
+                                {isAssigningCode ? <><Loader2 size={14} className="animate-spin" /> Asignando...</> : 'Asignar casillero'}
+                            </button>
+                            <button
+                                onClick={() => setFormData({ ...formData, customer_id: '' })}
+                                disabled={isAssigningCode}
+                                className="px-4 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
+                            >
+                                Elegir otro cliente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {missingWarehouse && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
@@ -281,7 +344,7 @@ export const CreatePackageContainer: React.FC = () => {
 
                         <div className="flex flex-col sm:flex-row gap-2">
                             <button
-                                onClick={handleAssignWarehouseCode}
+                                onClick={() => handleAssignWarehouseCode()}
                                 disabled={isAssigningCode}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
                             >

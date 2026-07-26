@@ -49,11 +49,18 @@ export const LogisticsRepository = {
   },
 
   getCourierRates: async (): Promise<CourierRate[]> => {
+    // warehouse_route_id viaja con la tarifa para que el alta de cliente pueda
+    // pedir los casilleros por id sin una segunda consulta. LEFT JOIN: una
+    // tarifa antigua puede no tener casillero configurado todavía.
     const rows = await sql`
-      SELECT id, uuid, name, origin, package_type, rate_usd, insurance_usd, is_active, is_default, created_at
-      FROM courier_rates
-      WHERE is_active = true
-      ORDER BY is_default DESC, name ASC
+      SELECT cr.id, cr.uuid, cr.name, cr.origin, cr.package_type, cr.rate_usd,
+             cr.insurance_usd, cr.is_active, cr.is_default, cr.created_at,
+             wr.id AS warehouse_route_id
+      FROM courier_rates cr
+      LEFT JOIN warehouse_routes wr
+        ON wr.origin = cr.origin AND wr.package_type = cr.package_type AND wr.is_active = true
+      WHERE cr.is_active = true
+      ORDER BY cr.is_default DESC, cr.name ASC
     `;
     return rows as CourierRate[];
   },

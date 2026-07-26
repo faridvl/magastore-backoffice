@@ -250,6 +250,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
         {/* ── Header oscuro ── */}
         <View style={s.header}>
           <View style={s.brandBlock}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf/renderer, no <img>: no acepta alt */}
             <Image style={s.brandLogo} src={LOGO_BUFFER} />
           </View>
           <View style={s.headerMeta}>

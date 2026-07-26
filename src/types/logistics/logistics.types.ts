@@ -28,6 +28,12 @@ export interface CourierRate {
   /** Viene preseleccionado al registrar un paquete. Solo uno puede serlo. */
   is_default: boolean;
   created_at: Date;
+  /**
+   * Ruta de casillero de esta tarifa (misma clave natural origin+package_type).
+   * Null si el courier todavía no tiene casillero configurado. Solo lo trae el
+   * listado de logistics — el mantenimiento usa CourierRateWithWarehouse.
+   */
+  warehouse_route_id?: number | null;
 }
 
 export interface CourierRateInput {
@@ -40,11 +46,11 @@ export interface CourierRateInput {
   // con la tarifa porque un courier nuevo implica un casillero y un prefijo de
   // código nuevos para sus clientes.
   code_prefix: string;
-  address_line: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  contact_phone: string | null;
+  address_line: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  contact_phone: string;
 }
 
 /** Tarifa de courier con los datos de su casillero, para el mantenimiento. */

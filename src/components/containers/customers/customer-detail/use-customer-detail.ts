@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useCustomerProfile } from '@/shared/api/querys/customers/find-one-customer-query';
 import { useUpdateCustomerMutation } from '@/shared/api/mutations/customers/use-update-customer-mutation';
 import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-customer-packages-query';
@@ -21,6 +23,15 @@ export const useCustomerDetail = (customerId: string) => {
   const { data: customerTypesRes } = useCustomerTypesQuery();
   const customerTypes = (customerTypesRes?.data ?? []).filter((t) => t.is_active);
   const [selectedPackageUuids, setSelectedPackageUuids] = useState<string[]>([]);
+
+  const queryClient = useQueryClient();
+  const { data: courierRatesRes } = useCourierRatesQuery();
+  const courierRates = useMemo(
+    () => (Array.isArray(courierRatesRes) ? courierRatesRes : []),
+    [courierRatesRes],
+  );
+  const [isAssignCodeModalOpen, setIsAssignCodeModalOpen] = useState(false);
+  const [isAssigningCode, setIsAssigningCode] = useState(false);
 
   // Modal: elegir dirección de entrega + método de envío al crear la orden.
   // Siempre aparece — el método nunca se puede asumir automáticamente, aunque
@@ -188,6 +199,37 @@ export const useCustomerDetail = (customerId: string) => {
     }
   };
 
+  /**
+   * Couriers que el cliente todavía no tiene. La ficha ya lista los asignados;
+   * esto es lo que falta para poder darle uno nuevo sin pasar por el flujo de
+   * registro de paquetes.
+   */
+  const availableCourierRates = useMemo(() => {
+    if (!customer) return [];
+    const owned = new Set(customer.warehouse_codes.map((wc) => `${wc.origin}|${wc.package_type}`));
+    return courierRates.filter((r) => !!r.warehouse_route_id && !owned.has(`${r.origin}|${r.package_type}`));
+  }, [customer, courierRates]);
+
+  const assignWarehouseCode = async (courierRateUuid: string) => {
+    setIsAssigningCode(true);
+    try {
+      const res: any = await ApiServiceClient(env.API.BASE_URL).post('/customers/assign-warehouse-code', {
+        customerId,
+        courierRateUuid,
+      });
+      // La ficha del cliente es quien pinta la lista de casilleros: sin
+      // invalidarla el código recién creado no aparecería hasta recargar.
+      await queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
+      await queryClient.invalidateQueries({ queryKey: ['customer-warehouse-codes', customerId] });
+      toast.success(`Casillero asignado: ${res?.data?.code ?? ''}`);
+      setIsAssignCodeModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo asignar el casillero.');
+    } finally {
+      setIsAssigningCode(false);
+    }
+  };
+
   const handleConfirmCreateOrderWithAddress = async () => {
     if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
     await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId, selectedDeliveryMethod);
@@ -222,6 +264,12 @@ export const useCustomerDetail = (customerId: string) => {
     selectedDeliveryMethod,
     setSelectedDeliveryMethod,
     handleConfirmCreateOrderWithAddress,
+    availableCourierRates,
+    isAssignCodeModalOpen,
+    openAssignCodeModal: () => setIsAssignCodeModalOpen(true),
+    closeAssignCodeModal: () => setIsAssignCodeModalOpen(false),
+    assignWarehouseCode,
+    isAssigningCode,
     handleBack: () => router.back(),
     activeTab,
     setActiveTab,
