@@ -8,8 +8,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const manifest = {
     id: '/',
-    name: 'Magastore Backoffice',
-    short_name: 'Magastore',
+    name: isDev ? '[DEV] Magastore Backoffice' : 'Magastore Backoffice',
+    short_name: isDev ? '[DEV] Magastore' : 'Magastore',
     description: 'Backoffice de Magastore: paquetes, órdenes de envío, facturación y seguimiento.',
     start_url: '/',
     scope: '/',
@@ -21,7 +21,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       { src: `/icon-512${iconSuffix}.png`, sizes: '512x512', type: 'image/png' },
       { src: `/icon-512${iconSuffix}.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
-    theme_color: '#111111',
+    theme_color: backgroundColor,
     background_color: backgroundColor,
   };
 

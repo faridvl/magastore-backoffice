@@ -143,18 +143,33 @@ async function main() {
   // ── Splash de iOS ─────────────────────────────────────────────────────
   // `black` es producción. `green` marca dev-portal: mismo fondo sólido que el
   // ícono de home screen (`icon-*-dev.png`), para que ícono y splash coincidan
-  // exactamente y no se perciba un "salto" de color al abrir en iOS.
+  // exactamente y no se perciba un "salto" de color al abrir en iOS. Además
+  // lleva la leyenda "ENTORNO DE PRUEBAS" para que sea inconfundible con prod.
   for (const [w, h] of SPLASH_SIZES) {
     const logoWidth = Math.round(w * 0.62);
     const logo = await sharp(full).resize(logoWidth, null, { fit: 'inside' }).toBuffer();
+    const logoMeta = await sharp(logo).metadata();
 
     await sharp({ create: { width: w, height: h, channels: 4, background: BLACK } })
       .composite([{ input: logo, gravity: 'center' }])
       .png()
       .toFile(path.join(SPLASH_DIR, `black-${w}x${h}.png`));
 
+    const fontSize = Math.round(w * 0.032);
+    const labelSvg = Buffer.from(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${fontSize * 2}">
+        <text x="50%" y="${fontSize}" text-anchor="middle" dominant-baseline="middle"
+          font-family="Arial, sans-serif" font-weight="700" letter-spacing="2"
+          font-size="${fontSize}" fill="#FFFFFF">ENTORNO DE PRUEBAS</text>
+      </svg>
+    `);
+    const labelTop = Math.round(h / 2 + (logoMeta.height ?? 0) / 2 + fontSize * 1.4);
+
     await sharp({ create: { width: w, height: h, channels: 4, background: DEV_GREEN } })
-      .composite([{ input: logo, gravity: 'center' }])
+      .composite([
+        { input: logo, gravity: 'center' },
+        { input: await sharp(labelSvg).png().toBuffer(), left: 0, top: labelTop },
+      ])
       .png()
       .toFile(path.join(SPLASH_DIR, `green-${w}x${h}.png`));
   }
