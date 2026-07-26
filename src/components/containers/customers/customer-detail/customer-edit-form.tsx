@@ -5,16 +5,12 @@ const ADDRESS_LABELS = ['Casa', 'Oficina', 'Casa de familiar', 'Otro'];
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { LocationSelectFields } from '@/components/common/location-select-fields/location-select-fields';
 import { CustomerUpdateInput, CustomerAddressUpdateInput, IdType, CustomerType, CustomerBillingMode } from '@/types/customer/customer.types';
+import { applyIdMask, applyPhoneMask, validateIdCard, idCardPlaceholder, ID_TYPE_OPTIONS } from '@/shared/utils/customer-masks';
 
 const LOCATION_SELECT_CLASSNAME = 'w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed';
 const LOCATION_LABEL_CLASSNAME = 'text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest';
 
-const ID_TYPES: { value: IdType; label: string }[] = [
-  { value: 'FISICA', label: 'Física' },
-  { value: 'JURIDICA', label: 'Jurídica' },
-  { value: 'DIMEX', label: 'DIMEX' },
-  { value: 'PASAPORTE', label: 'Pasaporte' },
-];
+const ID_TYPES = ID_TYPE_OPTIONS;
 
 interface CustomerEditFormProps {
   form: CustomerUpdateInput;
@@ -28,12 +24,14 @@ interface CustomerEditFormProps {
   onCancel: () => void;
 }
 
-const FieldInput = ({ label, value, onChange, type = 'text', disabled = false }: {
+const FieldInput = ({ label, value, onChange, type = 'text', disabled = false, placeholder, error }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   disabled?: boolean;
+  placeholder?: string;
+  error?: string;
 }) => (
   <div className="space-y-2">
     <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">{label}</label>
@@ -42,8 +40,10 @@ const FieldInput = ({ label, value, onChange, type = 'text', disabled = false }:
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      placeholder={placeholder}
+      className={`w-full bg-slate-50 border rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed ${error ? 'border-red-300 bg-red-50/30' : 'border-slate-100 focus:border-primary'}`}
     />
+    {error && <p className="text-xs text-red-500 font-semibold ml-1">{error}</p>}
   </div>
 );
 
@@ -58,11 +58,24 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
   onSave,
   onCancel,
 }) => {
+  // Solo se marca error cuando ya hay algo escrito: un campo vacío recién
+  // abierto no debería aparecer en rojo.
+  const idCardError = form.id_card?.trim()
+    ? validateIdCard(form.id_card, form.id_type ?? 'FISICA')
+    : undefined;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Datos Personales */}
-      <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
-        <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Datos Personales</Typography>
+      <div className="bg-white p-5 sm:p-8 rounded-[24px] sm:rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+        <div>
+          <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Datos Personales</Typography>
+          {/* El servicio normaliza a mayúsculas al guardar: avisarlo evita que
+              parezca que el sistema "cambió" lo que el operador escribió. */}
+          <p className="text-[11px] font-medium text-slate-400 mt-1">
+            Nombre, apellidos, cédula y direcciones se guardan en mayúsculas. El correo, en minúsculas.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FieldInput
@@ -79,7 +92,14 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
             <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Tipo de ID</label>
             <select
               value={form.id_type ?? 'FISICA'}
-              onChange={(e) => onFieldChange('id_type', e.target.value as IdType)}
+              // Cambiar el tipo reformatea el número al vuelo en vez de
+              // descartarlo: en edición el dato ya existe y borrarlo obligaría
+              // a teclearlo de nuevo.
+              onChange={(e) => {
+                const nextType = e.target.value as IdType;
+                onFieldChange('id_type', nextType);
+                if (form.id_card) onFieldChange('id_card', applyIdMask(form.id_card, nextType));
+              }}
               className="w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700"
             >
               {ID_TYPES.map((t) => (
@@ -87,10 +107,15 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               ))}
             </select>
           </div>
+          {/* Mismas máscaras que el alta: antes este formulario aceptaba
+              cualquier texto y permitía guardar cédulas con un formato que el
+              alta nunca habría dejado pasar. */}
           <FieldInput
             label="Número de Cédula"
             value={form.id_card ?? ''}
-            onChange={(v) => onFieldChange('id_card', v)}
+            onChange={(v) => onFieldChange('id_card', applyIdMask(v, form.id_type ?? 'FISICA'))}
+            placeholder={idCardPlaceholder(form.id_type ?? 'FISICA')}
+            error={idCardError}
           />
           <FieldInput
             label="Correo Electrónico"
@@ -101,36 +126,9 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
           <FieldInput
             label="Teléfono"
             value={form.phone}
-            onChange={(v) => {
-              const digits = v.replace(/\D/g, '');
-              const local = digits.startsWith('506') ? digits.slice(3) : digits;
-              const trimmed = local.slice(0, 8);
-              const part1 = trimmed.slice(0, 4);
-              const part2 = trimmed.slice(4, 8);
-              const formatted = part2 ? `${part1}-${part2}` : part1;
-              onFieldChange('phone', formatted ? `+506 ${formatted}` : '');
-            }}
+            placeholder="+506 0000-0000"
+            onChange={(v) => onFieldChange('phone', applyPhoneMask(v))}
           />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Tipo de cliente</label>
-          <select
-            value={form.customer_type_id != null ? String(form.customer_type_id) : ''}
-            onChange={(e) => onFieldChange('customer_type_id', e.target.value ? Number(e.target.value) : null)}
-            className="w-full bg-slate-50 border border-slate-100 rounded-[16px] px-5 py-4 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-slate-700"
-          >
-            {customerTypes.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-                {t.billing_mode === CustomerBillingMode.AL_COSTO ? ' — solo paga el costo, sin ganancia' : ''}
-                {t.billing_mode === CustomerBillingMode.DESCUENTO ? ` — ${Number(t.discount_percent)}% de rebaja` : ''}
-              </option>
-            ))}
-          </select>
-          <p className="text-[11px] text-slate-400 ml-1">
-            Define cómo se le cobra el flete. La entrega local siempre se cobra completa.
-          </p>
         </div>
 
         <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -154,8 +152,54 @@ export const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
         </div>
       </div>
 
+      {/* Tipo de cliente — sección propia: enterrado como un <select> más entre
+          seis campos, el operador no lo encontraba y creía que no se podía
+          cambiar. Tarjetas grandes, igual que en el alta. */}
+      <div className="bg-white p-5 sm:p-8 rounded-[24px] sm:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+        <div>
+          <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Tipo de Cliente</Typography>
+          <p className="text-[11px] font-medium text-slate-400 mt-1">
+            Define cómo se le cobra el flete. La entrega local siempre se cobra completa.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {customerTypes.map((t) => {
+            const isSelected = form.customer_type_id === t.id;
+            return (
+              <button
+                type="button"
+                key={t.id}
+                onClick={() => onFieldChange('customer_type_id', t.id)}
+                className={`text-left p-4 rounded-2xl border-2 transition-all ${isSelected ? 'border-amber-600 bg-amber-50/30 shadow-md' : 'border-slate-100 bg-slate-50/50 hover:border-slate-200'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'border-amber-600' : 'border-slate-300'}`}>
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-amber-600" />}
+                  </span>
+                  <span className="text-sm font-bold text-slate-700 truncate">{t.name}</span>
+                </span>
+                <span className="block text-[11px] font-medium text-slate-400 mt-1.5 ml-6">
+                  {t.billing_mode === CustomerBillingMode.AL_COSTO
+                    ? 'Solo paga el costo, sin ganancia'
+                    : t.billing_mode === CustomerBillingMode.DESCUENTO
+                      ? `${Number(t.discount_percent)}% de rebaja sobre el flete`
+                      : 'Paga la tarifa completa por libra'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {form.customer_type_id == null && (
+          <p className="text-[11px] font-medium text-amber-600">
+            Este cliente no tiene tipo asignado: se le cobra tarifa de lista.
+          </p>
+        )}
+      </div>
+
       {/* Direcciones */}
-      <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+      <div className="bg-white p-5 sm:p-8 rounded-[24px] sm:rounded-[32px] border border-slate-100 shadow-sm space-y-6">
         <div className="flex justify-between items-center">
           <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Direcciones</Typography>
           <button

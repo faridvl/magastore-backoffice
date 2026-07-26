@@ -8,6 +8,15 @@ import {
   useSetDefaultCourierRateMutation,
 } from '@/shared/api/mutations/settings/use-courier-rate-mutations';
 import { CourierRateInput, CourierRateWithWarehouse, PackageType } from '@/types/logistics/logistics.types';
+import {
+  applyUpperMask,
+  applyCodePrefixMask,
+  applyUsPhoneMask,
+  loadUsPhone,
+  applyZipMask,
+  applyMoneyMask,
+} from '@/shared/utils/courier-rate-masks';
+import { validateCourierRateDraft, CourierRateFormErrors } from '@/shared/utils/courier-rate-schema';
 
 export type CourierRateDraft = {
   name: string;
@@ -37,65 +46,75 @@ const EMPTY_DRAFT: CourierRateDraft = {
   contact_phone: '',
 };
 
+/**
+ * Máscara por campo. El teléfono usa el formato de EE. UU. y no el de
+ * `customer-masks`: los casilleros están en Florida, y la máscara de Costa Rica
+ * (+506, 8 dígitos) destruiría un número real como "+1 786-360-2816".
+ */
+const FIELD_MASKS: Partial<Record<keyof CourierRateDraft, (value: string) => string>> = {
+  name: applyUpperMask,
+  origin: applyUpperMask,
+  code_prefix: applyCodePrefixMask,
+  address_line: applyUpperMask,
+  city: applyUpperMask,
+  state: applyUpperMask,
+  postal_code: applyZipMask,
+  contact_phone: applyUsPhoneMask,
+  rate_usd: applyMoneyMask,
+  insurance_usd: applyMoneyMask,
+};
+
+function maskField(field: keyof CourierRateDraft, value: string): string {
+  const mask = FIELD_MASKS[field];
+  return mask ? mask(value) : value;
+}
+
+/**
+ * Los campos de texto se envían en mayúsculas. La máscara ya lo hace mientras se
+ * escribe, pero se repite aquí porque un draft puede venir de `rateToDraft` con
+ * datos viejos guardados en minúscula: editar y guardar un courier existente
+ * debe normalizarlo, no re-guardar el formato antiguo.
+ */
 function draftToInput(draft: CourierRateDraft): CourierRateInput {
   return {
-    name: draft.name.trim(),
-    origin: draft.origin.trim(),
+    name: applyUpperMask(draft.name).trim(),
+    origin: applyUpperMask(draft.origin).trim(),
     package_type: draft.package_type,
     rate_usd: Number(draft.rate_usd),
     insurance_usd: draft.insurance_usd.trim() === '' ? 0 : Number(draft.insurance_usd),
-    code_prefix: draft.code_prefix.trim(),
-    address_line: draft.address_line.trim(),
-    city: draft.city.trim(),
-    state: draft.state.trim(),
+    code_prefix: applyCodePrefixMask(draft.code_prefix).trim(),
+    address_line: applyUpperMask(draft.address_line).trim(),
+    city: applyUpperMask(draft.city).trim(),
+    state: applyUpperMask(draft.state).trim(),
     postal_code: draft.postal_code.trim(),
     contact_phone: draft.contact_phone.trim(),
   };
 }
 
 /**
- * Etiquetas de los campos obligatorios, en el mismo orden en que aparecen en el
- * formulario — el mensaje de error nombra el primero que falta para que el
- * operador sepa dónde mirar sin contar campos. El servicio valida lo mismo:
- * esto solo evita el viaje al servidor.
+ * Carga la tarifa en el formulario aplicando las mismas máscaras que el tipeo.
+ * Un courier guardado antes de este cambio puede traer la ciudad en minúscula o
+ * el teléfono sin formato: se muestra ya normalizado para que el operador vea
+ * exactamente lo que se va a guardar.
  */
-const REQUIRED_FIELDS: [keyof CourierRateDraft, string][] = [
-  ['name', 'el nombre'],
-  ['origin', 'el origen'],
-  ['rate_usd', 'la tarifa por libra'],
-  ['code_prefix', 'el prefijo de código'],
-  ['address_line', 'la dirección del casillero'],
-  ['city', 'la ciudad'],
-  ['state', 'el estado/provincia'],
-  ['postal_code', 'el código postal'],
-  ['contact_phone', 'el teléfono de contacto'],
-];
-
-/** Devuelve el mensaje del primer campo vacío, o null si el draft está completo. */
-function findMissingField(draft: CourierRateDraft): string | null {
-  for (const [field, label] of REQUIRED_FIELDS) {
-    if (!String(draft[field] ?? '').trim()) return `Falta ${label}.`;
-  }
-  if (Number(draft.rate_usd) <= 0) return 'La tarifa por libra debe ser mayor a 0.';
-  if (draft.insurance_usd.trim() !== '' && Number(draft.insurance_usd) < 0) {
-    return 'El seguro no puede ser negativo.';
-  }
-  return null;
-}
-
 function rateToDraft(rate: CourierRateWithWarehouse): CourierRateDraft {
   return {
-    name: rate.name,
-    origin: rate.origin,
+    name: applyUpperMask(rate.name),
+    origin: applyUpperMask(rate.origin),
     package_type: rate.package_type,
-    rate_usd: String(rate.rate_usd),
-    insurance_usd: String(rate.insurance_usd),
-    code_prefix: rate.code_prefix ?? '',
-    address_line: rate.address_line ?? '',
-    city: rate.city ?? '',
-    state: rate.state ?? '',
-    postal_code: rate.postal_code ?? '',
-    contact_phone: rate.contact_phone ?? '',
+    // Los montos llegan de Postgres como "2.3000" — se recortan los ceros de
+    // relleno para que el input no muestre 4 decimales.
+    rate_usd: String(Number(rate.rate_usd)),
+    insurance_usd: String(Number(rate.insurance_usd)),
+    code_prefix: applyCodePrefixMask(rate.code_prefix ?? ''),
+    address_line: applyUpperMask(rate.address_line ?? ''),
+    city: applyUpperMask(rate.city ?? ''),
+    state: applyUpperMask(rate.state ?? ''),
+    postal_code: applyZipMask(rate.postal_code ?? ''),
+    // Se carga sin reinterpretar: un teléfono guardado que no sea un número US
+    // válido debe verse tal cual y fallar la validación, no salir "arreglado"
+    // con dígitos reagrupados que nadie escribió.
+    contact_phone: loadUsPhone(rate.contact_phone ?? ''),
   };
 }
 
@@ -108,9 +127,11 @@ export const useCourierRates = () => {
 
   const [editingUuid, setEditingUuid] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<CourierRateDraft>(EMPTY_DRAFT);
+  const [editErrors, setEditErrors] = useState<CourierRateFormErrors>({});
 
   const [showNewRow, setShowNewRow] = useState(false);
   const [newDraft, setNewDraft] = useState<CourierRateDraft>(EMPTY_DRAFT);
+  const [newErrors, setNewErrors] = useState<CourierRateFormErrors>({});
 
   const rates = data?.data ?? [];
   const hasActiveRate = rates.some((r) => r.is_active);
@@ -118,22 +139,29 @@ export const useCourierRates = () => {
   const startEdit = (rate: CourierRateWithWarehouse) => {
     setEditingUuid(rate.uuid);
     setEditDraft(rateToDraft(rate));
+    setEditErrors({});
   };
 
   const cancelEdit = () => {
     setEditingUuid(null);
     setEditDraft(EMPTY_DRAFT);
+    setEditErrors({});
   };
 
   const updateEditDraft = (field: keyof CourierRateDraft, value: string) => {
-    setEditDraft((prev) => ({ ...prev, [field]: value }));
+    setEditDraft((prev) => ({ ...prev, [field]: maskField(field, value) }));
+    // El error del campo se limpia al corregirlo, sin esperar al próximo
+    // guardado: mantener el mensaje mientras se escribe la corrección hace
+    // parecer que el campo sigue mal.
+    setEditErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   };
 
   const saveEdit = async () => {
     if (!editingUuid) return;
-    const missing = findMissingField(editDraft);
-    if (missing) {
-      toast.error(missing);
+    const errors = await validateCourierRateDraft(editDraft);
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      toast.error('Revisa los campos marcados.');
       return;
     }
     try {
@@ -147,22 +175,26 @@ export const useCourierRates = () => {
 
   const openNewRow = () => {
     setNewDraft(EMPTY_DRAFT);
+    setNewErrors({});
     setShowNewRow(true);
   };
 
   const cancelNewRow = () => {
     setShowNewRow(false);
     setNewDraft(EMPTY_DRAFT);
+    setNewErrors({});
   };
 
   const updateNewDraft = (field: keyof CourierRateDraft, value: string) => {
-    setNewDraft((prev) => ({ ...prev, [field]: value }));
+    setNewDraft((prev) => ({ ...prev, [field]: maskField(field, value) }));
+    setNewErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   };
 
   const saveNewRow = async () => {
-    const missing = findMissingField(newDraft);
-    if (missing) {
-      toast.error(missing);
+    const errors = await validateCourierRateDraft(newDraft);
+    if (Object.keys(errors).length > 0) {
+      setNewErrors(errors);
+      toast.error('Revisa los campos marcados.');
       return;
     }
     try {
@@ -200,6 +232,7 @@ export const useCourierRates = () => {
     isSettingDefault,
     editingUuid,
     editDraft,
+    editErrors,
     startEdit,
     cancelEdit,
     updateEditDraft,
@@ -207,6 +240,7 @@ export const useCourierRates = () => {
     isUpdating,
     showNewRow,
     newDraft,
+    newErrors,
     openNewRow,
     cancelNewRow,
     updateNewDraft,

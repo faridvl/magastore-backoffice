@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { LocationSelectFields } from '@/components/common/location-select-fields/location-select-fields';
+import { ID_TYPE_OPTIONS, idCardPlaceholder } from '@/shared/utils/customer-masks';
 import { useCreateCustomer } from './use-create-customer';
 
 const LOCATION_SELECT_CLASSNAME = 'w-full bg-slate-50 border border-transparent rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 shadow-sm text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed';
@@ -22,9 +23,13 @@ const BILLING_MODE_DESC = (mode: string, discount: number): string => {
 
 export const CreateCustomerContainer: React.FC = () => {
     const {
-        formData, addresses, errors, customerTypes, handleInputChange,
+        register, fieldErrors, sectionErrors, idType, idCard, phone,
+        handleIdCardChange, handleIdTypeChange, handlePhoneChange,
+        customerTypeId, setCustomerTypeId,
+        addresses, customerTypes,
         addAddressField, removeAddress, handleAddressChange, handleSubmit, isPending,
-        courierRates, selectedRouteIds, toggleCourierRoute
+        courierRates, selectedRateUuids, codesByRate, codeErrors, toggleCourierRoute, setCourierCode,
+        cancel,
     } = useCreateCustomer();
 
     return (
@@ -35,36 +40,48 @@ export const CreateCustomerContainer: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-4 mb-2">
                         <Typography variant={TypographyVariant.SUBTITLE}>Nuevo Cliente</Typography>
+                        {/* El servicio normaliza al guardar: avisarlo evita que parezca
+                            que el sistema "cambió" lo que el operador escribió. */}
+                        <p className="text-xs font-medium text-slate-400 mt-1">
+                            Nombre, apellidos, cédula y direcciones se guardan en mayúsculas. El correo, en minúsculas.
+                        </p>
                     </div>
 
-                    <FormInput label="Nombre" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="Ej. Alexander" error={errors.firstName} />
-                    <FormInput label="Apellidos" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Ej. Pierce" error={errors.lastName} />
+                    <FormInput label="Nombre" placeholder="Ej. Alexander" error={fieldErrors.first_name?.message} {...register('first_name')} />
+                    <FormInput label="Apellidos" placeholder="Ej. Pierce" error={fieldErrors.last_name?.message} {...register('last_name')} />
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Tipo Identificación</label>
                         <select
-                            name="idType"
-                            value={formData.idType}
-                            onChange={handleInputChange}
+                            value={idType}
+                            onChange={(e) => handleIdTypeChange(e.target.value)}
                             className="w-full bg-slate-50 border-none rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 shadow-sm appearance-none text-sm md:text-base"
                         >
-                            <option value="FISICA">Física</option>
-                            <option value="JURIDICA">Jurídica</option>
-                            <option value="DIMEX">DIMEX</option>
-                            <option value="PASAPORTE">Pasaporte</option>
+                            {ID_TYPE_OPTIONS.map((t) => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
                         </select>
                     </div>
 
-                    <FormInput label="Número de Cédula" name="idCard" value={formData.idCard} onChange={handleInputChange} placeholder="0-0000-0000" error={errors.idCard} />
-                    <FormInput label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="cliente@email.com" error={errors.email} />
-                    <FormInput label="Teléfono" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="+506 0000-0000" error={errors.phone} />
+                    {/* Cédula y teléfono no usan register directo: el valor pasa por la
+                        máscara antes de entrar al formulario, y el formato depende del
+                        tipo de identificación elegido. */}
                     <FormInput
-                        label="Código de casillero (opcional)"
-                        name="customerCode"
-                        value={formData.customerCode}
-                        onChange={handleInputChange}
-                        placeholder="Se genera automáticamente si lo dejas vacío"
-                        error={errors.customerCode}
+                        label="Número de Cédula"
+                        value={idCard}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleIdCardChange(e.target.value)}
+                        placeholder={idCardPlaceholder(idType)}
+                        inputMode={idType === 'PASAPORTE' ? 'text' : 'numeric'}
+                        error={fieldErrors.id_card?.message}
+                    />
+                    <FormInput label="Correo Electrónico" type="email" inputMode="email" placeholder="cliente@email.com" error={fieldErrors.email?.message} {...register('email')} />
+                    <FormInput
+                        label="Teléfono"
+                        value={phone}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePhoneChange(e.target.value)}
+                        placeholder="+506 0000-0000"
+                        inputMode="tel"
+                        error={fieldErrors.phone?.message}
                     />
                 </div>
 
@@ -75,6 +92,9 @@ export const CreateCustomerContainer: React.FC = () => {
                         <p className="text-xs font-medium text-slate-400 mt-1">
                             Se le genera un código por cada courier que marques. Solo podrá recibir paquetes de los couriers seleccionados.
                         </p>
+                        {sectionErrors.warehouses && (
+                            <p className="text-xs text-red-500 font-semibold mt-2">{sectionErrors.warehouses}</p>
+                        )}
                     </div>
 
                     {courierRates.length === 0 ? (
@@ -84,28 +104,67 @@ export const CreateCustomerContainer: React.FC = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {courierRates.map((rate) => {
+                                // La selección va por uuid de la tarifa: warehouse_route_id es
+                                // único por (origin, package_type), así que dos couriers del
+                                // mismo origen y tipo lo comparten y marcaban ambas tarjetas.
                                 const routeId = rate.warehouse_route_id;
-                                const isSelected = !!routeId && selectedRouteIds.includes(routeId);
+                                const isSelected = selectedRateUuids.includes(rate.uuid);
+                                const nextCode = rate.code_prefix
+                                    ? `${rate.code_prefix}${String((rate.current_counter ?? 0) + 1).padStart(2, '0')}`
+                                    : null;
                                 return (
-                                    <button
-                                        type="button"
+                                    <div
                                         key={rate.uuid}
-                                        // Un courier sin casillero configurado no puede generar códigos.
-                                        disabled={!routeId}
-                                        onClick={() => routeId && toggleCourierRoute(routeId)}
-                                        className={`text-left p-5 rounded-3xl border-2 transition-all flex items-start gap-3 disabled:opacity-40 disabled:cursor-not-allowed ${isSelected ? 'border-amber-600 bg-amber-50/30 shadow-md' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
+                                        className={`rounded-3xl border-2 transition-all ${isSelected ? 'border-amber-600 bg-amber-50/30 shadow-md' : 'border-slate-50 bg-slate-50/50'} ${!routeId ? 'opacity-40' : ''}`}
                                     >
-                                        <span className={`mt-0.5 w-4 h-4 rounded-md border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-600' : 'border-slate-300'}`}>
-                                            {isSelected && <span className="text-white text-[10px] font-black leading-none">✓</span>}
-                                        </span>
-                                        <span className="min-w-0">
-                                            <span className="block text-sm font-bold text-slate-700 truncate">{rate.name}</span>
-                                            <span className="block text-[11px] font-medium text-slate-400 mt-0.5">
-                                                {rate.origin} · {rate.package_type}
-                                                {!routeId && ' · sin casillero configurado'}
+                                        <button
+                                            type="button"
+                                            // Un courier sin casillero configurado no puede generar códigos.
+                                            disabled={!routeId}
+                                            onClick={() => routeId && toggleCourierRoute(rate.uuid)}
+                                            className="w-full text-left p-5 flex items-start gap-3 disabled:cursor-not-allowed"
+                                        >
+                                            <span className={`mt-0.5 w-4 h-4 rounded-md border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? 'bg-amber-600 border-amber-600' : 'border-slate-300'}`}>
+                                                {isSelected && <span className="text-white text-[10px] font-black leading-none">✓</span>}
                                             </span>
-                                        </span>
-                                    </button>
+                                            <span className="min-w-0">
+                                                <span className="block text-sm font-bold text-slate-700 truncate">{rate.name}</span>
+                                                <span className="block text-[11px] font-medium text-slate-400 mt-0.5">
+                                                    {rate.origin} · {rate.package_type}
+                                                    {!routeId && ' · sin casillero configurado'}
+                                                </span>
+                                            </span>
+                                        </button>
+
+                                        {/* El código manual pertenece a ESTE courier. Antes era un
+                                            campo suelto que el backend pegaba siempre al primer
+                                            casillero marcado, sin decirlo en ninguna parte. */}
+                                        {isSelected && (
+                                            <div className="px-5 pb-5 -mt-1 space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                                                    Código (opcional)
+                                                </label>
+                                                <input
+                                                    value={codesByRate[rate.uuid] ?? ''}
+                                                    onChange={(e) => setCourierCode(rate.uuid, e.target.value)}
+                                                    placeholder={nextCode ? `Se asignará ${nextCode}` : 'Se genera automáticamente'}
+                                                    className={`w-full bg-white border rounded-2xl px-4 py-3 text-sm font-mono font-bold text-slate-700 placeholder:font-sans placeholder:font-medium placeholder:text-slate-300 outline-none transition-all ${
+                                                        codeErrors[rate.uuid]
+                                                            ? 'border-red-300 bg-red-50/40 focus:ring-2 focus:ring-red-400'
+                                                            : 'border-amber-100 focus:ring-2 focus:ring-amber-500'
+                                                    }`}
+                                                />
+                                                {/* Formato incorrecto se avisa al momento, no al enviar. */}
+                                                {codeErrors[rate.uuid] ? (
+                                                    <p className="text-[10px] font-bold text-red-500">{codeErrors[rate.uuid]}</p>
+                                                ) : rate.code_prefix ? (
+                                                    <p className="text-[10px] font-medium text-slate-400">
+                                                        Formato: <span className="font-mono font-bold text-slate-500">{rate.code_prefix}00</span> — déjalo vacío para generarlo automáticamente.
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })}
                         </div>
@@ -122,10 +181,11 @@ export const CreateCustomerContainer: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {customerTypes.map((type) => (
-                            <div
+                            <button
+                                type="button"
                                 key={type.id}
-                                onClick={() => handleInputChange({ target: { name: 'customerTypeId', value: String(type.id) } } as any)}
-                                className={`cursor-pointer p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${String(type.id) === formData.customerTypeId ? 'border-amber-600 bg-amber-50/30 shadow-md scale-[1.02]' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
+                                onClick={() => setCustomerTypeId(String(type.id))}
+                                className={`text-left cursor-pointer p-5 md:p-6 rounded-3xl border-2 transition-all flex flex-col gap-1 ${String(type.id) === customerTypeId ? 'border-amber-600 bg-amber-50/30 shadow-md' : 'border-slate-50 bg-slate-50/50 hover:border-slate-200'}`}
                             >
                                 <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full w-fit ${BILLING_MODE_STYLES[type.billing_mode] ?? 'bg-slate-100 text-slate-500'}`}>
                                     {type.name}
@@ -133,22 +193,22 @@ export const CreateCustomerContainer: React.FC = () => {
                                 <p className="text-xs font-medium text-slate-400 mt-2">
                                     {BILLING_MODE_DESC(type.billing_mode, Number(type.discount_percent))}
                                 </p>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
 
                 {/* SECCIÓN 3: DIRECCIONES */}
                 <div className="space-y-8">
-                    <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-                        <div>
+                    <div className="flex justify-between items-center gap-3 border-b border-slate-100 pb-4">
+                        <div className="min-w-0">
                             <Typography variant={TypographyVariant.SUBTITLE}>Direcciones de Entrega</Typography>
-                            {errors.addresses && (
-                                <p className="text-xs text-red-500 font-semibold mt-1">{errors.addresses}</p>
+                            {sectionErrors.addresses && (
+                                <p className="text-xs text-red-500 font-semibold mt-1">{sectionErrors.addresses}</p>
                             )}
                         </div>
-                        <button type="button" onClick={addAddressField} className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-6 py-3 rounded-2xl hover:bg-amber-100 transition-all">
-                            + Añadir Dirección
+                        <button type="button" onClick={addAddressField} className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-4 md:px-6 min-h-[44px] rounded-2xl hover:bg-amber-100 transition-all flex-shrink-0 whitespace-nowrap">
+                            + Añadir
                         </button>
                     </div>
 
@@ -208,7 +268,8 @@ export const CreateCustomerContainer: React.FC = () => {
 
                 {/* ACCIONES */}
                 <div className="flex gap-4 pt-6 md:pt-10 border-t border-slate-50">
-                    <button type="button" className="flex-1 py-4 md:py-5 bg-slate-100 text-slate-500 rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all">Cancelar</button>
+                    {/* Antes no tenía handler: se veía como botón pero no hacía nada. */}
+                    <button type="button" onClick={cancel} disabled={isPending} className="flex-1 py-4 md:py-5 bg-slate-100 text-slate-500 rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all disabled:opacity-50">Cancelar</button>
                     <button type="submit" disabled={isPending} className="flex-[2] py-4 md:py-5 bg-slate-900 text-white rounded-[20px] md:rounded-[24px] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:bg-black transition-all shadow-lg shadow-slate-300 disabled:opacity-60 disabled:cursor-not-allowed">
                         {isPending ? 'Guardando...' : 'Registrar Cliente'}
                     </button>
@@ -218,16 +279,24 @@ export const CreateCustomerContainer: React.FC = () => {
     );
 };
 
-interface FormInputProps {
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
-    [key: string]: unknown;
 }
 
-const FormInput = ({ label, error, ...props }: FormInputProps) => (
-    <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">{label}</label>
-        <input {...props as any} className={`w-full bg-slate-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`} />
-        {error && <p className="text-xs text-red-500 font-semibold ml-2">{error}</p>}
-    </div>
+// forwardRef: react-hook-form registra los campos por ref, y sin esto los que
+// usan {...register(...)} quedarían fuera del formulario.
+const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
+    ({ label, error, ...props }, ref) => (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">{label}</label>
+            <input
+                ref={ref}
+                {...props}
+                className={`w-full bg-slate-50 border rounded-[16px] md:rounded-[20px] px-4 py-3.5 md:px-6 md:py-5 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-sm text-sm md:text-base ${error ? 'border-red-300 bg-red-50/30' : 'border-transparent'}`}
+            />
+            {error && <p className="text-xs text-red-500 font-semibold ml-2">{error}</p>}
+        </div>
+    ),
 );
+FormInput.displayName = 'FormInput';

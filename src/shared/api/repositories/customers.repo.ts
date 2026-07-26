@@ -1,63 +1,65 @@
 import sql from '@/lib/db';
-import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
 import { WarehouseRoutesRepository } from './warehouse-routes.repo';
 
 /**
- * Resuelve los casilleros de un cliente nuevo: uno por cada ruta elegida.
+ * Resuelve los casilleros de un cliente nuevo: uno por cada ruta elegida, cada
+ * uno con su propio código opcional.
  *
  * El primero manda — su código es el que se guarda en `customers.customer_code`,
- * la columna que el resto del sistema usa para buscar y mostrar al cliente. Un
- * código explícito (cliente que ya tenía casillero antes de entrar al sistema)
- * solo aplica a esa primera ruta; las demás se generan.
+ * la columna que el resto del sistema usa para buscar y mostrar al cliente.
+ *
+ * Cada código explícito aplica a SU ruta, no a la primera del arreglo: antes
+ * había un único código suelto que se pegaba a `routes[0]`, así que el código
+ * manual de un cliente terminaba en el courier equivocado según el orden en que
+ * el operador hubiera marcado los checkboxes.
  *
  * Debe llamarse dentro de una transacción — el incremento de los contadores
  * solo se revierte si el ROLLBACK lo alcanza.
  */
 async function resolveCustomerCodes(
-  explicitCode?: string | null,
-  routeIds?: number[],
+  warehouseCodes?: CustomerWarehouseCodeInput[],
 ): Promise<{ primaryCode: string; assignments: { warehouseRouteId: number; code: string }[] }> {
-  const trimmed = explicitCode?.trim();
+  // Deduplicadas por ruta: la tabla de unión rechaza dos filas del mismo par
+  // (cliente, ruta) y abortaría la transacción a mitad del alta. Se conserva la
+  // primera aparición, que es la que trae el código que escribió el operador.
+  const byRoute = new Map<number, CustomerWarehouseCodeInput>();
+  for (const entry of warehouseCodes ?? []) {
+    if (!byRoute.has(entry.warehouse_route_id)) byRoute.set(entry.warehouse_route_id, entry);
+  }
+  let requested = Array.from(byRoute.values());
 
   // Sin rutas explícitas se usa la del courier predeterminado, para que ningún
   // cliente quede sin casillero (import masivo y altas rápidas).
-  // Deduplicadas: la tabla de unión rechaza dos filas del mismo par
-  // (cliente, ruta) y abortaría la transacción a mitad del alta.
-  let routes = Array.from(new Set(routeIds ?? []));
-  if (routes.length === 0) {
+  if (requested.length === 0) {
     const fallback = await WarehouseRoutesRepository.getDefaultRoute();
-    // Sin courier predeterminado configurado, un código explícito se respeta
-    // tal cual y el cliente queda sin casillero vinculado — es lo que ya hacía
-    // el flujo anterior cuando no existía la ruta.
     if (!fallback) {
-      if (!trimmed) throw new Error('No hay un courier predeterminado configurado. Elige al menos un courier para el cliente.');
-      return { primaryCode: trimmed, assignments: [] };
+      throw new Error('No hay un courier predeterminado configurado. Elige al menos un courier para el cliente.');
     }
-    routes = [fallback.id];
+    requested = [{ warehouse_route_id: fallback.id }];
   }
 
   const assignments: { warehouseRouteId: number; code: string }[] = [];
 
-  for (let index = 0; index < routes.length; index++) {
-    const routeId = routes[index];
-    // El código explícito solo pisa a la primera ruta; para el resto no hay
-    // forma de saber qué número le tocaría, así que se genera.
-    if (index === 0 && trimmed) {
+  for (const { warehouse_route_id: routeId, code } of requested) {
+    const trimmed = code?.trim();
+
+    if (trimmed) {
       const route = await WarehouseRoutesRepository.getById(routeId);
       // Si el código sigue el prefijo de la ruta, se adelanta el contador para
       // que la próxima alta automática no genere ese mismo número.
       if (route && trimmed.startsWith(route.code_prefix)) {
         const counterValue = parseInt(trimmed.slice(route.code_prefix.length), 10);
         if (!Number.isNaN(counterValue)) {
-          await WarehouseRoutesRepository.advanceCounterIfHigher(route.origin, route.package_type, counterValue);
+          await WarehouseRoutesRepository.advanceCounterIfHigher(route.id, counterValue);
         }
       }
       assignments.push({ warehouseRouteId: routeId, code: trimmed });
       continue;
     }
 
-    const code = await WarehouseRoutesRepository.incrementAndGetCodeById(routeId);
-    assignments.push({ warehouseRouteId: routeId, code });
+    const generated = await WarehouseRoutesRepository.incrementAndGetCodeById(routeId);
+    assignments.push({ warehouseRouteId: routeId, code: generated });
   }
 
   return { primaryCode: assignments[0].code, assignments };
@@ -65,9 +67,19 @@ async function resolveCustomerCodes(
 
 /**
  * Verifica si ya existe un cliente con ese código de casillero.
+ *
+ * Mira las dos tablas: `customers.customer_code` guarda solo el código primario,
+ * pero los casilleros secundarios viven en `customer_warehouse_codes`. Revisar
+ * solo la primera dejaba pasar un código manual que chocaba con el segundo
+ * casillero de otro cliente.
  */
 export const existsByCustomerCode = async (code: string): Promise<boolean> => {
-  const rows = await sql`SELECT 1 FROM customers WHERE customer_code = ${code} LIMIT 1`;
+  const rows = await sql`
+    SELECT 1 FROM customers WHERE customer_code = ${code}
+    UNION ALL
+    SELECT 1 FROM customer_warehouse_codes WHERE code = ${code}
+    LIMIT 1
+  `;
   return rows.length > 0;
 };
 
@@ -94,10 +106,7 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
 
     // Un casillero por cada courier elegido. Si algo falla después, el ROLLBACK
     // también revierte los contadores.
-    const { primaryCode: code, assignments } = await resolveCustomerCodes(
-      data.customer_code,
-      data.warehouse_route_ids,
-    );
+    const { primaryCode: code, assignments } = await resolveCustomerCodes(data.warehouse_codes);
 
     const rows = await sql`
       WITH new_cust AS (
@@ -204,12 +213,15 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
       (SELECT json_agg(ca.*) FROM customer_addresses ca WHERE ca.customer_id = c.id) as addresses_list,
       (
         SELECT json_agg(json_build_object(
-          'code', cwc.code, 'origin', wr.origin, 'package_type', wr.package_type,
+          'code', cwc.code, 'warehouse_route_id', wr.id,
+          'courier_name', cr.name,
+          'origin', wr.origin, 'package_type', wr.package_type,
           'address_line', wr.address_line, 'city', wr.city, 'state', wr.state,
           'postal_code', wr.postal_code, 'contact_phone', wr.contact_phone
         ))
         FROM customer_warehouse_codes cwc
         JOIN warehouse_routes wr ON wr.id = cwc.warehouse_route_id
+        JOIN courier_rates cr ON cr.id = wr.courier_rate_id
         WHERE cwc.customer_id = c.id
       ) as warehouse_codes_list,
       ct.name AS customer_type_name,
@@ -235,6 +247,110 @@ export const getCustomerAddresses = async (customerId: string): Promise<Customer
     ORDER BY is_default DESC, created_at ASC
   `;
   return rows as CustomerAddress[];
+};
+
+/**
+ * Alta o edición de UNA dirección, sin tocar el resto del cliente. El modal de
+ * direcciones del detalle usa esto en vez del update completo: guardar una
+ * dirección no debería reenviar nombre, correo y tipo de cliente.
+ *
+ * Marcar una como principal desmarca las demás dentro de la misma transacción —
+ * si no, el cliente podría quedar con dos principales y el alta de órdenes
+ * elegiría cualquiera.
+ */
+export const upsertCustomerAddress = async (
+  customerId: string,
+  addr: CustomerAddressUpdateInput,
+): Promise<CustomerAddress[]> => {
+  try {
+    await sql`BEGIN`;
+
+    if (addr.is_default) {
+      await sql`UPDATE customer_addresses SET is_default = false WHERE customer_id = ${customerId}`;
+    }
+
+    if (addr.id) {
+      const [updated] = await sql`
+        UPDATE customer_addresses SET
+          province      = ${addr.province},
+          canton        = ${addr.canton},
+          district      = ${addr.district},
+          exact_address = ${addr.exact_address},
+          address_label = ${addr.address_label ?? 'Casa'},
+          is_default    = ${addr.is_default ?? false}
+        WHERE id = ${addr.id} AND customer_id = ${customerId}
+        RETURNING id
+      `;
+      if (!updated) throw new Error('La dirección no existe o no pertenece a este cliente.');
+    } else {
+      await sql`
+        INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+        VALUES (${customerId}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false})
+      `;
+    }
+
+    // Todo cliente necesita una principal: si la que se acaba de guardar no lo
+    // es y ninguna otra lo era, se promueve la más antigua.
+    const [{ count }] = await sql`
+      SELECT COUNT(*)::int AS count FROM customer_addresses
+      WHERE customer_id = ${customerId} AND is_default = true
+    `;
+    if (Number(count) === 0) {
+      await sql`
+        UPDATE customer_addresses SET is_default = true
+        WHERE id = (
+          SELECT id FROM customer_addresses
+          WHERE customer_id = ${customerId} ORDER BY created_at ASC LIMIT 1
+        )
+      `;
+    }
+
+    await sql`COMMIT`;
+  } catch (error) {
+    await sql`ROLLBACK`;
+    throw error;
+  }
+
+  return getCustomerAddresses(customerId);
+};
+
+/**
+ * Elimina una dirección. Se bloquea la última: el alta de órdenes de envío
+ * exige una dirección de entrega y un cliente sin ninguna quedaría inoperable.
+ */
+export const deleteCustomerAddress = async (
+  customerId: string,
+  addressId: string,
+): Promise<CustomerAddress[]> => {
+  const existing = await getCustomerAddresses(customerId);
+  if (existing.length <= 1) {
+    throw new Error('El cliente debe conservar al menos una dirección.');
+  }
+
+  const target = existing.find((a) => a.id === addressId);
+  if (!target) throw new Error('La dirección no existe o no pertenece a este cliente.');
+
+  try {
+    await sql`BEGIN`;
+    await sql`DELETE FROM customer_addresses WHERE id = ${addressId} AND customer_id = ${customerId}`;
+
+    // Si se borró la principal, la más antigua toma su lugar.
+    if (target.is_default) {
+      await sql`
+        UPDATE customer_addresses SET is_default = true
+        WHERE id = (
+          SELECT id FROM customer_addresses
+          WHERE customer_id = ${customerId} ORDER BY created_at ASC LIMIT 1
+        )
+      `;
+    }
+    await sql`COMMIT`;
+  } catch (error) {
+    await sql`ROLLBACK`;
+    throw error;
+  }
+
+  return getCustomerAddresses(customerId);
 };
 
 /**
@@ -365,6 +481,49 @@ export const getCustomerMetrics = async (customerId: string): Promise<CustomerMe
   return row as unknown as CustomerMetricsRow;
 };
 
+/**
+ * Reemplaza el código principal del cliente. `customers.customer_code` es la
+ * columna que leen listados, PDFs y la página pública de tracking, así que si
+ * el casillero que la respaldaba se elimina, otro debe ocupar su lugar.
+ */
+export const updateCustomerCode = async (customerId: string, code: string): Promise<void> => {
+  await sql`UPDATE customers SET customer_code = ${code} WHERE id = ${customerId}`;
+};
+
+export interface DeactivatedCustomerRow {
+  customer_code: string;
+  first_name: string;
+  last_name: string;
+  last_package_at: string | null;
+}
+
+/**
+ * Marca como inactivo a todo cliente activo que lleve más de `days` días sin
+ * registrar un paquete. Un cliente sin ningún paquete se mide desde su fecha de
+ * alta — si no, alguien registrado hace meses y que nunca envió nada seguiría
+ * contando como activo para siempre.
+ *
+ * Un solo UPDATE con subconsulta: recorrer clientes en la aplicación sería N+1
+ * sobre packages. Devuelve las filas afectadas para poder reportarlas.
+ */
+export const deactivateInactiveCustomers = async (days: number): Promise<DeactivatedCustomerRow[]> => {
+  const rows = await sql`
+    WITH stale AS (
+      SELECT c.id,
+             (SELECT MAX(p.created_at) FROM packages p WHERE p.customer_id = c.id) AS last_package_at
+      FROM customers c
+      WHERE c.is_active = true
+    )
+    UPDATE customers c
+    SET is_active = false
+    FROM stale s
+    WHERE c.id = s.id
+      AND COALESCE(s.last_package_at, c.created_at) < NOW() - (${days} || ' days')::interval
+    RETURNING c.customer_code, c.first_name, c.last_name, s.last_package_at
+  `;
+  return rows as unknown as DeactivatedCustomerRow[];
+};
+
 export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {
   const result = await sql`SELECT id FROM customers WHERE customer_code = ${code} LIMIT 1`;
   return result.length > 0;
@@ -395,7 +554,7 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
           email: row.email,
           phone: row.phone,
           customer_code: row.customer_code,
-          warehouse_route_ids: row.warehouse_route_ids,
+          warehouse_codes: row.warehouse_codes,
         },
         addresses: [{
           province: row.province,
@@ -434,10 +593,7 @@ export const importCustomers = async (rows: CustomerImportRow[]): Promise<Custom
         // sistema) vs. generado atómico para altas nuevas sin código propio.
         // Las rutas vienen resueltas desde el servicio a partir de la columna
         // `couriers` de la plantilla; sin ella se usa el predeterminado.
-        const { primaryCode: finalCode, assignments } = await resolveCustomerCodes(
-          meta.customer_code,
-          meta.warehouse_route_ids,
-        );
+        const { primaryCode: finalCode, assignments } = await resolveCustomerCodes(meta.warehouse_codes);
 
         const [newCustomer] = await sql`
           WITH new_cust AS (
@@ -527,6 +683,8 @@ const mapRowToCustomer = (raw: any): Customer => ({
   })),
   warehouse_codes: (raw.warehouse_codes_list || []).map((wc: any) => ({
     code: wc.code,
+    warehouse_route_id: wc.warehouse_route_id,
+    courier_name: wc.courier_name,
     origin: wc.origin,
     package_type: wc.package_type,
     address_line: wc.address_line,

@@ -1,65 +1,25 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'sonner';
 import { useCreateCustomerMutation } from '@/shared/api/mutations/customers/use-create-customer-mutation';
 import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
 import { useCourierRatesQuery } from '@/shared/api/querys/logistics/use-courier-rates-query';
 import { useNavigation } from '@/hooks/use-navigation';
+import {
+  applyIdMask,
+  applyPhoneMask,
+  applyWarehouseCodeMask,
+  validateWarehouseCode,
+} from '@/shared/utils/customer-masks';
+import { customerIdentitySchema, CustomerIdentityForm } from '@/shared/utils/customer-schema';
 
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  idCard?: string;
-  email?: string;
-  phone?: string;
-  customerCode?: string;
-  addresses?: string;
-}
-
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function applyIdMask(value: string, idType: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (idType === 'FISICA') {
-    // 0-0000-0000
-    const p1 = digits.slice(0, 1);
-    const p2 = digits.slice(1, 5);
-    const p3 = digits.slice(5, 9);
-    return [p1, p2, p3].filter(Boolean).join('-');
-  }
-  if (idType === 'JURIDICA') {
-    // 0-000-000000
-    const p1 = digits.slice(0, 1);
-    const p2 = digits.slice(1, 4);
-    const p3 = digits.slice(4, 10);
-    return [p1, p2, p3].filter(Boolean).join('-');
-  }
-  // DIMEX y PASAPORTE: libre (DIMEX acepta dígitos, PASAPORTE alfanumérico)
-  if (idType === 'DIMEX') return value.replace(/\D/g, '').slice(0, 12);
-  return value; // PASAPORTE: alfanumérico libre
-}
-
-function validateIdCard(value: string, idType: string): string | undefined {
-  const digits = value.replace(/\D/g, '');
-  if (idType === 'FISICA' && digits.length !== 9) return 'Cédula física debe tener 9 dígitos (0-0000-0000)';
-  if (idType === 'JURIDICA' && digits.length !== 10) return 'Cédula jurídica debe tener 10 dígitos (0-000-000000)';
-  if (idType === 'DIMEX' && (digits.length < 11 || digits.length > 12)) return 'DIMEX debe tener 11 o 12 dígitos';
-  if (idType === 'PASAPORTE' && value.trim().length < 5) return 'Pasaporte debe tener al menos 5 caracteres';
-  return undefined;
-}
-
-function applyPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  // Costa Rica: +506 XXXX-XXXX (8 dígitos locales)
-  const local = digits.startsWith('506') ? digits.slice(3) : digits;
-  const trimmed = local.slice(0, 8);
-  const part1 = trimmed.slice(0, 4);
-  const part2 = trimmed.slice(4, 8);
-  const formatted = part2 ? `${part1}-${part2}` : part1;
-  return formatted ? `+506 ${formatted}` : '';
-}
-
+/**
+ * Alta de cliente. Los datos identificatorios los maneja react-hook-form con
+ * validación Yup; direcciones y casilleros viven en estado propio porque son
+ * listas dinámicas con reglas cruzadas (una sola principal, un código por
+ * courier) que no encajan en el esquema plano del formulario.
+ */
 export const useCreateCustomer = () => {
   const { admin } = useNavigation();
   const { execute, isPending } = useCreateCustomerMutation();
@@ -71,16 +31,29 @@ export const useCreateCustomer = () => {
     [courierRatesRes],
   );
 
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    idCard: '',
-    idType: 'FISICA',
-    email: '',
-    phone: '',
-    customerTypeId: '' as string,
-    customerCode: '',
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    formState: { errors: fieldErrors },
+    watch,
+    setValue,
+  } = useForm<CustomerIdentityForm>({
+    resolver: yupResolver(customerIdentitySchema),
+    // onTouched: no se grita el error mientras el operador todavía escribe el
+    // campo por primera vez, pero sí en cuanto lo abandona.
+    mode: 'onTouched',
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      id_type: 'FISICA',
+      id_card: '',
+      email: '',
+      phone: '',
+    },
   });
+
+  const idType = watch('id_type');
+  const [customerTypeId, setCustomerTypeId] = useState('');
 
   const [addresses, setAddresses] = useState([
     {
@@ -94,42 +67,84 @@ export const useCreateCustomer = () => {
     },
   ]);
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  // Errores de las secciones que no gestiona react-hook-form.
+  const [sectionErrors, setSectionErrors] = useState<{ addresses?: string; warehouses?: string }>({});
 
   // Couriers con los que el cliente va a operar: uno por casillero. Se
-  // preselecciona el predeterminado para que el alta rápida siga siendo un
-  // solo clic, pero el operador puede desmarcarlo y elegir otros.
-  const [selectedRouteIds, setSelectedRouteIds] = useState<number[]>([]);
+  // identifican por uuid de la tarifa — dos proveedores distintos pueden
+  // compartir origen y tipo de paquete, así que la ruta no los distingue.
+  const [selectedRateUuids, setSelectedRateUuids] = useState<string[]>([]);
   const [routesTouched, setRoutesTouched] = useState(false);
+
+  // Código de casillero manual por courier (uuid → código). Vacío = el backend
+  // genera el siguiente de esa ruta.
+  const [codesByRate, setCodesByRate] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (routesTouched || courierRates.length === 0) return;
     const preselected = courierRates.find((r) => r.is_default) ?? courierRates[0];
-    if (preselected?.warehouse_route_id) setSelectedRouteIds([preselected.warehouse_route_id]);
+    if (preselected?.warehouse_route_id) setSelectedRateUuids([preselected.uuid]);
   }, [courierRates, routesTouched]);
 
-  const toggleCourierRoute = (routeId: number) => {
+  const toggleCourierRoute = (rateUuid: string) => {
     setRoutesTouched(true);
-    setSelectedRouteIds((prev) =>
-      prev.includes(routeId) ? prev.filter((id) => id !== routeId) : [...prev, routeId],
+    const isRemoving = selectedRateUuids.includes(rateUuid);
+
+    setSelectedRateUuids((prev) =>
+      prev.includes(rateUuid) ? prev.filter((u) => u !== rateUuid) : [...prev, rateUuid],
     );
+
+    // Al desmarcar se descarta el código escrito: dejarlo colgando haría que
+    // reapareciera con un valor viejo si el operador vuelve a marcar el courier.
+    if (isRemoving) {
+      setCodesByRate((codes) => {
+        const { [rateUuid]: _discarded, ...rest } = codes;
+        return rest;
+      });
+    }
+    setSectionErrors((prev) => ({ ...prev, warehouses: undefined }));
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'idCard') {
-      const masked = applyIdMask(value, formData.idType);
-      setFormData((prev) => ({ ...prev, idCard: masked }));
-    } else if (name === 'idType') {
-      setFormData((prev) => ({ ...prev, idType: value, idCard: '' }));
-    } else if (name === 'phone') {
-      setFormData((prev) => ({ ...prev, phone: applyPhoneMask(value) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+  const setCourierCode = (rateUuid: string, code: string) => {
+    setCodesByRate((prev) => ({ ...prev, [rateUuid]: applyWarehouseCodeMask(code) }));
+  };
+
+  /**
+   * Error de formato por courier, en vivo. Se valida contra el prefijo de la
+   * ruta de ESE courier: un código de CPF no puede llevar el prefijo de Aéreo
+   * USA aunque ambos sean USA/AEREO.
+   */
+  const codeErrors = useMemo(() => {
+    const result: Record<string, string> = {};
+    for (const rate of courierRates) {
+      const code = codesByRate[rate.uuid];
+      if (!code) continue;
+      const error = validateWarehouseCode(code, rate.code_prefix);
+      if (error) result[rate.uuid] = error;
     }
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
+    return result;
+  }, [courierRates, codesByRate]);
+
+  // Tarifas marcadas, ya filtradas a las que tienen casillero configurado: sin
+  // warehouse_route_id el backend no puede generar código.
+  const selectedRates = useMemo(
+    () => courierRates.filter((r) => selectedRateUuids.includes(r.uuid) && !!r.warehouse_route_id),
+    [courierRates, selectedRateUuids],
+  );
+
+  /** Máscara de cédula: depende del tipo, así que se aplica al vuelo. */
+  const handleIdCardChange = (value: string) => {
+    setValue('id_card', applyIdMask(value, idType), { shouldValidate: false });
+  };
+
+  const handleIdTypeChange = (value: string) => {
+    // Cambiar el tipo invalida el número ya escrito: su formato era otro.
+    setValue('id_type', value as CustomerIdentityForm['id_type']);
+    setValue('id_card', '');
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setValue('phone', applyPhoneMask(value), { shouldValidate: false });
   };
 
   const addAddressField = () => {
@@ -141,11 +156,11 @@ export const useCreateCustomer = () => {
         canton: '',
         district: '',
         exact_address: '',
-        address_label: `Dirección ${prev.length + 1}`,
+        address_label: 'Casa',
         is_default: false,
       },
     ]);
-    setErrors((prev) => ({ ...prev, addresses: undefined }));
+    setSectionErrors((prev) => ({ ...prev, addresses: undefined }));
   };
 
   const removeAddress = (id: string) => {
@@ -168,51 +183,69 @@ export const useCreateCustomer = () => {
     );
   };
 
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
+  /**
+   * Valida lo que el esquema Yup no cubre: las listas dinámicas. Corre después
+   * de que react-hook-form aprueba los campos identificatorios.
+   */
+  const validateSections = (): boolean => {
+    const next: { addresses?: string; warehouses?: string } = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'El nombre es obligatorio';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Los apellidos son obligatorios';
-    if (!formData.idCard.trim()) {
-      newErrors.idCard = 'El número de cédula es obligatorio';
-    } else {
-      const idError = validateIdCard(formData.idCard, formData.idType);
-      if (idError) newErrors.idCard = idError;
+    const incomplete = addresses.some(
+      (a) => !a.province || !a.canton || !a.district || !a.exact_address.trim(),
+    );
+    if (addresses.length === 0) {
+      next.addresses = 'Debes agregar al menos una dirección de entrega';
+    } else if (incomplete) {
+      next.addresses = 'Completa provincia, cantón, distrito y dirección exacta en todas las direcciones';
     }
-    if (!formData.email.trim()) {
-      newErrors.email = 'El correo es obligatorio';
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Ingresa un correo válido';
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es obligatorio';
-    } else if (formData.phone.replace(/\D/g, '').length < 8) {
-      newErrors.phone = 'Ingresa un teléfono válido (+506 XXXX-XXXX)';
-    }
-    if (addresses.length === 0) newErrors.addresses = 'Debes agregar al menos una dirección de entrega';
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // Sin casillero el cliente no puede recibir paquetes de ningún courier. El
+    // backend caería al predeterminado en silencio, que rara vez es lo que el
+    // operador quiso si desmarcó todo a propósito.
+    if (selectedRates.length === 0) {
+      next.warehouses = 'Selecciona al menos un courier para generarle casillero';
+    }
+
+    // Dos casilleros del mismo cliente no pueden compartir código. El backend
+    // también lo valida, pero avisar antes evita perder el formulario lleno.
+    const manualCodes = selectedRates
+      .map((r) => codesByRate[r.uuid]?.trim())
+      .filter((c): c is string => !!c);
+    if (new Set(manualCodes).size !== manualCodes.length) {
+      next.warehouses = 'Hay dos casilleros con el mismo código manual';
+    }
+
+    // Un código con formato inválido se rechazaría en el backend o, peor, se
+    // guardaría tal cual y quedaría un casillero que no sigue la numeración.
+    const invalid = selectedRates.filter((r) => codeErrors[r.uuid]);
+    if (invalid.length > 0) {
+      next.warehouses = `Revisa el código de ${invalid.map((r) => r.name).join(', ')}: el formato no es válido.`;
+    }
+
+    setSectionErrors(next);
+    return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validate()) return;
+  const onValid = (values: CustomerIdentityForm) => {
+    if (!validateSections()) {
+      toast.error('Revisa los campos marcados antes de guardar.');
+      return;
+    }
 
     const payload = {
-      id_card: formData.idCard,
-      id_type: formData.idType,
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      // Vacío = el backend genera el siguiente código de la ruta.
-      customer_code: formData.customerCode.trim() || null,
+      id_card: values.id_card,
+      id_type: values.id_type,
+      first_name: values.first_name,
+      last_name: values.last_name,
+      email: values.email,
+      phone: values.phone,
       // Vacío = el backend asigna el tipo NORMAL por defecto.
-      customer_type_id: formData.customerTypeId ? Number(formData.customerTypeId) : null,
-      // Vacío = el backend usa el courier predeterminado.
-      warehouse_route_ids: selectedRouteIds,
+      customer_type_id: customerTypeId ? Number(customerTypeId) : null,
+      // Un casillero por courier marcado, cada uno con su código opcional.
+      warehouse_codes: selectedRates.map((rate) => ({
+        warehouse_route_id: rate.warehouse_route_id as number,
+        code: codesByRate[rate.uuid]?.trim() || null,
+      })),
       addresses: addresses.map(({ id, ...rest }) => rest),
     };
 
@@ -230,19 +263,36 @@ export const useCreateCustomer = () => {
     });
   };
 
+  const handleSubmit = rhfHandleSubmit(onValid, () => {
+    validateSections();
+    toast.error('Revisa los campos marcados antes de guardar.');
+  });
+
   return {
-    formData,
+    register,
+    fieldErrors,
+    sectionErrors,
+    idType,
+    idCard: watch('id_card'),
+    phone: watch('phone'),
+    handleIdCardChange,
+    handleIdTypeChange,
+    handlePhoneChange,
+    customerTypeId,
+    setCustomerTypeId,
     addresses,
-    errors,
     customerTypes,
     courierRates,
-    selectedRouteIds,
+    selectedRateUuids,
+    codesByRate,
+    codeErrors,
     toggleCourierRoute,
-    handleInputChange,
+    setCourierCode,
     addAddressField,
     removeAddress,
     handleAddressChange,
     handleSubmit,
     isPending,
+    cancel: () => admin.customers.list(),
   };
 };

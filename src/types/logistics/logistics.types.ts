@@ -34,6 +34,14 @@ export interface CourierRate {
    * listado de logistics — el mantenimiento usa CourierRateWithWarehouse.
    */
   warehouse_route_id?: number | null;
+  /**
+   * Prefijo del código de casillero de esta ruta (ej. "MGA-2453-C-"). Se usa
+   * para mostrarle al operador el formato esperado cuando escribe un código
+   * manual. Null si el courier todavía no tiene casillero configurado.
+   */
+  code_prefix?: string | null;
+  /** Último número emitido en la ruta — sirve para sugerir el siguiente. */
+  current_counter?: number | null;
 }
 
 export interface CourierRateInput {

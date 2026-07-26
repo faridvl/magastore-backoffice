@@ -4,5 +4,11 @@
       "maxDuration": 30,
       "memory": 1024
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/deactivate-inactive-customers",
+      "schedule": "0 9 * * *"
+    }
+  ]
 }

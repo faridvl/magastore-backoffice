@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -17,6 +17,12 @@ import { DeliveryMethod } from '@/types/logistics/logistics.types';
 export const useCustomerDetail = (customerId: string) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  // Debounce de 400ms, igual que el resto de buscadores del backoffice.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -32,6 +38,8 @@ export const useCustomerDetail = (customerId: string) => {
   );
   const [isAssignCodeModalOpen, setIsAssignCodeModalOpen] = useState(false);
   const [isAssigningCode, setIsAssigningCode] = useState(false);
+  // Ruta cuyo casillero se está eliminando — deshabilita solo esa tarjeta.
+  const [removingRouteId, setRemovingRouteId] = useState<number | null>(null);
 
   // Modal: elegir dirección de entrega + método de envío al crear la orden.
   // Siempre aparece — el método nunca se puede asumir automáticamente, aunque
@@ -52,7 +60,11 @@ export const useCustomerDetail = (customerId: string) => {
   const activePackages = allPackages.filter((p) => p.status !== 'ENTREGADO');
   const unassignedPackages = activePackages.filter((p) => !p.consolidation_uuid);
   const assignedPackages = activePackages.filter((p) => !!p.consolidation_uuid);
-  const historyPackages = allPackages.filter((p) => p.status === 'ENTREGADO');
+  // Historial = registro completo del cliente, sin filtrar por estado. Antes
+  // exigía status === 'ENTREGADO' y quedaba vacío: en el flujo v2 la orden se
+  // marca entregada pero el status del paquete no siempre la sigue, así que
+  // esos paquetes no aparecían en ninguna de las tres listas.
+  const historyPackages = allPackages;
 
   const enterEditMode = () => {
     if (!customer) return;
@@ -126,9 +138,13 @@ export const useCustomerDetail = (customerId: string) => {
       setIsEditMode(false);
       setEditForm(null);
       toast.success('Cliente actualizado correctamente');
-    } catch {
-      setEditError('No se pudieron guardar los cambios.');
-      toast.error('No se pudieron guardar los cambios del cliente. Intenta de nuevo.');
+    } catch (err: any) {
+      // El backend explica la causa exacta (correo duplicado, dirección
+      // inválida…). El genérico anterior la descartaba y dejaba al operador
+      // reintentando sin saber qué corregir.
+      const message = err?.message ?? 'No se pudieron guardar los cambios del cliente.';
+      setEditError(message);
+      toast.error(message);
     }
   };
 
@@ -155,10 +171,16 @@ export const useCustomerDetail = (customerId: string) => {
   }, [rawMetrics]);
 
   const filteredHistory = useMemo(() => {
-    const query = searchTerm.toLowerCase().trim();
+    const query = debouncedSearch.toLowerCase().trim();
     if (!query) return historyPackages;
-    return historyPackages.filter((p) => p.tracking_number.toLowerCase().includes(query));
-  }, [historyPackages, searchTerm]);
+    // También por courier: en el historial completo el tracking ya no es el
+    // único criterio útil para encontrar un paquete viejo.
+    return historyPackages.filter(
+      (p) =>
+        p.tracking_number.toLowerCase().includes(query) ||
+        (p.courier_rate_name ?? '').toLowerCase().includes(query),
+    );
+  }, [historyPackages, debouncedSearch]);
 
   const handleNotifyWhatsApp = async () => {
     if (!customer) return;
@@ -206,9 +228,25 @@ export const useCustomerDetail = (customerId: string) => {
    */
   const availableCourierRates = useMemo(() => {
     if (!customer) return [];
-    const owned = new Set(customer.warehouse_codes.map((wc) => `${wc.origin}|${wc.package_type}`));
-    return courierRates.filter((r) => !!r.warehouse_route_id && !owned.has(`${r.origin}|${r.package_type}`));
+    // Se compara por código ya emitido, no por origin|package_type: dos
+    // couriers del mismo origen y tipo comparten ruta, así que filtrar por la
+    // clave natural hacía desaparecer al segundo courier de la lista apenas se
+    // asignaba el primero — el operador se quedaba sin poder agregarlo.
+    const ownedRoutes = new Set(customer.warehouse_codes.map((wc) => wc.warehouse_route_id));
+    return courierRates.filter(
+      (r) => !!r.warehouse_route_id && !ownedRoutes.has(r.warehouse_route_id),
+    );
   }, [customer, courierRates]);
+
+  /**
+   * Couriers activos que no se pueden ofrecer porque no tienen casillero
+   * configurado. Se listan para explicar por qué el selector puede aparecer
+   * vacío en vez de dejar al operador sin pistas.
+   */
+  const couriersWithoutWarehouse = useMemo(
+    () => courierRates.filter((r) => !r.warehouse_route_id).map((r) => r.name),
+    [courierRates],
+  );
 
   const assignWarehouseCode = async (courierRateUuid: string) => {
     setIsAssigningCode(true);
@@ -221,12 +259,40 @@ export const useCustomerDetail = (customerId: string) => {
       // invalidarla el código recién creado no aparecería hasta recargar.
       await queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
       await queryClient.invalidateQueries({ queryKey: ['customer-warehouse-codes', customerId] });
+      // El catálogo de couriers tiene staleTime de 10 min: sin invalidarlo, un
+      // courier dado de alta hace poco no aparecería en el selector hasta que
+      // la caché expirara sola.
+      await queryClient.invalidateQueries({ queryKey: ['courier-rates'] });
       toast.success(`Casillero asignado: ${res?.data?.code ?? ''}`);
       setIsAssignCodeModalOpen(false);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo asignar el casillero.');
     } finally {
       setIsAssigningCode(false);
+    }
+  };
+
+  /**
+   * Quita un casillero. El backend bloquea el último y los que ya tienen
+   * paquetes registrados: el motivo llega en el mensaje de error y se muestra
+   * tal cual, porque es accionable para el operador.
+   */
+  const removeWarehouseCode = async (warehouseRouteId: number) => {
+    setRemovingRouteId(warehouseRouteId);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).delete(
+        `/customers/${customerId}/warehouse-codes?warehouseRouteId=${warehouseRouteId}`,
+      );
+      await queryClient.invalidateQueries({ queryKey: ['customer', customerId] });
+      await queryClient.invalidateQueries({ queryKey: ['customer-warehouse-codes', customerId] });
+      // El customer_code puede haber cambiado al quitar el principal, y el
+      // listado lo muestra.
+      await queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Casillero eliminado');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo eliminar el casillero.');
+    } finally {
+      setRemovingRouteId(null);
     }
   };
 
@@ -265,11 +331,14 @@ export const useCustomerDetail = (customerId: string) => {
     setSelectedDeliveryMethod,
     handleConfirmCreateOrderWithAddress,
     availableCourierRates,
+    couriersWithoutWarehouse,
     isAssignCodeModalOpen,
     openAssignCodeModal: () => setIsAssignCodeModalOpen(true),
     closeAssignCodeModal: () => setIsAssignCodeModalOpen(false),
     assignWarehouseCode,
     isAssigningCode,
+    removeWarehouseCode,
+    removingRouteId,
     handleBack: () => router.back(),
     activeTab,
     setActiveTab,

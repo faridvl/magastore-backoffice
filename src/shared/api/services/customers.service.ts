@@ -1,4 +1,4 @@
-import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
@@ -12,7 +12,34 @@ function validateAndNormalizeAddress<T extends CustomerAddressInput | CustomerAd
       `La combinación provincia/cantón/distrito "${addr.province} / ${addr.canton} / ${addr.district}" no coincide con la división territorial de Costa Rica.`,
     );
   }
-  return { ...addr, ...resolved };
+  // La dirección exacta la escribe el operador a mano: se guarda en mayúsculas
+  // igual que el resto de los datos del cliente. Provincia/cantón/distrito
+  // vienen de resolveLocation y conservan la grafía oficial.
+  return { ...addr, ...resolved, exact_address: addr.exact_address?.trim().toUpperCase() ?? addr.exact_address };
+}
+
+/**
+ * Normaliza los datos identificatorios del cliente antes de tocar la base.
+ *
+ * Todo va en MAYÚSCULAS excepto el correo: la unicidad se valida con una
+ * comparación literal (`checkExistingCustomer`), así que si el mismo correo
+ * entrara con distinta caja se colaría un duplicado; y Resend recibe la
+ * dirección tal como se guarda. Debe aplicarse ANTES de las validaciones de
+ * duplicados, no después, o se validaría un valor distinto al que se inserta.
+ */
+function normalizeCustomerIdentity<T extends {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  id_card?: string;
+}>(data: T): T {
+  return {
+    ...data,
+    ...(data.first_name != null && { first_name: data.first_name.trim().toUpperCase() }),
+    ...(data.last_name != null && { last_name: data.last_name.trim().toUpperCase() }),
+    ...(data.id_card != null && { id_card: data.id_card.trim().toUpperCase() }),
+    ...(data.email != null && { email: data.email.trim().toLowerCase() }),
+  };
 }
 
 /**
@@ -23,7 +50,7 @@ function validateAndNormalizeAddress<T extends CustomerAddressInput | CustomerAd
  * no dejar la mitad de los clientes con el casillero equivocado.
  */
 async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
-  const needsResolution = rows.some((r) => r.couriers?.trim());
+  const needsResolution = rows.some((r) => r.couriers?.trim() || r.customer_code?.trim());
   if (!needsResolution) return;
 
   const rates = await CourierRatesRepository.getAllWithWarehouse();
@@ -31,10 +58,24 @@ async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
 
   for (const row of rows) {
     const raw = row.couriers?.trim();
-    if (!raw) continue;
+    // La plantilla admite un solo código manual por cliente: se aplica al
+    // primer courier de la fila. Sin couriers, el repositorio usa el
+    // predeterminado y el código va ahí.
+    const manualCode = row.customer_code?.trim().toUpperCase() || null;
+
+    if (!raw) {
+      if (manualCode) {
+        const fallback = await WarehouseRoutesRepository.getDefaultRoute();
+        if (!fallback) {
+          throw new Error(`Fila con cédula ${row.id_card}: hay un código manual pero no existe un courier predeterminado al cual asignarlo.`);
+        }
+        row.warehouse_codes = [{ warehouse_route_id: fallback.id, code: manualCode }];
+      }
+      continue;
+    }
 
     const names = raw.split(',').map((n) => n.trim()).filter(Boolean);
-    const routeIds: number[] = [];
+    const codes: CustomerWarehouseCodeInput[] = [];
 
     for (const name of names) {
       const rate = byName.get(name.toLowerCase());
@@ -44,18 +85,28 @@ async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
       if (!rate.is_active) {
         throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" está inactivo y no puede asignarse.`);
       }
-      const route = await WarehouseRoutesRepository.getActiveRoute(rate.origin, rate.package_type);
+      const route = await WarehouseRoutesRepository.getActiveRouteByCourier(rate.id);
       if (!route) {
         throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" no tiene casillero configurado.`);
       }
       // Un cliente no puede tener dos veces la misma ruta: la tabla de unión lo
       // rechazaría a mitad de la importación.
-      if (!routeIds.includes(route.id)) routeIds.push(route.id);
+      if (codes.some((c) => c.warehouse_route_id === route.id)) continue;
+      codes.push({
+        warehouse_route_id: route.id,
+        code: codes.length === 0 ? manualCode : null,
+      });
     }
 
-    row.warehouse_route_ids = routeIds;
+    row.warehouse_codes = codes;
   }
 }
+
+/**
+ * Días sin registrar un paquete tras los cuales un cliente pasa a inactivo.
+ * Lo aplica el cron diario (/api/cron/deactivate-inactive-customers).
+ */
+export const INACTIVITY_THRESHOLD_DAYS = 40;
 
 /**
  * Servicio para la gestión de clientes
@@ -69,6 +120,7 @@ export const CustomerService = {
       throw new Error('El cliente debe tener al menos una dirección registrada.');
     }
 
+    data = normalizeCustomerIdentity(data);
     data.addresses = data.addresses.map(validateAndNormalizeAddress);
 
     const hasDefault = data.addresses.some((addr) => addr.is_default);
@@ -83,18 +135,34 @@ export const CustomerService = {
       );
     }
 
-    // Código manual: se respeta tal cual, pero no puede pisar el de otro cliente.
-    // Si se omite, el repositorio genera el siguiente de la ruta.
-    const explicitCode = data.customer_code?.trim();
-    if (explicitCode) {
-      const codeTaken = await CustomerRepo.existsByCustomerCode(explicitCode);
-      if (codeTaken) {
-        throw new Error(`El código ${explicitCode} ya está asignado a otro cliente.`);
+    // Códigos manuales: se respetan tal cual, cada uno en SU casillero, pero
+    // ninguno puede pisar el de otro cliente. Los que se omiten los genera el
+    // repositorio a partir del contador de la ruta.
+    const normalizedCodes: CustomerWarehouseCodeInput[] = [];
+    const seenCodes = new Set<string>();
+
+    for (const entry of data.warehouse_codes ?? []) {
+      const code = entry.code?.trim().toUpperCase();
+      if (!code) {
+        normalizedCodes.push({ warehouse_route_id: entry.warehouse_route_id, code: null });
+        continue;
       }
-      data.customer_code = explicitCode;
-    } else {
-      data.customer_code = null;
+
+      // Dos casilleros del mismo cliente tampoco pueden compartir código: la
+      // validación contra la BD no los ve porque ninguno está insertado aún.
+      if (seenCodes.has(code)) {
+        throw new Error(`El código ${code} está repetido en dos casilleros del mismo cliente.`);
+      }
+      seenCodes.add(code);
+
+      const codeTaken = await CustomerRepo.existsByCustomerCode(code);
+      if (codeTaken) {
+        throw new Error(`El código ${code} ya está asignado a otro cliente.`);
+      }
+      normalizedCodes.push({ warehouse_route_id: entry.warehouse_route_id, code });
     }
+
+    data.warehouse_codes = normalizedCodes;
 
     try {
       return await CustomerRepo.createCustomerWithAddresses(data);
@@ -143,9 +211,13 @@ export const CustomerService = {
       throw new Error('No se proporcionaron filas para importar.');
     }
 
-    // Validar conflictos de datos entre filas del mismo id_card antes de insertar
+    // Validar conflictos de datos entre filas del mismo id_card antes de insertar.
+    // La normalización va primero: dos filas del mismo cliente escritas con
+    // distinta caja deben agruparse, no reportarse como "datos distintos".
     const seen = new Map<string, { email: string; first_name: string; last_name: string }>();
-    for (const row of rows) {
+    for (let i = 0; i < rows.length; i++) {
+      rows[i] = normalizeCustomerIdentity(rows[i]);
+      const row = rows[i];
       if (!row.id_card?.trim()) throw new Error('Una o más filas tienen la cédula vacía.');
       if (!row.email?.trim()) throw new Error(`Fila con cédula ${row.id_card}: el correo es requerido.`);
       if (!row.first_name?.trim() || !row.last_name?.trim()) throw new Error(`Fila con cédula ${row.id_card}: nombre y apellidos son requeridos.`);
@@ -159,6 +231,7 @@ export const CustomerService = {
       row.province = resolved.province;
       row.canton = resolved.canton;
       row.district = resolved.district;
+      row.exact_address = row.exact_address.trim().toUpperCase();
 
       if (seen.has(row.id_card)) {
         const prev = seen.get(row.id_card)!;
@@ -173,6 +246,84 @@ export const CustomerService = {
     await resolveImportCouriers(rows);
 
     return CustomerRepo.importCustomers(rows);
+  },
+
+  /**
+   * Guarda una sola dirección (alta o edición) sin tocar el resto del cliente —
+   * lo que usa el modal de direcciones del detalle.
+   */
+  saveCustomerAddress: async (customerId: string, addr: CustomerAddressUpdateInput) => {
+    if (!customerId) throw new Error('El ID del cliente es requerido.');
+    if (!addr?.exact_address?.trim()) throw new Error('La dirección exacta es requerida.');
+
+    const normalized = validateAndNormalizeAddress(addr);
+    return CustomerRepo.upsertCustomerAddress(customerId, normalized);
+  },
+
+  removeCustomerAddress: async (customerId: string, addressId: string) => {
+    if (!customerId) throw new Error('El ID del cliente es requerido.');
+    if (!addressId) throw new Error('El ID de la dirección es requerido.');
+    return CustomerRepo.deleteCustomerAddress(customerId, addressId);
+  },
+
+  /**
+   * Desactiva clientes sin actividad reciente. Lo invoca el cron diario.
+   * El umbral es configurable para poder correrlo con otro valor a mano, pero
+   * el default (40 días) es el acordado con el negocio.
+   */
+  deactivateInactiveCustomers: async (days = INACTIVITY_THRESHOLD_DAYS) => {
+    if (!Number.isInteger(days) || days < 1) {
+      throw new Error('El umbral de días debe ser un entero mayor a 0.');
+    }
+    const deactivated = await CustomerRepo.deactivateInactiveCustomers(days);
+    return { days, count: deactivated.length, customers: deactivated };
+  },
+
+  /**
+   * Quita un casillero al cliente.
+   *
+   * Se bloquea en dos casos: si es el único (quedaría sin poder recibir nada) y
+   * si ya registró paquetes por ese courier (el código es parte del historial).
+   * Si el que se va era el código principal, otro toma su lugar en
+   * `customers.customer_code` — esa columna la leen listados, PDFs y tracking, y
+   * dejarla apuntando a un casillero borrado rompería la búsqueda del cliente.
+   */
+  removeCustomerWarehouseCode: async (customerId: string, warehouseRouteId: number) => {
+    if (!customerId) throw new Error('El ID del cliente es requerido.');
+    if (!warehouseRouteId) throw new Error('La ruta del casillero es requerida.');
+
+    const customer = await CustomerRepo.getCustomerById(customerId);
+    if (!customer) throw new Error('Cliente no encontrado.');
+
+    const target = customer.warehouse_codes.find((wc) => wc.warehouse_route_id === warehouseRouteId);
+    if (!target) throw new Error('El cliente no tiene un casillero en ese courier.');
+
+    if (customer.warehouse_codes.length <= 1) {
+      throw new Error('El cliente debe conservar al menos un casillero: sin uno no puede recibir paquetes.');
+    }
+
+    const packageCount = await WarehouseRoutesRepository.countPackagesForCustomerRoute(
+      customerId,
+      warehouseRouteId,
+    );
+    if (packageCount > 0) {
+      throw new Error(
+        `No se puede quitar el casillero ${target.code}: el cliente ya registró ${packageCount} paquete(s) con ${target.courier_name}.`,
+      );
+    }
+
+    await WarehouseRoutesRepository.removeCustomerCode(customerId, warehouseRouteId);
+
+    if (customer.customer_code === target.code) {
+      const replacement = customer.warehouse_codes.find(
+        (wc) => wc.warehouse_route_id !== warehouseRouteId,
+      );
+      if (replacement) {
+        await CustomerRepo.updateCustomerCode(customerId, replacement.code);
+      }
+    }
+
+    return CustomerRepo.getCustomerById(customerId);
   },
 
   getCustomerPackages: async (id: string) => {
@@ -190,6 +341,7 @@ export const CustomerService = {
    */
   editCustomer: async (id: string, data: CustomerUpdateInput): Promise<Customer> => {
     if (!id) throw new Error('El ID del cliente es requerido.');
+    data = normalizeCustomerIdentity(data);
     if (!data.first_name?.trim()) throw new Error('El nombre es requerido.');
     if (!data.last_name?.trim()) throw new Error('Los apellidos son requeridos.');
     if (!data.email?.trim()) throw new Error('El correo electrónico es requerido.');

@@ -22,12 +22,14 @@ class MyDocument extends Document<MyDocumentProps> {
   static async getInitialProps(ctx: DocumentContext): Promise<MyDocumentProps> {
     const initialProps = await Document.getInitialProps(ctx);
     const host = ctx.req?.headers.host ?? '';
-    const splashVariant = host.includes('dev-portal') ? 'green' : 'black';
+    const isDev = host.includes('dev-portal') || host.includes('localhost') || host.includes('127.0.0.1');
+    const splashVariant = isDev ? 'green' : 'black';
     return { ...initialProps, splashVariant };
   }
 
   render() {
     const { splashVariant } = this.props;
+    const iconSuffix = splashVariant === 'green' ? '-dev' : '';
 
     return (
       <Html>
@@ -42,7 +44,7 @@ class MyDocument extends Document<MyDocumentProps> {
           <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
           <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+          <link rel="apple-touch-icon" sizes="180x180" href={`/apple-touch-icon${iconSuffix}.png`} />
 
           <link rel="manifest" href="/api/site.webmanifest" />
 
@@ -58,8 +60,8 @@ class MyDocument extends Document<MyDocumentProps> {
             />
           ))}
 
-          {/* Brand Theme Color (alineado a paleta Magastore) */}
-          <meta name="theme-color" content="#111111" />
+          {/* Brand Theme Color (alineado a paleta Magastore; verde en dev-portal) */}
+          <meta name="theme-color" content={splashVariant === 'green' ? '#10B981' : '#111111'} />
 
           {/* Preconnect para performance si usas Google Fonts */}
           {/* <link rel="preconnect" href="https://fonts.googleapis.com" /> */}

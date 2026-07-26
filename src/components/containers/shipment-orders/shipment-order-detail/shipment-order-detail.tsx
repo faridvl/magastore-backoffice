@@ -768,10 +768,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                         : <Square size={18} className="text-slate-300 flex-shrink-0" />
                       }
                       <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm font-bold text-slate-800 truncate">
+                        <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>
                           {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                         </p>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-slate-400 truncate">
                           {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
                         </p>
                       </div>
@@ -1001,9 +1001,9 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
 
       <div className="space-y-2">
         {rows.map(({ pkg, cobro, costo, ganancia }) => (
-          <div key={pkg.uuid} className="px-4 py-3 bg-slate-50 rounded-2xl">
-            <p className="font-mono text-sm font-bold text-slate-800 truncate">{pkg.tracking_number}</p>
-            <p className="text-[10px] text-slate-400 mb-2">
+          <div key={pkg.uuid} className="px-4 py-3 bg-slate-50 rounded-2xl min-w-0">
+            <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>{pkg.tracking_number}</p>
+            <p className="text-[10px] text-slate-400 mb-2 truncate">
               {Number(pkg.weight_lb).toFixed(2)} lb{pkg.store_name ? ` · ${pkg.store_name}` : ''}
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -1115,12 +1115,12 @@ const PackageTable: React.FC<{
       >
         <Package size={14} className="text-slate-400 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-sm font-bold text-slate-800 truncate">{pkg.tracking_number}</p>
-          <p className="text-[10px] text-slate-400">
+          <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>{pkg.tracking_number}</p>
+          <p className="text-[10px] text-slate-400 truncate">
             {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type}{pkg.store_name ? ` · ${pkg.store_name}` : ''}
           </p>
         </div>
-        <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg">
+        <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex-shrink-0 whitespace-nowrap">
           {pkg.status}
         </span>
         {canUnassign && (

@@ -7,7 +7,7 @@
           "name": "003-normalize-package-type.sql",
           "version": "003",
           "checksum": "8dbcc80789f746f5",
-          "appliedAt": "2026-07-26T06:00:18.697Z",
+          "appliedAt": "2026-07-26T18:18:06.018Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -15,7 +15,7 @@
           "name": "004-users-role-column.sql",
           "version": "004",
           "checksum": "a089f42e5389b571",
-          "appliedAt": "2026-07-26T06:00:18.697Z",
+          "appliedAt": "2026-07-26T18:18:06.032Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -23,7 +23,7 @@
           "name": "005-package-events-trigger.sql",
           "version": "005",
           "checksum": "16b527f98faa5cc2",
-          "appliedAt": "2026-07-26T06:00:18.711Z",
+          "appliedAt": "2026-07-26T18:18:06.033Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -31,7 +31,7 @@
           "name": "006-billing-address-snapshot.sql",
           "version": "006",
           "checksum": "8adec0d0f15e5f3f",
-          "appliedAt": "2026-07-26T06:00:18.711Z",
+          "appliedAt": "2026-07-26T18:18:06.033Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -39,7 +39,7 @@
           "name": "007-packages-address-id.sql",
           "version": "007",
           "checksum": "c0f1789ee2861b9f",
-          "appliedAt": "2026-07-26T06:00:18.711Z",
+          "appliedAt": "2026-07-26T18:18:06.033Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -47,7 +47,7 @@
           "name": "008-shipment-orders-v2.sql",
           "version": "008",
           "checksum": "d34f97e4850fde52",
-          "appliedAt": "2026-07-26T06:00:18.712Z",
+          "appliedAt": "2026-07-26T18:18:06.033Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -55,7 +55,7 @@
           "name": "009-consolidation-delivery-address.sql",
           "version": "009",
           "checksum": "7b54bd841f72f82e",
-          "appliedAt": "2026-07-26T06:00:18.712Z",
+          "appliedAt": "2026-07-26T18:18:06.033Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -63,7 +63,7 @@
           "name": "010-delivery-rates.sql",
           "version": "010",
           "checksum": "8002fc3771561b40",
-          "appliedAt": "2026-07-26T06:00:18.712Z",
+          "appliedAt": "2026-07-26T18:18:06.034Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -71,7 +71,7 @@
           "name": "011-consolidation-delivery-method.sql",
           "version": "011",
           "checksum": "bec3fe1da52c86ed",
-          "appliedAt": "2026-07-26T06:00:18.712Z",
+          "appliedAt": "2026-07-26T18:18:06.034Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -79,7 +79,7 @@
           "name": "012-seed-correos-delivery-rates.sql",
           "version": "012",
           "checksum": "8f5d254c7847cdf1",
-          "appliedAt": "2026-07-26T06:00:18.712Z",
+          "appliedAt": "2026-07-26T18:18:06.034Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -87,7 +87,102 @@
           "name": "013-warehouse-routes.sql",
           "version": "013",
           "checksum": "21a10f5d4a4194c2",
-          "appliedAt": "2026-07-26T06:00:18.713Z",
+          "appliedAt": "2026-07-26T18:18:06.034Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "014-pre-billing-delivery-cost.sql",
+          "version": "014",
+          "checksum": "e2f8ed36dd0d039b",
+          "appliedAt": "2026-07-26T18:18:06.034Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "015-packages-notified-at.sql",
+          "version": "015",
+          "checksum": "cf11d22f5888018e",
+          "appliedAt": "2026-07-26T18:18:06.035Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "016-billing-invoice-number.sql",
+          "version": "016",
+          "checksum": "3fde58effe0199da",
+          "appliedAt": "2026-07-26T18:18:06.039Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "017-packages-cost-not-null.sql",
+          "version": "017",
+          "checksum": "e7c232a8e08a7748",
+          "appliedAt": "2026-07-26T18:18:06.039Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "018-billing-profit-snapshot.sql",
+          "version": "018",
+          "checksum": "08b35bb259c5709c",
+          "appliedAt": "2026-07-26T18:18:06.042Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "019-customer-types.sql",
+          "version": "019",
+          "checksum": "b3ef4edcc5daeeef",
+          "appliedAt": "2026-07-26T18:18:06.049Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "020-courier-rates-default.sql",
+          "version": "020",
+          "checksum": "01acac11bd033820",
+          "appliedAt": "2026-07-26T18:18:06.049Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "021-whatsapp-templates.sql",
+          "version": "021",
+          "checksum": "95e74ac9dd923b91",
+          "appliedAt": "2026-07-26T18:18:06.050Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "022-delivery-methods.sql",
+          "version": "022",
+          "checksum": "b9f2d69d55775d9f",
+          "appliedAt": "2026-07-26T18:18:06.061Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "023-farid-profit-share.sql",
+          "version": "023",
+          "checksum": "f1c6a3666f6def9a",
+          "appliedAt": "2026-07-26T18:18:06.085Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "024-warehouse-routes-per-courier.sql",
+          "version": "024",
+          "checksum": "ffd52bdf27317867",
+          "appliedAt": "2026-07-26T18:18:55.060Z",
+          "appliedBy": "Farid"
+        },
+        {
+          "name": "025-fix-aereo-usa-prefix.sql",
+          "version": "025",
+          "checksum": "2b1eff28a138bb2a",
+          "appliedAt": "2026-07-26T18:40:27.792Z",
           "appliedBy": "Farid",
           "baseline": true
         }
@@ -99,7 +194,7 @@
           "name": "003-normalize-package-type.sql",
           "version": "003",
           "checksum": "8dbcc80789f746f5",
-          "appliedAt": "2026-07-26T06:32:33.196Z",
+          "appliedAt": "2026-07-26T18:43:29.828Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -107,7 +202,7 @@
           "name": "004-users-role-column.sql",
           "version": "004",
           "checksum": "a089f42e5389b571",
-          "appliedAt": "2026-07-26T06:32:33.197Z",
+          "appliedAt": "2026-07-26T18:43:29.844Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -115,7 +210,7 @@
           "name": "005-package-events-trigger.sql",
           "version": "005",
           "checksum": "16b527f98faa5cc2",
-          "appliedAt": "2026-07-26T06:32:33.209Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -123,7 +218,7 @@
           "name": "006-billing-address-snapshot.sql",
           "version": "006",
           "checksum": "8adec0d0f15e5f3f",
-          "appliedAt": "2026-07-26T06:32:33.209Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -131,7 +226,7 @@
           "name": "007-packages-address-id.sql",
           "version": "007",
           "checksum": "c0f1789ee2861b9f",
-          "appliedAt": "2026-07-26T06:32:33.210Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -139,7 +234,7 @@
           "name": "008-shipment-orders-v2.sql",
           "version": "008",
           "checksum": "d34f97e4850fde52",
-          "appliedAt": "2026-07-26T06:32:33.210Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -147,7 +242,7 @@
           "name": "009-consolidation-delivery-address.sql",
           "version": "009",
           "checksum": "7b54bd841f72f82e",
-          "appliedAt": "2026-07-26T06:32:33.210Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -155,7 +250,7 @@
           "name": "010-delivery-rates.sql",
           "version": "010",
           "checksum": "8002fc3771561b40",
-          "appliedAt": "2026-07-26T06:32:33.210Z",
+          "appliedAt": "2026-07-26T18:43:29.845Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -163,7 +258,7 @@
           "name": "011-consolidation-delivery-method.sql",
           "version": "011",
           "checksum": "bec3fe1da52c86ed",
-          "appliedAt": "2026-07-26T06:32:33.210Z",
+          "appliedAt": "2026-07-26T18:43:29.846Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -171,7 +266,7 @@
           "name": "012-seed-correos-delivery-rates.sql",
           "version": "012",
           "checksum": "8f5d254c7847cdf1",
-          "appliedAt": "2026-07-26T06:32:33.211Z",
+          "appliedAt": "2026-07-26T18:43:29.846Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -179,7 +274,7 @@
           "name": "013-warehouse-routes.sql",
           "version": "013",
           "checksum": "21a10f5d4a4194c2",
-          "appliedAt": "2026-07-26T06:32:33.211Z",
+          "appliedAt": "2026-07-26T18:43:29.847Z",
           "appliedBy": "Farid",
           "baseline": true
         },
@@ -187,71 +282,97 @@
           "name": "014-pre-billing-delivery-cost.sql",
           "version": "014",
           "checksum": "e2f8ed36dd0d039b",
-          "appliedAt": "2026-07-26T06:35:49.968Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.847Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "015-packages-notified-at.sql",
           "version": "015",
           "checksum": "cf11d22f5888018e",
-          "appliedAt": "2026-07-26T06:35:50.243Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.847Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "016-billing-invoice-number.sql",
           "version": "016",
           "checksum": "3fde58effe0199da",
-          "appliedAt": "2026-07-26T06:35:50.575Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.847Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "017-packages-cost-not-null.sql",
           "version": "017",
           "checksum": "e7c232a8e08a7748",
-          "appliedAt": "2026-07-26T06:35:50.832Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.847Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "018-billing-profit-snapshot.sql",
           "version": "018",
           "checksum": "08b35bb259c5709c",
-          "appliedAt": "2026-07-26T06:35:51.088Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.847Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "019-customer-types.sql",
           "version": "019",
           "checksum": "b3ef4edcc5daeeef",
-          "appliedAt": "2026-07-26T06:35:51.401Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.848Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "020-courier-rates-default.sql",
           "version": "020",
           "checksum": "01acac11bd033820",
-          "appliedAt": "2026-07-26T06:35:51.684Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.848Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "021-whatsapp-templates.sql",
           "version": "021",
           "checksum": "95e74ac9dd923b91",
-          "appliedAt": "2026-07-26T06:35:51.951Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.848Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "022-delivery-methods.sql",
           "version": "022",
           "checksum": "b9f2d69d55775d9f",
-          "appliedAt": "2026-07-26T06:35:52.227Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.848Z",
+          "appliedBy": "Farid",
+          "baseline": true
         },
         {
           "name": "023-farid-profit-share.sql",
           "version": "023",
           "checksum": "f1c6a3666f6def9a",
-          "appliedAt": "2026-07-26T06:35:52.519Z",
-          "appliedBy": "Farid"
+          "appliedAt": "2026-07-26T18:43:29.848Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "024-warehouse-routes-per-courier.sql",
+          "version": "024",
+          "checksum": "ffd52bdf27317867",
+          "appliedAt": "2026-07-26T18:43:29.849Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "025-fix-aereo-usa-prefix.sql",
+          "version": "025",
+          "checksum": "2b1eff28a138bb2a",
+          "appliedAt": "2026-07-26T18:43:29.849Z",
+          "appliedBy": "Farid",
+          "baseline": true
         }
       ]
     }
