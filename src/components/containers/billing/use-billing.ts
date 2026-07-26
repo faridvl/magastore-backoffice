@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useBillingListQuery } from '@/shared/api/querys/billing/use-billing-list-query';
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
+import { downloadPdf } from '@/shared/utils/download-pdf';
 
 export type PaidFilterValue = 'all' | 'paid' | 'pending';
 
@@ -65,18 +66,8 @@ export const useBilling = () => {
   const handleDownloadPdf = async (uuid: string, invoiceNumber?: number) => {
     setIsDownloadingPdf(true);
     try {
-      const response = await fetch(`/api/billing/pdf?uuid=${uuid}`);
-      if (!response.ok) throw new Error('No se pudo generar el PDF');
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
       const label = invoiceNumber != null ? `F-${String(invoiceNumber).padStart(4, '0')}` : uuid.slice(-8).toUpperCase();
-      a.download = `factura-${label}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
+      await downloadPdf(`/api/billing/pdf?uuid=${uuid}`, `FACTURA-${label}.pdf`);
     } catch (err: any) {
       toast.error('No se pudo descargar el PDF. Intenta de nuevo más tarde.');
     } finally {
