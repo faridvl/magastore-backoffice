@@ -20,11 +20,19 @@ import {
   Truck,
 } from 'lucide-react';
 import * as SettingsService from '@/shared/api/services/settings.service';
-import { routesPublic } from '@/shared/navigation/routes';
 import type { PublicDeliveryMethod, PublicRates } from '@/types/settings/settings.types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://magastorecr.com';
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+
+/**
+ * Logo de marca, generado por `scripts/generate-brand-assets.js`. Lleva el
+ * isotipo arriba y "MAGASTORE / COMPRAS POR INTERNET" abajo, con fondo
+ * transparente. La franja "RÁPIDO · SEGURO" del arte original se recorta a
+ * propósito: el claim se escribe como texto para poder cambiarlo sin volver a
+ * exportar la imagen.
+ */
+const BRAND_LOGO = '/logo/magastore-logo-2026.png';
 
 /**
  * Las fuentes de la marca (Inter + Poppins) ya están declaradas en
@@ -337,14 +345,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ rates }) => {
       >
         {/* ─── NAVBAR ─── */}
         <nav className="fixed top-0 inset-x-0 z-40 bg-neutral-900/95 backdrop-blur border-b border-neutral-800">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-            <Link href="/landing" className="flex items-center gap-2.5 flex-shrink-0">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-18 sm:h-20">
+            <Link href="/landing" className="flex items-center flex-shrink-0">
               <Image
-                src="/logo/magastore-logo-light.png"
-                alt="Magastore"
-                width={140}
-                height={32}
-                className="h-7 sm:h-8 w-auto"
+                src={BRAND_LOGO}
+                alt="Magastore — Compras por Internet"
+                width={1126}
+                height={718}
+                className="h-11 sm:h-14 w-auto"
                 priority
               />
             </Link>
@@ -376,7 +384,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ rates }) => {
         </nav>
 
         {/* ─── HERO ─── */}
-        <section className="bg-neutral-900 pt-16">
+        <section className="bg-neutral-900 pt-18 sm:pt-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
             <Reveal>
               <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 text-accent text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full mb-8">
@@ -417,6 +425,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ rates }) => {
                 >
                   Calcular mi envío
                 </a>
+              </div>
+            </Reveal>
+
+            {/* Claim de marca. Va como texto y no dentro del logo para poder
+                cambiarlo sin volver a exportar el arte. */}
+            <Reveal delay={0.3}>
+              <div className="mt-10 flex items-center justify-center gap-3 sm:gap-4">
+                <span className="hidden sm:block h-px w-10 bg-accent/40" />
+                <span className="text-[0.7rem] sm:text-xs font-bold tracking-[0.25em] text-neutral-300 uppercase">
+                  Seguro
+                </span>
+                <ShieldCheck size={18} className="text-accent" />
+                <span className="text-[0.7rem] sm:text-xs font-bold tracking-[0.25em] text-neutral-300 uppercase">
+                  Confiable
+                </span>
+                <span className="hidden sm:block h-px w-10 bg-accent/40" />
               </div>
             </Reveal>
 
@@ -819,11 +843,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ rates }) => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/logo/magastore-logo-light.png"
-                  alt="Magastore"
-                  width={120}
-                  height={28}
-                  className="h-7 w-auto"
+                  src={BRAND_LOGO}
+                  alt="Magastore — Compras por Internet"
+                  width={1126}
+                  height={718}
+                  className="h-12 w-auto"
                 />
                 <span className="text-neutral-500 text-sm">© {new Date().getFullYear()}</span>
               </div>
@@ -835,9 +859,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ rates }) => {
                 <a href="#faq" className="hover:text-accent transition-colors">
                   Preguntas
                 </a>
-                <Link href={routesPublic.login} className="hover:text-accent transition-colors">
-                  Iniciar sesión
-                </Link>
+                <a href="#como-funciona" className="hover:text-accent transition-colors">
+                  Cómo funciona
+                </a>
               </div>
             </div>
 
