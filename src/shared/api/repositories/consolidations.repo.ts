@@ -402,14 +402,16 @@ export const ConsolidationsRepository = {
         if (bill?.is_paid) {
           throw new Error('No se puede reabrir: esta orden de envío ya tiene una factura pagada.');
         }
+        // La participación de Farid se calculó sobre ese estimado/factura que se
+        // acaba de descartar: dejarla viva la seguiría sumando al total del mes
+        // por un cobro que ya no existe. Se regenera al volver a estimar. Debe
+        // borrarse antes que billing: profit_shares.billing_id referencia a
+        // billing(id) sin ON DELETE CASCADE.
+        await sql`DELETE FROM profit_shares WHERE consolidation_id = ${current.id}`;
         if (bill) {
           await sql`DELETE FROM billing WHERE consolidation_id = ${current.id}`;
         }
         await sql`DELETE FROM pre_billing WHERE consolidation_id = ${current.id}`;
-        // La participación de Farid se calculó sobre ese estimado/factura que se
-        // acaba de descartar: dejarla viva la seguiría sumando al total del mes
-        // por un cobro que ya no existe. Se regenera al volver a estimar.
-        await sql`DELETE FROM profit_shares WHERE consolidation_id = ${current.id}`;
       }
 
       const [row] = await sql`
