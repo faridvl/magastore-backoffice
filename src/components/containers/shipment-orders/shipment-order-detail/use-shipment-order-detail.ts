@@ -16,6 +16,7 @@ import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-va
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
+import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
 export const useShipmentOrderDetail = (uuid?: string) => {
@@ -301,17 +302,44 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
     setIsNotifyingPreBilling(true);
     try {
+      const packages = detail.packages ?? [];
+      // Mismo desglose que imprime el PDF del estimado: se reusa el helper para
+      // que el mensaje de WhatsApp y el PDF nunca muestren cifras distintas del
+      // mismo estimado. El subtotal por paquete es un prorrateo del flete por
+      // peso — la orden se cobra por peso agregado, no paquete por paquete.
+      const deliveryFeeCrc = Number(detail.pre_billing_fee_crc ?? 0);
+      const breakdown = buildBillingBreakdown({
+        packages: packages.map((p) => ({
+          tracking_number: p.tracking_number,
+          weight_lb: p.weight_lb,
+        })),
+        amountCrc: detail.pre_billing_amount ?? 0,
+        deliveryFeeCrc,
+        totalWeightCharged: detail.total_weight_lb,
+        appliedRateUsd: detail.pre_billing_rate_usd ?? detail.current_price_per_lb,
+        appliedExchange: detail.pre_billing_exchange ?? detail.current_exchange_rate,
+        billingMode: detail.customer_type_billing_mode,
+        discountPercent: detail.customer_type_discount_percent,
+      });
+
+      const packageLines = packages.map((p, i) => ({
+        storeName: p.store_name,
+        trackingNumber: p.tracking_number,
+        weightLb: Number(p.weight_lb),
+        amountCrc: breakdown.lines[i]?.subtotal ?? null,
+      }));
+
       const message = buildPreBillingReadyMessage({
         firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         weightLb: Number(detail.total_weight_lb),
         deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
-        packages: (detail.packages ?? []).map((p) => ({
-          storeName: p.store_name,
-          trackingNumber: p.tracking_number,
-          weightLb: Number(p.weight_lb),
-        })),
+        shippingCrc: breakdown.flete,
+        deliveryFeeCrc,
+        discountCrc: breakdown.descuento,
+        discountLabel: breakdown.ruleLabel,
+        packages: packageLines,
         templateBody: preBillingTemplateBody,
       });
       // notified_at se estampa ANTES de notificar: fuera de iPad se navega a
