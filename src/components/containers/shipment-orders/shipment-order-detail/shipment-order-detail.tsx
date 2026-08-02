@@ -167,12 +167,14 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8 pb-20">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col">
-          <button onClick={handleBack} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
+        <div className="flex flex-col min-w-0 w-full md:w-auto">
+          {/* Oculto en móvil: la flecha del header ya cumple esta función y en
+              pantalla angosta este enlace consumía una línea entera. */}
+          <button onClick={handleBack} className="hidden sm:flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
             <ChevronLeft size={14} /> Volver a órdenes de envío
           </button>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Typography variant={TypographyVariant.HEADER} className="tracking-tighter">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <Typography variant={TypographyVariant.HEADER} className="tracking-tighter break-words">
               {detail.customer_name}
             </Typography>
             {detail.customer_type_name && detail.customer_type_billing_mode !== 'NORMAL' && (
@@ -183,7 +185,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               />
             )}
           </div>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1 break-words">
             {detail.customer_code} · {detail.customer_email}
           </p>
         </div>
@@ -245,8 +247,11 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         </div>
       </div>
 
-      {/* DIRECCIÓN DE ENTREGA */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+      {/* DIRECCIÓN DE ENTREGA
+          En móvil el contenido y las acciones se apilan: con flex-row fijo el
+          texto se comprimía hasta partirse letra por letra mientras el botón
+          conservaba su ancho. */}
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-start gap-3 min-w-0">
           <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
             <MapPin size={16} className="text-slate-600" />
@@ -274,7 +279,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         <button
           onClick={handleOpenAddressModal}
           disabled={isLoadingAddresses}
-          className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
+          className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
         >
           <Pencil size={12} />
           Cambiar
@@ -282,7 +287,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
       </div>
 
       {/* MÉTODO DE ENVÍO */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-start gap-3 min-w-0">
           <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
             <SendHorizonal size={16} className="text-slate-600" />
@@ -296,21 +301,21 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-shrink-0 justify-end">
           {/* Solicitud al proveedor: copia, no abre WhatsApp — el destinatario
               es el forwarder, no el cliente. */}
           <button
             onClick={handleCopyShipmentRequest}
             disabled={isCopyingRequest}
             title="Copiar solicitud de envío para el proveedor"
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
           >
             <Copy size={12} />
             Solicitar envío
           </button>
           <button
             onClick={handleOpenMethodModal}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 whitespace-nowrap"
           >
             <Pencil size={12} />
             Cambiar
@@ -320,7 +325,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
       {/* GUÍA DE RASTREO — solo tras despachar: antes no existe número que registrar. */}
       {isDispatched && (
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="flex items-start gap-3 min-w-0">
             <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
               <Truck size={16} className="text-slate-600" />
@@ -341,12 +346,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          <div className="flex items-center gap-2 flex-shrink-0 justify-end">
             {canNotifyDispatch && (
               <button
                 onClick={handleNotifyDispatch}
                 disabled={isNotifyingDispatch}
-                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40 whitespace-nowrap"
               >
                 <MessageCircle size={12} />
                 Avisar
@@ -354,7 +359,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             )}
             <button
               onClick={handleOpenTrackingModal}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all whitespace-nowrap"
             >
               <Pencil size={12} />
               {detail.tracking_code ? 'Editar' : 'Agregar'}
