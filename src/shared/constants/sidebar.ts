@@ -1,6 +1,7 @@
 import { routesPrivate } from '../navigation/routes';
 import {
   LayoutDashboard,
+  ClipboardCheck,
   BadgeDollarSign,
   Users,
   Settings,
@@ -30,6 +31,13 @@ export interface NavGroup {
 }
 
 export const NAV_STANDALONE: NavItem[] = [
+  {
+    menuKey: 'operational',
+    icon: ClipboardCheck,
+    labelKey: 'Operativo',
+    route: routesPrivate.admin.operations,
+    adminOnly: true,
+  },
   {
     menuKey: 'dashboard',
     icon: LayoutDashboard,

@@ -14,6 +14,9 @@ export const routesPrivate = {
   // Sección Admin (Gestión Logística)
   admin: {
     dashboard: '/admin/dashboard',
+    // Panel operativo: bandeja de pendientes y cobros. Convive con el dashboard
+    // clásico, que sigue siendo la vista de métricas.
+    operations: '/admin/operations',
     packages: '/admin/packages',
 
     // Gestión de lo que traes del exterior
