@@ -4,10 +4,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  AlertTriangle, PackagePlus, MessageCircle, Wallet, Check,
+  AlertTriangle, PackagePlus, MessageCircle, Wallet, Check, Receipt,
   ArrowRight, TrendingUp, TrendingDown, Package,
 } from 'lucide-react';
 import { useOperations } from './use-operations';
+import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
+import { NotifyPackagesModal } from '@/components/common/notify-packages-modal/notify-packages-modal';
 import { PendingReceivable } from '@/types/dashboard/operations.types';
 import { routesPrivate } from '@/shared/navigation/routes';
 
@@ -41,7 +43,10 @@ interface InboxCardProps {
   label: string;
   value: string;
   hint: string;
-  href: string;
+  /** Destino de la tarjeta. Se ignora si se pasa `onClick`. */
+  href?: string;
+  /** Acción en la misma página (abrir un modal) en vez de navegar. */
+  onClick?: () => void;
   icon: React.ComponentType<{ size?: number | string; className?: string }>;
   tone: 'amber' | 'blue' | 'violet' | 'rose';
   /** En cero la tarjeta se apaga: no hay nada que hacer ahí. */
@@ -56,17 +61,17 @@ const TONE_CLASSES: Record<InboxCardProps['tone'], { bg: string; text: string }>
 };
 
 const InboxCard: React.FC<InboxCardProps> = ({
-  label, value, hint, href, icon: Icon, tone, isEmpty,
+  label, value, hint, href, onClick, icon: Icon, tone, isEmpty,
 }) => {
   const toneClass = isEmpty
     ? { bg: 'bg-slate-50', text: 'text-slate-300' }
     : TONE_CLASSES[tone];
 
-  return (
-    <Link
-      href={href}
-      className="group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all"
-    >
+  const cardClass =
+    'group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all text-left w-full';
+
+  const body = (
+    <>
       <div className="flex items-start justify-between">
         <div
           className={`h-10 w-10 ${toneClass.bg} ${toneClass.text} rounded-xl flex items-center justify-center mb-4`}
@@ -87,6 +92,20 @@ const InboxCard: React.FC<InboxCardProps> = ({
         {value}
       </h3>
       <p className="text-slate-400 text-xs font-semibold mt-1">{hint}</p>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cardClass}>
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={href ?? '#'} className={cardClass}>
+      {body}
     </Link>
   );
 };
@@ -111,16 +130,16 @@ interface ReceivablesTableProps {
   emptyLabel: string;
   /** Filtro con el que se abre Órdenes al pedir "ver todas". */
   seeAllFilter: string;
-  onMarkPaid?: (billingUuid: string) => void;
-  isMarkingPaid?: boolean;
+  /** Abre el modal de detalle de factura, con su desglose y el pago. */
+  onOpenBilling: (billingUuid: string) => void;
   onOpenOrder: (uuid: string) => void;
-  /** Muestra el botón de notificar en vez del de marcar pagado. */
+  /** Muestra el botón de notificar en vez del de ver la factura. */
   variant: 'follow-up' | 'to-notify';
 }
 
 const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
   rows, total, isLoading, emptyLabel, seeAllFilter,
-  onMarkPaid, isMarkingPaid, onOpenOrder, variant,
+  onOpenBilling, onOpenOrder, variant,
 }) => {
   const totalAmount = rows.reduce((sum, r) => sum + r.amountCRC, 0);
 
@@ -195,14 +214,13 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                     </span>
                   </td>
                   <td className="px-4 py-3 md:px-6 text-right">
-                    {variant === 'follow-up' && row.billingUuid && onMarkPaid ? (
+                    {row.billingUuid ? (
                       <button
-                        onClick={() => onMarkPaid(row.billingUuid as string)}
-                        disabled={isMarkingPaid}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-black hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                        onClick={() => onOpenBilling(row.billingUuid as string)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-black hover:bg-slate-800 transition-colors"
                       >
-                        <Check size={14} />
-                        Pagado
+                        <Receipt size={14} />
+                        Ver factura
                       </button>
                     ) : (
                       <button
@@ -212,7 +230,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                         {variant === 'to-notify' ? (
                           <>
                             <MessageCircle size={14} />
-                            Notificar
+                            Avisar cobro
                           </>
                         ) : (
                           'Ver orden'
@@ -248,7 +266,12 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
 
 export const OperationsContainer: React.FC = () => {
   const {
-    stats, isLoading, isError, markReceivablePaid, isMarkingPaid, goToOrder,
+    stats, isLoading, isError, goToOrder,
+    selectedBillingUuid, setSelectedBillingUuid,
+    billingDetail, isLoadingDetail,
+    handleMarkAsPaid, isMarkingPaid,
+    handleDownloadPdf, isDownloadingPdf,
+    notifyMultiple, closeNotifyModal,
   } = useOperations();
 
   const { inbox, monthly } = stats;
@@ -287,7 +310,7 @@ export const OperationsContainer: React.FC = () => {
                 hint={`${inbox.customersWithPackagesNotNotified} cliente${
                   inbox.customersWithPackagesNotNotified !== 1 ? 's' : ''
                 } por notificar`}
-                href={routesPrivate.admin.logistics.index}
+                onClick={notifyMultiple.open}
                 icon={MessageCircle}
                 tone="violet"
                 isEmpty={inbox.packagesNotNotified === 0}
@@ -342,6 +365,7 @@ export const OperationsContainer: React.FC = () => {
           isLoading={isLoading}
           emptyLabel="Todo avisado"
           seeAllFilter="SIN_NOTIFICAR"
+          onOpenBilling={setSelectedBillingUuid}
           onOpenOrder={goToOrder}
           variant="to-notify"
         />
@@ -361,8 +385,7 @@ export const OperationsContainer: React.FC = () => {
           isLoading={isLoading}
           emptyLabel="Sin cobros pendientes"
           seeAllFilter="PENDIENTE_PAGO"
-          onMarkPaid={markReceivablePaid}
-          isMarkingPaid={isMarkingPaid}
+          onOpenBilling={setSelectedBillingUuid}
           onOpenOrder={goToOrder}
           variant="follow-up"
         />
@@ -470,6 +493,32 @@ export const OperationsContainer: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* MODAL: DETALLE DE FACTURA — el mismo de Facturación, con desglose,
+          PDF y "Marcar como Pagado". */}
+      {selectedBillingUuid && (
+        <BillingDetailModal
+          billingDetail={billingDetail}
+          isLoading={isLoadingDetail}
+          onClose={() => setSelectedBillingUuid(null)}
+          onMarkAsPaid={handleMarkAsPaid}
+          isMarkingPaid={isMarkingPaid}
+          onDownloadPdf={handleDownloadPdf}
+          isDownloadingPdf={isDownloadingPdf}
+        />
+      )}
+
+      {/* MODAL: NOTIFICAR PAQUETES DISPONIBLES — el mismo de Logística. */}
+      {notifyMultiple.isOpen && (
+        <NotifyPackagesModal
+          customers={notifyMultiple.customers}
+          isLoading={notifyMultiple.isLoading}
+          sentCustomerIds={notifyMultiple.sentCustomerIds}
+          sendingCustomerId={notifyMultiple.sendingCustomerId}
+          onSend={notifyMultiple.sendToCustomer}
+          onClose={closeNotifyModal}
+        />
+      )}
     </div>
   );
 };
