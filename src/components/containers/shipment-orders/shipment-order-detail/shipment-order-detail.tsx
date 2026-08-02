@@ -18,6 +18,9 @@ import {
   CheckSquare,
   MessageCircle,
   TrendingUp,
+  Copy,
+  Truck,
+  Lock,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
@@ -114,6 +117,16 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
     handleNotifyPreBilling,
     isNotifyingPreBilling,
+
+    dispatchTrackingCode, setDispatchTrackingCode,
+    isEditLocked,
+    lockedEditTarget, setLockedEditTarget,
+    handleCopyShipmentRequest, isCopyingRequest,
+    handleNotifyDispatch, isNotifyingDispatch,
+    showTrackingModal, setShowTrackingModal,
+    trackingDraft, setTrackingDraft,
+    handleOpenTrackingModal,
+    handleSaveTrackingCode, isSavingTracking,
   } = useShipmentOrderDetail(resolvedUuid);
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
@@ -142,6 +155,13 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   const hasPreBilling = !!detail.pre_billing_uuid;
   const preBillingConfirmed = !!detail.pre_billing_confirmed;
   const isPaid = !!detail.billing_is_paid;
+  // Lo facturado manda sobre el estimado: es la cifra que el cliente debe pagar.
+  const amountToShow = detail.billing_total_amount_crc ?? detail.pre_billing_amount;
+  const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === detail.delivery_method);
+  const isDispatched = detail.status === ConsolidationStatus.DESPACHADO || detail.status === ConsolidationStatus.ENTREGADO;
+  // El aviso de despacho necesita las tres cosas: sin guía no hay qué rastrear,
+  // y sin URL configurada el mensaje llevaría un enlace vacío.
+  const canNotifyDispatch = isDispatched && !!detail.tracking_code && !!deliveryMethodEntity?.tracking_url;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8 pb-20">
@@ -167,19 +187,40 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             {detail.customer_code} · {detail.customer_email}
           </p>
         </div>
-        <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_COLORS[detail.status]}`}>
-          {STATUS_LABELS[detail.status]}
-        </span>
-      </div>
-
-      {/* STATS ROW */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado</p>
-          <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wide border inline-block max-w-full truncate ${STATUS_COLORS[detail.status]}`}>
+        {/* Acciones de estado + badge. Antes vivían al pie de la página, debajo
+            de la rentabilidad, donde el operador no las encontraba. En móvil la
+            acción principal ocupa el ancho y las secundarias van a su lado. */}
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
+          {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
+            <button
+              onClick={() => setQuickActionTarget('reopen')}
+              disabled={isUpdating}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold text-[11px] hover:bg-amber-100 transition-all disabled:opacity-40"
+            >
+              <RotateCcw size={13} />
+              Volver a abrir
+            </button>
+          )}
+          {NEXT_STATUS_LABEL[detail.status] && (
+            <button
+              onClick={detail.status === ConsolidationStatus.CERRADO ? () => setQuickActionTarget('dispatch') : handleAdvanceStatus}
+              disabled={isUpdating}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all shadow-sm disabled:opacity-40"
+            >
+              <ArrowRight size={13} />
+              {isUpdating ? 'Actualizando...' : NEXT_STATUS_LABEL[detail.status]}
+            </button>
+          )}
+          <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_COLORS[detail.status]}`}>
             {STATUS_LABELS[detail.status]}
           </span>
         </div>
+      </div>
+
+      {/* STATS ROW — el estado ya está en el badge de arriba y la cantidad de
+          paquetes en la lista de abajo; aquí van los datos que no se ven en
+          ningún otro lado de la pantalla. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Peso Total</p>
           <p className="font-black text-slate-800 text-base">
@@ -187,8 +228,20 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           </p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Paquetes</p>
-          <p className="font-black text-slate-800 text-base">{detail.packages.length}</p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto</p>
+          <p className="font-black text-slate-800 text-base">
+            {amountToShow != null ? formatCRC(Number(amountToShow)) : <span className="text-slate-300">—</span>}
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center col-span-2 sm:col-span-1">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pago</p>
+          {hasBilling ? (
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wide border inline-block ${isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+              {isPaid ? 'Pagada' : 'Pendiente'}
+            </span>
+          ) : (
+            <span className="text-[11px] font-bold text-slate-300">Sin factura</span>
+          )}
         </div>
       </div>
 
@@ -215,16 +268,17 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             )}
           </div>
         </div>
-        {detail.status === ConsolidationStatus.ABIERTO && (
-          <button
-            onClick={handleOpenAddressModal}
-            disabled={isLoadingAddresses}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
-          >
-            <Pencil size={12} />
-            Cambiar
-          </button>
-        )}
+        {/* Siempre visible: ocultarlo fuera de ABIERTO dejaba al operador sin
+            saber por qué no podía cambiarla. Con estimado generado, explica que
+            hay que reabrir en vez de desaparecer. */}
+        <button
+          onClick={handleOpenAddressModal}
+          disabled={isLoadingAddresses}
+          className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
+        >
+          <Pencil size={12} />
+          Cambiar
+        </button>
       </div>
 
       {/* MÉTODO DE ENVÍO */}
@@ -242,16 +296,72 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             )}
           </div>
         </div>
-        {detail.status === ConsolidationStatus.ABIERTO && (
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          {/* Solicitud al proveedor: copia, no abre WhatsApp — el destinatario
+              es el forwarder, no el cliente. */}
+          <button
+            onClick={handleCopyShipmentRequest}
+            disabled={isCopyingRequest}
+            title="Copiar solicitud de envío para el proveedor"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
+          >
+            <Copy size={12} />
+            Solicitar envío
+          </button>
           <button
             onClick={handleOpenMethodModal}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
           >
             <Pencil size={12} />
             Cambiar
           </button>
-        )}
+        </div>
       </div>
+
+      {/* GUÍA DE RASTREO — solo tras despachar: antes no existe número que registrar. */}
+      {isDispatched && (
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
+              <Truck size={16} className="text-slate-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guía de rastreo</p>
+              {detail.tracking_code ? (
+                <>
+                  <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
+                  {detail.dispatched_at && (
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Despachado el {new Date(detail.dispatched_at).toLocaleDateString('es-CR')}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-slate-400 italic">Sin guía registrada — agrégala para avisar al cliente</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+            {canNotifyDispatch && (
+              <button
+                onClick={handleNotifyDispatch}
+                disabled={isNotifyingDispatch}
+                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40"
+              >
+                <MessageCircle size={12} />
+                Avisar
+              </button>
+            )}
+            <button
+              onClick={handleOpenTrackingModal}
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all"
+            >
+              <Pencil size={12} />
+              {detail.tracking_code ? 'Editar' : 'Agregar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* PRE-BILLING / BILLING CARD */}
       {!hasBilling && (
@@ -437,29 +547,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
       {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al cliente) */}
       {detail.packages.length > 0 && <ProfitCard detail={detail} />}
 
-      {/* ACTIONS */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
-          <button
-            onClick={() => setQuickActionTarget('reopen')}
-            disabled={isUpdating}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-2xl font-bold text-sm hover:bg-amber-100 transition-all disabled:opacity-40"
-          >
-            <RotateCcw size={16} />
-            Volver a abrir
-          </button>
-        )}
-        {NEXT_STATUS_LABEL[detail.status] && (
-          <button
-            onClick={detail.status === ConsolidationStatus.CERRADO ? () => setQuickActionTarget('dispatch') : handleAdvanceStatus}
-            disabled={isUpdating}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-          >
-            <ArrowRight size={16} />
-            {isUpdating ? 'Actualizando...' : NEXT_STATUS_LABEL[detail.status]}
-          </button>
-        )}
-      </div>
+      {/* Las acciones de estado viven ahora en el header — ver bloque HEADER. */}
 
       {/* MODAL: DETALLE DE FACTURA (mismo modal que Facturación) */}
       {showBillingModal && (
@@ -507,6 +595,26 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
               </div>
             </div>
+            {/* La guía es opcional: el operador no siempre la tiene al entregar
+                el bulto. Se puede registrar después desde la tarjeta de guía. */}
+            {quickActionTarget === 'dispatch' && !deliveryMethodEntity?.is_pickup && (
+              <div className="mb-5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                  Guía de rastreo (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={dispatchTrackingCode}
+                  onChange={(e) => setDispatchTrackingCode(e.target.value)}
+                  placeholder="Ej. EZ292332205CR"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400"
+                />
+                <p className="text-[10px] text-slate-400 mt-1.5">
+                  Podés agregarla después. Sin guía no se puede avisar al cliente.
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => setQuickActionTarget(null)}
@@ -708,6 +816,106 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               >
                 {isSavingMethod ? 'Guardando...' : 'Guardar'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: GUÍA DE RASTREO (registrar o corregir tras el despacho) */}
+      {showTrackingModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowTrackingModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Truck size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Guía de rastreo
+              </Typography>
+            </div>
+
+            <input
+              type="text"
+              value={trackingDraft}
+              onChange={(e) => setTrackingDraft(e.target.value)}
+              placeholder="Ej. EZ292332205CR"
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 mb-2"
+            />
+            <p className="text-[11px] text-slate-400 mb-6">
+              {deliveryMethodEntity?.tracking_url
+                ? 'Con la guía registrada podés enviarle el aviso de despacho al cliente.'
+                : 'Este método de entrega no tiene enlace de rastreo configurado. Agregalo en Ajustes → Métodos de entrega para poder avisar al cliente.'}
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowTrackingModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveTrackingCode}
+                disabled={isSavingTracking}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isSavingTracking ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDICIÓN BLOQUEADA — explica por qué hay que reabrir en vez de
+          dejar el botón inerte o escondido. */}
+      {lockedEditTarget && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setLockedEditTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4 mb-5">
+              <div className="p-2.5 rounded-xl bg-amber-50 flex-shrink-0">
+                <Lock size={18} className="text-amber-500" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 text-sm">
+                  {lockedEditTarget === 'address' ? 'La dirección ya no se puede cambiar' : 'El método de envío ya no se puede cambiar'}
+                </p>
+                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
+                  {hasBilling
+                    ? 'La factura ya guardó la dirección y la tarifa de entrega aplicadas. Cambiarlas ahora no recalcularía el monto cobrado. Para editarlas, volvé a abrir la orden — se descartará la factura y deberás generar el estimado de nuevo.'
+                    : 'El estimado ya se calculó con estos datos. Para cambiarlos, volvé a abrir la orden — se descartará el estimado y deberás generarlo de nuevo.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setLockedEditTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Entendido
+              </button>
+              {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
+                <button
+                  onClick={() => {
+                    setLockedEditTarget(null);
+                    setQuickActionTarget('reopen');
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <RotateCcw size={14} /> Reabrir
+                </button>
+              )}
             </div>
           </div>
         </div>

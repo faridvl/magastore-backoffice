@@ -92,6 +92,9 @@ export const ConsolidationsService = {
     uuid: string,
     newStatus: ConsolidationStatus,
     currentStatus: ConsolidationStatus,
+    // Guía del transportista al despachar. Opcional por decisión de negocio: se
+    // puede despachar sin ella y registrarla después con setTrackingCode.
+    trackingCode?: string | null,
   ) => {
     // Reabrir es la única transición inversa permitida
     const isReopen = currentStatus === ConsolidationStatus.CERRADO && newStatus === ConsolidationStatus.ABIERTO;
@@ -103,7 +106,13 @@ export const ConsolidationsService = {
         );
       }
     }
-    return ConsolidationsRepository.updateConsolidationStatus(uuid, newStatus);
+    return ConsolidationsRepository.updateConsolidationStatus(uuid, newStatus, trackingCode);
+  },
+
+  /** Registra o corrige la guía del transportista tras el despacho. */
+  setTrackingCode: async (uuid: string, trackingCode: string | null) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.setTrackingCode(uuid, trackingCode);
   },
 
   deleteConsolidation: async (uuid: string) => {

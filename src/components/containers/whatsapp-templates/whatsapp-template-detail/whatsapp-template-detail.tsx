@@ -21,6 +21,17 @@ const PREVIEW_VALUES: Record<string, string> = {
     estado: 'Florida',
     codigo_postal: '33172-1615',
     telefono: '+1 786-360-2816',
+    lista_trackings: '- TBA332299392729\n- 1ZW442G13521311043',
+    nombre_cliente: 'María Rodríguez',
+    nombre_recibe: 'MARÍA RODRÍGUEZ SOTO',
+    telefono_recibe: '62048869',
+    cedula: '117210411',
+    provincia: 'SAN JOSE',
+    canton: 'CENTRAL',
+    distrito: 'EL CARMEN',
+    cantidad_paquetes: '2',
+    numero_guia: 'EZ292332205CR',
+    link_rastreo: 'https://correos.go.cr/rastreo/',
 };
 
 function renderPreview(body: string): string {

@@ -4,7 +4,7 @@ import { DeliveryMethodEntity, DeliveryMethodInput } from '@/types/logistics/log
 export const DeliveryMethodsRepository = {
   getAll: async (): Promise<DeliveryMethodEntity[]> => {
     const rows = await sql`
-      SELECT id, uuid, code, name, requires_zone, is_pickup, is_active, created_at, updated_at
+      SELECT id, uuid, code, name, requires_zone, is_pickup, tracking_url, is_active, created_at, updated_at
       FROM delivery_methods
       ORDER BY name ASC
     `;
@@ -13,13 +13,19 @@ export const DeliveryMethodsRepository = {
 
   create: async (data: DeliveryMethodInput): Promise<DeliveryMethodEntity> => {
     const [row] = await sql`
-      INSERT INTO delivery_methods (code, name, requires_zone, is_pickup)
-      VALUES (${data.code}, ${data.name}, ${data.requires_zone}, ${data.is_pickup})
-      RETURNING id, uuid, code, name, requires_zone, is_pickup, is_active, created_at, updated_at
+      INSERT INTO delivery_methods (code, name, requires_zone, is_pickup, tracking_url)
+      VALUES (${data.code}, ${data.name}, ${data.requires_zone}, ${data.is_pickup}, ${data.tracking_url || null})
+      RETURNING id, uuid, code, name, requires_zone, is_pickup, tracking_url, is_active, created_at, updated_at
     `;
     return row as DeliveryMethodEntity;
   },
 
+  /**
+   * Reescribe todas las columnas editables del método. tracking_url DEBE viajar
+   * en el input: al ser un SET completo, omitirla la pondría en NULL en cada
+   * edición y el enlace de rastreo desaparecería sin error visible — el aviso de
+   * despacho dejaría de ofrecerse sin que nadie note por qué.
+   */
   update: async (uuid: string, data: DeliveryMethodInput): Promise<DeliveryMethodEntity> => {
     const [row] = await sql`
       UPDATE delivery_methods
@@ -27,9 +33,10 @@ export const DeliveryMethodsRepository = {
           name          = ${data.name},
           requires_zone = ${data.requires_zone},
           is_pickup     = ${data.is_pickup},
+          tracking_url  = ${data.tracking_url || null},
           updated_at    = NOW()
       WHERE uuid = ${uuid}
-      RETURNING id, uuid, code, name, requires_zone, is_pickup, is_active, created_at, updated_at
+      RETURNING id, uuid, code, name, requires_zone, is_pickup, tracking_url, is_active, created_at, updated_at
     `;
     if (!row) throw new Error('Método de entrega no encontrado.');
     return row as DeliveryMethodEntity;
@@ -39,7 +46,7 @@ export const DeliveryMethodsRepository = {
     const [row] = await sql`
       UPDATE delivery_methods SET is_active = ${isActive}, updated_at = NOW()
       WHERE uuid = ${uuid}
-      RETURNING id, uuid, code, name, requires_zone, is_pickup, is_active, created_at, updated_at
+      RETURNING id, uuid, code, name, requires_zone, is_pickup, tracking_url, is_active, created_at, updated_at
     `;
     if (!row) throw new Error('Método de entrega no encontrado.');
     return row as DeliveryMethodEntity;
@@ -51,12 +58,19 @@ export const DeliveryMethodsRepository = {
     return row?.code ?? null;
   },
 
-  /** Lookup liviano por code — usado en cálculos de rentabilidad que solo necesitan is_pickup. */
-  findByCode: async (code: string): Promise<Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone'> | null> => {
+  /**
+   * Lookup liviano por code — lo usan los cálculos de rentabilidad (is_pickup,
+   * requires_zone) y el aviso de despacho (name, tracking_url). Ampliar las
+   * columnas es seguro para los llamadores existentes: las que ya leían siguen
+   * presentes.
+   */
+  findByCode: async (
+    code: string,
+  ): Promise<Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone' | 'name' | 'tracking_url'> | null> => {
     const [row] = await sql`
-      SELECT is_pickup, requires_zone FROM delivery_methods WHERE code = ${code}
+      SELECT is_pickup, requires_zone, name, tracking_url FROM delivery_methods WHERE code = ${code}
     `;
-    return (row as Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone'>) ?? null;
+    return (row as Pick<DeliveryMethodEntity, 'is_pickup' | 'requires_zone' | 'name' | 'tracking_url'>) ?? null;
   },
 
   /** Cualquier rastro histórico del código — para bloquear el borrado (nunca perder historia). */

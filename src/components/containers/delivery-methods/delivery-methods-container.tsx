@@ -179,6 +179,23 @@ function DeliveryMethodForm({
                 )}
             </div>
 
+            {/* El retiro en oficina no genera guía ni tiene nada que rastrear. */}
+            {!draft.is_pickup && (
+                <div className="flex flex-col gap-1">
+                    <label className={labelClass}>Enlace de rastreo</label>
+                    <input
+                        type="url"
+                        value={draft.tracking_url}
+                        onChange={(e) => onChange('tracking_url', e.target.value)}
+                        placeholder="https://correos.go.cr/rastreo/"
+                        className={inputClass}
+                    />
+                    <p className="text-[10px] text-slate-400">
+                        Se incluye en el aviso de despacho al cliente. Sin enlace, ese aviso no se ofrece.
+                    </p>
+                </div>
+            )}
+
             <div className="flex gap-2">
                 <button
                     onClick={onSave}

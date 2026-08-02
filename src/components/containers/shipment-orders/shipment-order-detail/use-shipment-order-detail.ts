@@ -10,7 +10,13 @@ import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-pai
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { downloadPdf } from '@/shared/utils/download-pdf';
-import { notifyWhatsApp, buildPreBillingReadyMessage } from '@/shared/constants/whatsapp-templates';
+import {
+  notifyWhatsApp,
+  copyWhatsAppMessage,
+  buildPreBillingReadyMessage,
+  buildShipmentRequestMessage,
+  buildShipmentDispatchedMessage,
+} from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
@@ -47,6 +53,20 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
   const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
+  const shipmentRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST);
+  const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
+
+  // Guía que se tipea en el modal de despacho. Vacía es válido: se puede
+  // despachar sin ella y registrarla después.
+  const [dispatchTrackingCode, setDispatchTrackingCode] = useState('');
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [trackingDraft, setTrackingDraft] = useState('');
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+  const [isCopyingRequest, setIsCopyingRequest] = useState(false);
+  const [isNotifyingDispatch, setIsNotifyingDispatch] = useState(false);
+  // Aviso al intentar editar dirección/método con el estimado ya generado: el
+  // cambio exige reabrir la orden, no se aplica en silencio.
+  const [lockedEditTarget, setLockedEditTarget] = useState<'address' | 'method' | null>(null);
 
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [isDownloadingBillingPdf, setIsDownloadingBillingPdf] = useState(false);
@@ -87,8 +107,14 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
         toast.success('Orden de envío reabierta');
       } else {
-        await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.DESPACHADO, currentStatus: ConsolidationStatus.CERRADO });
+        await updateStatus({
+          consolidationUuid: detail.uuid,
+          status: ConsolidationStatus.DESPACHADO,
+          currentStatus: ConsolidationStatus.CERRADO,
+          trackingCode: dispatchTrackingCode.trim() || null,
+        });
         toast.success('Orden de envío marcada como despachada');
+        setDispatchTrackingCode('');
       }
       setQuickActionTarget(null);
       await detailQuery.invalidate();
@@ -199,8 +225,21 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  /**
+   * Una vez generado el estimado, la dirección y el método ya viajaron al
+   * snapshot de pre_billing/billing (tarifa de zona, fee de entrega, dirección
+   * impresa en la factura). Cambiarlos aquí no recalcularía nada: la factura
+   * seguiría diciendo la dirección vieja con el cobro viejo. Por eso el flujo
+   * correcto es reabrir —lo que descarta el estimado— y volver a generarlo.
+   */
+  const isEditLocked = !!detail && detail.status !== ConsolidationStatus.ABIERTO;
+
   const handleOpenAddressModal = async () => {
     if (!detail) return;
+    if (isEditLocked) {
+      setLockedEditTarget('address');
+      return;
+    }
     setIsLoadingAddresses(true);
     try {
       const { data: addresses } = await ApiServiceClient(env.API.BASE_URL)
@@ -236,6 +275,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   const handleOpenMethodModal = () => {
     if (!detail) return;
+    if (isEditLocked) {
+      setLockedEditTarget('method');
+      return;
+    }
     setSelectedMethod(detail.delivery_method);
     setShowMethodModal(true);
   };
@@ -291,6 +334,97 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       setSelectedPackageUuids([]);
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudieron agregar los paquetes.');
+    }
+  };
+
+  /**
+   * Copia la solicitud de despacho para pegarla en el chat con el proveedor.
+   *
+   * Copia en vez de abrir WhatsApp porque el destinatario es el proveedor, no el
+   * cliente: no hay teléfono de destino en la orden. Por el mismo motivo no
+   * estampa notified_at, que registra avisos al cliente.
+   */
+  const handleCopyShipmentRequest = async () => {
+    if (!detail) return;
+    if (!detail.delivery_exact_address) {
+      toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de solicitar el envío.');
+      return;
+    }
+    setIsCopyingRequest(true);
+    try {
+      const message = buildShipmentRequestMessage({
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        customerName: detail.customer_name,
+        idCard: detail.customer_id_card,
+        phone: detail.customer_phone,
+        province: detail.delivery_province,
+        canton: detail.delivery_canton,
+        district: detail.delivery_district,
+        exactAddress: detail.delivery_exact_address,
+        packages: detail.packages.map((p) => ({
+          storeName: p.store_name,
+          trackingNumber: p.tracking_number,
+          weightLb: Number(p.weight_lb),
+        })),
+        weightLb: Number(detail.total_weight_lb),
+        templateBody: shipmentRequestTemplateBody,
+      });
+      await copyWhatsAppMessage(message);
+    } finally {
+      setIsCopyingRequest(false);
+    }
+  };
+
+  /** Aviso de despacho al cliente, con guía y enlace de rastreo. */
+  const handleNotifyDispatch = async () => {
+    if (!detail) return;
+    if (!detail.customer_phone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    setIsNotifyingDispatch(true);
+    try {
+      const method = deliveryMethodsData?.data.find((m) => m.code === detail.delivery_method);
+      const message = buildShipmentDispatchedMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        deliveryMethodLabel: resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData?.data) || null,
+        trackingCode: detail.tracking_code,
+        trackingUrl: method?.tracking_url ?? null,
+        packageCount: detail.packages.length,
+        templateBody: shipmentDispatchedTemplateBody,
+      });
+      await notifyWhatsApp(detail.customer_phone, message);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo preparar el aviso de despacho.');
+    } finally {
+      setIsNotifyingDispatch(false);
+    }
+  };
+
+  const handleOpenTrackingModal = () => {
+    if (!detail) return;
+    setTrackingDraft(detail.tracking_code ?? '');
+    setShowTrackingModal(true);
+  };
+
+  /** Registra o corrige la guía después del despacho. */
+  const handleSaveTrackingCode = async () => {
+    if (!uuid) return;
+    setIsSavingTracking(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-tracking-code',
+        consolidationUuid: uuid,
+        trackingCode: trackingDraft.trim() || null,
+      });
+      await detailQuery.invalidate();
+      toast.success('Guía de rastreo actualizada');
+      setShowTrackingModal(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo guardar la guía de rastreo.');
+    } finally {
+      setIsSavingTracking(false);
     }
   };
 
@@ -376,6 +510,17 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     handleAdvanceStatus, isUpdating,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
+    dispatchTrackingCode, setDispatchTrackingCode,
+
+    isEditLocked,
+    lockedEditTarget, setLockedEditTarget,
+
+    handleCopyShipmentRequest, isCopyingRequest,
+    handleNotifyDispatch, isNotifyingDispatch,
+    showTrackingModal, setShowTrackingModal,
+    trackingDraft, setTrackingDraft,
+    handleOpenTrackingModal,
+    handleSaveTrackingCode, isSavingTracking,
 
     handleUnassignPackage, isUnassigning,
 

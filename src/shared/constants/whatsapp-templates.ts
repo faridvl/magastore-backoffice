@@ -295,6 +295,106 @@ export function buildPreBillingReadyMessage(params: {
   });
 }
 
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUEST = `Quería solicitar el envío de los siguientes paquetes
+
+*ENVIO {{id_orden}}
+Paquetes:
+{{lista_trackings}}
+
+Paquetes de {{nombre_cliente}}
+
+DATOS DE ENVIO
+NOMBRE: {{nombre_recibe}}
+TELEFONO DE QUIEN RECIBE: {{telefono_recibe}}
+Cédula: {{cedula}}
+PROVINCIA: {{provincia}}
+CANTON: {{canton}}
+DISTRITO: {{distrito}}
+DIRECCION: {{direccion}}`;
+
+/**
+ * Solicitud de despacho AL PROVEEDOR. No se envía al cliente: el flujo que la
+ * usa copia el texto al portapapeles para pegarlo en el chat con el forwarder.
+ *
+ * Los campos de destino se dejan como marcador visible ("[pendiente]") en vez de
+ * cadena vacía: un mensaje con renglones en blanco se pega tal cual al proveedor
+ * y el hueco pasa desapercibido, mientras que el marcador salta a la vista.
+ */
+export function buildShipmentRequestMessage(params: {
+  orderShortId: string;
+  customerName: string;
+  idCard: string | null;
+  phone: string | null;
+  province: string | null;
+  canton: string | null;
+  district: string | null;
+  exactAddress: string | null;
+  packages: WhatsAppPackageLine[];
+  weightLb: number;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  const pending = (value: string | null) => value?.trim() || '[pendiente]';
+
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUEST, {
+    id_orden: params.orderShortId,
+    lista_trackings: params.packages.map((p) => `- ${p.trackingNumber}`).join('\n'),
+    nombre_cliente: params.customerName,
+    nombre_recibe: params.customerName.toUpperCase(),
+    telefono_recibe: pending(params.phone),
+    cedula: pending(params.idCard),
+    provincia: pending(params.province),
+    canton: pending(params.canton),
+    distrito: pending(params.district),
+    direccion: pending(params.exactAddress),
+    cantidad_paquetes: String(params.packages.length),
+    peso_total: params.weightLb.toFixed(2),
+  });
+}
+
+export const WHATSAPP_TEMPLATE_SHIPMENT_DISPATCHED = `Estimad@ cliente, le informamos que su pedido ha sido enviado a través de {{metodo_entrega}}. 🚚📬
+
+El número de seguimiento del paquete es: {{numero_guia}}
+
+Puede rastrear el estado de envío de su paquete en el siguiente enlace:
+{{link_rastreo}}
+
+Cualquier duda o consulta no dude en contactarnos. 📲
+
+¡Gracias por confiar en nuestro servicio! 🤝🛩️📦`;
+
+/**
+ * Aviso de despacho AL CLIENTE, con la guía y el enlace de rastreo.
+ *
+ * Ni el transportista ni el enlace se escriben en el texto: ambos salen del
+ * catálogo de métodos de entrega. Si estuvieran fijos, despachar por un
+ * transportista distinto enviaría al cliente el nombre y el rastreador
+ * equivocados — y el catálogo es editable, así que el texto quedaría
+ * desactualizado sin que nadie lo note.
+ */
+export function buildShipmentDispatchedMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  deliveryMethodLabel: string | null;
+  trackingCode: string | null;
+  /** URL de rastreo del transportista (delivery_methods.tracking_url). */
+  trackingUrl: string | null;
+  packageCount: number;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_DISPATCHED, {
+    nombre: params.firstName,
+    metodo_entrega: params.deliveryMethodLabel ?? 'nuestro servicio de entrega',
+    numero_guia: params.trackingCode ?? '—',
+    // Sin URL configurada se omite en vez de dejar un renglón vacío que el
+    // cliente leería como un enlace roto.
+    link_rastreo: params.trackingUrl ?? '',
+    id_orden: params.orderShortId,
+    cantidad_paquetes: String(params.packageCount),
+  });
+}
+
 export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:
 
 Nombre apellido: MGA {{nombre_completo}}

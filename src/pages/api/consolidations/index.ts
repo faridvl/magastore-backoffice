@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'PATCH') {
-      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod } = req.body;
+      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode } = req.body;
 
       if (action === 'set-delivery-address') {
         if (!consolidationUuid || !addressId) {
@@ -101,6 +101,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { notified: true } });
       }
 
+      // Registrar o corregir la guía después del despacho. Separado de la
+      // transición de estado porque no siempre se conoce en ese momento.
+      if (action === 'set-tracking-code') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.setTrackingCode(consolidationUuid, trackingCode ?? null);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
       if (!consolidationUuid || !newStatus || !currentStatus) {
         return res.status(400).json({ message: 'consolidationUuid, newStatus y currentStatus son requeridos.' });
       }
@@ -108,6 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         consolidationUuid,
         newStatus as ConsolidationStatus,
         currentStatus as ConsolidationStatus,
+        trackingCode ?? null,
       );
       return res.status(200).json({ data: updated });
     }

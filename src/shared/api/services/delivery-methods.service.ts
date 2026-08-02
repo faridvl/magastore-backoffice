@@ -17,6 +17,9 @@ function normalize(data: DeliveryMethodInput): DeliveryMethodInput {
     name: data.name.trim(),
     requires_zone: !!data.requires_zone,
     is_pickup: !!data.is_pickup,
+    // Cadena vacía → null: un '' guardado haría que el mensaje de despacho
+    // incluyera una línea de enlace en blanco en vez de omitirse.
+    tracking_url: data.tracking_url?.trim() || null,
   };
 }
 

@@ -13,6 +13,9 @@ export type DeliveryMethodDraft = {
   name: string;
   requires_zone: boolean;
   is_pickup: boolean;
+  /** Se maneja como string ('' = sin configurar) porque viene de un input de
+   * texto; se convierte a null al enviar. */
+  tracking_url: string;
 };
 
 const EMPTY_DRAFT: DeliveryMethodDraft = {
@@ -20,6 +23,7 @@ const EMPTY_DRAFT: DeliveryMethodDraft = {
   name: '',
   requires_zone: true,
   is_pickup: false,
+  tracking_url: '',
 };
 
 function draftToInput(draft: DeliveryMethodDraft): DeliveryMethodInput {
@@ -28,6 +32,7 @@ function draftToInput(draft: DeliveryMethodDraft): DeliveryMethodInput {
     name: draft.name.trim(),
     requires_zone: draft.requires_zone,
     is_pickup: draft.is_pickup,
+    tracking_url: draft.tracking_url.trim() || null,
   };
 }
 
@@ -37,6 +42,7 @@ function methodToDraft(method: DeliveryMethodEntity): DeliveryMethodDraft {
     name: method.name,
     requires_zone: method.requires_zone,
     is_pickup: method.is_pickup,
+    tracking_url: method.tracking_url ?? '',
   };
 }
 
