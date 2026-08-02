@@ -211,6 +211,7 @@ export const ConsolidationsRepository = {
         c.customer_code,
         c.email AS customer_email,
         c.phone AS customer_phone,
+        c.id_card AS customer_id_card,
         ct.name AS customer_type_name,
         ct.billing_mode AS customer_type_billing_mode,
         ct.discount_percent AS customer_type_discount_percent,
@@ -255,6 +256,8 @@ export const ConsolidationsRepository = {
         ps.status AS profit_share_status,
         con.delivery_method,
         con.delivery_address_id,
+        con.tracking_code,
+        con.dispatched_at,
         ca.address_label AS delivery_address_label,
         ca.exact_address AS delivery_exact_address,
         ca.district AS delivery_district,
@@ -277,13 +280,14 @@ export const ConsolidationsRepository = {
       CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
-               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone,
+               con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone, c.id_card,
                ct.name, ct.billing_mode, ct.discount_percent,
                pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_cost_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
                pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, b.total_amount_crc, b.courier_cost_crc, b.delivery_cost_crc, b.profit_crc, b.has_unknown_cost,
                ps.share_crc, ps.share_percent, ps.status,
-               con.delivery_method, con.delivery_address_id, ca.address_label, ca.exact_address,
+               con.delivery_method, con.delivery_address_id, con.tracking_code, con.dispatched_at,
+               ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
     return row ? (row as ConsolidationDetail) : null;
@@ -336,6 +340,31 @@ export const ConsolidationsRepository = {
   },
 
   /**
+   * Guarda o corrige la guía del transportista después del despacho. Existe
+   * porque la guía es opcional al despachar: el operador entrega el bulto y
+   * recibe el número más tarde, o lo tipea mal y necesita corregirlo.
+   *
+   * Solo tiene sentido sobre una orden ya despachada o entregada — en ABIERTO o
+   * CERRADO todavía no hay envío que rastrear, y aceptar una guía ahí dejaría un
+   * dato que el reabrir/despachar posterior sobrescribiría de forma confusa.
+   */
+  setTrackingCode: async (uuid: string, trackingCode: string | null): Promise<void> => {
+    const [row] = await sql`
+      SELECT id, status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+    if (row.status !== 'DESPACHADO' && row.status !== 'ENTREGADO') {
+      throw new Error('Solo se puede registrar la guía en una orden ya despachada.');
+    }
+
+    await sql`
+      UPDATE consolidations
+      SET tracking_code = ${trackingCode || null}, updated_at = NOW()
+      WHERE id = ${row.id}
+    `;
+  },
+
+  /**
    * Estampa pre_billing.notified_at al enviar la plantilla de cobro por WhatsApp —
    * marcador de "orden notificada" para el filtro "Sin notificar" del listado.
    */
@@ -382,6 +411,11 @@ export const ConsolidationsRepository = {
   updateConsolidationStatus: async (
     uuid: string,
     status: ConsolidationStatus,
+    // Guía del transportista, solo al pasar a DESPACHADO. Opcional: el operador
+    // no siempre la tiene al entregar el bulto, y se puede agregar después con
+    // setTrackingCode. Parámetro nuevo al final para no romper a los llamadores
+    // existentes, que siguen invocando con dos argumentos.
+    trackingCode?: string | null,
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
     await sql`BEGIN`;
     try {
@@ -414,9 +448,26 @@ export const ConsolidationsRepository = {
         await sql`DELETE FROM pre_billing WHERE consolidation_id = ${current.id}`;
       }
 
+      // La guía pertenece al despacho que se está descartando, no a la orden en
+      // abstracto: conservarla haría que un despacho posterior notificara al
+      // cliente con el número de un envío que nunca ocurrió. Se limpia junto con
+      // el estimado y la factura, por el mismo motivo que ellos.
+      const isReopening = status === ConsolidationStatus.ABIERTO;
+
       const [row] = await sql`
         UPDATE consolidations
-        SET status = ${status}, updated_at = NOW()
+        SET status = ${status},
+            tracking_code = CASE
+              WHEN ${isReopening}::boolean THEN NULL
+              WHEN ${status} = 'DESPACHADO' THEN ${trackingCode ?? null}
+              ELSE tracking_code
+            END,
+            dispatched_at = CASE
+              WHEN ${isReopening}::boolean THEN NULL
+              WHEN ${status} = 'DESPACHADO' THEN NOW()
+              ELSE dispatched_at
+            END,
+            updated_at = NOW()
         WHERE uuid = ${uuid}
         RETURNING uuid, id, status
       `;

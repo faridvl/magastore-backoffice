@@ -170,9 +170,14 @@ export const WHATSAPP_TEMPLATE_PREBILLING_READY = `📦 Estimado(a), {{nombre}}.
 
 Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 
-Peso total: {{peso_total}} lb
-Método de entrega: {{metodo_entrega}}
+*Detalle de sus paquetes:*
+{{desglose_paquetes}}
+
+Subtotal envío internacional: {{monto_envio}}
+{{metodo_entrega}}: {{monto_entrega}}
 *Total a pagar: {{monto}}*
+
+Peso total: {{peso_total}} lb
 
 Quedamos atentos a su confirmación para proceder.
 
@@ -182,7 +187,13 @@ export type WhatsAppPackageLine = {
   storeName: string | null;
   trackingNumber: string;
   weightLb: number;
+  /** Cobro prorrateado de este paquete en colones. Solo lo calculan los flujos
+   * que tienen las tarifas del estimado a mano (prefactura); los que solo
+   * listan paquetes en bodega lo dejan sin definir. */
+  amountCrc?: number | null;
 };
+
+const formatCrc = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
 /**
  * Una línea por paquete, con la tienda como etiqueta y el tracking como
@@ -192,6 +203,29 @@ export type WhatsAppPackageLine = {
 function formatPackageLines(packages: WhatsAppPackageLine[]): string {
   return packages
     .map((p) => `* ${p.storeName || p.trackingNumber} – ${p.weightLb.toFixed(2)} lb`)
+    .join('\n');
+}
+
+/**
+ * Igual que formatPackageLines pero agregando el cobro de cada paquete, para
+ * que el cliente pueda ver de dónde sale el total. El monto por paquete es un
+ * prorrateo del flete por peso: la orden se cobra por peso agregado (con peso
+ * mínimo y fee de entrega únicos), así que un paquete no tiene un cobro propio
+ * real — de ahí que la suma de las líneas no cuadre exactamente con el total,
+ * que además incluye la entrega.
+ *
+ * Un paquete sin monto calculado cae al formato sin cobro en vez de mostrar
+ * "₡0", que se leería como gratis.
+ */
+function formatPackageBreakdownLines(packages: WhatsAppPackageLine[]): string {
+  return packages
+    .map((p) => {
+      const label = p.storeName || p.trackingNumber;
+      const weight = `${p.weightLb.toFixed(2)} lb`;
+      return p.amountCrc != null
+        ? `* ${label} – ${weight} – ${formatCrc(p.amountCrc)}`
+        : `* ${label} – ${weight}`;
+    })
     .join('\n');
 }
 
@@ -220,10 +254,19 @@ export function buildPreBillingReadyMessage(params: {
   deliveryMethodLabel: string | null;
   /** Total del estimado en colones. */
   amountCrc?: number | null;
-  /** Paquetes de la orden, para las variables {{lista_paquetes}} y
-   * {{cantidad_paquetes}}. Opcional: las plantillas que no las usan siguen
-   * funcionando sin pasarlos. */
+  /** Paquetes de la orden, para las variables {{lista_paquetes}},
+   * {{desglose_paquetes}} y {{cantidad_paquetes}}. Opcional: las plantillas que
+   * no las usan siguen funcionando sin pasarlos. */
   packages?: WhatsAppPackageLine[];
+  /** Cobro del envío sin la entrega — el subtotal que suman los paquetes. */
+  shippingCrc?: number | null;
+  /** Cobro de la entrega local (₡0 si es retiro en oficina). */
+  deliveryFeeCrc?: number | null;
+  /** Rebaja aplicada sobre el flete de lista (0 si el cliente es NORMAL). */
+  discountCrc?: number | null;
+  /** Etiqueta de la regla de cobro — ej. "Descuento cliente (10%)". Null si
+   * el cliente paga tarifa de lista. */
+  discountLabel?: string | null;
   /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
   templateBody?: string;
 }): string {
@@ -233,10 +276,122 @@ export function buildPreBillingReadyMessage(params: {
     nombre: params.firstName,
     id_orden: params.orderShortId,
     lista_paquetes: formatPackageLines(packages),
+    desglose_paquetes: formatPackageBreakdownLines(packages),
     cantidad_paquetes: String(packages.length),
     peso_total: params.weightLb.toFixed(2),
     metodo_entrega: params.deliveryMethodLabel ?? '—',
-    monto: params.amountCrc != null ? `₡${Math.round(Number(params.amountCrc)).toLocaleString('es-CR')}` : '—',
+    monto_envio: params.shippingCrc != null ? formatCrc(Number(params.shippingCrc)) : '—',
+    // "Sin cargo" en vez de ₡0: el retiro en oficina no tiene costo de entrega y
+    // un ₡0 suelto se lee como un dato faltante.
+    monto_entrega: params.deliveryFeeCrc != null
+      ? (Number(params.deliveryFeeCrc) > 0 ? formatCrc(Number(params.deliveryFeeCrc)) : 'Sin cargo')
+      : '—',
+    // Línea de ajuste completa (etiqueta + monto) o vacía si no hubo rebaja, para
+    // que la plantilla la incluya sin dejar un renglón suelto en clientes NORMAL.
+    descuento: params.discountLabel && params.discountCrc
+      ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}`
+      : '',
+    monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
+  });
+}
+
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUEST = `Quería solicitar el envío de los siguientes paquetes
+
+*ENVIO {{id_orden}}
+Paquetes:
+{{lista_trackings}}
+
+Paquetes de {{nombre_cliente}}
+
+DATOS DE ENVIO
+NOMBRE: {{nombre_recibe}}
+TELEFONO DE QUIEN RECIBE: {{telefono_recibe}}
+Cédula: {{cedula}}
+PROVINCIA: {{provincia}}
+CANTON: {{canton}}
+DISTRITO: {{distrito}}
+DIRECCION: {{direccion}}`;
+
+/**
+ * Solicitud de despacho AL PROVEEDOR. No se envía al cliente: el flujo que la
+ * usa copia el texto al portapapeles para pegarlo en el chat con el forwarder.
+ *
+ * Los campos de destino se dejan como marcador visible ("[pendiente]") en vez de
+ * cadena vacía: un mensaje con renglones en blanco se pega tal cual al proveedor
+ * y el hueco pasa desapercibido, mientras que el marcador salta a la vista.
+ */
+export function buildShipmentRequestMessage(params: {
+  orderShortId: string;
+  customerName: string;
+  idCard: string | null;
+  phone: string | null;
+  province: string | null;
+  canton: string | null;
+  district: string | null;
+  exactAddress: string | null;
+  packages: WhatsAppPackageLine[];
+  weightLb: number;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  const pending = (value: string | null) => value?.trim() || '[pendiente]';
+
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUEST, {
+    id_orden: params.orderShortId,
+    lista_trackings: params.packages.map((p) => `- ${p.trackingNumber}`).join('\n'),
+    nombre_cliente: params.customerName,
+    nombre_recibe: params.customerName.toUpperCase(),
+    telefono_recibe: pending(params.phone),
+    cedula: pending(params.idCard),
+    provincia: pending(params.province),
+    canton: pending(params.canton),
+    distrito: pending(params.district),
+    direccion: pending(params.exactAddress),
+    cantidad_paquetes: String(params.packages.length),
+    peso_total: params.weightLb.toFixed(2),
+  });
+}
+
+export const WHATSAPP_TEMPLATE_SHIPMENT_DISPATCHED = `Estimad@ cliente, le informamos que su pedido ha sido enviado a través de {{metodo_entrega}}. 🚚📬
+
+El número de seguimiento del paquete es: {{numero_guia}}
+
+Puede rastrear el estado de envío de su paquete en el siguiente enlace:
+{{link_rastreo}}
+
+Cualquier duda o consulta no dude en contactarnos. 📲
+
+¡Gracias por confiar en nuestro servicio! 🤝🛩️📦`;
+
+/**
+ * Aviso de despacho AL CLIENTE, con la guía y el enlace de rastreo.
+ *
+ * Ni el transportista ni el enlace se escriben en el texto: ambos salen del
+ * catálogo de métodos de entrega. Si estuvieran fijos, despachar por un
+ * transportista distinto enviaría al cliente el nombre y el rastreador
+ * equivocados — y el catálogo es editable, así que el texto quedaría
+ * desactualizado sin que nadie lo note.
+ */
+export function buildShipmentDispatchedMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  deliveryMethodLabel: string | null;
+  trackingCode: string | null;
+  /** URL de rastreo del transportista (delivery_methods.tracking_url). */
+  trackingUrl: string | null;
+  packageCount: number;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_DISPATCHED, {
+    nombre: params.firstName,
+    metodo_entrega: params.deliveryMethodLabel ?? 'nuestro servicio de entrega',
+    numero_guia: params.trackingCode ?? '—',
+    // Sin URL configurada se omite en vez de dejar un renglón vacío que el
+    // cliente leería como un enlace roto.
+    link_rastreo: params.trackingUrl ?? '',
+    id_orden: params.orderShortId,
+    cantidad_paquetes: String(params.packageCount),
   });
 }
 

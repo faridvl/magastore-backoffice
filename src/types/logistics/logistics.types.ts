@@ -174,6 +174,10 @@ export interface DeliveryMethodEntity {
   name: string;
   requires_zone: boolean;
   is_pickup: boolean;
+  /** Enlace público de rastreo del transportista (migración 027). Null en los
+   * métodos de retiro, que no tienen nada que rastrear, y en los que aún no se
+   * configuró: sin URL no se ofrece el aviso de despacho al cliente. */
+  tracking_url: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -184,6 +188,7 @@ export interface DeliveryMethodInput {
   name: string;
   requires_zone: boolean;
   is_pickup: boolean;
+  tracking_url: string | null;
 }
 
 export interface Billing {
@@ -490,6 +495,8 @@ export interface ConsolidationDetail {
   customer_code: string;
   customer_email: string;
   customer_phone: string;
+  /** Cédula del cliente — la exige la solicitud de envío al proveedor. */
+  customer_id_card: string | null;
   // Regla de cobro del cliente — explica por qué el monto puede diferir de la
   // tarifa de lista (socios al costo, clientes con descuento).
   customer_type_name: string | null;
@@ -539,6 +546,11 @@ export interface ConsolidationDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  // Guía del transportista y fecha del despacho (migración 027). Null mientras
+  // la orden no se haya despachado, y también después si se despachó sin guía
+  // —es opcional— o si el método es de retiro en oficina.
+  tracking_code: string | null;
+  dispatched_at: string | null;
   // Cantón usado para resolver la zona (dirección de la orden, o la default
   // del cliente si la orden aún no tiene dirección asignada).
   zone_canton: string | null;

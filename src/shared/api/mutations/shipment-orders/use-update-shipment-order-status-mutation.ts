@@ -11,15 +11,18 @@ export function useUpdateShipmentOrderStatusMutation() {
 
   const { mutateAsync: updateStatus, isPending, error, reset } = useApiMutation<
     { data: { uuid: string } },
-    UpdateConsolidationStatusInput & { currentStatus: string },
+    // trackingCode solo viaja al despachar; es opcional porque la guía puede
+    // registrarse después (ver setTrackingCode).
+    UpdateConsolidationStatusInput & { currentStatus: string; trackingCode?: string | null },
     Error
   >({
     mutationKey: ['updateShipmentOrderStatus'],
-    mutationFn: ({ consolidationUuid, status, currentStatus }) =>
+    mutationFn: ({ consolidationUuid, status, currentStatus, trackingCode }) =>
       ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
         consolidationUuid,
         newStatus: status,
         currentStatus,
+        trackingCode: trackingCode ?? null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
