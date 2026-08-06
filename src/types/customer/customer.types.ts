@@ -39,7 +39,11 @@ export interface CustomerInput {
   last_name: string;
   email: string;
   phone: string;
-  addresses: CustomerAddressInput[];
+  /**
+   * Direcciones de entrega. Opcional: un cliente puede darse de alta sin
+   * dirección y agregarla después desde el detalle (modal de direcciones).
+   */
+  addresses?: CustomerAddressInput[];
   /**
    * Casilleros que se le asignan al cliente — uno por cada courier con el que
    * va a operar, cada uno con su código opcional. Si llega vacío se usa el

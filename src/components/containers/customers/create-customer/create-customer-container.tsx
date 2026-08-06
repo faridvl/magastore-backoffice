@@ -203,6 +203,9 @@ export const CreateCustomerContainer: React.FC = () => {
                     <div className="flex justify-between items-center gap-3 border-b border-slate-100 pb-4">
                         <div className="min-w-0">
                             <Typography variant={TypographyVariant.SUBTITLE}>Direcciones de Entrega</Typography>
+                            <p className="text-xs font-medium text-slate-400 mt-1">
+                                Opcional — se pueden agregar después desde el detalle del cliente.
+                            </p>
                             {sectionErrors.addresses && (
                                 <p className="text-xs text-red-500 font-semibold mt-1">{sectionErrors.addresses}</p>
                             )}
@@ -212,7 +215,16 @@ export const CreateCustomerContainer: React.FC = () => {
                         </button>
                     </div>
 
-                    {addresses.map((addr, index) => (
+                    {addresses.length === 0 && (
+                        <div className="p-6 md:p-8 bg-slate-50/50 rounded-[24px] md:rounded-[32px] border border-dashed border-slate-200 text-center">
+                            <p className="text-sm font-semibold text-slate-500">Sin direcciones registradas</p>
+                            <p className="text-xs font-medium text-slate-400 mt-1">
+                                Puedes registrar el cliente así y añadir la dirección más adelante.
+                            </p>
+                        </div>
+                    )}
+
+                    {addresses.map((addr) => (
                         <div key={addr.id} className="p-5 md:p-8 bg-slate-50/50 rounded-[24px] md:rounded-[32px] border border-slate-100 relative">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2">
@@ -223,9 +235,7 @@ export const CreateCustomerContainer: React.FC = () => {
                                         <span className="text-[10px] font-black uppercase text-white bg-amber-600 px-3 py-1 rounded-full">Principal</span>
                                     )}
                                 </div>
-                                {index > 0 && (
-                                    <button type="button" onClick={() => removeAddress(addr.id)} className="text-red-400 hover:text-red-600 text-[10px] font-black uppercase tracking-widest">Eliminar</button>
-                                )}
+                                <button type="button" onClick={() => removeAddress(addr.id)} className="text-red-400 hover:text-red-600 text-[10px] font-black uppercase tracking-widest">Eliminar</button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

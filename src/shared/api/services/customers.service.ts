@@ -116,15 +116,15 @@ export const CustomerService = {
    * Registra un nuevo cliente con sus direcciones iniciales
    */
   registerCustomer: async (data: CustomerInput): Promise<Customer> => {
-    if (!data.addresses || data.addresses.length === 0) {
-      throw new Error('El cliente debe tener al menos una dirección registrada.');
-    }
-
     data = normalizeCustomerIdentity(data);
-    data.addresses = data.addresses.map(validateAndNormalizeAddress);
+
+    // La dirección es opcional al dar de alta: el cliente puede quedar sin
+    // ninguna y agregarla después desde el detalle. Las que sí vengan se
+    // validan igual que siempre.
+    data.addresses = (data.addresses ?? []).map(validateAndNormalizeAddress);
 
     const hasDefault = data.addresses.some((addr) => addr.is_default);
-    if (!hasDefault) {
+    if (data.addresses.length > 0 && !hasDefault) {
       data.addresses[0].is_default = true;
     }
 
