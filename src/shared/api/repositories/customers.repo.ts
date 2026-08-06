@@ -99,7 +99,9 @@ export const checkExistingCustomer = async (idCard: string, email: string): Prom
  * Inserta cliente y múltiples direcciones en una sola transacción SQL (WITH)
  */
 export const createCustomerWithAddresses = async (data: CustomerInput): Promise<Customer> => {
-  const addressesJson = JSON.stringify(data.addresses);
+  // Sin direcciones el jsonb queda vacío: el cross join de ins_addr no produce
+  // filas y el cliente se crea igual, sin dirección.
+  const addressesJson = JSON.stringify(data.addresses ?? []);
 
   try {
     await sql`BEGIN`;

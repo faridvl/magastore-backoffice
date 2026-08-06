@@ -14,6 +14,20 @@ import {
 } from '@/shared/utils/customer-masks';
 import { customerIdentitySchema, CustomerIdentityForm } from '@/shared/utils/customer-schema';
 
+interface AddressDraft {
+  id: string;
+  province: string;
+  canton: string;
+  district: string;
+  exact_address: string;
+  address_label: string;
+  is_default: boolean;
+}
+
+/** Fila que el operador agregó pero dejó totalmente en blanco: se descarta al guardar. */
+const isBlankAddress = (a: AddressDraft) =>
+  !a.province && !a.canton && !a.district && !a.exact_address.trim();
+
 /**
  * Alta de cliente. Los datos identificatorios los maneja react-hook-form con
  * validación Yup; direcciones y casilleros viven en estado propio porque son
@@ -55,17 +69,9 @@ export const useCreateCustomer = () => {
   const idType = watch('id_type');
   const [customerTypeId, setCustomerTypeId] = useState('');
 
-  const [addresses, setAddresses] = useState([
-    {
-      id: crypto.randomUUID(),
-      province: '',
-      canton: '',
-      district: '',
-      exact_address: '',
-      address_label: 'Principal',
-      is_default: true,
-    },
-  ]);
+  // Arranca vacío: la dirección no es obligatoria para dar de alta al cliente.
+  // Se puede agregar después desde el modal de direcciones del detalle.
+  const [addresses, setAddresses] = useState<AddressDraft[]>([]);
 
   // Errores de las secciones que no gestiona react-hook-form.
   const [sectionErrors, setSectionErrors] = useState<{ addresses?: string; warehouses?: string }>({});
@@ -156,17 +162,18 @@ export const useCreateCustomer = () => {
         canton: '',
         district: '',
         exact_address: '',
-        address_label: 'Casa',
-        is_default: false,
+        // La primera que se agrega es la principal; el operador puede cambiarla.
+        address_label: prev.length === 0 ? 'Principal' : 'Casa',
+        is_default: prev.length === 0,
       },
     ]);
     setSectionErrors((prev) => ({ ...prev, addresses: undefined }));
   };
 
+  // Se pueden quitar todas: el cliente puede quedar sin dirección.
   const removeAddress = (id: string) => {
-    if (addresses.length > 1) {
-      setAddresses((prev) => prev.filter((a) => a.id !== id));
-    }
+    setAddresses((prev) => prev.filter((a) => a.id !== id));
+    setSectionErrors((prev) => ({ ...prev, addresses: undefined }));
   };
 
   const handleAddressChange = (id: string, field: string, value: string | boolean) => {
@@ -190,13 +197,14 @@ export const useCreateCustomer = () => {
   const validateSections = (): boolean => {
     const next: { addresses?: string; warehouses?: string } = {};
 
-    const incomplete = addresses.some(
-      (a) => !a.province || !a.canton || !a.district || !a.exact_address.trim(),
+    // La dirección es opcional: no se exige ninguna. Pero una que se empezó a
+    // llenar a medias sí se bloquea — el backend la rechazaría igual, y una fila
+    // en blanco del todo simplemente se descarta al armar el payload.
+    const partiallyFilled = addresses.some(
+      (a) => !isBlankAddress(a) && (!a.province || !a.canton || !a.district || !a.exact_address.trim()),
     );
-    if (addresses.length === 0) {
-      next.addresses = 'Debes agregar al menos una dirección de entrega';
-    } else if (incomplete) {
-      next.addresses = 'Completa provincia, cantón, distrito y dirección exacta en todas las direcciones';
+    if (partiallyFilled) {
+      next.addresses = 'Completa provincia, cantón, distrito y dirección exacta, o elimina la dirección incompleta';
     }
 
     // Sin casillero el cliente no puede recibir paquetes de ningún courier. El
@@ -246,7 +254,7 @@ export const useCreateCustomer = () => {
         warehouse_route_id: rate.warehouse_route_id as number,
         code: codesByRate[rate.uuid]?.trim() || null,
       })),
-      addresses: addresses.map(({ id, ...rest }) => rest),
+      addresses: addresses.filter((a) => !isBlankAddress(a)).map(({ id, ...rest }) => rest),
     };
 
     execute(payload, {

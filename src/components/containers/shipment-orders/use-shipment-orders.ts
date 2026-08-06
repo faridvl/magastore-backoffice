@@ -31,7 +31,15 @@ export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [paymentFilter, setPaymentFilter] = useState<ShipmentOrderPaymentFilter>(ShipmentOrderPaymentFilter.PENDIENTE_PAGO);
+  // El panel Operativo enlaza acá con el filtro ya elegido (?payment=...). Sin
+  // el parámetro se mantiene el default de siempre: pendientes de pago.
+  const [paymentFilter, setPaymentFilter] = useState<ShipmentOrderPaymentFilter>(() => {
+    const fromQuery = router.query.payment;
+    const value = Array.isArray(fromQuery) ? fromQuery[0] : fromQuery;
+    return value && value in ShipmentOrderPaymentFilter
+      ? ShipmentOrderPaymentFilter[value as keyof typeof ShipmentOrderPaymentFilter]
+      : ShipmentOrderPaymentFilter.PENDIENTE_PAGO;
+  });
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -59,6 +67,21 @@ export const useShipmentOrders = () => {
     }, 400);
     return () => clearTimeout(handler);
   }, [search]);
+
+  // `router.query` llega vacío en el primer render, así que el filtro del enlace
+  // se aplica cuando el router está listo. Solo actúa si el parámetro existe:
+  // navegar sin él no pisa lo que el operador haya elegido a mano.
+  useEffect(() => {
+    if (!router.isReady) return;
+    const fromQuery = router.query.payment;
+    const value = Array.isArray(fromQuery) ? fromQuery[0] : fromQuery;
+    if (value && value in ShipmentOrderPaymentFilter) {
+      setPaymentFilter(
+        ShipmentOrderPaymentFilter[value as keyof typeof ShipmentOrderPaymentFilter],
+      );
+      setPage(1);
+    }
+  }, [router.isReady, router.query.payment]);
 
   const listQuery = useShipmentOrdersQuery(
     page,
