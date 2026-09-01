@@ -81,6 +81,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     createPackages,
     createSelectedPackageUuids,
     toggleCreatePackage,
+    toggleAllCreatePackages,
     handleGoToAddressStep,
     createAddresses,
     createAddressId, setCreateAddressId,
@@ -468,6 +469,26 @@ export const ShipmentOrdersContainer: React.FC = () => {
                     <p className="text-slate-500 text-sm">Este cliente ya no tiene paquetes disponibles.</p>
                   </div>
                 ) : (
+                  <>
+                    {(() => {
+                      const allSelected =
+                        createPackages.length > 0 &&
+                        createSelectedPackageUuids.length === createPackages.length;
+                      return (
+                        <button
+                          onClick={toggleAllCreatePackages}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-2xl text-left transition-all hover:bg-slate-50"
+                        >
+                          {allSelected
+                            ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
+                            : <Square size={18} className="text-slate-300 flex-shrink-0" />
+                          }
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            {allSelected ? 'Quitar todos' : `Seleccionar todos (${createPackages.length})`}
+                          </span>
+                        </button>
+                      );
+                    })()}
                   <div className="max-h-72 overflow-y-auto space-y-2 mb-6">
                     {createPackages.map((pkg: AvailablePackage) => {
                       const selected = createSelectedPackageUuids.includes(pkg.uuid);
@@ -497,6 +518,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
                       );
                     })}
                   </div>
+                  </>
                 )}
                 <div className="grid grid-cols-2 gap-3">
                   <button

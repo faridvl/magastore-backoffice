@@ -22,6 +22,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   PACKAGES_AVAILABLE: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'lista_paquetes', label: 'Lista con cada paquete y su peso, uno por línea' },
+    { key: 'cantidad_paquetes', label: 'Cuántos paquetes hay disponibles — ej. 3' },
     { key: 'peso_total', label: 'Suma del peso de todos los paquetes — ej. 12.50' },
   ],
   PREBILLING_READY: [

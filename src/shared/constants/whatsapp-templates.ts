@@ -240,6 +240,7 @@ export function buildPackagesAvailableMessage(params: {
   return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE, {
     nombre: params.firstName,
     lista_paquetes: formatPackageLines(params.packages),
+    cantidad_paquetes: String(params.packages.length),
     peso_total: pesoTotal,
   });
 }

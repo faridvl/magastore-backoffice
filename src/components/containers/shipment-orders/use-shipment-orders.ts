@@ -140,6 +140,19 @@ export const useShipmentOrders = () => {
     );
   };
 
+  /**
+   * Marca o desmarca de una vez todos los paquetes disponibles del cliente. El
+   * caso normal es enviarlos todos, así que ir uno por uno es el camino largo
+   * para lo más frecuente.
+   */
+  const toggleAllCreatePackages = () => {
+    setCreateSelectedPackageUuids((prev) =>
+      createPackages.length > 0 && prev.length === createPackages.length
+        ? []
+        : createPackages.map((p) => p.uuid),
+    );
+  };
+
   const handleGoToAddressStep = async () => {
     if (!createCustomer || createSelectedPackageUuids.length === 0) return;
     setIsLoadingCreateData(true);
@@ -224,6 +237,7 @@ export const useShipmentOrders = () => {
     createPackages,
     createSelectedPackageUuids,
     toggleCreatePackage,
+    toggleAllCreatePackages,
     handleGoToAddressStep,
     createAddresses,
     createAddressId, setCreateAddressId,
