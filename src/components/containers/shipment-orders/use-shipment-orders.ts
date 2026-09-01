@@ -59,6 +59,7 @@ export const useShipmentOrders = () => {
   const [createAddressId, setCreateAddressId] = useState('');
   const [createDeliveryMethod, setCreateDeliveryMethod] = useState<DeliveryMethod | null>(null);
   const [isLoadingCreateData, setIsLoadingCreateData] = useState(false);
+  const [showCreateAddressesModal, setShowCreateAddressesModal] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -170,6 +171,23 @@ export const useShipmentOrders = () => {
     }
   };
 
+  /**
+   * Refresca la lista del asistente tras crear, editar o borrar una dirección.
+   *
+   * El endpoint ya devuelve la lista completa, así que no hace falta releerla.
+   * Se copia a estado local porque este paso no lee las direcciones por React
+   * Query: invalidar la caché que usa el modal no refrescaría nada acá.
+   */
+  const handleCreateAddressesSaved = (addresses: CustomerAddress[]) => {
+    setCreateAddresses(addresses);
+    setCreateAddressId((prev) => {
+      // La seleccionada sigue existiendo: se respeta, aunque el operador acabe
+      // de editar otra.
+      if (prev && addresses.some((a) => a.id === prev)) return prev;
+      return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+    });
+  };
+
   const handleConfirmCreate = async () => {
     if (!createCustomer || createSelectedPackageUuids.length === 0 || !createAddressId || !createDeliveryMethod) return;
     try {
@@ -241,6 +259,8 @@ export const useShipmentOrders = () => {
     handleGoToAddressStep,
     createAddresses,
     createAddressId, setCreateAddressId,
+    showCreateAddressesModal, setShowCreateAddressesModal,
+    handleCreateAddressesSaved,
     createDeliveryMethod, setCreateDeliveryMethod,
     handleConfirmCreate,
     isLoadingCreateData,

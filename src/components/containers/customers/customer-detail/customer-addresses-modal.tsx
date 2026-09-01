@@ -27,6 +27,18 @@ interface Props {
   customerId: string;
   addresses: CustomerAddress[];
   onClose: () => void;
+  /**
+   * Lista ya actualizada que devuelve el endpoint tras cada alta, edición o
+   * borrado. La necesita quien no lee las direcciones por React Query —el
+   * asistente de nueva orden las carga a estado local—, porque para ese caso
+   * invalidar la caché no refresca nada.
+   */
+  onSaved?: (addresses: CustomerAddress[]) => void;
+  /**
+   * Por encima del modal que lo abre cuando va anidado. Sin esto queda detrás
+   * del asistente de creación de órdenes, que también usa z-50.
+   */
+  zIndexClassName?: string;
 }
 
 /**
@@ -34,7 +46,13 @@ interface Props {
  * Antes "Agregar dirección" abría el formulario entero (nombre, correo, tipo de
  * cliente…), lo que obligaba a reenviar y revalidar datos que nadie iba a tocar.
  */
-export const CustomerAddressesModal: React.FC<Props> = ({ customerId, addresses, onClose }) => {
+export const CustomerAddressesModal: React.FC<Props> = ({
+  customerId,
+  addresses,
+  onClose,
+  onSaved,
+  zIndexClassName = 'z-50',
+}) => {
   const { saveAddress, isSaving, deleteAddress, isDeleting } = useCustomerAddressMutations(customerId);
   const [draft, setDraft] = React.useState<Draft | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
@@ -58,7 +76,8 @@ export const CustomerAddressesModal: React.FC<Props> = ({ customerId, addresses,
       return;
     }
     try {
-      await saveAddress(draft);
+      const { data } = await saveAddress(draft);
+      onSaved?.(data);
       toast.success(draft.id ? 'Dirección actualizada' : 'Dirección agregada');
       setDraft(null);
     } catch (err: any) {
@@ -68,7 +87,8 @@ export const CustomerAddressesModal: React.FC<Props> = ({ customerId, addresses,
 
   const handleDelete = async (addressId: string) => {
     try {
-      await deleteAddress(addressId);
+      const { data } = await deleteAddress(addressId);
+      onSaved?.(data);
       toast.success('Dirección eliminada');
       setConfirmDeleteId(null);
     } catch (err: any) {
@@ -78,7 +98,8 @@ export const CustomerAddressesModal: React.FC<Props> = ({ customerId, addresses,
 
   const handleMakeDefault = async (addr: CustomerAddress) => {
     try {
-      await saveAddress({ ...addr, is_default: true });
+      const { data } = await saveAddress({ ...addr, is_default: true });
+      onSaved?.(data);
       toast.success('Dirección principal actualizada');
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo actualizar la dirección principal.');
@@ -87,7 +108,7 @@ export const CustomerAddressesModal: React.FC<Props> = ({ customerId, addresses,
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
+      className={`fixed inset-0 ${zIndexClassName} bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4`}
       onClick={onClose}
     >
       {/* Hoja completa en mobile, tarjeta centrada desde sm — el formulario de

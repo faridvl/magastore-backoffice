@@ -18,6 +18,7 @@ import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useShipmentOrders, ShipmentOrderPaymentFilter } from './use-shipment-orders';
 import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, AvailablePackage } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
@@ -85,6 +86,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
     handleGoToAddressStep,
     createAddresses,
     createAddressId, setCreateAddressId,
+    showCreateAddressesModal, setShowCreateAddressesModal,
+    handleCreateAddressesSaved,
     createDeliveryMethod, setCreateDeliveryMethod,
     handleConfirmCreate,
     isLoadingCreateData,
@@ -538,9 +541,21 @@ export const ShipmentOrdersContainer: React.FC = () => {
               </>
             ) : (
               <>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                  <MapPin size={12} /> Dirección de entrega
-                </p>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <MapPin size={12} /> Dirección de entrega
+                  </p>
+                  {/* Alta de direcciones sin salir del asistente: si el cliente
+                      no tiene ninguna, la orden no se puede crear y antes había
+                      que cancelar e ir a la ficha del cliente. */}
+                  <button
+                    onClick={() => setShowCreateAddressesModal(true)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[10px] hover:bg-slate-100 transition-all"
+                  >
+                    <Plus size={11} />
+                    {createAddresses.length === 0 ? 'Agregar' : 'Gestionar'}
+                  </button>
+                </div>
                 {createAddresses.length === 0 ? (
                   <p className="text-slate-400 text-sm py-4 text-center">Este cliente no tiene direcciones registradas.</p>
                 ) : (
@@ -610,6 +625,18 @@ export const ShipmentOrdersContainer: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Direcciones del cliente, anidado sobre el asistente. z-[70] porque el
+          asistente ya ocupa z-50. */}
+      {showCreateAddressesModal && createCustomer && (
+        <CustomerAddressesModal
+          customerId={createCustomer.customer_id}
+          addresses={createAddresses}
+          onSaved={handleCreateAddressesSaved}
+          onClose={() => setShowCreateAddressesModal(false)}
+          zIndexClassName="z-[70]"
+        />
       )}
     </div>
   );
