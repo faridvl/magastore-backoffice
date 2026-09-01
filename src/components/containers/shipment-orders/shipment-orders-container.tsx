@@ -288,6 +288,11 @@ export const ShipmentOrdersContainer: React.FC = () => {
             className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
           >
             <div className="flex-1 min-w-0">
+              {/* Mismo identificador que la columna de la tabla en escritorio:
+                  es como se referencia la orden al buscarla o al consultarla. */}
+              <p className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider">
+                #{row.uuid.slice(-5).toUpperCase()}
+              </p>
               <p className="font-bold text-slate-800 text-sm truncate">{row.customer_name}</p>
               <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5">{row.customer_code}</p>
               <p className="text-xs text-slate-400 mt-1">

@@ -245,6 +245,11 @@ export const BillingContainer: React.FC = () => {
             >
               <div className="flex justify-between items-start">
                 <div>
+                  {/* El numero de factura es lo que se usa para referirse a
+                      ella por WhatsApp o al buscarla, asi que encabeza la card. */}
+                  <p className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider">
+                    {formatInvoiceNumber(row.invoice_number)}
+                  </p>
                   <p className="font-bold text-slate-800 text-sm">{row.customer_name}</p>
                   <p className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</p>
                 </div>
