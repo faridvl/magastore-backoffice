@@ -157,9 +157,14 @@ export const BillingRepository = {
    * El LEFT JOIN a profit_share_periods hace que un mes sin fila sea un mes no
    * pagado, sin necesidad de precargar meses.
    */
+  /**
+   * Reparto por período. Sin `from`/`to` devuelve el historial completo, que es
+   * como se muestra en pantalla: el reparto se liquida mes a mes y hay que ver
+   * los meses anteriores para saber cuáles quedaron pendientes de pago.
+   */
   getProfitShareReport: async (
-    from: string,
-    to: string,
+    from?: string,
+    to?: string,
   ): Promise<ProfitShareMonthlyReport[]> => {
     const rows = await sql`
       SELECT
@@ -177,7 +182,8 @@ export const BillingRepository = {
         MAX(pp.paid_amount_crc)::numeric                                                               AS paid_amount_crc
       FROM profit_shares ps
       LEFT JOIN profit_share_periods pp ON pp.period = ps.period
-      WHERE ps.period >= ${from} AND ps.period <= ${to}
+      WHERE (${from ?? null}::text IS NULL OR ps.period >= ${from ?? null})
+        AND (${to ?? null}::text IS NULL OR ps.period <= ${to ?? null})
       GROUP BY ps.period
       ORDER BY ps.period ASC
     `;

@@ -23,13 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // `from` y `to` son opcionales: sin ellos se devuelve el historial completo
+    // de períodos, que es lo que muestra la tabla de participación.
     const { from, to } = req.query;
 
-    if (!from || !to) {
-      return res.status(400).json({ message: 'Los parámetros from y to son requeridos.' });
-    }
-
-    const data = await BillingService.getProfitShareReport(from as string, to as string);
+    const data = await BillingService.getProfitShareReport(
+      typeof from === 'string' && from ? from : undefined,
+      typeof to === 'string' && to ? to : undefined,
+    );
     return res.status(200).json({ data });
   } catch (error: any) {
     console.error('[Profit Share Report Controller Error]:', error);

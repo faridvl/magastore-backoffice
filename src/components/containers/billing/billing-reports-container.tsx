@@ -3,6 +3,7 @@ import { BarChart3, Wallet, Check, Undo2, Info } from 'lucide-react';
 import { useBillingReports } from './use-billing-reports';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 import { SectionHeader } from '@/components/common/section-header/section-header';
+import { currentMonthKey } from '@/shared/utils/timezone';
 
 const formatCRC = (n: number) => `₡${Math.round(Number(n)).toLocaleString('es-CR')}`;
 
@@ -31,7 +32,7 @@ export const BillingReportsContainer: React.FC = () => {
     shareRows, isLoadingShare, togglePeriodPaid, isMarkingPaid,
   } = useBillingReports();
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = Number(currentMonthKey().split('-')[0]);
   const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   const totalInvoiced = rows.reduce((s, r) => s + Number(r.total_invoiced_crc), 0);
@@ -274,11 +275,12 @@ const ProfitShareSection: React.FC<ProfitShareSectionProps> = ({
     <div className="space-y-4 pt-2">
       <SectionHeader
         title={`Participación de Farid${sharePercent ? ` (${Number(sharePercent)}%)` : ''}`}
-        tooltip="Participación sobre la ganancia de cada envío. Es un reparto de la utilidad — no se le cobra de más al cliente. Se registra al generar el estimado y se congela al facturar."
+        tooltip="Participación sobre la ganancia de cada envío. Es un reparto de la utilidad — no se le cobra de más al cliente. Se registra al generar el estimado y se congela al facturar. La tabla muestra el historial completo, no solo el mes filtrado arriba."
       />
 
-      {/* Sin tarjetas propias: las cifras agregadas ya están en el resumen del
-          período, arriba. Acá el valor está en el desglose mes a mes. */}
+      {/* Sin tarjetas propias: las cifras del mes filtrado ya están en el
+          resumen de arriba. Acá el valor está en el historial mes a mes, que
+          es donde se ve qué períodos siguen sin liquidar. */}
 
       {totalUnknownCost > 0 && (
         <p className="text-xs text-amber-600">
@@ -295,7 +297,7 @@ const ProfitShareSection: React.FC<ProfitShareSectionProps> = ({
         ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
             <Wallet className="w-8 h-8" />
-            <span className="text-sm">Sin participación registrada en el período.</span>
+            <span className="text-sm">Sin participación registrada todavía.</span>
           </div>
         ) : (
           <table className="w-full text-sm">

@@ -4,6 +4,7 @@ import { useBillingReportsQuery } from '@/shared/api/querys/billing/use-billing-
 import { useProfitShareQuery } from '@/shared/api/querys/billing/use-profit-share-query';
 import { useMarkProfitSharePaidMutation } from '@/shared/api/mutations/billing/use-mark-profit-share-paid-mutation';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
+import { currentMonthKey } from '@/shared/utils/timezone';
 
 // Último día del mes en formato YYYY-MM-DD, usando fecha local (evita el
 // corrimiento de un día que da new Date(y, m, 0).toISOString() en huso UTC-6).
@@ -16,9 +17,10 @@ export function useBillingReports() {
   // Por defecto se filtra el mes y año actuales completos. El rango libre
   // Desde/Hasta queda oculto en la UI por ahora, pero el estado se conserva
   // para no tener que tocar las queries si se vuelve a exponer más adelante.
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+  // El mes por defecto es el de Costa Rica y no el del equipo del operador:
+  // con la maquina en otra zona, el filtro podia abrir en el mes equivocado.
+  const [currentYearStr, currentMonth] = currentMonthKey().split('-');
+  const currentYear = Number(currentYearStr);
 
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
@@ -42,9 +44,11 @@ export function useBillingReports() {
 
   const rows: BillingMonthlyReport[] = data?.data ?? [];
 
-  // Participación de Farid: mismo rango de fechas que el reporte de facturación,
-  // pero agregada por período (YYYY-MM) y con su propio estado de pago por mes.
-  const { useQuery: useShareQuery } = useProfitShareQuery(from, to);
+  // Participación de Farid: a diferencia de las tarjetas de arriba, que sí
+  // hablan del mes seleccionado, esta tabla muestra el historial completo. El
+  // reparto se liquida mes a mes y hay que ver los meses anteriores para saber
+  // cuáles quedaron pendientes de pago.
+  const { useQuery: useShareQuery } = useProfitShareQuery();
   const { data: shareData, isLoading: isLoadingShare } = useShareQuery();
   const shareRows: ProfitShareMonthlyReport[] = shareData?.data ?? [];
 
