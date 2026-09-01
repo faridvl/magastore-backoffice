@@ -44,13 +44,22 @@ export function useBillingReports() {
 
   const rows: BillingMonthlyReport[] = data?.data ?? [];
 
-  // Participación de Farid: a diferencia de las tarjetas de arriba, que sí
-  // hablan del mes seleccionado, esta tabla muestra el historial completo. El
+  // Participación de Farid: la tabla muestra el historial completo, porque el
   // reparto se liquida mes a mes y hay que ver los meses anteriores para saber
   // cuáles quedaron pendientes de pago.
   const { useQuery: useShareQuery } = useProfitShareQuery();
   const { data: shareData, isLoading: isLoadingShare } = useShareQuery();
   const shareRows: ProfitShareMonthlyReport[] = shareData?.data ?? [];
+
+  // Las tarjetas del resumen, en cambio, hablan del mes filtrado: se recorta el
+  // historial a ese rango. Mezclar ambos universos hacía que "Para Farid"
+  // mostrara el acumulado de todos los meses junto a un pendiente de uno solo,
+  // y que la utilidad neta restara participación de meses ajenos al filtro.
+  const fromPeriod = from.slice(0, 7);
+  const toPeriod = to.slice(0, 7);
+  const shareRowsInRange = shareRows.filter(
+    (r) => r.period >= fromPeriod && r.period <= toPeriod,
+  );
 
   const { markPeriodPaid, isPending: isMarkingPaid } = useMarkProfitSharePaidMutation();
 
@@ -74,6 +83,7 @@ export function useBillingReports() {
     rows,
     isLoading,
     shareRows,
+    shareRowsInRange,
     isLoadingShare,
     togglePeriodPaid,
     isMarkingPaid,
