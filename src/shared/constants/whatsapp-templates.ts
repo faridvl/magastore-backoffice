@@ -396,6 +396,59 @@ export function buildShipmentDispatchedMessage(params: {
   });
 }
 
+export const WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION = `📍 Tenemos registrada la siguiente dirección de entrega:
+
+Nombre: {{nombre_recibe}}
+Cédula: {{cedula}}
+Teléfono: {{telefono_recibe}}
+Provincia: {{provincia}}
+Cantón: {{canton}}
+Distrito: {{distrito}}
+Dirección: {{direccion}}
+
+¿Deseas que utilicemos estos mismos datos para este envío? ✅
+
+Si deseas el envío a otra dirección, indícanos los datos.
+
+*MAGASTORE 📦✈️*`;
+
+/**
+ * Confirmación de la dirección registrada, para pedirle al cliente el visto
+ * bueno antes de generar el estimado.
+ *
+ * Igual que la solicitud al proveedor, los campos vacíos se marcan como
+ * "[pendiente]" en vez de dejar el renglón en blanco: acá el texto lo lee el
+ * cliente, y un campo vacío en sus propios datos se interpreta como que los
+ * perdimos.
+ */
+export function buildAddressConfirmationMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  receiverName: string;
+  idCard: string | null;
+  phone: string | null;
+  province: string | null;
+  canton: string | null;
+  district: string | null;
+  exactAddress: string | null;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  const pending = (value: string | null) => value?.trim() || '[pendiente]';
+
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    nombre_recibe: params.receiverName.toUpperCase(),
+    telefono_recibe: pending(params.phone),
+    cedula: pending(params.idCard),
+    provincia: pending(params.province),
+    canton: pending(params.canton),
+    distrito: pending(params.district),
+    direccion: pending(params.exactAddress),
+  });
+}
+
 export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:
 
 Nombre apellido: MGA {{nombre_completo}}

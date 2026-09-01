@@ -9,6 +9,7 @@ export const WHATSAPP_TEMPLATE_CODES = {
   WAREHOUSE_WELCOME: 'WAREHOUSE_WELCOME',
   SHIPMENT_REQUEST: 'SHIPMENT_REQUEST',
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
+  ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
 } as const;
 
 export type WhatsAppTemplateCode = (typeof WHATSAPP_TEMPLATE_CODES)[keyof typeof WHATSAPP_TEMPLATE_CODES];
@@ -65,6 +66,20 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'link_rastreo', label: 'Enlace de rastreo del transportista, configurado en Ajustes → Métodos de entrega' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva el envío — ej. 3' },
+  ],
+  // Va AL CLIENTE, para que confirme la dirección antes de generar el estimado.
+  // Los datos de quien recibe se toman hoy del cliente dueño de la orden; si más
+  // adelante se guarda un receptor distinto, cambia el builder y no la plantilla.
+  ADDRESS_CONFIRMATION: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'nombre_recibe', label: 'Nombre completo de quien recibe — ej. MARÍA RODRÍGUEZ SOTO' },
+    { key: 'telefono_recibe', label: 'Teléfono de quien recibe — ej. 62048869' },
+    { key: 'cedula', label: 'Cédula de quien recibe — ej. 117210411' },
+    { key: 'provincia', label: 'Provincia de la dirección de entrega — ej. SAN JOSE' },
+    { key: 'canton', label: 'Cantón de la dirección de entrega — ej. CENTRAL' },
+    { key: 'distrito', label: 'Distrito de la dirección de entrega — ej. EL CARMEN' },
+    { key: 'direccion', label: 'Dirección exacta de entrega' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
   ],
   WAREHOUSE_WELCOME: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },

@@ -16,6 +16,7 @@ import {
   buildPreBillingReadyMessage,
   buildShipmentRequestMessage,
   buildShipmentDispatchedMessage,
+  buildAddressConfirmationMessage,
 } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
@@ -54,6 +55,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
   const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
   const shipmentRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST);
+  const addressConfirmationTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_CONFIRMATION);
   const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
 
   // Guía que se tipea en el modal de despacho. Vacía es válido: se puede
@@ -63,6 +65,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [trackingDraft, setTrackingDraft] = useState('');
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [isCopyingRequest, setIsCopyingRequest] = useState(false);
+  const [isCopyingAddressConfirmation, setIsCopyingAddressConfirmation] = useState(false);
   const [isNotifyingDispatch, setIsNotifyingDispatch] = useState(false);
   // Aviso al intentar editar dirección/método con el estimado ya generado: el
   // cambio exige reabrir la orden, no se aplica en silencio.
@@ -375,6 +378,41 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  /**
+   * Copia el mensaje que le pide al cliente confirmar la dirección registrada,
+   * antes de generar el estimado.
+   *
+   * Copia en vez de abrir WhatsApp porque el operador ya viene de la
+   * conversación con el cliente: pegar ahí es más directo que reabrir el chat.
+   * Tampoco estampa notified_at — esa columna registra el aviso de paquetes
+   * disponibles, no cada mensaje suelto que se le manda al cliente.
+   */
+  const handleCopyAddressConfirmation = async () => {
+    if (!detail) return;
+    if (!detail.delivery_exact_address) {
+      toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de pedir la confirmación.');
+      return;
+    }
+    setIsCopyingAddressConfirmation(true);
+    try {
+      const message = buildAddressConfirmationMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        receiverName: detail.customer_name,
+        idCard: detail.customer_id_card,
+        phone: detail.customer_phone,
+        province: detail.delivery_province,
+        canton: detail.delivery_canton,
+        district: detail.delivery_district,
+        exactAddress: detail.delivery_exact_address,
+        templateBody: addressConfirmationTemplateBody,
+      });
+      await copyWhatsAppMessage(message);
+    } finally {
+      setIsCopyingAddressConfirmation(false);
+    }
+  };
+
   /** Aviso de despacho al cliente, con guía y enlace de rastreo. */
   const handleNotifyDispatch = async () => {
     if (!detail) return;
@@ -516,6 +554,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     lockedEditTarget, setLockedEditTarget,
 
     handleCopyShipmentRequest, isCopyingRequest,
+    handleCopyAddressConfirmation, isCopyingAddressConfirmation,
     handleNotifyDispatch, isNotifyingDispatch,
     showTrackingModal, setShowTrackingModal,
     trackingDraft, setTrackingDraft,

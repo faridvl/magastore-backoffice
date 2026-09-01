@@ -122,6 +122,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     isEditLocked,
     lockedEditTarget, setLockedEditTarget,
     handleCopyShipmentRequest, isCopyingRequest,
+    handleCopyAddressConfirmation, isCopyingAddressConfirmation,
     handleNotifyDispatch, isNotifyingDispatch,
     showTrackingModal, setShowTrackingModal,
     trackingDraft, setTrackingDraft,
@@ -273,17 +274,32 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             )}
           </div>
         </div>
-        {/* Siempre visible: ocultarlo fuera de ABIERTO dejaba al operador sin
-            saber por qué no podía cambiarla. Con estimado generado, explica que
-            hay que reabrir en vez de desaparecer. */}
-        <button
-          onClick={handleOpenAddressModal}
-          disabled={isLoadingAddresses}
-          className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 flex-shrink-0"
-        >
-          <Pencil size={12} />
-          Cambiar
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0 justify-end">
+          {/* Solo con dirección asignada: pedirle al cliente que confirme una
+              dirección que no tenemos no significa nada. */}
+          {detail.delivery_exact_address && (
+            <button
+              onClick={handleCopyAddressConfirmation}
+              disabled={isCopyingAddressConfirmation}
+              title="Copiar mensaje para que el cliente confirme la dirección"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
+            >
+              <Copy size={12} />
+              Confirmar dirección
+            </button>
+          )}
+          {/* Siempre visible: ocultarlo fuera de ABIERTO dejaba al operador sin
+              saber por qué no podía cambiarla. Con estimado generado, explica que
+              hay que reabrir en vez de desaparecer. */}
+          <button
+            onClick={handleOpenAddressModal}
+            disabled={isLoadingAddresses}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
+          >
+            <Pencil size={12} />
+            Cambiar
+          </button>
+        </div>
       </div>
 
       {/* MÉTODO DE ENVÍO */}
