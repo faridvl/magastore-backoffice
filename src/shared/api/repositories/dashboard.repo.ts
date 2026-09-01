@@ -1,5 +1,6 @@
 import sql from '@/lib/db';
 import { DashboardStats, RecentPackage, RevenueByMonth, TopCustomer } from '@/types/dashboard/dashboard.types';
+import { currentMonthKey, monthLabelEs } from '@/shared/utils/timezone';
 
 /**
  * La base corre en UTC. Al agrupar por mes hay que pasar los timestamps a hora
@@ -33,9 +34,13 @@ export const DashboardRepository = {
         WHERE is_paid = false
       `,
       sql`
-        SELECT COUNT(*)::int AS count
+        SELECT
+          COUNT(*) FILTER (WHERE is_active)::int AS active_count,
+          COUNT(*) FILTER (
+            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
+          )::int AS new_this_month
         FROM customers
-        WHERE is_active = true
       `,
       sql`
         SELECT
@@ -54,6 +59,7 @@ export const DashboardRepository = {
       sql`
         SELECT
           TO_CHAR(date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica'), 'Mon') AS month,
+          TO_CHAR(date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month_key,
           date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica') AS month_date,
           SUM(total_amount_crc)::bigint AS revenue
         FROM billing
@@ -77,15 +83,27 @@ export const DashboardRepository = {
       `,
     ]);
 
+    const revenueByMonth: RevenueByMonth[] = (revenueByMonthResult as any[]).map((r) => ({
+      month: monthLabelEs(r.month_key as string),
+      monthKey: r.month_key as string,
+      revenue: Number(r.revenue),
+    }));
+
+    // El mes en curso puede no estar en la serie: si todavía no se cobró nada,
+    // la consulta no devuelve esa fila. Buscarlo por clave evita mostrar el
+    // total del mes anterior como si fuera el de este.
+    const thisMonth = currentMonthKey();
+    const revenueThisMonthCRC =
+      revenueByMonth.find((r) => r.monthKey === thisMonth)?.revenue ?? 0;
+
     return {
       packagesThisMonth: packagesResult[0]?.count ?? 0,
       pendingBillingCRC: Number(pendingBillingResult[0]?.total ?? 0),
-      activeCustomers: activeCustomersResult[0]?.count ?? 0,
+      activeCustomers: activeCustomersResult[0]?.active_count ?? 0,
+      newCustomersThisMonth: activeCustomersResult[0]?.new_this_month ?? 0,
+      revenueThisMonthCRC,
       recentPackages: recentPackagesResult as RecentPackage[],
-      revenueByMonth: (revenueByMonthResult as any[]).map((r) => ({
-        month: r.month as string,
-        revenue: Number(r.revenue),
-      })) as RevenueByMonth[],
+      revenueByMonth,
       topCustomers: (topCustomersResult as any[]).map((r) => ({
         name: r.name as string,
         total: Number(r.total),

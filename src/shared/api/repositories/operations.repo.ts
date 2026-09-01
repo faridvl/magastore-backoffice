@@ -1,4 +1,5 @@
 import sql from '@/lib/db';
+import { monthLabelEs } from '@/shared/utils/timezone';
 import {
   OperationsStats,
   OperationsInbox,
@@ -12,16 +13,6 @@ const PENDING_RECEIVABLES_LIMIT = 10;
 /** Meses de historia en la serie facturado vs. cobrado (incluye el mes actual). */
 const REVENUE_MONTHS = 6;
 
-const MONTH_LABELS_ES = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic',
-];
-
-/** `TO_CHAR` no traduce meses sin locale en la base; se etiqueta acá. */
-function monthLabelEs(yyyyMm: string): string {
-  const month = Number(yyyyMm.split('-')[1]);
-  return MONTH_LABELS_ES[month - 1] ?? yyyyMm;
-}
 
 export const OperationsRepository = {
   /**

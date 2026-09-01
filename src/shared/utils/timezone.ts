@@ -54,3 +54,31 @@ export const formatBusinessDateTime = (
     minute: '2-digit',
   });
 };
+
+/**
+ * Etiquetas de mes en español. `TO_CHAR` en Postgres las devuelve en inglés
+ * salvo que se configure un locale en la base, así que la traducción vive acá.
+ */
+const MONTH_LABELS_ES = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+  'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic',
+];
+
+/** Convierte una clave `YYYY-MM` en su etiqueta corta de mes. */
+export const monthLabelEs = (yyyyMm: string): string => {
+  const month = Number(yyyyMm.split('-')[1]);
+  return MONTH_LABELS_ES[month - 1] ?? yyyyMm;
+};
+
+/** Mes en curso en hora de Costa Rica, como clave `YYYY-MM`. */
+export const currentMonthKey = (): string => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BUSINESS_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(new Date());
+
+  const year = parts.find((p) => p.type === 'year')?.value ?? '';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '';
+  return `${year}-${month}`;
+};
