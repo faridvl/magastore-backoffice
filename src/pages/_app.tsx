@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AppProps } from 'next/app';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -18,6 +19,7 @@ const SEO_DESCRIPTION =
   'Tu casillero para comprar en el exterior y recibir en Costa Rica: tarifas claras por libra, seguimiento de tus paquetes y entrega a todo el país.';
 
 const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
+  const isLanding = useRouter().pathname === '/landing';
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -88,7 +90,9 @@ const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
           </DashboardContextProvider>
         </NavigationContextProvider>
 
-        <ReactQueryDevtools initialIsOpen={false} />
+        {/* El landing es una página pública sin React Query; su botón flotante
+            se solapaba con el FAB de WhatsApp en la misma esquina. */}
+        {!isLanding && <ReactQueryDevtools initialIsOpen={false} />}
         <Toaster richColors position="top-right" />
       </QueryClientProvider>
     </>
