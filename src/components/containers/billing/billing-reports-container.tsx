@@ -29,7 +29,7 @@ export const BillingReportsContainer: React.FC = () => {
   const {
     selectedYear, selectedMonth, applyMonthFilter,
     rows, isLoading,
-    shareRows, isLoadingShare, togglePeriodPaid, isMarkingPaid,
+    shareRows, shareRowsInRange, isLoadingShare, togglePeriodPaid, isMarkingPaid,
   } = useBillingReports();
 
   const currentYear = Number(currentMonthKey().split('-')[0]);
@@ -45,9 +45,12 @@ export const BillingReportsContainer: React.FC = () => {
   // Resumen del período: la cadena completa desde lo facturado hasta lo que
   // realmente queda. Se toma solo la participación FACTURADO — la de estimados
   // es proyección y restarla daría una utilidad neta más baja que la real.
-  const totalFarid = shareRows.reduce((s, r) => s + Number(r.invoiced_share_crc), 0);
+  // Se usa la participación recortada al mes filtrado, no el historial que
+  // alimenta la tabla de abajo: `totalGanancia` es de ese mes y restarle el
+  // reparto de meses anteriores daría una utilidad neta que no corresponde.
+  const totalFarid = shareRowsInRange.reduce((s, r) => s + Number(r.invoiced_share_crc), 0);
   const totalNeto  = totalGanancia - totalFarid;
-  const faridPendiente = shareRows
+  const faridPendiente = shareRowsInRange
     .filter((r) => !r.is_paid)
     .reduce((s, r) => s + Number(r.invoiced_share_crc), 0);
 
