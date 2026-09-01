@@ -123,6 +123,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     lockedEditTarget, setLockedEditTarget,
     handleCopyShipmentRequest, isCopyingRequest,
     handleCopyAddressConfirmation, isCopyingAddressConfirmation,
+    handleCopyAddressRequest, isCopyingAddressRequest,
+    handleOpenShipmentRequestModal,
+    showShipmentRequestModal, setShowShipmentRequestModal,
+    receiverName, setReceiverName,
+    receiverPhone, setReceiverPhone,
+    receiverIdCard, setReceiverIdCard,
     handleNotifyDispatch, isNotifyingDispatch,
     showTrackingModal, setShowTrackingModal,
     trackingDraft, setTrackingDraft,
@@ -277,7 +283,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         <div className="flex items-center gap-2 flex-shrink-0 justify-end">
           {/* Solo con dirección asignada: pedirle al cliente que confirme una
               dirección que no tenemos no significa nada. */}
-          {detail.delivery_exact_address && (
+          {detail.delivery_exact_address ? (
             <button
               onClick={handleCopyAddressConfirmation}
               disabled={isCopyingAddressConfirmation}
@@ -286,6 +292,17 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             >
               <Copy size={12} />
               Confirmar dirección
+            </button>
+          ) : (
+            /* Sin dirección lo que toca es pedirla, no confirmarla. */
+            <button
+              onClick={handleCopyAddressRequest}
+              disabled={isCopyingAddressRequest}
+              title="Copiar mensaje para pedirle los datos de entrega al cliente"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
+            >
+              <Copy size={12} />
+              Pedir dirección
             </button>
           )}
           {/* Siempre visible: ocultarlo fuera de ABIERTO dejaba al operador sin
@@ -319,11 +336,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 justify-end">
           {/* Solicitud al proveedor: copia, no abre WhatsApp — el destinatario
-              es el forwarder, no el cliente. */}
+              es el forwarder, no el cliente. Pasa por un modal para poder
+              corregir a quién se entrega cuando el envío va a un tercero. */}
           <button
-            onClick={handleCopyShipmentRequest}
+            onClick={handleOpenShipmentRequestModal}
             disabled={isCopyingRequest}
-            title="Copiar solicitud de envío para el proveedor"
+            title="Preparar solicitud de envío para el proveedor"
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
           >
             <Copy size={12} />
@@ -836,6 +854,76 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isSavingMethod ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: SOLICITUD AL PROVEEDOR — permite corregir a quién se entrega
+          antes de copiar, para los envíos que van a un tercero. Los datos no se
+          guardan: viven solo mientras el modal está abierto. */}
+      {showShipmentRequestModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowShipmentRequestModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Copy size={18} className="text-slate-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Solicitud al proveedor
+              </Typography>
+            </div>
+            <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+              Datos de quien recibe. Vienen del cliente; corrígelos si el envío va a otra persona.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Nombre de quien recibe</label>
+                <input
+                  value={receiverName}
+                  onChange={(e) => setReceiverName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Teléfono</label>
+                <input
+                  value={receiverPhone}
+                  onChange={(e) => setReceiverPhone(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Cédula</label>
+                <input
+                  value={receiverIdCard}
+                  onChange={(e) => setReceiverIdCard(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowShipmentRequestModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCopyShipmentRequest}
+                disabled={isCopyingRequest}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isCopyingRequest ? 'Copiando...' : 'Copiar solicitud'}
               </button>
             </div>
           </div>

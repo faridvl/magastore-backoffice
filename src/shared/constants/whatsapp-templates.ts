@@ -323,7 +323,14 @@ DIRECCION: {{direccion}}`;
  */
 export function buildShipmentRequestMessage(params: {
   orderShortId: string;
+  /** Dueño de los paquetes — es como el proveedor identifica el bulto. */
   customerName: string;
+  /**
+   * Quien recibe el envío. Suele ser el mismo cliente, pero no siempre: el
+   * operador puede escribir un tercero antes de copiar. Si llega vacío se cae
+   * al nombre del cliente, que es el comportamiento que había.
+   */
+  receiverName?: string | null;
   idCard: string | null;
   phone: string | null;
   province: string | null;
@@ -341,7 +348,7 @@ export function buildShipmentRequestMessage(params: {
     id_orden: params.orderShortId,
     lista_trackings: params.packages.map((p) => `- ${p.trackingNumber}`).join('\n'),
     nombre_cliente: params.customerName,
-    nombre_recibe: params.customerName.toUpperCase(),
+    nombre_recibe: (params.receiverName?.trim() || params.customerName).toUpperCase(),
     telefono_recibe: pending(params.phone),
     cedula: pending(params.idCard),
     provincia: pending(params.province),
@@ -446,6 +453,41 @@ export function buildAddressConfirmationMessage(params: {
     canton: pending(params.canton),
     distrito: pending(params.district),
     direccion: pending(params.exactAddress),
+  });
+}
+
+export const WHATSAPP_TEMPLATE_ADDRESS_REQUEST = `Hola, {{nombre}}! 👋🏻
+
+Para coordinar la entrega de tu envío necesitamos los siguientes datos:
+
+Nombre de quien recibe:
+Cédula:
+Teléfono:
+Provincia:
+Cantón:
+Distrito:
+Dirección exacta:
+
+En cuanto los recibamos preparamos tu orden y te enviamos el estimado. ✅
+
+*MAGASTORE 📦✈️*`;
+
+/**
+ * Solicitud de los datos de entrega, para el cliente que todavía no tiene
+ * ninguna dirección registrada.
+ *
+ * No usa el helper "[pendiente]" de sus hermanas: acá no hay datos de destino
+ * que rellenar — son justamente los que se están pidiendo.
+ */
+export function buildAddressRequestMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_ADDRESS_REQUEST, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
   });
 }
 

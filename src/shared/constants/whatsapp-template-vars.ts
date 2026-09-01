@@ -10,6 +10,7 @@ export const WHATSAPP_TEMPLATE_CODES = {
   SHIPMENT_REQUEST: 'SHIPMENT_REQUEST',
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
   ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
+  ADDRESS_REQUEST: 'ADDRESS_REQUEST',
 } as const;
 
 export type WhatsAppTemplateCode = (typeof WHATSAPP_TEMPLATE_CODES)[keyof typeof WHATSAPP_TEMPLATE_CODES];
@@ -79,6 +80,13 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'canton', label: 'Cantón de la dirección de entrega — ej. CENTRAL' },
     { key: 'distrito', label: 'Distrito de la dirección de entrega — ej. EL CARMEN' },
     { key: 'direccion', label: 'Dirección exacta de entrega' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  // Hermana de ADDRESS_CONFIRMATION, para cuando el cliente todavía no tiene
+  // dirección. Solo lleva el nombre: los datos de entrega son justo lo que se
+  // está pidiendo, así que no hay nada más que interpolar.
+  ADDRESS_REQUEST: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
   ],
   WAREHOUSE_WELCOME: [

@@ -17,6 +17,7 @@ import {
   buildShipmentRequestMessage,
   buildShipmentDispatchedMessage,
   buildAddressConfirmationMessage,
+  buildAddressRequestMessage,
 } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
@@ -56,6 +57,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
   const shipmentRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST);
   const addressConfirmationTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_CONFIRMATION);
+  const addressRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_REQUEST);
   const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
 
   // Guía que se tipea en el modal de despacho. Vacía es válido: se puede
@@ -66,6 +68,21 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [isCopyingRequest, setIsCopyingRequest] = useState(false);
   const [isCopyingAddressConfirmation, setIsCopyingAddressConfirmation] = useState(false);
+  const [isCopyingAddressRequest, setIsCopyingAddressRequest] = useState(false);
+
+  /**
+   * Datos de quien recibe, para la solicitud al proveedor. Se prellenan con los
+   * del cliente y el operador los sobrescribe cuando el envío va a un tercero,
+   * que es un caso frecuente y hasta ahora obligaba a corregir el mensaje a mano
+   * después de pegarlo.
+   *
+   * Viven solo en el modal: no se guardan. Persistirlos exige columnas de
+   * receptor en customer_addresses y es una etapa aparte.
+   */
+  const [showShipmentRequestModal, setShowShipmentRequestModal] = useState(false);
+  const [receiverName, setReceiverName] = useState('');
+  const [receiverPhone, setReceiverPhone] = useState('');
+  const [receiverIdCard, setReceiverIdCard] = useState('');
   const [isNotifyingDispatch, setIsNotifyingDispatch] = useState(false);
   // Aviso al intentar editar dirección/método con el estimado ya generado: el
   // cambio exige reabrir la orden, no se aplica en silencio.
@@ -347,6 +364,22 @@ export const useShipmentOrderDetail = (uuid?: string) => {
    * cliente: no hay teléfono de destino en la orden. Por el mismo motivo no
    * estampa notified_at, que registra avisos al cliente.
    */
+  /**
+   * Abre el modal de solicitud con los datos del cliente ya puestos. El envío a
+   * un tercero se resuelve editándolos antes de copiar.
+   */
+  const handleOpenShipmentRequestModal = () => {
+    if (!detail) return;
+    if (!detail.delivery_exact_address) {
+      toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de solicitar el envío.');
+      return;
+    }
+    setReceiverName(detail.customer_name);
+    setReceiverPhone(detail.customer_phone ?? '');
+    setReceiverIdCard(detail.customer_id_card ?? '');
+    setShowShipmentRequestModal(true);
+  };
+
   const handleCopyShipmentRequest = async () => {
     if (!detail) return;
     if (!detail.delivery_exact_address) {
@@ -358,8 +391,12 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       const message = buildShipmentRequestMessage({
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         customerName: detail.customer_name,
-        idCard: detail.customer_id_card,
-        phone: detail.customer_phone,
+        // Quien recibe puede ser un tercero: van los valores del modal, no los
+        // del cliente. customerName sigue siendo el dueño de los paquetes, que
+        // es como el proveedor identifica el bulto.
+        receiverName: receiverName,
+        idCard: receiverIdCard,
+        phone: receiverPhone,
         province: detail.delivery_province,
         canton: detail.delivery_canton,
         district: detail.delivery_district,
@@ -373,6 +410,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         templateBody: shipmentRequestTemplateBody,
       });
       await copyWhatsAppMessage(message);
+      setShowShipmentRequestModal(false);
     } finally {
       setIsCopyingRequest(false);
     }
@@ -410,6 +448,25 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       await copyWhatsAppMessage(message);
     } finally {
       setIsCopyingAddressConfirmation(false);
+    }
+  };
+
+  /**
+   * Copia el mensaje que le pide al cliente los datos de entrega, para cuando
+   * la orden todavía no tiene dirección asignada.
+   */
+  const handleCopyAddressRequest = async () => {
+    if (!detail) return;
+    setIsCopyingAddressRequest(true);
+    try {
+      const message = buildAddressRequestMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        templateBody: addressRequestTemplateBody,
+      });
+      await copyWhatsAppMessage(message);
+    } finally {
+      setIsCopyingAddressRequest(false);
     }
   };
 
@@ -555,6 +612,12 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
     handleCopyShipmentRequest, isCopyingRequest,
     handleCopyAddressConfirmation, isCopyingAddressConfirmation,
+    handleCopyAddressRequest, isCopyingAddressRequest,
+    handleOpenShipmentRequestModal,
+    showShipmentRequestModal, setShowShipmentRequestModal,
+    receiverName, setReceiverName,
+    receiverPhone, setReceiverPhone,
+    receiverIdCard, setReceiverIdCard,
     handleNotifyDispatch, isNotifyingDispatch,
     showTrackingModal, setShowTrackingModal,
     trackingDraft, setTrackingDraft,
