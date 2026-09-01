@@ -132,6 +132,58 @@ Tailwind-only. No CSS modules. Use the `tailwind()` utility from `src/utils/tail
 
 ---
 
+## Timezone Rules (Read Before Touching Any Date)
+
+**The database and the deployment servers run in UTC. The business runs in Costa Rica (UTC-6, no DST).** Anything recorded between 18:00 and midnight local time falls on the *next* day in UTC.
+
+This has already caused a production bug: an invoice paid on August 31 at 19:49 CR was displayed — and counted in the monthly totals — as September 1. The dashboard showed 0 packages for the month because it compared against the UTC month, which had already rolled over.
+
+**The stored value is not the problem.** All timestamp columns are `timestamptz`, which stores an absolute instant. `2026-09-01 01:49 UTC` and `2026-08-31 19:49 CR` are the same moment. Never "fix" a date by rewriting `paid_at` to a local wall-clock value — that corrupts the instant and breaks ordering, elapsed-time math, and joins against other timestamps.
+
+**The bug is always in the read** — in any code that reduces an instant to a day or a month.
+
+### In SQL
+
+Convert before truncating or casting:
+
+```sql
+-- WRONG: groups by the UTC month
+GROUP BY date_trunc('month', paid_at)
+
+-- RIGHT
+GROUP BY date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica')
+```
+
+This applies to `date_trunc`, `::date`, `TO_CHAR`, `CURRENT_DATE`, and any `WHERE` clause comparing a timestamp against a calendar day.
+
+Write the zone as a literal, never as a query parameter. Postgres treats each placeholder as a distinct expression and rejects the `GROUP BY` even when the values are identical (error 42803).
+
+### In TypeScript
+
+Every `toLocaleDateString` / `toLocaleString` that renders a date must pass `timeZone`. Without it the call uses the zone of whatever machine runs the render: correct on an operator's laptop in San José, off by a day when it runs on the server — which is why invoice PDFs printed the wrong payment date.
+
+```ts
+// WRONG
+new Date(paidAt).toLocaleDateString('es-CR')
+
+// RIGHT
+import { formatBusinessDate } from '@/shared/utils/timezone';
+formatBusinessDate(paidAt)
+```
+
+`src/shared/utils/timezone.ts` holds `BUSINESS_TIMEZONE`, `formatBusinessDate`, `formatBusinessDateTime`, `monthLabelEs` and `currentMonthKey`. Use `currentMonthKey()` instead of `new Date().getMonth()` when defaulting a month filter or locating the current month in a series.
+
+Currency formatters (`toLocaleString('es-CR')` on a number) take no `timeZone` — leave them alone.
+
+### Checklist for any feature touching dates
+
+- [ ] Does the SQL truncate, cast, or compare a timestamp to a calendar day? → add `AT TIME ZONE 'America/Costa_Rica'`
+- [ ] Does the UI render a date? → pass `timeZone` or use the helper
+- [ ] Does the code derive "today" or "this month" from `new Date()`? → use `currentMonthKey()`
+- [ ] Verify by running the query against the real database, and test the UI with `TZ=UTC` to simulate the server
+
+---
+
 ## API Rules
 
 - Before creating a new API handler, read at least two existing handlers in `src/pages/api/` to understand the method validation, token extraction, and error response patterns.

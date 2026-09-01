@@ -61,13 +61,15 @@ export const BillingService = {
     }
   },
 
-  getProfitShareReport: async (from: string, to: string): Promise<ProfitShareMonthlyReport[]> => {
-    if (!from || !to) throw new Error('Las fechas de inicio y fin son requeridas.');
-
+  getProfitShareReport: async (
+    from?: string,
+    to?: string,
+  ): Promise<ProfitShareMonthlyReport[]> => {
     // El reporte agrupa por period (YYYY-MM), no por fecha: se normalizan los
-    // extremos del rango al mes que los contiene.
-    const fromPeriod = from.slice(0, 7);
-    const toPeriod = to.slice(0, 7);
+    // extremos del rango al mes que los contiene. Sin rango se devuelve el
+    // historial completo.
+    const fromPeriod = from ? from.slice(0, 7) : undefined;
+    const toPeriod = to ? to.slice(0, 7) : undefined;
 
     try {
       return await BillingRepository.getProfitShareReport(fromPeriod, toPeriod);
