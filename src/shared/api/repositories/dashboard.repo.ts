@@ -58,16 +58,15 @@ export const DashboardRepository = {
       `,
       sql`
         SELECT
-          TO_CHAR(date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica'), 'Mon') AS month,
-          TO_CHAR(date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month_key,
-          date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica') AS month_date,
+          TO_CHAR(date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica'), 'Mon') AS month,
+          TO_CHAR(date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month_key,
+          date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica') AS month_date,
           SUM(total_amount_crc)::bigint AS revenue
         FROM billing
-        WHERE is_paid = true
-          AND (paid_at AT TIME ZONE 'America/Costa_Rica')
+        WHERE (created_at AT TIME ZONE 'America/Costa_Rica')
               >= date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '5 months'
-        GROUP BY date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica')
-        ORDER BY date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica')
+        GROUP BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+        ORDER BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
       `,
       sql`
         SELECT
@@ -89,9 +88,14 @@ export const DashboardRepository = {
       revenue: Number(r.revenue),
     }));
 
-    // El mes en curso puede no estar en la serie: si todavía no se cobró nada,
-    // la consulta no devuelve esa fila. Buscarlo por clave evita mostrar el
-    // total del mes anterior como si fuera el de este.
+    // La serie agrupa por fecha de emisión, no de cobro: la tarjeta y la
+    // gráfica hablan de lo facturado en el mes. Mezclar ambos criterios hacía
+    // que una factura emitida en julio y cobrada en agosto sumara al mes
+    // equivocado según dónde se mirara.
+    //
+    // El mes en curso puede no estar en la serie: si todavía no se facturó
+    // nada, la consulta no devuelve esa fila. Buscarlo por clave evita mostrar
+    // el total del mes anterior como si fuera el de este.
     const thisMonth = currentMonthKey();
     const revenueThisMonthCRC =
       revenueByMonth.find((r) => r.monthKey === thisMonth)?.revenue ?? 0;

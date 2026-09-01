@@ -26,7 +26,7 @@ export interface DashboardStats {
   activeCustomers: number;
   /** Clientes dados de alta dentro del mes en curso (hora de Costa Rica). */
   newCustomersThisMonth: number;
-  /** Cobrado en el mes en curso. Es 0 si todavía no se cobró nada. */
+  /** Facturado en el mes en curso, por fecha de emisión. 0 si no hay facturas. */
   revenueThisMonthCRC: number;
   recentPackages: RecentPackage[];
   revenueByMonth: RevenueByMonth[];
