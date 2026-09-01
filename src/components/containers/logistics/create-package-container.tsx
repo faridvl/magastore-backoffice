@@ -274,7 +274,7 @@ export const CreatePackageContainer: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-[9px] text-slate-400 font-bold uppercase">Última Act.</p>
-                            <p className="text-[10px] font-medium text-slate-500">{new Date(settings?.updated_at || '').toLocaleDateString()}</p>
+                            <p className="text-[10px] font-medium text-slate-500">{new Date(settings?.updated_at || '').toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</p>
                         </div>
                     </div>
                 </div>

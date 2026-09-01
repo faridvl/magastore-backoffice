@@ -112,7 +112,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
           {/* En pantallas angostas (iPad) las columnas Peso/Paquetes/Fecha se ocultan — se resumen aquí */}
           <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
-            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {new Date(row.created_at).toLocaleDateString('es-CR')}
+            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
           </span>
         </div>
       ),
@@ -178,7 +178,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
-          {new Date(row.created_at).toLocaleDateString('es-CR')}
+          {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
         </span>
       ),
     },
@@ -309,7 +309,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
               <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
                 {PAYMENT_LABELS[row.payment_status]}
               </span>
-              <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
+              <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
             </div>
           </button>
         ))}

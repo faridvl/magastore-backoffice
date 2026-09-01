@@ -50,8 +50,8 @@ export const BillingRepository = {
             OR b.uuid::text ILIKE ${searchTerm}
             OR b.invoice_number::text = ${search ?? null})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
-          AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
-          AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
+          AND (${fromDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         ORDER BY b.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
@@ -68,8 +68,8 @@ export const BillingRepository = {
             OR b.uuid::text ILIKE ${searchTerm}
             OR b.invoice_number::text = ${search ?? null})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
-          AND (${fromDate}::date IS NULL OR b.created_at::date >= ${fromDate}::date)
-          AND (${toDate}::date IS NULL OR b.created_at::date <= ${toDate}::date)
+          AND (${fromDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
     ]);
 
@@ -130,7 +130,7 @@ export const BillingRepository = {
   ): Promise<BillingMonthlyReport[]> => {
     const rows = await sql`
       SELECT
-        TO_CHAR(DATE_TRUNC('month', b.created_at), 'YYYY-MM') AS month,
+        TO_CHAR(DATE_TRUNC('month', b.created_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month,
         COALESCE(SUM(b.total_amount_crc), 0)::numeric          AS total_invoiced_crc,
         COALESCE(SUM(CASE WHEN b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_paid_crc,
         COALESCE(SUM(CASE WHEN NOT b.is_paid THEN b.total_amount_crc ELSE 0 END), 0)::numeric AS total_pending_crc,
@@ -141,8 +141,8 @@ export const BillingRepository = {
       FROM billing b
       WHERE b.created_at >= ${from}::timestamptz
         AND b.created_at <  (${to}::date + INTERVAL '1 day')
-      GROUP BY DATE_TRUNC('month', b.created_at)
-      ORDER BY DATE_TRUNC('month', b.created_at) ASC
+      GROUP BY DATE_TRUNC('month', b.created_at AT TIME ZONE 'America/Costa_Rica')
+      ORDER BY DATE_TRUNC('month', b.created_at AT TIME ZONE 'America/Costa_Rica') ASC
     `;
 
     return rows as BillingMonthlyReport[];

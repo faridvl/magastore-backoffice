@@ -190,21 +190,24 @@ export const OperationsRepository = {
           COALESCE(SUM(profit_crc), 0)::numeric AS profit_crc,
           COUNT(CASE WHEN has_unknown_cost THEN 1 END)::int AS unknown_cost_count
         FROM billing
-        WHERE date_trunc('month', created_at) = date_trunc('month', NOW())
+        WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+            = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
       `,
 
       // Paquetes del mes actual y del anterior, para el comparativo.
       sql`
         SELECT
           COUNT(*) FILTER (
-            WHERE date_trunc('month', created_at) = date_trunc('month', NOW())
+            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                  = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
           )::int AS current_month,
           COUNT(*) FILTER (
-            WHERE date_trunc('month', created_at)
-                  = date_trunc('month', NOW() - INTERVAL '1 month')
+            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                  = date_trunc('month', (NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '1 month')
           )::int AS previous_month
         FROM packages
-        WHERE created_at >= date_trunc('month', NOW() - INTERVAL '1 month')
+        WHERE (created_at AT TIME ZONE 'America/Costa_Rica')
+              >= date_trunc('month', (NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '1 month')
       `,
 
       // Serie facturado vs. cobrado. Se agrupa por fecha de emisión para que las
@@ -213,14 +216,14 @@ export const OperationsRepository = {
       // meses y haría que las barras no se puedan comparar.
       sql`
         SELECT
-          TO_CHAR(date_trunc('month', created_at), 'YYYY-MM') AS month,
+          TO_CHAR(date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month,
           COALESCE(SUM(total_amount_crc), 0)::numeric AS invoiced,
           COALESCE(SUM(CASE WHEN is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS paid
         FROM billing
-        WHERE created_at >= date_trunc('month', NOW())
-                            - (INTERVAL '1 month' * ${REVENUE_MONTHS - 1})
-        GROUP BY date_trunc('month', created_at)
-        ORDER BY date_trunc('month', created_at) ASC
+        WHERE (created_at AT TIME ZONE 'America/Costa_Rica') >= date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
+                                 - (INTERVAL '1 month' * ${REVENUE_MONTHS - 1})
+        GROUP BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+        ORDER BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica') ASC
       `,
     ]);
 

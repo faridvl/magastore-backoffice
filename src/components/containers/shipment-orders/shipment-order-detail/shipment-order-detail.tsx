@@ -337,7 +337,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
                   {detail.dispatched_at && (
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Despachado el {new Date(detail.dispatched_at).toLocaleDateString('es-CR')}
+                      Despachado el {new Date(detail.dispatched_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
                     </p>
                   )}
                 </>
@@ -397,7 +397,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <p className="text-[10px] text-emerald-600 mt-0.5">
                     {formatCRC(detail.pre_billing_amount ?? 0)}
                     {detail.pre_billing_notified_at && (
-                      <> · Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
+                      <> · Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</>
                     )}
                   </p>
                 </div>
@@ -406,7 +406,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 <button
                   onClick={handleNotifyPreBilling}
                   disabled={isNotifyingPreBilling}
-                  title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}` : 'Enviar aviso de cobro por WhatsApp'}
+                  title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}` : 'Enviar aviso de cobro por WhatsApp'}
                   className="flex items-center gap-1.5 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all disabled:opacity-40"
                 >
                   <MessageCircle size={13} />
@@ -431,7 +431,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                       ? `Entrega: ${resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data)}`
                       : ''}
                     {detail.pre_billing_notified_at && (
-                      <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}</>
+                      <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</>
                     )}
                   </p>
                 </div>
@@ -439,7 +439,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <button
                     onClick={handleNotifyPreBilling}
                     disabled={isNotifyingPreBilling}
-                    title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR')}` : 'Enviar aviso de cobro por WhatsApp'}
+                    title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}` : 'Enviar aviso de cobro por WhatsApp'}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all disabled:opacity-40"
                   >
                     <MessageCircle size={12} />

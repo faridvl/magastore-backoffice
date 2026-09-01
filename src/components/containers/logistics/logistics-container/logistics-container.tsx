@@ -118,7 +118,7 @@ export const LogisticsContainer: React.FC = () => {
                     <span className="text-[9px] font-black text-slate-400 uppercase">{row.package_type || 'AÉREO'}</span>
                     <div className="flex items-center gap-1 text-slate-400 mt-0.5">
                         <Calendar size={10} />
-                        <span className="text-[10px] font-medium">{new Date(row.created_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-medium">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
                     </div>
                 </div>
             )
@@ -392,7 +392,7 @@ export const LogisticsContainer: React.FC = () => {
                                     <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
                                 )}
                                 <p className="font-bold text-slate-800 text-sm mt-0.5 truncate">{pkg.first_name} {pkg.last_name}</p>
-                                <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR')} · {pkg.weight_lb} lb</p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })} · {pkg.weight_lb} lb</p>
                             </div>
                             <div className="flex flex-col items-end gap-2 flex-shrink-0">
                                 <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>

@@ -101,7 +101,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     if (!apiData?.events) return [];
     return apiData.events.map((e: any) => ({
       id: e.id,
-      fecha: new Date(e.created_at).toLocaleString('es-CR', {
+      fecha: new Date(e.created_at).toLocaleString('es-CR', { timeZone: 'America/Costa_Rica',
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
       }),

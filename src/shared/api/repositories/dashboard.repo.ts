@@ -1,6 +1,16 @@
 import sql from '@/lib/db';
 import { DashboardStats, RecentPackage, RevenueByMonth, TopCustomer } from '@/types/dashboard/dashboard.types';
 
+/**
+ * La base corre en UTC. Al agrupar por mes hay que pasar los timestamps a hora
+ * de Costa Rica primero: si no, todo lo registrado despues de las 18:00 locales
+ * cae en el dia —y a fin de mes, en el mes— siguiente.
+ *
+ * La zona va escrita en el SQL y no como parametro: Postgres trata cada
+ * placeholder como una expresion distinta y rechaza el GROUP BY aunque el
+ * valor sea el mismo (error 42803).
+ */
+
 export const DashboardRepository = {
   getDashboardStats: async (): Promise<DashboardStats> => {
     const [
@@ -14,7 +24,8 @@ export const DashboardRepository = {
       sql`
         SELECT COUNT(*)::int AS count
         FROM packages
-        WHERE date_trunc('month', created_at) = date_trunc('month', NOW())
+        WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+            = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
       `,
       sql`
         SELECT COALESCE(SUM(total_amount_crc), 0)::bigint AS total
@@ -42,14 +53,15 @@ export const DashboardRepository = {
       `,
       sql`
         SELECT
-          TO_CHAR(date_trunc('month', paid_at), 'Mon') AS month,
-          date_trunc('month', paid_at) AS month_date,
+          TO_CHAR(date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica'), 'Mon') AS month,
+          date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica') AS month_date,
           SUM(total_amount_crc)::bigint AS revenue
         FROM billing
         WHERE is_paid = true
-          AND paid_at >= date_trunc('month', NOW()) - INTERVAL '5 months'
-        GROUP BY date_trunc('month', paid_at)
-        ORDER BY date_trunc('month', paid_at)
+          AND (paid_at AT TIME ZONE 'America/Costa_Rica')
+              >= date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '5 months'
+        GROUP BY date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica')
+        ORDER BY date_trunc('month', paid_at AT TIME ZONE 'America/Costa_Rica')
       `,
       sql`
         SELECT
