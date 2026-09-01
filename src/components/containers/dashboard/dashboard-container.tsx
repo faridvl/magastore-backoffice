@@ -47,7 +47,7 @@ export const DashboardContainer: React.FC = () => {
       bg: 'bg-orange-50',
     },
     {
-      label: 'Ingresos del mes',
+      label: 'Facturado del mes',
       value: isLoading ? '—' : formatCRC(stats.revenueThisMonthCRC),
       hint: undefined as string | undefined,
       icon: TrendingUp,
@@ -101,9 +101,9 @@ export const DashboardContainer: React.FC = () => {
         <div className="bg-white p-5 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-black text-slate-800 tracking-tight">Ingresos Mensuales</h3>
+              <h3 className="font-black text-slate-800 tracking-tight">Facturación Mensual</h3>
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                Últimos 6 meses — facturas pagadas
+                Últimos 6 meses — por fecha de emisión
               </p>
             </div>
           </div>
