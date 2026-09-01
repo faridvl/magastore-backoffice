@@ -513,7 +513,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             <div className="grid grid-cols-1 gap-3 flex-1">
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><Calendar size={18} /><Typography variant={TypographyVariant.BODY}>Registro</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{new Date(customer.created_at).toLocaleDateString('es-CR')}</Typography>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{new Date(customer.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</Typography>
                                                 </div>
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><Box size={18} /><Typography variant={TypographyVariant.BODY}>Primer Paquete</Typography></div>

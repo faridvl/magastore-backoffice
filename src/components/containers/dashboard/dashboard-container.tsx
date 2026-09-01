@@ -33,6 +33,7 @@ export const DashboardContainer: React.FC = () => {
     {
       label: 'Paquetes este mes',
       value: isLoading ? '—' : String(stats.packagesThisMonth),
+      hint: undefined as string | undefined,
       icon: Package,
       color: 'text-amber-600',
       bg: 'bg-amber-50',
@@ -40,19 +41,15 @@ export const DashboardContainer: React.FC = () => {
     {
       label: 'Por Cobrar',
       value: isLoading ? '—' : formatCRC(stats.pendingBillingCRC),
+      hint: undefined as string | undefined,
       icon: Clock,
       color: 'text-orange-600',
       bg: 'bg-orange-50',
     },
     {
       label: 'Ingresos del mes',
-      value: isLoading
-        ? '—'
-        : formatCRC(
-            stats.revenueByMonth.length > 0
-              ? stats.revenueByMonth[stats.revenueByMonth.length - 1].revenue
-              : 0,
-          ),
+      value: isLoading ? '—' : formatCRC(stats.revenueThisMonthCRC),
+      hint: undefined as string | undefined,
       icon: TrendingUp,
       color: 'text-emerald-600',
       bg: 'bg-green-50',
@@ -60,6 +57,9 @@ export const DashboardContainer: React.FC = () => {
     {
       label: 'Clientes Activos',
       value: isLoading ? '—' : String(stats.activeCustomers),
+      hint: isLoading
+        ? undefined
+        : `+${stats.newCustomersThisMonth} este mes`,
       icon: Users,
       color: 'text-amber-600',
       bg: 'bg-purple-50',
@@ -86,6 +86,11 @@ export const DashboardContainer: React.FC = () => {
                   {stat.label}
                 </p>
                 <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-1">{stat.value}</h3>
+                {stat.hint && (
+                  <p className="text-[10px] md:text-xs font-semibold text-emerald-600 mt-1">
+                    {stat.hint}
+                  </p>
+                )}
               </div>
             ))}
       </div>

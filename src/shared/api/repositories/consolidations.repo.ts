@@ -161,8 +161,8 @@ export const ConsolidationsRepository = {
           AND (NOT ${isPagado} OR (b.is_paid = true AND con.status != 'ENTREGADO'))
           AND (NOT ${isEntregado} OR con.status = 'ENTREGADO')
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
-          AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
-          AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
+          AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb, con.created_at, con.updated_at,
                  c.first_name, c.last_name, c.customer_code, b.uuid, b.is_paid, b.total_amount_crc, pb.estimated_amount_crc, pb.uuid
         ORDER BY con.created_at DESC
@@ -184,8 +184,8 @@ export const ConsolidationsRepository = {
           AND (NOT ${isPagado} OR (b.is_paid = true AND con.status != 'ENTREGADO'))
           AND (NOT ${isEntregado} OR con.status = 'ENTREGADO')
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
-          AND (${fromDate}::date IS NULL OR con.created_at::date >= ${fromDate}::date)
-          AND (${toDate}::date IS NULL OR con.created_at::date <= ${toDate}::date)
+          AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
+          AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
     ]);
 

@@ -353,7 +353,7 @@ const ProfitShareSection: React.FC<ProfitShareSectionProps> = ({
                     {row.is_paid ? (
                       <span
                         className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
-                        title={row.paid_at ? `Pagado el ${new Date(row.paid_at).toLocaleDateString('es-CR')}${row.paid_by_name ? ` por ${row.paid_by_name}` : ''}` : undefined}
+                        title={row.paid_at ? `Pagado el ${new Date(row.paid_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}${row.paid_by_name ? ` por ${row.paid_by_name}` : ''}` : undefined}
                       >
                         <Check className="w-3 h-3" /> Pagado
                       </span>

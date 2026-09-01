@@ -231,7 +231,7 @@ interface Props {
 
 export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel }) => {
   const invoiceLabel = `F-${String(detail.invoice_number).padStart(4, '0')}`;
-  const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', {
+  const createdDate = new Date(detail.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
   const pricePerLb = Number(detail.applied_rate_usd);
@@ -396,7 +396,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
 
           {detail.is_paid && detail.paid_at && (
             <Text style={{ fontSize: 8, color: '#15803d', marginTop: 8 }}>
-              {`Pago registrado el ${new Date(detail.paid_at).toLocaleDateString('es-CR')}`}
+              {`Pago registrado el ${new Date(detail.paid_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}`}
             </Text>
           )}
         </View>

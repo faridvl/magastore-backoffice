@@ -15,7 +15,7 @@ const toISO = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 const fmtShort = (d: Date) =>
-  d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short' });
+  d.toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica', day: '2-digit', month: 'short' });
 
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   from, to, onFromChange, onToChange, onClear,

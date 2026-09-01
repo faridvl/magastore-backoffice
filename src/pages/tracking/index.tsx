@@ -44,7 +44,7 @@ const LIFECYCLE: Array<{ status: string; label: string; location: string }> = [
 const STATUS_ORDER = ['PANAMA', 'EN_TRAMITE', 'ENTREGADO'];
 
 function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('es-CR', {
+    return new Date(iso).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
         year: 'numeric', month: '2-digit', day: '2-digit',
     });
 }

@@ -113,7 +113,7 @@ interface Props {
 
 export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabel }) => {
   const shortId = data.uuid.slice(-8).toUpperCase();
-  const createdDate = new Date(data.created_at).toLocaleDateString('es-CR', {
+  const createdDate = new Date(data.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
   const pricePerLb = Number(data.applied_rate_usd);

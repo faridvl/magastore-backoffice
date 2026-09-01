@@ -131,7 +131,7 @@ export const BillingDetailModal: React.FC<Props> = ({
                 <span className="font-black text-xs uppercase tracking-wider">Pagado</span>
                 {billingDetail.paid_at && (
                   <span className="text-[10px] text-emerald-500">
-                    · {new Date(billingDetail.paid_at).toLocaleDateString('es-CR')}
+                    · {new Date(billingDetail.paid_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
                   </span>
                 )}
               </div>

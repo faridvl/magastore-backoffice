@@ -106,7 +106,7 @@ export const SettingsContainer: React.FC = () => {
             accessor: 'changed_at',
             render: (row) => (
                 <span className="text-[11px] text-slate-500 font-medium tabular-nums">
-                    {new Date(row.changed_at).toLocaleDateString('es-CR', {
+                    {new Date(row.changed_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
                         day: '2-digit', month: '2-digit', year: 'numeric',
                         hour: '2-digit', minute: '2-digit',
                     })}
@@ -145,7 +145,7 @@ export const SettingsContainer: React.FC = () => {
     const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.max(1, Math.ceil(history.length / itemsPerPage));
 
-    const formatDate = (d: string) => new Date(d).toLocaleDateString('es-CR', {
+    const formatDate = (d: string) => new Date(d).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
         day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
 

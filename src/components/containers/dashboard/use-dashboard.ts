@@ -5,6 +5,8 @@ const EMPTY_STATS: DashboardStats = {
   packagesThisMonth: 0,
   pendingBillingCRC: 0,
   activeCustomers: 0,
+  newCustomersThisMonth: 0,
+  revenueThisMonthCRC: 0,
   recentPackages: [],
   revenueByMonth: [],
   topCustomers: [],

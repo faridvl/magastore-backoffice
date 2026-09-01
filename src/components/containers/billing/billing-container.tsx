@@ -61,7 +61,7 @@ export const BillingContainer: React.FC = () => {
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
           {/* En pantallas angostas (iPad) las columnas Peso/Fecha se ocultan — se resumen aquí */}
           <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
-            {row.total_weight_charged} lb · {new Date(row.created_at).toLocaleDateString('es-CR')}
+            {row.total_weight_charged} lb · {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
           </span>
         </div>
       ),
@@ -135,7 +135,7 @@ export const BillingContainer: React.FC = () => {
       className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
-          {new Date(row.created_at).toLocaleDateString('es-CR')}
+          {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
         </span>
       ),
     },
@@ -264,7 +264,7 @@ export const BillingContainer: React.FC = () => {
               <div className="flex justify-between items-end">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data) : '—'}</span>
-                  <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR')}</span>
+                  <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
                 </div>
                 <span className="text-xl font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>
               </div>
