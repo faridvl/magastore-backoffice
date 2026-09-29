@@ -2,6 +2,7 @@ import { ConsolidationsRepository } from '../repositories/consolidations.repo';
 import { DeliveryRatesRepository } from '../repositories/delivery-rates.repo';
 import { DeliveryMethodsRepository } from '../repositories/delivery-methods.repo';
 import { getSettings } from '../repositories/settings.repo';
+import { LogisticsService } from './logistics.service';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
 
@@ -40,11 +41,17 @@ export const ConsolidationsService = {
     page: number,
     limit: number,
     search?: string,
-    paymentFilter?: string,
+    // Tres ejes independientes y combinables — ver
+    // ConsolidationsRepository.getPaginatedConsolidations.
+    stepFilter?: string,
+    paidFilter?: string,
+    notifiedFilter?: string,
     dateFrom?: string,
     dateTo?: string,
   ) => {
-    return ConsolidationsRepository.getPaginatedConsolidations(page, limit, search, paymentFilter, dateFrom, dateTo);
+    return ConsolidationsRepository.getPaginatedConsolidations(
+      page, limit, search, stepFilter, paidFilter, notifiedFilter, dateFrom, dateTo,
+    );
   },
 
   getConsolidationDetail: async (uuid: string) => {
@@ -115,6 +122,31 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.setTrackingCode(uuid, trackingCode);
   },
 
+  /**
+   * Ajuste del costo real de envío (paso 4). Ver
+   * ConsolidationsRepository.setActualDeliveryFee para el alcance exacto —
+   * solo corrige lo cobrado al cliente, no toca la ganancia registrada.
+   */
+  setActualDeliveryFee: async (uuid: string, actualFeeCrc: number) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    if (actualFeeCrc == null || actualFeeCrc < 0 || Number.isNaN(actualFeeCrc)) {
+      throw new Error('El costo real de envío debe ser un monto válido mayor o igual a cero.');
+    }
+    return ConsolidationsRepository.setActualDeliveryFee(uuid, actualFeeCrc);
+  },
+
+  /** Marca que el vuelto calculado en el paso 4 ya se le entregó al cliente. */
+  markChangeReturned: async (uuid: string) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.markChangeReturned(uuid);
+  },
+
+  /** Avanza del paso 4 (Notificación y cierre) al 5 (Finalizada). */
+  finalizeOrder: async (uuid: string) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.finalizeOrder(uuid);
+  },
+
   deleteConsolidation: async (uuid: string) => {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.deleteConsolidation(uuid);
@@ -170,19 +202,43 @@ export const ConsolidationsService = {
   },
 
   /**
-   * Agrega paquetes sueltos del mismo cliente a una orden existente. Solo mientras
-   * ABIERTO. Espejo de unassignPackage: invalida la prefactura si existía.
+   * Agrega paquetes sueltos del mismo cliente a una orden existente. Permitido
+   * en el paso 1 (ABIERTO, sin estimado todavía) y en el paso 2 (CERRADO, con
+   * estimado ya generado) — no en el paso 3 en adelante, ver
+   * ConsolidationsRepository.assignPackages.
+   *
+   * Si ya había un estimado (paso 2), en vez de invalidarlo se recalcula en el
+   * lugar: llama a LogisticsService.generatePreBilling, que hace el UPSERT con
+   * el peso ya actualizado por el repo — la orden se queda en el paso 2 en
+   * lugar de volver a "sin estimado". El operador sigue teniendo que reenviar
+   * el PDF/WhatsApp si ya lo había compartido; eso lo indica la UI a partir de
+   * pre_billing_notified_at, no se resetea acá.
    */
   assignPackages: async (consolidationUuid: string, packageUuids: string[]) => {
     if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
     if (!packageUuids || packageUuids.length === 0) {
       throw new Error('Debe seleccionar al menos un paquete para agregar.');
     }
-    return ConsolidationsRepository.assignPackages(consolidationUuid, packageUuids);
+    const { hadPreBilling } = await ConsolidationsRepository.assignPackages(consolidationUuid, packageUuids);
+    if (hadPreBilling) {
+      await LogisticsService.generatePreBilling(consolidationUuid);
+    }
   },
 
   markPreBillingNotified: async (consolidationUuid: string) => {
     if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.markPreBillingNotified(consolidationUuid);
+  },
+
+  /** Solicitud de envío copiada al proveedor (paso 3). */
+  markShipmentRequested: async (consolidationUuid: string) => {
+    if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.markShipmentRequested(consolidationUuid);
+  },
+
+  /** Aviso al cliente de que su envío fue solicitado (paso 3). */
+  markCustomerNotifiedShipment: async (consolidationUuid: string) => {
+    if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.markCustomerNotifiedShipment(consolidationUuid);
   },
 };

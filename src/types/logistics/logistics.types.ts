@@ -460,17 +460,38 @@ export enum ConsolidationPaymentStatus {
   PAGADO = 'PAGADO',
 }
 
+// Paso del wizard de la orden (migración 030, columna consolidations.current_step).
+// Dato explícito, no derivado de status: una orden CERRADO puede estar en el
+// paso 2 (cobro) o, tras reabrir con factura sin pagar, seguir mostrándose ahí
+// aunque status vuelva a ABIERTO — el step manda sobre el status logístico para
+// decidir qué pantalla del detalle se muestra.
+//
+// NOTIFICACION (4) no corresponde a una transición de `status` propia: la
+// orden ya está en ENTREGADO desde que entra a este paso (marcar entregado
+// mueve status Y paquetes a ENTREGADO al ENTRAR al paso 4, no al salir). El
+// botón "Finalizar" al cierre del paso 4 solo avanza current_step a 5, sin
+// tocar status ni paquetes de nuevo.
+export enum ShipmentOrderStep {
+  CONFIRMACION = 1,
+  COBRO = 2,
+  DESPACHO = 3,
+  NOTIFICACION = 4,
+  FINALIZADA = 5,
+}
+
 export interface ConsolidationListItem {
   uuid: string;
   customer_id: string;
   customer_name: string;
   customer_code: string;
   status: ConsolidationStatus;
+  current_step: ShipmentOrderStep;
   total_weight_lb: number;
   package_count: number;
   created_at: string;
   updated_at: string;
   payment_status: ConsolidationPaymentStatus;
+  pre_billing_notified_at: string | null;
   // Monto de la factura si ya existe; si no, el estimado de la prefactura; si no hay ninguno, null.
   display_amount_crc: number | null;
   is_billing_amount: boolean;
@@ -503,6 +524,7 @@ export interface ConsolidationDetail {
   customer_type_billing_mode: string | null;
   customer_type_discount_percent: number | null;
   status: ConsolidationStatus;
+  current_step: ShipmentOrderStep;
   total_weight_lb: number;
   created_at: string;
   updated_at: string;
@@ -534,6 +556,22 @@ export interface ConsolidationDetail {
   billing_delivery_cost_crc: number | null;
   billing_profit_crc: number | null;
   billing_has_unknown_cost: boolean | null;
+  // Lo que se le cobró al cliente por entrega. Tras un ajuste de costo real
+  // (paso 4) este campo pasa a valer lo mismo que billing_actual_delivery_fee_crc
+  // — se sobreescribe, ver ConsolidationsRepository.setActualDeliveryFee.
+  billing_delivery_fee_crc: number | null;
+  // Snapshot del fee ORIGINAL, antes de cualquier ajuste — se fija una sola
+  // vez en el primer ajuste. Es contra este valor que se calcula la
+  // diferencia/vuelto, porque billing_delivery_fee_crc ya no lo tiene una vez
+  // ajustado. Null si nunca se ajustó.
+  billing_original_delivery_fee_crc: number | null;
+  // Ajuste del costo real de envío (migración 030, paso 4). Null mientras no
+  // se haya cargado — es opcional, igual que tracking_code. NO afecta
+  // billing_profit_crc ni la participación de Farid: decisión explícita, ver
+  // el comentario de la migración.
+  billing_actual_delivery_fee_crc: number | null;
+  billing_change_returned: boolean | null;
+  billing_change_returned_at: string | null;
   // Participación de Farid sobre la ganancia de esta orden (migración 023).
   // Null mientras no se haya generado el estimado — se crea recién ahí.
   profit_share_crc: number | null;
@@ -551,6 +589,12 @@ export interface ConsolidationDetail {
   // —es opcional— o si el método es de retiro en oficina.
   tracking_code: string | null;
   dispatched_at: string | null;
+  // Marca de "ya se copió la solicitud de envío al proveedor" (migración 030,
+  // paso 3). Null hasta que el operador copia el mensaje al menos una vez.
+  shipment_requested_at: string | null;
+  // Marca de "ya se avisó al CLIENTE que su envío fue solicitado" (migración
+  // 030/031) — destinatario distinto de shipment_requested_at (proveedor).
+  customer_notified_shipment_at: string | null;
   // Cantón usado para resolver la zona (dirección de la orden, o la default
   // del cliente si la orden aún no tiene dirección asignada).
   zone_canton: string | null;

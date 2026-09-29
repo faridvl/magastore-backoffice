@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Search,
   ChevronRight,
@@ -12,27 +12,19 @@ import {
   CheckCircle,
   CheckSquare,
   Square,
+  ChevronDown,
 } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
-import { useShipmentOrders, ShipmentOrderPaymentFilter } from './use-shipment-orders';
-import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, AvailablePackage } from '@/types/logistics/logistics.types';
+import {
+  useShipmentOrders,
+  ShipmentOrderStepFilter,
+  ShipmentOrderPaidFilter,
+  ShipmentOrderNotifiedFilter,
+} from './use-shipment-orders';
+import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, ShipmentOrderStep, AvailablePackage } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
-
-const STATUS_LABELS: Record<ConsolidationStatus, string> = {
-  ABIERTO: 'Abierto',
-  CERRADO: 'Cerrado',
-  DESPACHADO: 'Despachado',
-  ENTREGADO: 'Entregado',
-};
-
-const STATUS_COLORS: Record<ConsolidationStatus, string> = {
-  ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
-  CERRADO: 'bg-blue-50 text-blue-600 border-blue-100',
-  DESPACHADO: 'bg-violet-50 text-violet-600 border-violet-100',
-  ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-};
 
 const PAYMENT_LABELS: Record<ConsolidationPaymentStatus, string> = {
   SIN_ESTIMADO: 'Sin estimado',
@@ -48,21 +40,64 @@ const PAYMENT_COLORS: Record<ConsolidationPaymentStatus, string> = {
   PAGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
+// Paso del wizard, para el badge de "Paso" en la tabla — distinto del badge de
+// Estado logístico (ConsolidationStatus): current_step manda sobre status para
+// decidir en qué pantalla del detalle está la orden. Sin número, igual que en
+// el filtro y el stepper del detalle — un solo vocabulario en los tres.
+const STEP_LABELS: Record<ShipmentOrderStep, string> = {
+  [ShipmentOrderStep.CONFIRMACION]: 'Confirmación',
+  [ShipmentOrderStep.COBRO]: 'Cobro',
+  [ShipmentOrderStep.DESPACHO]: 'Despacho',
+  [ShipmentOrderStep.NOTIFICACION]: 'Notificación',
+  [ShipmentOrderStep.FINALIZADA]: 'Finalizada',
+};
+
+const STEP_COLORS: Record<ShipmentOrderStep, string> = {
+  [ShipmentOrderStep.CONFIRMACION]: 'bg-amber-50 text-amber-600 border-amber-100',
+  [ShipmentOrderStep.COBRO]: 'bg-blue-50 text-blue-600 border-blue-100',
+  [ShipmentOrderStep.DESPACHO]: 'bg-violet-50 text-violet-600 border-violet-100',
+  [ShipmentOrderStep.NOTIFICACION]: 'bg-rose-50 text-rose-600 border-rose-100',
+  [ShipmentOrderStep.FINALIZADA]: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+};
+
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
 
-const PAYMENT_FILTERS: { value: ShipmentOrderPaymentFilter; label: string }[] = [
-  { value: ShipmentOrderPaymentFilter.PENDIENTE_PAGO, label: 'Pendientes de pago' },
-  { value: ShipmentOrderPaymentFilter.SIN_NOTIFICAR, label: 'Sin notificar' },
-  { value: ShipmentOrderPaymentFilter.PAGADO, label: 'Pagadas' },
-  { value: ShipmentOrderPaymentFilter.ENTREGADO, label: 'Entregadas' },
-  { value: ShipmentOrderPaymentFilter.ALL, label: 'Todas' },
+// Eje 1 — paso del wizard. Dropdown (no chips): con 4 pasos + Fin son 5
+// opciones y el dueño prefirió el selector clásico a botones compitiendo por
+// espacio horizontal.
+const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
+  { value: ShipmentOrderStepFilter.ALL, label: 'Todos los pasos' },
+  { value: ShipmentOrderStepFilter.CONFIRMACION, label: 'Confirmación' },
+  { value: ShipmentOrderStepFilter.COBRO, label: 'Cobro' },
+  { value: ShipmentOrderStepFilter.DESPACHO, label: 'Despacho' },
+  { value: ShipmentOrderStepFilter.NOTIFICACION, label: 'Notificación' },
+  { value: ShipmentOrderStepFilter.FINALIZADA, label: 'Finalizadas' },
+];
+
+// Ejes 2 y 3 — pago y notificación. El valor default lleva el nombre del eje
+// en el label ("Pago: todas") porque un <select> colapsado solo muestra el
+// valor elegido — sin ese prefijo, "Todas" a secas no dice de qué eje es.
+const PAID_FILTERS: { value: ShipmentOrderPaidFilter; label: string }[] = [
+  { value: ShipmentOrderPaidFilter.ALL, label: 'Pago: todas' },
+  { value: ShipmentOrderPaidFilter.PAGADA, label: 'Pagadas' },
+  { value: ShipmentOrderPaidFilter.SIN_PAGAR, label: 'Sin pagar' },
+];
+
+const NOTIFIED_FILTERS: { value: ShipmentOrderNotifiedFilter; label: string }[] = [
+  { value: ShipmentOrderNotifiedFilter.ALL, label: 'Notif.: todas' },
+  { value: ShipmentOrderNotifiedFilter.NOTIFICADA, label: 'Notificadas' },
+  { value: ShipmentOrderNotifiedFilter.SIN_NOTIFICAR, label: 'Sin notificar' },
 ];
 
 export const ShipmentOrdersContainer: React.FC = () => {
   const {
     page, setPage,
     search, setSearch,
-    paymentFilter, handlePaymentFilterChange,
+    stepFilter, handleStepFilterChange,
+    paidFilter, handlePaidFilterChange,
+    notifiedFilter, handleNotifiedFilterChange,
+    clearFilters,
+    activeFilterCount,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
     shipmentOrders, listMeta, isLoadingList,
@@ -96,6 +131,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
   } = useShipmentOrders();
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
+  // Panel de filtros secundarios en mobile: pago, notificación y fechas no
+  // caben en línea junto a los chips de paso, así que se agrupan detrás de un
+  // botón con contador — mismo patrón que un botón "Filtros (n)" de Airbnb.
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const listColumns: Column<ConsolidationListItem>[] = [
     {
@@ -122,11 +161,14 @@ export const ShipmentOrdersContainer: React.FC = () => {
       ),
     },
     {
-      header: 'Estado',
-      accessor: 'status',
+      // El paso manda sobre el status logístico crudo para el operador: le
+      // dice en qué punto del wizard está la orden, no solo su status en la
+      // máquina de estados interna.
+      header: 'Paso',
+      accessor: 'current_step',
       render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${STATUS_COLORS[row.status]}`}>
-          {STATUS_LABELS[row.status]}
+        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
+          {STEP_LABELS[row.current_step]}
         </span>
       ),
     },
@@ -207,6 +249,22 @@ export const ShipmentOrdersContainer: React.FC = () => {
     },
   ];
 
+  // Nombra la combinación de filtros activa en vez de un "sin resultados"
+  // genérico — con 3 ejes combinables es fácil quedar en una combinación que
+  // no devuelve nada sin entender cuál fue.
+  const emptyStateHint = (() => {
+    const parts: string[] = [];
+    const stepLabel = STEP_FILTERS.find((f) => f.value === stepFilter)?.label;
+    if (stepFilter !== ShipmentOrderStepFilter.ALL && stepLabel) parts.push(stepLabel);
+    if (paidFilter === ShipmentOrderPaidFilter.PAGADA) parts.push('pagadas');
+    if (paidFilter === ShipmentOrderPaidFilter.SIN_PAGAR) parts.push('sin pagar');
+    if (notifiedFilter === ShipmentOrderNotifiedFilter.NOTIFICADA) parts.push('notificadas');
+    if (notifiedFilter === ShipmentOrderNotifiedFilter.SIN_NOTIFICAR) parts.push('sin notificar');
+    return parts.length > 0
+      ? `No hay órdenes en ${parts.join(', ')}`
+      : 'No hay órdenes de envío que coincidan con la búsqueda';
+  })();
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
@@ -240,33 +298,47 @@ export const ShipmentOrdersContainer: React.FC = () => {
           </button>
         </div>
 
-        {/* Filtros por estado de pago */}
-        <div className="px-4 py-2.5 overflow-x-auto">
-          <div className="flex gap-1">
-            {PAYMENT_FILTERS.map((f) => (
+        {/* 3 ejes de filtro combinables, todos como dropdown nativo — mismo
+            patrón que usan Airbnb/Linear/Stripe para un eje con varios valores
+            excluyentes: un <select> estilizado en vez de un componente de
+            dropdown propio (evita reimplementar click-outside, teclado y foco
+            desde cero) y, en mobile, el picker nativo del sistema operativo.
+            Los 3 van en línea en desktop; en mobile se apilan en 2 filas. */}
+        <div className="px-4 py-2.5 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="grid grid-cols-3 sm:flex sm:flex-1 gap-2 min-w-0">
+            <FilterSelect value={stepFilter} options={STEP_FILTERS} onChange={handleStepFilterChange} />
+            <FilterSelect value={paidFilter} options={PAID_FILTERS} onChange={handlePaidFilterChange} />
+            <FilterSelect value={notifiedFilter} options={NOTIFIED_FILTERS} onChange={handleNotifiedFilterChange} />
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0 justify-between sm:justify-end">
+            <button
+              onClick={() => setShowMobileFilters((v) => !v)}
+              className="sm:hidden flex items-center px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight text-slate-500 bg-slate-50"
+            >
+              Fechas
+            </button>
+            {activeFilterCount > 0 && (
               <button
-                key={f.value}
-                onClick={() => handlePaymentFilterChange(f.value)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight transition-all whitespace-nowrap ${
-                  paymentFilter === f.value
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
-                }`}
+                onClick={clearFilters}
+                className="flex items-center text-[10px] font-black uppercase tracking-tight text-slate-400 hover:text-red-500 transition-colors whitespace-nowrap"
               >
-                {f.label}
+                Limpiar ({activeFilterCount})
               </button>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Fechas mobile */}
-        <div className="md:hidden px-4 pb-3">
-          <DateRangeFilter
-            from={dateFrom} to={dateTo}
-            onFromChange={setDateFrom} onToChange={setDateTo}
-            onClear={() => { setDateFrom(''); setDateTo(''); }}
-          />
-        </div>
+        {/* Fechas — panel aparte solo en mobile (en desktop ya están en la
+            fila principal de la toolbar, ver más abajo). */}
+        {showMobileFilters && (
+          <div className="sm:hidden px-4 pb-3 pt-1 border-b border-slate-50">
+            <DateRangeFilter
+              from={dateFrom} to={dateTo}
+              onFromChange={setDateFrom} onToChange={setDateTo}
+              onClear={() => { setDateFrom(''); setDateTo(''); }}
+            />
+          </div>
+        )}
       </div>
 
       {/* CARDS (mobile) */}
@@ -282,7 +354,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
             </div>
             <p className="font-black text-slate-400 text-sm">Sin órdenes de envío</p>
             <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
-              No hay órdenes de envío que coincidan con los filtros
+              {emptyStateHint}
             </p>
           </div>
         ) : shipmentOrders.map((row) => (
@@ -312,8 +384,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
               )}
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${STATUS_COLORS[row.status]}`}>
-                {STATUS_LABELS[row.status]}
+              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
+                {STEP_LABELS[row.current_step]}
               </span>
               <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
                 {PAYMENT_LABELS[row.payment_status]}
@@ -641,5 +713,36 @@ export const ShipmentOrdersContainer: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * Dropdown nativo para un eje de filtro. Se usa <select> en vez de un
+ * dropdown propio a propósito: con un eje ya en 5-6 valores (step) y otros
+ * dos en 3, reimplementar click-outside/teclado/foco no aporta nada sobre el
+ * control nativo del navegador — que además ya da el picker correcto en
+ * mobile sin trabajo extra. El valor activo queda siempre visible como texto
+ * del select, igual que en Airbnb/Linear/Stripe.
+ */
+const FilterSelect = <T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (val: T) => void;
+}) => (
+  <div className="relative flex-1 min-w-0">
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as T)}
+      className="w-full appearance-none bg-slate-50 border border-slate-100 rounded-lg pl-3 pr-7 py-2 text-[11px] font-black uppercase tracking-tight text-slate-700 truncate outline-none focus:ring-2 focus:ring-amber-100 cursor-pointer"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+  </div>
+);
 
 export default ShipmentOrdersContainer;

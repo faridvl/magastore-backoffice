@@ -341,11 +341,14 @@ export const LogisticsRepository = {
         hasUnknownCost: deliveryCost == null && !methodRow.is_pickup,
       });
 
-      // Generar el estimado "cierra" la orden: deja de aceptar más paquetes
-      // y pasa a la cola de cobro. Solo aplica la primera vez (ABIERTO); si ya
-      // está CERRADO (recalculando el estimado) no hay transición que hacer.
+      // Generar el estimado avanza el wizard del paso 1 (confirmación) al 2
+      // (cobro) y, como venía haciendo, "cierra" la orden para que deje de
+      // aceptar más paquetes sin pasar por el recálculo. Solo aplica la
+      // primera vez (ABIERTO); si ya está CERRADO (recalculando un estimado
+      // ya generado — agregar paquetes en el paso 2 dispara esto mismo) la
+      // orden ya está en el paso 2 y no hay transición que hacer.
       if (c.status === 'ABIERTO') {
-        await sql`UPDATE consolidations SET status = 'CERRADO', updated_at = NOW() WHERE id = ${c.id}`;
+        await sql`UPDATE consolidations SET status = 'CERRADO', current_step = 2, updated_at = NOW() WHERE id = ${c.id}`;
       }
 
       await sql`COMMIT`;

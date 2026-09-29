@@ -8,6 +8,7 @@ export const WHATSAPP_TEMPLATE_CODES = {
   PREBILLING_READY: 'PREBILLING_READY',
   WAREHOUSE_WELCOME: 'WAREHOUSE_WELCOME',
   SHIPMENT_REQUEST: 'SHIPMENT_REQUEST',
+  SHIPMENT_REQUESTED_CUSTOMER: 'SHIPMENT_REQUESTED_CUSTOMER',
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
   ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
   ADDRESS_REQUEST: 'ADDRESS_REQUEST',
@@ -56,6 +57,13 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'direccion', label: 'Dirección exacta de entrega' },
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
+  ],
+  // Va AL CLIENTE al solicitar el envío al proveedor (paso 3), antes de tener
+  // guía confirmada — por eso no lleva numero_guia ni link_rastreo, a
+  // diferencia de SHIPMENT_DISPATCHED.
+  SHIPMENT_REQUESTED_CUSTOMER: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
   ],
   // Va AL CLIENTE al marcar la orden como despachada. metodo_entrega y
   // link_rastreo salen del catálogo de métodos, no del texto: escribirlos a mano

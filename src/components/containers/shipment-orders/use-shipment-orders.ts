@@ -16,12 +16,29 @@ import { CustomerAddress } from '@/types/customer/customer.types';
 
 export type CreateOrderStep = 'customer' | 'packages' | 'address';
 
-export enum ShipmentOrderPaymentFilter {
+// Reemplaza al viejo ShipmentOrderPaymentFilter (enum único de 5 valores
+// mutuamente excluyentes): son 3 ejes independientes y combinables, porque el
+// dueño necesita poder cruzar "paso 2" con "sin pagar" con "notificada" — algo
+// que un solo valor de filtro no podía expresar.
+export enum ShipmentOrderStepFilter {
   ALL = 'ALL',
+  CONFIRMACION = '1',
+  COBRO = '2',
+  DESPACHO = '3',
+  NOTIFICACION = '4',
+  FINALIZADA = '5',
+}
+
+export enum ShipmentOrderPaidFilter {
+  ALL = 'ALL',
+  PAGADA = 'PAGADA',
+  SIN_PAGAR = 'SIN_PAGAR',
+}
+
+export enum ShipmentOrderNotifiedFilter {
+  ALL = 'ALL',
+  NOTIFICADA = 'NOTIFICADA',
   SIN_NOTIFICAR = 'SIN_NOTIFICAR',
-  PENDIENTE_PAGO = 'PENDIENTE_PAGO',
-  PAGADO = 'PAGADO',
-  ENTREGADO = 'ENTREGADO',
 }
 
 const PAGE_SIZE = 10;
@@ -31,15 +48,13 @@ export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  // El panel Operativo enlaza acá con el filtro ya elegido (?payment=...). Sin
-  // el parámetro se mantiene el default de siempre: pendientes de pago.
-  const [paymentFilter, setPaymentFilter] = useState<ShipmentOrderPaymentFilter>(() => {
-    const fromQuery = router.query.payment;
-    const value = Array.isArray(fromQuery) ? fromQuery[0] : fromQuery;
-    return value && value in ShipmentOrderPaymentFilter
-      ? ShipmentOrderPaymentFilter[value as keyof typeof ShipmentOrderPaymentFilter]
-      : ShipmentOrderPaymentFilter.PENDIENTE_PAGO;
-  });
+  // Default: "sin pagar" en todos los pasos — es lo que el operador revisa a
+  // diario. El panel Operativo enlaza acá con ?payment=... (valores del enum
+  // viejo, ver el useEffect de abajo) o, desde otros lugares nuevos, con
+  // ?step=/?paid=/?notified= directos.
+  const [stepFilter, setStepFilter] = useState<ShipmentOrderStepFilter>(ShipmentOrderStepFilter.ALL);
+  const [paidFilter, setPaidFilter] = useState<ShipmentOrderPaidFilter>(ShipmentOrderPaidFilter.SIN_PAGAR);
+  const [notifiedFilter, setNotifiedFilter] = useState<ShipmentOrderNotifiedFilter>(ShipmentOrderNotifiedFilter.ALL);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -72,23 +87,70 @@ export const useShipmentOrders = () => {
   // `router.query` llega vacío en el primer render, así que el filtro del enlace
   // se aplica cuando el router está listo. Solo actúa si el parámetro existe:
   // navegar sin él no pisa lo que el operador haya elegido a mano.
+  //
+  // ?payment=... es el nombre viejo (dashboard Operativo, enum único de antes)
+  // y se traduce al eje que le corresponde: SIN_NOTIFICAR → notified,
+  // PENDIENTE_PAGO/PAGADO/ENTREGADO → paid/step. ?step=/?paid=/?notified= son
+  // los nombres nuevos, para enlaces que quieran fijar un eje sin pasar por la
+  // traducción.
   useEffect(() => {
     if (!router.isReady) return;
-    const fromQuery = router.query.payment;
-    const value = Array.isArray(fromQuery) ? fromQuery[0] : fromQuery;
-    if (value && value in ShipmentOrderPaymentFilter) {
-      setPaymentFilter(
-        ShipmentOrderPaymentFilter[value as keyof typeof ShipmentOrderPaymentFilter],
-      );
-      setPage(1);
+    // Acceso directo (no vía helper) para que exhaustive-deps pueda verificar
+    // cada dependencia del array de abajo — mismo patrón que el efecto
+    // original con router.query.payment.
+    const rawPayment = router.query.payment;
+    const rawStep = router.query.step;
+    const rawPaid = router.query.paid;
+    const rawNotified = router.query.notified;
+    const legacyPayment = Array.isArray(rawPayment) ? rawPayment[0] : rawPayment;
+    const stepParam = Array.isArray(rawStep) ? rawStep[0] : rawStep;
+    const paidParam = Array.isArray(rawPaid) ? rawPaid[0] : rawPaid;
+    const notifiedParam = Array.isArray(rawNotified) ? rawNotified[0] : rawNotified;
+    let touched = false;
+
+    if (legacyPayment === 'SIN_NOTIFICAR') {
+      setNotifiedFilter(ShipmentOrderNotifiedFilter.SIN_NOTIFICAR);
+      touched = true;
+    } else if (legacyPayment === 'PENDIENTE_PAGO') {
+      setPaidFilter(ShipmentOrderPaidFilter.SIN_PAGAR);
+      setStepFilter(ShipmentOrderStepFilter.ALL);
+      touched = true;
+    } else if (legacyPayment === 'PAGADO') {
+      setPaidFilter(ShipmentOrderPaidFilter.PAGADA);
+      touched = true;
+    } else if (legacyPayment === 'ENTREGADO') {
+      // "Entregada" (status) ahora cubre dos pasos del wizard (4 y 5): el
+      // enlace legado apunta al 4 (Notificación y cierre), que es donde una
+      // orden recién entregada aterriza — sin filtro de step no se podría
+      // distinguir "recién entregada, con seguimiento pendiente" de
+      // "finalizada hace tiempo" en un solo valor.
+      setStepFilter(ShipmentOrderStepFilter.NOTIFICACION);
+      touched = true;
     }
-  }, [router.isReady, router.query.payment]);
+
+    if (stepParam && stepParam in ShipmentOrderStepFilter) {
+      setStepFilter(ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter]);
+      touched = true;
+    }
+    if (paidParam && paidParam in ShipmentOrderPaidFilter) {
+      setPaidFilter(ShipmentOrderPaidFilter[paidParam as keyof typeof ShipmentOrderPaidFilter]);
+      touched = true;
+    }
+    if (notifiedParam && notifiedParam in ShipmentOrderNotifiedFilter) {
+      setNotifiedFilter(ShipmentOrderNotifiedFilter[notifiedParam as keyof typeof ShipmentOrderNotifiedFilter]);
+      touched = true;
+    }
+
+    if (touched) setPage(1);
+  }, [router.isReady, router.query.payment, router.query.step, router.query.paid, router.query.notified]);
 
   const listQuery = useShipmentOrdersQuery(
     page,
     PAGE_SIZE,
     debouncedSearch || undefined,
-    paymentFilter,
+    stepFilter,
+    paidFilter,
+    notifiedFilter,
     dateFrom || undefined,
     dateTo || undefined,
   );
@@ -217,20 +279,51 @@ export const useShipmentOrders = () => {
     }
   };
 
-  const handlePaymentFilterChange = (val: ShipmentOrderPaymentFilter) => {
-    setPaymentFilter(val);
+  const handleStepFilterChange = (val: ShipmentOrderStepFilter) => {
+    setStepFilter(val);
     setPage(1);
   };
+
+  const handlePaidFilterChange = (val: ShipmentOrderPaidFilter) => {
+    setPaidFilter(val);
+    setPage(1);
+  };
+
+  const handleNotifiedFilterChange = (val: ShipmentOrderNotifiedFilter) => {
+    setNotifiedFilter(val);
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setStepFilter(ShipmentOrderStepFilter.ALL);
+    setPaidFilter(ShipmentOrderPaidFilter.ALL);
+    setNotifiedFilter(ShipmentOrderNotifiedFilter.ALL);
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  };
+
+  const activeFilterCount = [
+    stepFilter !== ShipmentOrderStepFilter.ALL,
+    paidFilter !== ShipmentOrderPaidFilter.ALL,
+    notifiedFilter !== ShipmentOrderNotifiedFilter.ALL,
+    !!dateFrom,
+    !!dateTo,
+  ].filter(Boolean).length;
 
   const handleSelectRow = (item: ConsolidationListItem) => {
     router.push(`/admin/shipment-orders/${item.uuid}`);
   };
 
   return {
-    // List
+    // List — 3 ejes de filtro independientes y combinables
     page, setPage,
     search, setSearch,
-    paymentFilter, handlePaymentFilterChange,
+    stepFilter, handleStepFilterChange,
+    paidFilter, handlePaidFilterChange,
+    notifiedFilter, handleNotifiedFilterChange,
+    clearFilters,
+    activeFilterCount,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     shipmentOrders: listData?.data ?? [],

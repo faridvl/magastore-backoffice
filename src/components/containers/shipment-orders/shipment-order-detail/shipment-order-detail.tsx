@@ -4,37 +4,34 @@ import {
   ChevronLeft,
   Package,
   X,
-  ArrowRight,
   FileText,
   CheckCircle,
-  Download,
   RotateCcw,
   SendHorizonal,
-  AlertCircle,
   MapPin,
-  Pencil,
-  Plus,
   Square,
   CheckSquare,
-  MessageCircle,
   TrendingUp,
   Copy,
   Truck,
   Lock,
+  Wallet,
+  Banknote,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
+import { WizardStepsSection } from './step-sections/wizard-steps-section';
 import {
   ConsolidationStatus,
   ConsolidationPackage,
   ConsolidationDetail,
   AvailablePackage,
   ProfitShareStatus,
+  ShipmentOrderStep,
 } from '@/types/logistics/logistics.types';
-import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 
@@ -52,13 +49,6 @@ const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
-const NEXT_STATUS_LABEL: Record<ConsolidationStatus, string | null> = {
-  ABIERTO: null,
-  CERRADO: 'Marcar como Despachado',
-  DESPACHADO: 'Marcar como Entregado',
-  ENTREGADO: null,
-};
-
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
 
 export const ShipmentOrderDetailContainer: React.FC = () => {
@@ -74,6 +64,19 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleAdvanceStatus, isUpdating,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
+    handleGoBackToConfirmation,
+    handleAdvanceToDispatchClick,
+    showPaymentCheckModal, setShowPaymentCheckModal,
+    handleConfirmPaymentCheck,
+    isAdvancingToDispatch,
+    step1BlockedReason,
+
+    showActualFeeModal, setShowActualFeeModal,
+    actualFeeDraft, setActualFeeDraft,
+    handleOpenActualFeeModal,
+    handleSaveActualFee, isSavingActualFee,
+    handleMarkChangeReturned, isMarkingChangeReturned,
+    handleFinalizeOrder, isFinalizing,
 
     handleUnassignPackage, isUnassigning,
 
@@ -118,10 +121,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleNotifyPreBilling,
     isNotifyingPreBilling,
 
-    dispatchTrackingCode, setDispatchTrackingCode,
     isEditLocked,
     lockedEditTarget, setLockedEditTarget,
     handleCopyShipmentRequest, isCopyingRequest,
+    handleNotifyCustomerShipmentRequested, isNotifyingShipmentRequested,
     handleCopyAddressConfirmation, isCopyingAddressConfirmation,
     handleCopyAddressRequest, isCopyingAddressRequest,
     handleOpenShipmentRequestModal,
@@ -169,6 +172,48 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   // El aviso de despacho necesita las tres cosas: sin guía no hay qué rastrear,
   // y sin URL configurada el mensaje llevaría un enlace vacío.
   const canNotifyDispatch = isDispatched && !!detail.tracking_code && !!deliveryMethodEntity?.tracking_url;
+  // Finalizada (paso 5): el stepper deja de mostrarse y la pantalla vuelve a
+  // ser la de siempre — decisión explícita del dueño ("por último finalizado
+  // deja la pantalla tal cual está actualmente").
+  const showStepper = detail.current_step !== ShipmentOrderStep.FINALIZADA;
+  // Wizard estricto: cada paso muestra únicamente sus propias cards — pedido
+  // explícito del dueño. Mobile: wizard estricto, un solo paso visible a la
+  // vez (JS oculta las secciones que no son el activo). Desktop/iPad (md+):
+  // los 4 se ven siempre, apilados en columna — el activo interactivo, los
+  // demás atenuados y bloqueados (stepSectionClass decide cuál es cuál).
+  const isConfirmationStep = detail.current_step === ShipmentOrderStep.CONFIRMACION;
+  const isCobroStep = detail.current_step === ShipmentOrderStep.COBRO;
+  const isDispatchStep = detail.current_step === ShipmentOrderStep.DESPACHO;
+  // "Agregar paquetes" en el header: disponible en el paso 1 (armado, sin
+  // estimado) y 2 (cobro, recalcula al agregar) — no en el 3, donde el
+  // proveedor ya tiene el bulto solicitado con la lista original.
+  const canAssignPackages = isConfirmationStep || isCobroStep;
+
+  /**
+   * Clases del contenedor de cada sección de paso. `isActive` decide todo:
+   * el paso activo tiene animate-in (transición al avanzar) y es interactivo;
+   * los demás quedan ocultos en mobile (hidden md:block) y, cuando sí se
+   * muestran (md+), atenuados y bloqueados con pointer-events-none — no
+   * editables ahí, para eso existe "Volver a abrir".
+   */
+  const stepSectionClass = (isActive: boolean) =>
+    isActive
+      ? 'animate-in fade-in slide-in-from-bottom-2 duration-300'
+      : 'hidden md:block opacity-40 grayscale pointer-events-none select-none';
+
+  // Paso 4 (Notificación y cierre): diferencia entre lo que se le cobró al
+  // cliente ORIGINALMENTE (billing_original_delivery_fee_crc — no
+  // billing_delivery_fee_crc, que ya fue sobreescrito con el valor real) y el
+  // costo real informado por el transportista. Solo hay vuelto si es positiva
+  // (se le cobró de más) — si el costo real fue igual o mayor, no hay nada
+  // que devolver.
+  const isNotificationStep = detail.current_step === ShipmentOrderStep.NOTIFICACION;
+  const hasActualFee = detail.billing_actual_delivery_fee_crc != null;
+  const originalFeeCrc = detail.billing_original_delivery_fee_crc ?? detail.billing_delivery_fee_crc;
+  const changeCrc = hasActualFee && originalFeeCrc != null
+    ? Number(originalFeeCrc) - Number(detail.billing_actual_delivery_fee_crc)
+    : 0;
+  const hasChangeDue = hasActualFee && changeCrc > 0;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8 pb-20">
@@ -200,393 +245,85 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             de la rentabilidad, donde el operador no las encontraba. En móvil la
             acción principal ocupa el ancho y las secundarias van a su lado. */}
         <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
-          {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
+          {/* "Volver a abrir" se quitó de acá: ahora vive como "Atrás" dentro
+              de la card del paso 2, junto al Siguiente (pedido del dueño) —
+              una sola forma de hacer la acción, no duplicada entre header y
+              card. Ver handleGoBackToConfirmation en el hook. */}
+          {/* "Ver factura" — siempre visible desde que existe factura, sin
+              importar el paso. Antes vivía como card suelta solo en el paso 2;
+              el dueño pidió que quede fijo arriba, como el resto de acciones
+              de cabecera. */}
+          {hasBilling && (
             <button
-              onClick={() => setQuickActionTarget('reopen')}
-              disabled={isUpdating}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold text-[11px] hover:bg-amber-100 transition-all disabled:opacity-40"
+              onClick={() => setShowBillingModal(true)}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-[11px] hover:bg-emerald-100 transition-all"
             >
-              <RotateCcw size={13} />
-              Volver a abrir
+              <FileText size={13} />
+              Ver factura
             </button>
           )}
-          {NEXT_STATUS_LABEL[detail.status] && (
-            <button
-              onClick={detail.status === ConsolidationStatus.CERRADO ? () => setQuickActionTarget('dispatch') : handleAdvanceStatus}
-              disabled={isUpdating}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all shadow-sm disabled:opacity-40"
-            >
-              <ArrowRight size={13} />
-              {isUpdating ? 'Actualizando...' : NEXT_STATUS_LABEL[detail.status]}
-            </button>
-          )}
+          {/* El avance de paso (Generar Estimado / Confirmar Estimado /
+              Marcar Despachado / Finalizar) NO vive acá — cada paso tiene su
+              propio botón dentro de su card, siguiendo la estructura de la
+              pizarra original del dueño. El header solo tiene lo que aplica
+              sin importar el paso: reabrir, ver factura, badge de estado. */}
           <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_COLORS[detail.status]}`}>
             {STATUS_LABELS[detail.status]}
           </span>
         </div>
       </div>
 
-      {/* STATS ROW — el estado ya está en el badge de arriba y la cantidad de
-          paquetes en la lista de abajo; aquí van los datos que no se ven en
-          ningún otro lado de la pantalla. */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Peso Total</p>
-          <p className="font-black text-slate-800 text-base">
-            {Number(detail.total_weight_lb).toFixed(2)} <span className="text-xs text-slate-400">lb</span>
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto</p>
-          <p className="font-black text-slate-800 text-base">
-            {amountToShow != null ? formatCRC(Number(amountToShow)) : <span className="text-slate-300">—</span>}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center col-span-2 sm:col-span-1">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pago</p>
-          {hasBilling ? (
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wide border inline-block ${isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-              {isPaid ? 'Pagada' : 'Pendiente'}
-            </span>
-          ) : (
-            <span className="text-[11px] font-bold text-slate-300">Sin factura</span>
-          )}
-        </div>
-      </div>
+      <WizardStepsSection
+        detail={detail}
+        deliveryMethodsData={deliveryMethodsData?.data}
+        activeDeliveryMethods={activeDeliveryMethods}
+        step1BlockedReason={step1BlockedReason}
+        isGeneratingPreBilling={isGeneratingPreBilling}
+        handleGenerateEstimateClick={handleGenerateEstimateClick}
+        isConfirmingPreBilling={isConfirmingPreBilling}
+        handleConfirmPreBilling={handleConfirmPreBilling}
+        isNotifyingPreBilling={isNotifyingPreBilling}
+        handleNotifyPreBilling={handleNotifyPreBilling}
+        handleDownloadPreBillingPDF={handleDownloadPreBillingPDF}
+        setPreBillingDeliveryMethod={setPreBillingDeliveryMethod}
+        setShowPreBillingModal={setShowPreBillingModal}
+        isUpdating={isUpdating}
+        handleAdvanceToDispatchClick={handleAdvanceToDispatchClick}
+        handleAdvanceStatus={handleAdvanceStatus}
+        handleGoBackToConfirmation={handleGoBackToConfirmation}
+        setShowBillingModal={setShowBillingModal}
+        handleOpenShipmentRequestModal={handleOpenShipmentRequestModal}
+        isCopyingRequest={isCopyingRequest}
+        handleNotifyCustomerShipmentRequested={handleNotifyCustomerShipmentRequested}
+        isNotifyingShipmentRequested={isNotifyingShipmentRequested}
+        handleOpenTrackingModal={handleOpenTrackingModal}
+        canNotifyDispatch={canNotifyDispatch}
+        handleNotifyDispatch={handleNotifyDispatch}
+        isNotifyingDispatch={isNotifyingDispatch}
+        handleOpenActualFeeModal={handleOpenActualFeeModal}
+        handleMarkChangeReturned={handleMarkChangeReturned}
+        isMarkingChangeReturned={isMarkingChangeReturned}
+        handleFinalizeOrder={handleFinalizeOrder}
+        isFinalizing={isFinalizing}
+        handleCopyAddressConfirmation={handleCopyAddressConfirmation}
+        isCopyingAddressConfirmation={isCopyingAddressConfirmation}
+        handleCopyAddressRequest={handleCopyAddressRequest}
+        isCopyingAddressRequest={isCopyingAddressRequest}
+        handleOpenAddressModal={handleOpenAddressModal}
+        isLoadingAddresses={isLoadingAddresses}
+        handleOpenMethodModal={handleOpenMethodModal}
+        canAssignPackages={canAssignPackages}
+        handleOpenAssignModal={handleOpenAssignModal}
+        isLoadingAvailable={isLoadingAvailable}
+        handleUnassignPackage={handleUnassignPackage}
+        isUnassigning={isUnassigning}
+      />
 
-      {/* DIRECCIÓN DE ENTREGA
-          En móvil el contenido y las acciones se apilan: con flex-row fijo el
-          texto se comprimía hasta partirse letra por letra mientras el botón
-          conservaba su ancho. */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
-            <MapPin size={16} className="text-slate-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dirección de entrega</p>
-            {detail.delivery_exact_address ? (
-              <>
-                <p className="text-sm font-bold text-slate-800">
-                  {detail.delivery_address_label || 'Dirección'}
-                </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
-                  {detail.delivery_canton ? ` · Zona ${resolveZone(detail.delivery_canton)}` : ''}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-slate-400 italic">Sin dirección asignada</p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 justify-end">
-          {/* Solo con dirección asignada: pedirle al cliente que confirme una
-              dirección que no tenemos no significa nada. */}
-          {detail.delivery_exact_address ? (
-            <button
-              onClick={handleCopyAddressConfirmation}
-              disabled={isCopyingAddressConfirmation}
-              title="Copiar mensaje para que el cliente confirme la dirección"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
-            >
-              <Copy size={12} />
-              Confirmar dirección
-            </button>
-          ) : (
-            /* Sin dirección lo que toca es pedirla, no confirmarla. */
-            <button
-              onClick={handleCopyAddressRequest}
-              disabled={isCopyingAddressRequest}
-              title="Copiar mensaje para pedirle los datos de entrega al cliente"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
-            >
-              <Copy size={12} />
-              Pedir dirección
-            </button>
-          )}
-          {/* Siempre visible: ocultarlo fuera de ABIERTO dejaba al operador sin
-              saber por qué no podía cambiarla. Con estimado generado, explica que
-              hay que reabrir en vez de desaparecer. */}
-          <button
-            onClick={handleOpenAddressModal}
-            disabled={isLoadingAddresses}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
-          >
-            <Pencil size={12} />
-            Cambiar
-          </button>
-        </div>
-      </div>
-
-      {/* MÉTODO DE ENVÍO */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
-            <SendHorizonal size={16} className="text-slate-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Método de envío</p>
-            {detail.delivery_method ? (
-              <p className="text-sm font-bold text-slate-800">{resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData?.data)}</p>
-            ) : (
-              <p className="text-sm text-slate-400 italic">Sin elegir — se pedirá al generar el estimado</p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 justify-end">
-          {/* Solicitud al proveedor: copia, no abre WhatsApp — el destinatario
-              es el forwarder, no el cliente. Pasa por un modal para poder
-              corregir a quién se entrega cuando el envío va a un tercero. */}
-          <button
-            onClick={handleOpenShipmentRequestModal}
-            disabled={isCopyingRequest}
-            title="Preparar solicitud de envío para el proveedor"
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40 whitespace-nowrap"
-          >
-            <Copy size={12} />
-            Solicitar envío
-          </button>
-          <button
-            onClick={handleOpenMethodModal}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40 whitespace-nowrap"
-          >
-            <Pencil size={12} />
-            Cambiar
-          </button>
-        </div>
-      </div>
-
-      {/* GUÍA DE RASTREO — solo tras despachar: antes no existe número que registrar. */}
-      {isDispatched && (
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
-              <Truck size={16} className="text-slate-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guía de rastreo</p>
-              {detail.tracking_code ? (
-                <>
-                  <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
-                  {detail.dispatched_at && (
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Despachado el {new Date(detail.dispatched_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-slate-400 italic">Sin guía registrada — agrégala para avisar al cliente</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0 justify-end">
-            {canNotifyDispatch && (
-              <button
-                onClick={handleNotifyDispatch}
-                disabled={isNotifyingDispatch}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40 whitespace-nowrap"
-              >
-                <MessageCircle size={12} />
-                Avisar
-              </button>
-            )}
-            <button
-              onClick={handleOpenTrackingModal}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all whitespace-nowrap"
-            >
-              <Pencil size={12} />
-              {detail.tracking_code ? 'Editar' : 'Agregar'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* PRE-BILLING / BILLING CARD */}
-      {!hasBilling && (
-        <div>
-          {!hasPreBilling ? (
-            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
-              <div>
-                <p className="text-xs font-black text-slate-700">Prefactura</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Genera el estimado para enviar al cliente. Esto cierra la orden de envío.
-                </p>
-              </div>
-              <button
-                onClick={handleGenerateEstimateClick}
-                disabled={detail.packages.length === 0 || isGeneratingPreBilling}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all disabled:opacity-40 flex-shrink-0"
-              >
-                <FileText size={14} />
-                {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
-              </button>
-            </div>
-          ) : preBillingConfirmed ? (
-            <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-sm flex flex-wrap items-center justify-between gap-3 p-5">
-              <div className="flex items-center gap-3">
-                <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-black text-emerald-800">Prefactura confirmada</p>
-                  <p className="text-[10px] text-emerald-600 mt-0.5">
-                    {formatCRC(detail.pre_billing_amount ?? 0)}
-                    {detail.pre_billing_notified_at && (
-                      <> · Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={handleNotifyPreBilling}
-                  disabled={isNotifyingPreBilling}
-                  title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}` : 'Enviar aviso de cobro por WhatsApp'}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all disabled:opacity-40"
-                >
-                  <MessageCircle size={13} />
-                  {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
-                </button>
-                <button
-                  onClick={() => handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                  className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
-                >
-                  <Download size={13} />
-                  PDF
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-[2rem] border border-amber-100 shadow-sm p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <div>
-                  <p className="text-xs font-black text-amber-900">Estimado pendiente de confirmación</p>
-                  <p className="text-[10px] text-amber-700 mt-0.5">
-                    {detail.pre_billing_delivery_method
-                      ? `Entrega: ${resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data)}`
-                      : ''}
-                    {detail.pre_billing_notified_at && (
-                      <>{detail.pre_billing_delivery_method ? ' · ' : ''}Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</>
-                    )}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={handleNotifyPreBilling}
-                    disabled={isNotifyingPreBilling}
-                    title={detail.pre_billing_notified_at ? `Notificado el ${new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}` : 'Enviar aviso de cobro por WhatsApp'}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all disabled:opacity-40"
-                  >
-                    <MessageCircle size={12} />
-                    {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
-                  </button>
-                  <button
-                    onClick={() => handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
-                  >
-                    <Download size={12} />
-                    PDF
-                  </button>
-                  <button
-                    onClick={() => {
-                      setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? activeDeliveryMethods[0]?.code ?? '');
-                      setShowPreBillingModal(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 text-amber-700 rounded-lg font-bold text-[10px] hover:bg-amber-50 transition-all"
-                  >
-                    <RotateCcw size={12} />
-                    Recalcular
-                  </button>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <p className="text-2xl font-black text-amber-900">
-                  {formatCRC(detail.pre_billing_amount ?? 0)}
-                </p>
-                <button
-                  onClick={handleConfirmPreBilling}
-                  disabled={isConfirmingPreBilling}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-xs hover:bg-amber-500 transition-all disabled:opacity-40"
-                >
-                  <CheckCircle size={14} />
-                  {isConfirmingPreBilling ? 'Confirmando...' : 'Confirmar Estimado'}
-                </button>
-              </div>
-              <div className="flex items-start gap-2 pt-3 border-t border-amber-100/70">
-                <AlertCircle size={13} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-[10px] text-amber-700/80 leading-relaxed">
-                  Estimado calculado con las tarifas vigentes al generarlo. Si las tarifas cambiaron desde entonces
-                  y ya compartiste este monto con el cliente, usa &quot;Recalcular&quot; antes de confirmar para evitar
-                  facturar con un monto desactualizado.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {hasBilling && (
-        <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
-            <div>
-              <p className="text-xs font-black text-emerald-800">Factura generada</p>
-              <p className="text-[10px] text-emerald-600 mt-0.5">
-                {isPaid ? 'Pagada' : 'Pendiente de pago'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowBillingModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all"
-          >
-            <FileText size={14} />
-            Ver factura
-          </button>
-        </div>
-      )}
-
-      {/* PACKAGES LIST */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            Paquetes en esta orden de envío
-          </p>
-          {detail.status === ConsolidationStatus.ABIERTO && (
-            <button
-              onClick={handleOpenAssignModal}
-              disabled={isLoadingAvailable}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
-            >
-              <Plus size={12} />
-              Agregar paquetes
-            </button>
-          )}
-        </div>
-        {detail.packages.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-sm">
-            Sin paquetes asignados aún.
-          </div>
-        ) : (
-          <>
-            <PackageTable
-              packages={detail.packages}
-              canUnassign={detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length > 1}
-              isUnassigning={isUnassigning}
-              onUnassign={handleUnassignPackage}
-            />
-            {detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length === 1 && (
-              <p className="text-[11px] text-slate-400 mt-3 text-center">
-                Es el único paquete de la orden — no se puede quitar. Para vaciarla, elimina la orden completa desde el listado.
-              </p>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al cliente) */}
-      {detail.packages.length > 0 && <ProfitCard detail={detail} />}
-
-      {/* Las acciones de estado viven ahora en el header — ver bloque HEADER. */}
+      {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al
+          cliente). Solo en Finalizada: es la ganancia definitiva de la orden ya
+          cerrada, no un dato operativo del wizard — el dueño pidió que no se
+          muestre hasta que el ciclo esté completo. */}
+      {detail.current_step === ShipmentOrderStep.FINALIZADA && detail.packages.length > 0 && <ProfitCard detail={detail} />}
 
       {/* MODAL: DETALLE DE FACTURA (mismo modal que Facturación) */}
       {showBillingModal && (
@@ -601,8 +338,58 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         />
       )}
 
-      {/* MODAL: REABRIR / DESPACHAR */}
-      {quickActionTarget && (
+      {/* MODAL: ¿ESTÁ PAGADA? — salto paso 2 → paso 3. No bloquea: hay
+          clientes a los que se les despacha sin haber pagado (caso confirmado
+          por el dueño), así que "No" avanza igual y la orden queda visible en
+          el filtro "Sin pagar" del listado. */}
+      {showPaymentCheckModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowPaymentCheckModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4 mb-5">
+              <div className="p-2.5 rounded-xl bg-amber-50 flex-shrink-0">
+                <Wallet size={18} className="text-amber-600" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 text-sm">¿Esta orden ya está pagada?</p>
+                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
+                  Antes de despachar, confirma si el cliente ya pagó. Si todavía no pagó, la orden
+                  igual se puede despachar — quedará marcada como pendiente de pago.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleConfirmPaymentCheck(false)}
+                disabled={isAdvancingToDispatch}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-40"
+              >
+                Todavía no
+              </button>
+              <button
+                onClick={() => handleConfirmPaymentCheck(true)}
+                disabled={isAdvancingToDispatch}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+              >
+                <CheckCircle size={14} /> Sí, ya pagó
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REABRIR — único disparador hoy es el botón "Reabrir" del
+          modal de "edición bloqueada" (Cambiar dirección/método con estimado
+          ya generado, visto desde el paso 1). El salto 2→3 (antes también
+          pasaba por acá, con "¿Marcar como despachada?") ya no usa ningún
+          modal: es directo y en silencio, pedido explícito del dueño — ver
+          handleAdvanceToDispatchDirect en el hook. */}
+      {quickActionTarget === 'reopen' && (
         <div
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setQuickActionTarget(null)}
@@ -612,47 +399,22 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-4 mb-5">
-              <div className={`p-2.5 rounded-xl flex-shrink-0 ${quickActionTarget === 'reopen' ? 'bg-amber-50' : 'bg-violet-50'}`}>
-                {quickActionTarget === 'reopen'
-                  ? <RotateCcw size={18} className="text-amber-500" />
-                  : <SendHorizonal size={18} className="text-violet-500" />
-                }
+              <div className="p-2.5 rounded-xl flex-shrink-0 bg-amber-50">
+                <RotateCcw size={18} className="text-amber-500" />
               </div>
               <div>
                 <p className="font-bold text-slate-800 text-sm">
-                  {quickActionTarget === 'reopen' ? '¿Volver a abrir esta orden de envío?' : '¿Marcar como despachada?'}
+                  ¿Volver a abrir esta orden de envío?
                 </p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  {quickActionTarget === 'reopen'
-                    ? (hasBilling
-                        ? 'La orden volverá a ABIERTO y la factura generada se eliminará (quedó calculada con el peso/paquetes actuales). Deberás generar el estimado y confirmarlo de nuevo tras editar.'
-                        : hasPreBilling
-                          ? 'La orden volverá a ABIERTO y el estimado generado se eliminará (quedó calculado con el peso/paquetes actuales). Deberás generarlo de nuevo tras editar.'
-                          : 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.')
-                    : 'La orden de envío pasará a estado DESPACHADO.'
-                  }
+                  {hasBilling
+                    ? 'La orden volverá a ABIERTO y la factura generada se eliminará (quedó calculada con el peso/paquetes actuales). Deberás generar el estimado y confirmarlo de nuevo tras editar.'
+                    : hasPreBilling
+                      ? 'La orden volverá a ABIERTO y el estimado generado se eliminará (quedó calculado con el peso/paquetes actuales). Deberás generarlo de nuevo tras editar.'
+                      : 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.'}
                 </p>
               </div>
             </div>
-            {/* La guía es opcional: el operador no siempre la tiene al entregar
-                el bulto. Se puede registrar después desde la tarjeta de guía. */}
-            {quickActionTarget === 'dispatch' && !deliveryMethodEntity?.is_pickup && (
-              <div className="mb-5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                  Guía de rastreo (opcional)
-                </label>
-                <input
-                  type="text"
-                  value={dispatchTrackingCode}
-                  onChange={(e) => setDispatchTrackingCode(e.target.value)}
-                  placeholder="Ej. EZ292332205CR"
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400"
-                />
-                <p className="text-[10px] text-slate-400 mt-1.5">
-                  Podés agregarla después. Sin guía no se puede avisar al cliente.
-                </p>
-              </div>
-            )}
 
             <div className="flex gap-3">
               <button
@@ -663,12 +425,9 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirmQuickAction}
-                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 ${quickActionTarget === 'reopen' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-violet-500 hover:bg-violet-600'}`}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600"
               >
-                {quickActionTarget === 'reopen'
-                  ? <><RotateCcw size={14} /> Reabrir</>
-                  : <><SendHorizonal size={14} /> Despachar</>
-                }
+                <RotateCcw size={14} /> Reabrir
               </button>
             </div>
           </div>
@@ -975,6 +734,63 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isSavingTracking ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: COSTO REAL DE ENVÍO (paso 4) — ajusta solo lo cobrado al
+          cliente (delivery_fee_crc/total_amount_crc), NO la ganancia
+          registrada. Ver ConsolidationsRepository.setActualDeliveryFee. */}
+      {showActualFeeModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowActualFeeModal(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-violet-50 rounded-xl">
+                <Banknote size={18} className="text-violet-600" />
+              </div>
+              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                Costo real de envío
+              </Typography>
+            </div>
+
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+              Monto que cobró el transportista (₡)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={actualFeeDraft}
+              onChange={(e) => setActualFeeDraft(e.target.value)}
+              placeholder="Ej. 4200"
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 mb-2"
+            />
+            <p className="text-[11px] text-slate-400 mb-6">
+              Esto corrige lo que se le cobró al cliente por el envío. Si se le cobró de más,
+              se indicará un vuelto. No afecta la ganancia ya registrada de esta orden.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowActualFeeModal(false)}
+                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveActualFee}
+                disabled={isSavingActualFee}
+                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+              >
+                {isSavingActualFee ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>
@@ -1417,42 +1233,5 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
     </div>
   );
 };
-
-const PackageTable: React.FC<{
-  packages: ConsolidationPackage[];
-  canUnassign: boolean;
-  isUnassigning: boolean;
-  onUnassign: (packageUuid: string) => void;
-}> = ({ packages, canUnassign, isUnassigning, onUnassign }) => (
-  <div className="space-y-2">
-    {packages.map((pkg) => (
-      <div
-        key={pkg.uuid}
-        className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl"
-      >
-        <Package size={14} className="text-slate-400 flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>{pkg.tracking_number}</p>
-          <p className="text-[10px] text-slate-400 truncate">
-            {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type}{pkg.store_name ? ` · ${pkg.store_name}` : ''}
-          </p>
-        </div>
-        <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex-shrink-0 whitespace-nowrap">
-          {pkg.status}
-        </span>
-        {canUnassign && (
-          <button
-            onClick={() => onUnassign(pkg.uuid)}
-            disabled={isUnassigning}
-            title="Quitar de la orden de envío"
-            className="p-2.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 flex-shrink-0"
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-);
 
 export default ShipmentOrderDetailContainer;

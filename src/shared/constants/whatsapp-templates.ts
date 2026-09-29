@@ -491,6 +491,31 @@ export function buildAddressRequestMessage(params: {
   });
 }
 
+/**
+ * Aviso al cliente de que su envío fue solicitado al transportista — distinto
+ * de buildShipmentDispatchedMessage, que se manda cuando ya hay guía. Este se
+ * manda antes: al copiar la solicitud al proveedor (paso 3 del wizard), sin
+ * garantía de tener guía todavía. Por eso no menciona número de rastreo.
+ */
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER = `Hola, {{nombre}}! 👋🏻
+
+Te contamos que tu envío ya fue solicitado al transportista. 🚚📦
+
+En cuanto tengamos el número de guía te lo compartimos para que puedas rastrearlo.
+
+*MAGASTORE 📦✈️*`;
+
+export function buildShipmentRequestedCustomerMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+  });
+}
+
 export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:
 
 Nombre apellido: MGA {{nombre_completo}}

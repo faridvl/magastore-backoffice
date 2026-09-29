@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
+      const { uuid, page, limit, search, step, paid, notified, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
 
       if (action === 'check-open' && customerUuid) {
         const existing = await ConsolidationsService.getOpenConsolidationForCustomer(customerUuid as string);
@@ -48,7 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         p,
         l,
         search as string | undefined,
-        status as string | undefined,
+        step as string | undefined,
+        paid as string | undefined,
+        notified as string | undefined,
         dateFrom as string | undefined,
         dateTo as string | undefined,
       );
@@ -67,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'PATCH') {
-      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode } = req.body;
+      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode, actualDeliveryFeeCrc } = req.body;
 
       if (action === 'set-delivery-address') {
         if (!consolidationUuid || !addressId) {
@@ -101,6 +103,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { notified: true } });
       }
 
+      // Paso 3: solicitud de envío copiada al proveedor.
+      if (action === 'mark-shipment-requested') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markShipmentRequested(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      // Paso 3: aviso al cliente de que su envío fue solicitado.
+      if (action === 'mark-customer-notified-shipment') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markCustomerNotifiedShipment(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
       // Registrar o corregir la guía después del despacho. Separado de la
       // transición de estado porque no siempre se conoce en ese momento.
       if (action === 'set-tracking-code') {
@@ -109,6 +129,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         await ConsolidationsService.setTrackingCode(consolidationUuid, trackingCode ?? null);
         return res.status(200).json({ data: { updated: true } });
+      }
+
+      // Paso 4 (Notificación y cierre): ajuste del costo real de envío.
+      if (action === 'set-actual-delivery-fee') {
+        if (!consolidationUuid || actualDeliveryFeeCrc == null) {
+          return res.status(400).json({ message: 'consolidationUuid y actualDeliveryFeeCrc son requeridos.' });
+        }
+        const result = await ConsolidationsService.setActualDeliveryFee(consolidationUuid, Number(actualDeliveryFeeCrc));
+        return res.status(200).json({ data: result });
+      }
+
+      if (action === 'mark-change-returned') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markChangeReturned(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'finalize') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.finalizeOrder(consolidationUuid);
+        return res.status(200).json({ data: { finalized: true } });
       }
 
       if (!consolidationUuid || !newStatus || !currentStatus) {
