@@ -39,6 +39,8 @@ interface Props {
    * del asistente de creación de órdenes, que también usa z-50.
    */
   zIndexClassName?: string;
+  /** Abre con el formulario de alta ya visible, para quien llega solo a agregar. */
+  startWithNewAddress?: boolean;
 }
 
 /**
@@ -52,9 +54,12 @@ export const CustomerAddressesModal: React.FC<Props> = ({
   onClose,
   onSaved,
   zIndexClassName = 'z-50',
+  startWithNewAddress = false,
 }) => {
   const { saveAddress, isSaving, deleteAddress, isDeleting } = useCustomerAddressMutations(customerId);
-  const [draft, setDraft] = React.useState<Draft | null>(null);
+  const [draft, setDraft] = React.useState<Draft | null>(
+    startWithNewAddress ? { ...EMPTY_DRAFT, is_default: addresses.length === 0 } : null,
+  );
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
 
   const isBusy = isSaving || isDeleting;

@@ -19,7 +19,7 @@ const STEP_ITEMS: { step: ShipmentOrderStep; label: string }[] = [
   { step: ShipmentOrderStep.CONFIRMACION, label: 'Confirmación' },
   { step: ShipmentOrderStep.COBRO, label: 'Cobro' },
   { step: ShipmentOrderStep.DESPACHO, label: 'Despacho' },
-  { step: ShipmentOrderStep.NOTIFICACION, label: 'Notificación' },
+  { step: ShipmentOrderStep.NOTIFICACION, label: 'Cierre' },
 ];
 
 const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
@@ -270,14 +270,14 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
               },
               {
                 key: 'address-change',
-                title: 'Cambiar dirección',
+                title: detail.delivery_exact_address ? 'Cambiar dirección' : 'Registrar dirección',
                 content: (
                   <button
                     onClick={props.handleOpenAddressModal}
                     disabled={props.isLoadingAddresses}
                     className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
                   >
-                    Cambiar
+                    {detail.delivery_exact_address ? 'Cambiar' : 'Registrar'}
                   </button>
                 ),
               },
@@ -625,6 +625,35 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                   </button>
                 ),
               },
+              {
+                key: 'notify-customer',
+                title: 'Avisar al cliente',
+                content: (
+                  <button
+                    onClick={props.handleNotifyCustomerShipmentRequested}
+                    disabled={props.isNotifyingShipmentRequested}
+                    title={isPaid ? 'Avisar al cliente que su envío fue solicitado' : 'Avisar al cliente que su envío fue solicitado y recordarle el pago pendiente'}
+                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
+                  >
+                    {detail.customer_notified_shipment_at ? 'Reenviar aviso al cliente' : isPaid ? 'Avisar al cliente' : 'Avisar y recordar pago'}
+                  </button>
+                ),
+              },
+              {
+                key: 'notify-status',
+                title: 'Cliente notificado',
+                content: (
+                  <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 border ${
+                    detail.customer_notified_shipment_at ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'
+                  }`}>
+                    <p className={`text-xs font-bold ${detail.customer_notified_shipment_at ? 'text-blue-700' : 'text-slate-500'}`}>
+                      {detail.customer_notified_shipment_at
+                        ? new Date(detail.customer_notified_shipment_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })
+                        : 'Cliente sin notificar'}
+                    </p>
+                  </div>
+                ),
+              },
               // Cargar la guía ES la confirmación del proveedor (dato
               // confirmado por el dueño) — este chip de "esperando" solo se
               // muestra mientras se solicitó pero todavía no hay guía. Una
@@ -666,41 +695,30 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                   </button>
                 ),
               },
-              {
-                key: 'notify-customer',
-                title: 'Avisar al cliente',
-                content: (
+              ...(detail.tracking_code ? [{
+                key: 'dispatch-notice',
+                title: 'Aviso de despacho',
+                content: props.canNotifyDispatch ? (
                   <button
-                    onClick={props.handleNotifyCustomerShipmentRequested}
-                    disabled={props.isNotifyingShipmentRequested}
-                    title="Avisar al cliente que su envío fue solicitado"
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
+                    onClick={props.handleNotifyDispatch}
+                    disabled={props.isNotifyingDispatch}
+                    title="Enviar al cliente la guía y el enlace de rastreo"
+                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
                   >
-                    {detail.customer_notified_shipment_at ? 'Reenviar aviso al cliente' : 'Avisar al cliente'}
+                    Avisar despacho
                   </button>
+                ) : (
+                  <p className="text-[11px] text-slate-400">
+                    El método de entrega no tiene enlace de rastreo. Configúralo en Ajustes → Métodos de entrega para poder avisar el despacho.
+                  </p>
                 ),
-              },
-              {
-                key: 'notify-status',
-                title: 'Cliente notificado',
-                content: (
-                  <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 border ${
-                    detail.customer_notified_shipment_at ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'
-                  }`}>
-                    <p className={`text-xs font-bold ${detail.customer_notified_shipment_at ? 'text-blue-700' : 'text-slate-500'}`}>
-                      {detail.customer_notified_shipment_at
-                        ? new Date(detail.customer_notified_shipment_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })
-                        : 'Cliente sin notificar'}
-                    </p>
-                  </div>
-                ),
-              },
+              }] : []),
               {
                 key: 'dispatch',
                 title: 'Marcar entregado',
                 isAction: true,
                 // Este botón es el Siguiente del paso 3 (Despacho → paso 4,
-                // Notificación): la transición de status es
+                // Cierre): la transición de status es
                 // DESPACHADO→ENTREGADO. Usa handleAdvanceStatus (calcula la
                 // transición según detail.status en el momento), NO
                 // setQuickActionTarget('dispatch') — ese abre el modal de
@@ -723,7 +741,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                     <button
                       onClick={props.handleAdvanceStatus}
                       disabled={props.isUpdating || !detail.tracking_code}
-                      title={!detail.tracking_code ? 'Carga la guía de rastreo antes de continuar' : 'Marca la orden como entregada y avanza al paso de notificación'}
+                      title={!detail.tracking_code ? 'Carga la guía de rastreo antes de continuar' : 'Marca la orden como entregada y avanza al cierre'}
                       className="w-full flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
                     >
                       {props.isUpdating ? 'Actualizando...' : 'Siguiente'}
@@ -735,36 +753,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           />
         </div>
 
-        {/* PASO 4 — Notificación y cierre: cada botón visible es su propio
-            punto. */}
+        {/* PASO 4 — Cierre: costo real del envío y vuelto. El aviso de despacho
+            vive en el paso 3, junto a la guía. */}
         <div className={stepCardClass(isNotificationStep)}>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Notificación</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Cierre</p>
           <StepTimeline
             items={[
-              {
-                key: 'notify-info',
-                title: 'Aviso de despacho',
-                content: detail.tracking_code ? (
-                  <p className="text-sm text-slate-600">
-                    Guía <span className="font-mono font-bold text-slate-800">{detail.tracking_code}</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin guía registrada</p>
-                ),
-              },
-              ...(props.canNotifyDispatch ? [{
-                key: 'notify-action',
-                title: 'Avisar',
-                content: (
-                  <button
-                    onClick={props.handleNotifyDispatch}
-                    disabled={props.isNotifyingDispatch}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-rose-600 text-white rounded-xl font-bold text-[11px] hover:bg-rose-500 transition-all disabled:opacity-40"
-                  >
-                    Avisar
-                  </button>
-                ),
-              }] : []),
               {
                 key: 'fee-info',
                 title: 'Costo real de envío',

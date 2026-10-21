@@ -48,7 +48,7 @@ const STEP_LABELS: Record<ShipmentOrderStep, string> = {
   [ShipmentOrderStep.CONFIRMACION]: 'Confirmación',
   [ShipmentOrderStep.COBRO]: 'Cobro',
   [ShipmentOrderStep.DESPACHO]: 'Despacho',
-  [ShipmentOrderStep.NOTIFICACION]: 'Notificación',
+  [ShipmentOrderStep.NOTIFICACION]: 'Cierre',
   [ShipmentOrderStep.FINALIZADA]: 'Finalizada',
 };
 
@@ -70,7 +70,7 @@ const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
   { value: ShipmentOrderStepFilter.CONFIRMACION, label: 'Confirmación' },
   { value: ShipmentOrderStepFilter.COBRO, label: 'Cobro' },
   { value: ShipmentOrderStepFilter.DESPACHO, label: 'Despacho' },
-  { value: ShipmentOrderStepFilter.NOTIFICACION, label: 'Notificación' },
+  { value: ShipmentOrderStepFilter.NOTIFICACION, label: 'Cierre' },
   { value: ShipmentOrderStepFilter.FINALIZADA, label: 'Finalizadas' },
 ];
 

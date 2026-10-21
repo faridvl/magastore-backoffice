@@ -49,7 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? 400
         : message.includes('no existe')
           ? 404
-          : 500;
+          : message.includes('en uso')
+            ? 409
+            : 500;
     return res.status(status).json({ message });
   }
 }

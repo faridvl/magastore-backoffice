@@ -332,6 +332,17 @@ export const deleteCustomerAddress = async (
   const target = existing.find((a) => a.id === addressId);
   if (!target) throw new Error('La dirección no existe o no pertenece a este cliente.');
 
+  // Las órdenes con estimado generado no pueden cambiar de dirección: si se
+  // borrara, quedarían sin dirección y sin forma de reasignarla.
+  const [inUse] = await sql`
+    SELECT 1 FROM consolidations
+    WHERE delivery_address_id = ${addressId} AND status <> 'ABIERTO'
+    LIMIT 1
+  `;
+  if (inUse) {
+    throw new Error('La dirección está en uso por órdenes de envío con estimado generado y no se puede eliminar.');
+  }
+
   try {
     await sql`BEGIN`;
     await sql`DELETE FROM customer_addresses WHERE id = ${addressId} AND customer_id = ${customerId}`;

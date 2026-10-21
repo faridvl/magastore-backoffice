@@ -29,5 +29,10 @@ export function useShipmentOrderDetailQuery(uuid: string) {
     await apiQueryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY, uuid] });
   }
 
-  return { useQuery, invalidate };
+  // Una dirección se comparte entre órdenes del mismo cliente: editarla cambia todas.
+  async function invalidateAll() {
+    await apiQueryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY] });
+  }
+
+  return { useQuery, invalidate, invalidateAll };
 }

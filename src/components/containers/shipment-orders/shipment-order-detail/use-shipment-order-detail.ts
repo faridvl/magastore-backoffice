@@ -16,6 +16,7 @@ import {
   buildPreBillingReadyMessage,
   buildShipmentRequestMessage,
   buildShipmentRequestedCustomerMessage,
+  buildShipmentRequestedUnpaidCustomerMessage,
   buildShipmentDispatchedMessage,
   buildAddressConfirmationMessage,
   buildAddressRequestMessage,
@@ -46,6 +47,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [showManageAddressesModal, setShowManageAddressesModal] = useState(false);
 
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<DeliveryMethod | null>(null);
@@ -60,6 +62,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
   const shipmentRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST);
   const shipmentRequestedCustomerTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUESTED_CUSTOMER);
+  const shipmentRequestedUnpaidTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUESTED_CUSTOMER_UNPAID);
   const addressConfirmationTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_CONFIRMATION);
   const addressRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_REQUEST);
   const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
@@ -376,6 +379,35 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  // Una dirección recién creada se agregó para usar en esta orden: se elige, y si
+  // la orden no tenía ninguna se asigna de una vez para no perderla al cerrar.
+  const handleManagedAddressesSaved = async (addresses: CustomerAddress[]) => {
+    const previousIds = new Set(addressOptions.map((a) => a.id));
+    const createdAddress = addresses
+      .filter((a) => !previousIds.has(a.id))
+      .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))[0];
+    setAddressOptions(addresses);
+    setSelectedAddressId((prev) => {
+      if (createdAddress) return createdAddress.id;
+      if (prev && addresses.some((a) => a.id === prev)) return prev;
+      return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+    });
+
+    if (createdAddress && uuid && !detail?.delivery_address_id) {
+      try {
+        await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+          action: 'set-delivery-address',
+          consolidationUuid: uuid,
+          addressId: createdAddress.id,
+        });
+        toast.success('Dirección asignada a la orden');
+      } catch (err: any) {
+        toast.error(err?.message ?? 'La dirección se guardó, pero no se pudo asignar a la orden.');
+      }
+    }
+    await detailQuery.invalidateAll();
+  };
+
   const handleConfirmAddressChange = async () => {
     if (!uuid || !selectedAddressId) return;
     setIsSavingAddress(true);
@@ -547,11 +579,20 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
     setIsNotifyingShipmentRequested(true);
     try {
-      const message = buildShipmentRequestedCustomerMessage({
-        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
-        orderShortId: detail.uuid.slice(-8).toUpperCase(),
-        templateBody: shipmentRequestedCustomerTemplateBody,
-      });
+      const firstName = detail.customer_name.split(' ')[0] || detail.customer_name;
+      const orderShortId = detail.uuid.slice(-8).toUpperCase();
+      const message = detail.billing_is_paid
+        ? buildShipmentRequestedCustomerMessage({
+            firstName,
+            orderShortId,
+            templateBody: shipmentRequestedCustomerTemplateBody,
+          })
+        : buildShipmentRequestedUnpaidCustomerMessage({
+            firstName,
+            orderShortId,
+            amountCrc: detail.billing_total_amount_crc ?? detail.pre_billing_amount ?? null,
+            templateBody: shipmentRequestedUnpaidTemplateBody,
+          });
       await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
         action: 'mark-customer-notified-shipment',
         consolidationUuid: uuid,
@@ -903,6 +944,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     isLoadingAddresses,
     handleOpenAddressModal,
     handleConfirmAddressChange,
+    showManageAddressesModal, setShowManageAddressesModal,
+    handleManagedAddressesSaved,
 
     showMethodModal, setShowMethodModal,
     selectedMethod, setSelectedMethod,

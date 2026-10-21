@@ -505,6 +505,16 @@ En cuanto tengamos el número de guía te lo compartimos para que puedas rastrea
 
 *MAGASTORE 📦✈️*`;
 
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER_UNPAID = `Hola, {{nombre}}! 👋🏻
+
+Te contamos que tu envío ya fue solicitado al transportista. 🚚📦
+
+Recuerda que tienes pendiente el pago de *{{monto}}*. Cuando lo realices, envíanos el comprobante por este medio. 🧾
+
+En cuanto tengamos el número de guía te lo compartimos para que puedas rastrearlo.
+
+*MAGASTORE 📦✈️*`;
+
 export function buildShipmentRequestedCustomerMessage(params: {
   firstName: string;
   orderShortId: string;
@@ -513,6 +523,19 @@ export function buildShipmentRequestedCustomerMessage(params: {
   return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER, {
     nombre: params.firstName,
     id_orden: params.orderShortId,
+  });
+}
+
+export function buildShipmentRequestedUnpaidCustomerMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  amountCrc: number | null;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER_UNPAID, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
   });
 }
 

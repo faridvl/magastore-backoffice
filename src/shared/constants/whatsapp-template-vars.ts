@@ -9,6 +9,7 @@ export const WHATSAPP_TEMPLATE_CODES = {
   WAREHOUSE_WELCOME: 'WAREHOUSE_WELCOME',
   SHIPMENT_REQUEST: 'SHIPMENT_REQUEST',
   SHIPMENT_REQUESTED_CUSTOMER: 'SHIPMENT_REQUESTED_CUSTOMER',
+  SHIPMENT_REQUESTED_CUSTOMER_UNPAID: 'SHIPMENT_REQUESTED_CUSTOMER_UNPAID',
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
   ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
   ADDRESS_REQUEST: 'ADDRESS_REQUEST',
@@ -64,6 +65,11 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   SHIPMENT_REQUESTED_CUSTOMER: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  SHIPMENT_REQUESTED_CUSTOMER_UNPAID: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+    { key: 'monto', label: 'Total pendiente de pago — ej. ₡24,500' },
   ],
   // Va AL CLIENTE al marcar la orden como despachada. metodo_entrega y
   // link_rastreo salen del catálogo de métodos, no del texto: escribirlos a mano

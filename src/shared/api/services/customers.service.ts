@@ -108,6 +108,8 @@ async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
  */
 export const INACTIVITY_THRESHOLD_DAYS = 40;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Servicio para la gestión de clientes
  */
@@ -263,6 +265,7 @@ export const CustomerService = {
   removeCustomerAddress: async (customerId: string, addressId: string) => {
     if (!customerId) throw new Error('El ID del cliente es requerido.');
     if (!addressId) throw new Error('El ID de la dirección es requerido.');
+    if (!UUID_PATTERN.test(addressId)) throw new Error('La dirección no existe o no pertenece a este cliente.');
     return CustomerRepo.deleteCustomerAddress(customerId, addressId);
   },
 

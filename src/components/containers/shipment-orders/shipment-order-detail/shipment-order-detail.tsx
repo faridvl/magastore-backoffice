@@ -17,6 +17,8 @@ import {
   Lock,
   Wallet,
   Banknote,
+  Plus,
+  Settings2,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
@@ -24,6 +26,7 @@ import { CustomerTypeBadge } from '@/components/common/customer-type-badge/custo
 import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
 import { WizardStepsSection } from './step-sections/wizard-steps-section';
+import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
 import {
   ConsolidationStatus,
   ConsolidationPackage,
@@ -102,6 +105,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleOpenAddressModal,
     handleConfirmAddressChange,
     isSavingAddress,
+    showManageAddressesModal, setShowManageAddressesModal,
+    handleManagedAddressesSaved,
 
     showMethodModal, setShowMethodModal,
     selectedMethod, setSelectedMethod,
@@ -201,7 +206,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
       ? 'animate-in fade-in slide-in-from-bottom-2 duration-300'
       : 'hidden md:block opacity-40 grayscale pointer-events-none select-none';
 
-  // Paso 4 (Notificación y cierre): diferencia entre lo que se le cobró al
+  // Paso 4 (Cierre): diferencia entre lo que se le cobró al
   // cliente ORIGINALMENTE (billing_original_delivery_fee_crc — no
   // billing_delivery_fee_crc, que ya fue sobreescrito con el valor real) y el
   // costo real informado por el transportista. Solo hay vuelto si es positiva
@@ -506,17 +511,37 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <MapPin size={18} className="text-slate-600" />
+            <div className="flex items-center justify-between gap-3 mb-6">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
+                  <MapPin size={18} className="text-slate-600" />
+                </div>
+                <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
+                  Dirección
+                </Typography>
               </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Cambiar dirección de entrega
-              </Typography>
+              {addressOptions.length > 0 && (
+                <button
+                  onClick={() => setShowManageAddressesModal(true)}
+                  className="flex items-center gap-1 px-3 min-h-[38px] bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all flex-shrink-0"
+                >
+                  <Settings2 size={12} />
+                  Gestionar
+                </button>
+              )}
             </div>
 
             {addressOptions.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-6">Este cliente no tiene direcciones registradas.</p>
+              <div className="text-center py-6 mb-6">
+                <p className="text-slate-400 text-sm mb-4">Este cliente no tiene direcciones registradas.</p>
+                <button
+                  onClick={() => setShowManageAddressesModal(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all"
+                >
+                  <Plus size={14} />
+                  Agregar dirección
+                </button>
+              </div>
             ) : (
               <div className="space-y-2 mb-6">
                 {addressOptions.map((addr) => (
@@ -560,6 +585,18 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Anidado sobre el selector de dirección, que ocupa z-[60]. */}
+      {showManageAddressesModal && (
+        <CustomerAddressesModal
+          customerId={detail.customer_id}
+          addresses={addressOptions}
+          onSaved={handleManagedAddressesSaved}
+          onClose={() => setShowManageAddressesModal(false)}
+          zIndexClassName="z-[70]"
+          startWithNewAddress={addressOptions.length === 0}
+        />
       )}
 
       {/* MODAL: CAMBIAR MÉTODO DE ENVÍO */}

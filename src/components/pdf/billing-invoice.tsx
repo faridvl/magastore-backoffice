@@ -249,13 +249,13 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
     billingMode: detail.applied_billing_mode,
     discountPercent: detail.applied_discount_percent,
   });
-  // Dirección viva de la orden (incluye distrito/cantón/provincia); el snapshot
-  // queda como fallback para facturas cuya orden ya no tiene dirección asignada.
-  const deliveryAddress = detail.delivery_exact_address
-    ? [detail.delivery_exact_address, detail.delivery_district, detail.delivery_canton, detail.delivery_province]
-        .filter(Boolean)
-        .join(', ')
-    : detail.delivery_address_snapshot;
+  // La copia guardada al facturar manda: la dirección viva puede editarse
+  // después y la factura no debe cambiar. La viva queda para facturas sin copia.
+  const deliveryAddress =
+    detail.delivery_address_snapshot ||
+    [detail.delivery_exact_address, detail.delivery_district, detail.delivery_canton, detail.delivery_province]
+      .filter(Boolean)
+      .join(', ');
 
   return (
     <Document>

@@ -201,6 +201,45 @@
           "appliedAt": "2026-08-02T20:00:04.435Z",
           "appliedBy": "Farid",
           "baseline": false
+        },
+        {
+          "name": "028-address-confirmation-template.sql",
+          "version": "028",
+          "checksum": "54eeaa8afd38e8bd",
+          "appliedAt": "2026-10-20T12:33:05.396Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "029-address-request-template.sql",
+          "version": "029",
+          "checksum": "94c3ad53961e002e",
+          "appliedAt": "2026-10-20T12:33:05.396Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "030-consolidation-current-step.sql",
+          "version": "030",
+          "checksum": "158f4fea33075c6e",
+          "appliedAt": "2026-10-20T12:33:05.396Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "031-shipment-requested-customer-template.sql",
+          "version": "031",
+          "checksum": "424c8ab7d67057fa",
+          "appliedAt": "2026-10-20T12:33:05.396Z",
+          "appliedBy": "Farid",
+          "baseline": true
+        },
+        {
+          "name": "032-shipment-requested-unpaid-template.sql",
+          "version": "032",
+          "checksum": "43cbdc76c4136781",
+          "appliedAt": "2026-10-20T12:40:46.720Z",
+          "appliedBy": "Farid"
         }
       ]
     },
