@@ -4,7 +4,9 @@ import {
   BillingDetail,
   BillingMonthlyReport,
   ProfitShareMonthlyReport,
+  PaymentMethod,
 } from '@/types/logistics/logistics.types';
+import type { Actor } from '@/shared/api/get-actor';
 
 export const BillingRepository = {
   getPaginatedBilling: async (
@@ -99,6 +101,13 @@ export const BillingRepository = {
         b.is_paid,
         b.paid_at,
         b.created_at,
+        b.payment_method,
+        b.created_by_name,
+        b.paid_by_name,
+        b.authorship_backfilled AS created_by_backfilled,
+        -- Un único flag cubre ambos autores; un pago registrado después de la
+        -- migración 033 siempre trae método, así que sin método = pago del backfill.
+        (b.authorship_backfilled AND b.payment_method IS NULL) AS paid_by_backfilled,
         b.delivery_method,
         COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc,
         b.delivery_address_snapshot,
@@ -227,12 +236,18 @@ export const BillingRepository = {
     return row as { period: string; is_paid: boolean; paid_at: string | null };
   },
 
-  markBillingAsPaid: async (uuid: string): Promise<Partial<BillingListItem>> => {
+  markBillingAsPaid: async (
+    uuid: string,
+    paymentMethod: PaymentMethod,
+    actor: Actor,
+  ): Promise<Partial<BillingListItem>> => {
     await sql`BEGIN`;
     try {
       const [billing] = await sql`
         UPDATE billing
-        SET is_paid = true, paid_at = NOW()
+        SET is_paid = true, paid_at = NOW(),
+            payment_method = ${paymentMethod},
+            paid_by_id = ${actor.id}, paid_by_name = ${actor.name}
         WHERE uuid = ${uuid} AND is_paid = false
         RETURNING uuid, is_paid, paid_at, consolidation_id
       `;
@@ -261,5 +276,15 @@ export const BillingRepository = {
       await sql`ROLLBACK`;
       throw error;
     }
+  },
+
+  markPaymentNotified: async (uuid: string): Promise<{ uuid: string; payment_notified_at: string } | null> => {
+    const [row] = await sql`
+      UPDATE billing
+      SET payment_notified_at = NOW()
+      WHERE uuid = ${uuid} AND is_paid = true
+      RETURNING uuid, payment_notified_at
+    `;
+    return (row as { uuid: string; payment_notified_at: string }) ?? null;
   },
 };

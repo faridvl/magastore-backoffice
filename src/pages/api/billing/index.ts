@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { BillingService } from '@/shared/api/services/billing.service';
+import { BillingService, isPaymentMethod } from '@/shared/api/services/billing.service';
+import { getActor } from '@/shared/api/get-actor';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,10 +40,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'PATCH') {
-      const { uuid } = req.query;
+      const { uuid, action } = req.query;
       if (!uuid) return res.status(400).json({ message: 'UUID de factura requerido.' });
 
-      const updated = await BillingService.confirmPayment(uuid as string);
+      if (action === 'mark-payment-notified') {
+        const notified = await BillingService.markPaymentNotified(uuid as string);
+        return res.status(200).json({ data: notified });
+      }
+
+      const { paymentMethod } = req.body ?? {};
+      if (!isPaymentMethod(paymentMethod)) {
+        return res.status(400).json({ message: 'Indica un método de pago válido.' });
+      }
+
+      const actor = await getActor({ req, res });
+      if (!actor) return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
+
+      const updated = await BillingService.confirmPayment(uuid as string, paymentMethod, actor);
       return res.status(200).json({ data: updated });
     }
 
@@ -50,6 +64,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   } catch (error: any) {
     console.error('[Billing Controller Error]:', error);
-    return res.status(500).json({ message: error.message || 'Error interno' });
+    const message: string = error.message || 'Error interno';
+    const status = /no encontr/i.test(message) ? 404
+      : /requerid|inválid/i.test(message) ? 400
+      : /ya (está|marcada)|sin pagar|no está pagada/i.test(message) ? 409
+      : 500;
+    return res.status(status).json({ message });
   }
 }

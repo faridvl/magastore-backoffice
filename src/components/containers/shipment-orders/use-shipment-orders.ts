@@ -27,6 +27,8 @@ export enum ShipmentOrderStepFilter {
   DESPACHO = '3',
   NOTIFICACION = '4',
   FINALIZADA = '5',
+  // Finalizadas despachadas hace 3 a 30 días sin seguimiento postventa.
+  SEGUIMIENTO_PENDIENTE = 'SEGUIMIENTO_PENDIENTE',
 }
 
 export enum ShipmentOrderPaidFilter {
@@ -120,7 +122,7 @@ export const useShipmentOrders = () => {
       touched = true;
     } else if (legacyPayment === 'ENTREGADO') {
       // "Entregada" (status) ahora cubre dos pasos del wizard (4 y 5): el
-      // enlace legado apunta al 4 (Notificación y cierre), que es donde una
+      // enlace legado apunta al 4 (Cierre), que es donde una
       // orden recién entregada aterriza — sin filtro de step no se podría
       // distinguir "recién entregada, con seguimiento pendiente" de
       // "finalizada hace tiempo" en un solo valor.
@@ -281,6 +283,8 @@ export const useShipmentOrders = () => {
 
   const handleStepFilterChange = (val: ShipmentOrderStepFilter) => {
     setStepFilter(val);
+    // El default "Sin pagar" escondería casi todo el seguimiento: la mayoría ya pagó.
+    if (val === ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE) setPaidFilter(ShipmentOrderPaidFilter.ALL);
     setPage(1);
   };
 

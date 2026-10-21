@@ -7,6 +7,7 @@ import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-pai
 import { useNotifyMultipleCustomers } from '@/hooks/use-notify-multiple-customers';
 import { downloadPdf } from '@/shared/utils/download-pdf';
 import { OperationsStats } from '@/types/dashboard/operations.types';
+import { PaymentMethod } from '@/types/logistics/logistics.types';
 import { routesPrivate } from '@/shared/navigation/routes';
 
 const EMPTY_STATS: OperationsStats = {
@@ -50,10 +51,10 @@ export function useOperations() {
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
-  const handleMarkAsPaid = async () => {
+  const handleMarkAsPaid = async (paymentMethod: PaymentMethod) => {
     if (!selectedBillingUuid) return;
     try {
-      await markAsPaid({ billingUuid: selectedBillingUuid });
+      await markAsPaid({ billingUuid: selectedBillingUuid, paymentMethod });
       await detailQuery.invalidate();
       await operationsQuery.invalidate();
       setSelectedBillingUuid(null);

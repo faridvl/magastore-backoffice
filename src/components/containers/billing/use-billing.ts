@@ -4,6 +4,7 @@ import { useBillingListQuery } from '@/shared/api/querys/billing/use-billing-lis
 import { useBillingDetailQuery } from '@/shared/api/querys/billing/use-billing-detail-query';
 import { useMarkPaidMutation } from '@/shared/api/mutations/billing/use-mark-paid-mutation';
 import { downloadPdf } from '@/shared/utils/download-pdf';
+import { PaymentMethod } from '@/types/logistics/logistics.types';
 
 export type PaidFilterValue = 'all' | 'paid' | 'pending';
 
@@ -48,10 +49,10 @@ export const useBilling = () => {
     setPage(1);
   };
 
-  const handleMarkAsPaid = async () => {
+  const handleMarkAsPaid = async (paymentMethod: PaymentMethod) => {
     if (!selectedBillingUuid) return;
     try {
-      await markAsPaid({ billingUuid: selectedBillingUuid });
+      await markAsPaid({ billingUuid: selectedBillingUuid, paymentMethod });
       await detailQuery.invalidate();
       await billingListQuery.invalidate();
       setSelectedBillingUuid(null);

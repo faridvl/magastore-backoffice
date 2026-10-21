@@ -3,6 +3,10 @@ import { useNavigation } from '@/hooks/use-navigation';
 // Importamos tus interfaces
 import { Customer } from '@/types/customer/customer.types';
 import { useCustomersQuery } from '@/shared/api/querys/customers/use-customers-query';
+import { useCustomerWinBack } from '@/hooks/use-customer-win-back';
+
+// 'win_back' = "Por invitar": inactivos sin invitación desde su último paquete.
+export type CustomerStatusFilter = 'all' | 'active' | 'inactive' | 'win_back';
 
 export const useCustomers = () => {
   const navigation = useNavigation();
@@ -11,7 +15,7 @@ export const useCustomers = () => {
   // filtrado recorre la lista completa en memoria en cada tecla.
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<CustomerStatusFilter>('all');
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -20,6 +24,7 @@ export const useCustomers = () => {
   }, [searchTerm]);
 
   const { data: queryResponse, isLoading, isError } = useCustomersQuery();
+  const { invite: inviteToComeBack, invitingCustomerId } = useCustomerWinBack();
 
   // 2. Transformación y Filtrado con Tipado Estricto
   const filteredCustomers = useMemo(() => {
@@ -35,6 +40,7 @@ export const useCustomers = () => {
       .filter((customer) => {
         if (statusFilter === 'active' && !customer.is_active) return false;
         if (statusFilter === 'inactive' && customer.is_active) return false;
+        if (statusFilter === 'win_back' && !customer.win_back_pending) return false;
         if (!cleanQuery) return true;
 
         // El teléfono se compara solo por dígitos: el valor guardado trae
@@ -66,7 +72,7 @@ export const useCustomers = () => {
     setCurrentPage(1);
   };
 
-  const handleStatusFilter = (value: 'all' | 'active' | 'inactive') => {
+  const handleStatusFilter = (value: CustomerStatusFilter) => {
     setStatusFilter(value);
     setCurrentPage(1);
   };
@@ -77,6 +83,9 @@ export const useCustomers = () => {
   // Total real del catálogo, no el del filtro — es el denominador que el
   // operador necesita para saber si la búsqueda dejó algo fuera.
   const totalCustomers = queryResponse?.data?.length ?? 0;
+
+  const handleInviteToComeBack = (customer: Customer) =>
+    inviteToComeBack(customer.id, customer.first_name.split(' ')[0] || customer.first_name, customer.phone);
 
   return {
     search: searchTerm,
@@ -93,5 +102,7 @@ export const useCustomers = () => {
     isLoading,
     isError,
     navigation,
+    handleInviteToComeBack,
+    invitingCustomerId,
   };
 };

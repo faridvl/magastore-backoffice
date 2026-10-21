@@ -107,6 +107,9 @@ export interface Customer {
   customer_type_name: string | null;
   customer_type_billing_mode: CustomerBillingMode | null;
   customer_type_discount_percent: number | null;
+  // Fidelización (migración 034). win_back_pending = filtro "Por invitar".
+  win_back_sent_at: string | null;
+  win_back_pending: boolean;
 }
 
 export interface CustomerImportRow {

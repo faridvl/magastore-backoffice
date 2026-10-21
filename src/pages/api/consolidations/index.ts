@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ConsolidationsService } from '@/shared/api/services/consolidations.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { isUuid } from '@/shared/utils/is-uuid';
+
+const INVALID_UUID_MESSAGE = 'El identificador de la orden de envío es inválido.';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const context = { req, res } as any;
@@ -28,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (uuid) {
+        if (!isUuid(uuid)) return res.status(400).json({ message: INVALID_UUID_MESSAGE });
         const detail = await ConsolidationsService.getConsolidationDetail(uuid as string);
         return res.status(200).json({ data: detail });
       }
@@ -70,6 +74,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'PATCH') {
       const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode, actualDeliveryFeeCrc } = req.body;
+      if (consolidationUuid !== undefined && !isUuid(consolidationUuid)) {
+        return res.status(400).json({ message: INVALID_UUID_MESSAGE });
+      }
 
       if (action === 'set-delivery-address') {
         if (!consolidationUuid || !addressId) {
@@ -121,6 +128,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { updated: true } });
       }
 
+      // Postventa (orden finalizada): seguimiento y, después, reseña.
+      if (action === 'mark-follow-up-sent') {
+        await ConsolidationsService.markFollowUpSent(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'mark-review-requested') {
+        await ConsolidationsService.markReviewRequested(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
       // Registrar o corregir la guía después del despacho. Separado de la
       // transición de estado porque no siempre se conoce en ese momento.
       if (action === 'set-tracking-code') {
@@ -131,7 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { updated: true } });
       }
 
-      // Paso 4 (Notificación y cierre): ajuste del costo real de envío.
+      // Paso 4 (Cierre): ajuste del costo real de envío.
       if (action === 'set-actual-delivery-fee') {
         if (!consolidationUuid || actualDeliveryFeeCrc == null) {
           return res.status(400).json({ message: 'consolidationUuid y actualDeliveryFeeCrc son requeridos.' });
@@ -178,6 +196,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
+      if (!isUuid(uuid)) return res.status(400).json({ message: INVALID_UUID_MESSAGE });
       await ConsolidationsService.deleteConsolidation(uuid);
       return res.status(200).json({ data: { deleted: true } });
     }
@@ -185,8 +204,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Método no permitido.' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
+    // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
     const status = message.includes('no encontrad') ? 404
-      : message.includes('inválida') || message.includes('requerido') ? 400
+      : message.includes('inválid') || message.includes('requerido') ? 400
+      : /^(solo|no) se puede/i.test(message) ? 409
       : 500;
     return res.status(status).json({ message });
   }

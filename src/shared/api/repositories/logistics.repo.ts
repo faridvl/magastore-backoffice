@@ -10,6 +10,7 @@ import {
   PreBillingDetail,
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
+import type { Actor } from '@/shared/api/get-actor';
 import { getSettings } from './settings.repo';
 import { DeliveryRatesRepository } from './delivery-rates.repo';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
@@ -359,7 +360,7 @@ export const LogisticsRepository = {
     }
   },
 
-  confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {
+  confirmPreBilling: async (consolidationUuid: string, actor: Actor): Promise<{ billing_uuid: string }> => {
     const settings = await getSettings();
     if (!settings) throw new Error('No se encontraron las tarifas del sistema.');
 
@@ -424,13 +425,15 @@ export const LogisticsRepository = {
           total_weight_charged, total_amount_crc, delivery_method,
           delivery_fee_crc, delivery_address_snapshot,
           courier_cost_crc, delivery_cost_crc, profit_crc, has_unknown_cost,
-          applied_billing_mode, applied_discount_percent
+          applied_billing_mode, applied_discount_percent,
+          created_by_id, created_by_name
         ) VALUES (
           ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
           ${pre.delivery_fee_crc}, ${addressSnapshot},
           ${courierCostCrc}, ${deliveryCostCrc}, ${profitCrc}, ${hasUnknownCost},
-          ${pre.applied_billing_mode}, ${pre.applied_discount_percent}
+          ${pre.applied_billing_mode}, ${pre.applied_discount_percent},
+          ${actor.id}, ${actor.name}
         )
         RETURNING id, uuid, invoice_number
       `;

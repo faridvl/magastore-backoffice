@@ -22,10 +22,12 @@ import {
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
+import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { useShipmentOrderDetail } from './use-shipment-order-detail';
 import { WizardStepsSection } from './step-sections/wizard-steps-section';
+import { PostDeliverySection } from './step-sections/post-delivery-section';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
 import {
   ConsolidationStatus,
@@ -70,7 +72,9 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleGoBackToConfirmation,
     handleAdvanceToDispatchClick,
     showPaymentCheckModal, setShowPaymentCheckModal,
+    paymentCheckMethod, setPaymentCheckMethod,
     handleConfirmPaymentCheck,
+    handleNotifyPaymentConfirmed, isNotifyingPaymentConfirmed,
     isAdvancingToDispatch,
     step1BlockedReason,
 
@@ -300,6 +304,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         handleOpenShipmentRequestModal={handleOpenShipmentRequestModal}
         isCopyingRequest={isCopyingRequest}
         handleNotifyCustomerShipmentRequested={handleNotifyCustomerShipmentRequested}
+        handleNotifyPaymentConfirmed={handleNotifyPaymentConfirmed}
+        isNotifyingPaymentConfirmed={isNotifyingPaymentConfirmed}
         isNotifyingShipmentRequested={isNotifyingShipmentRequested}
         handleOpenTrackingModal={handleOpenTrackingModal}
         canNotifyDispatch={canNotifyDispatch}
@@ -323,6 +329,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         handleUnassignPackage={handleUnassignPackage}
         isUnassigning={isUnassigning}
       />
+
+      {detail.current_step === ShipmentOrderStep.FINALIZADA && <PostDeliverySection detail={detail} />}
 
       {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al
           cliente). Solo en Finalizada: es la ganancia definitiva de la orden ya
@@ -368,6 +376,13 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
               </div>
             </div>
+            <div className="mb-5">
+              <PaymentMethodPicker
+                value={paymentCheckMethod}
+                onChange={setPaymentCheckMethod}
+                disabled={isAdvancingToDispatch}
+              />
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => handleConfirmPaymentCheck(false)}
@@ -378,7 +393,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </button>
               <button
                 onClick={() => handleConfirmPaymentCheck(true)}
-                disabled={isAdvancingToDispatch}
+                disabled={isAdvancingToDispatch || !paymentCheckMethod}
+                title={paymentCheckMethod ? undefined : 'Elige el método de pago'}
                 className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
               >
                 <CheckCircle size={14} /> Sí, ya pagó

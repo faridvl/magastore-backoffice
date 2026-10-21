@@ -6,8 +6,14 @@ import {
   AvailablePackage,
   DeliveryMethod,
   CustomerWithAvailablePackages,
+  ShipmentOrderStep,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
+import {
+  FOLLOW_UP_DELAY_DAYS,
+  FOLLOW_UP_PENDING_STEP_FILTER,
+  FOLLOW_UP_WINDOW_DAYS,
+} from '@/shared/constants/post-delivery';
 
 export const ConsolidationsRepository = {
   getOpenConsolidationForCustomer: async (
@@ -118,7 +124,11 @@ export const ConsolidationsRepository = {
     const searchTerm = search ? `%${search}%` : null;
     // Eje 1: paso del wizard. 'FINALIZADA' filtra por current_step = 4
     // directamente — ya no hace falta pasar por con.status.
-    const stepValue = stepFilter && stepFilter !== 'ALL' ? Number(stepFilter) : null;
+    // "Seguimiento pendiente" vive en el eje de paso porque implica Finalizada.
+    const isFollowUpPending = stepFilter === FOLLOW_UP_PENDING_STEP_FILTER;
+    const stepValue = isFollowUpPending
+      ? ShipmentOrderStep.FINALIZADA
+      : stepFilter && stepFilter !== 'ALL' ? Number(stepFilter) : null;
     // Eje 2: pago. Independiente del paso — una orden en paso 3 (despacho) o
     // ya finalizada puede seguir sin pagar (clientes a los que se les
     // despacha sin haber cobrado, caso confirmado por el dueño).
@@ -172,6 +182,11 @@ export const ConsolidationsRepository = {
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
           AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${isFollowUpPending} OR (
+            con.follow_up_sent_at IS NULL
+            AND con.dispatched_at <= NOW() - make_interval(days => ${FOLLOW_UP_DELAY_DAYS})
+            AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})
+          ))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         GROUP BY con.uuid, con.customer_id, con.status, con.current_step, con.total_weight_lb, con.created_at, con.updated_at,
@@ -196,6 +211,11 @@ export const ConsolidationsRepository = {
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
           AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${isFollowUpPending} OR (
+            con.follow_up_sent_at IS NULL
+            AND con.dispatched_at <= NOW() - make_interval(days => ${FOLLOW_UP_DELAY_DAYS})
+            AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})
+          ))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
@@ -269,6 +289,7 @@ export const ConsolidationsRepository = {
         b.actual_delivery_fee_crc AS billing_actual_delivery_fee_crc,
         b.change_returned AS billing_change_returned,
         b.change_returned_at AS billing_change_returned_at,
+        b.payment_notified_at AS billing_payment_notified_at,
         ps.share_crc AS profit_share_crc,
         ps.share_percent AS profit_share_percent,
         ps.status AS profit_share_status,
@@ -278,6 +299,8 @@ export const ConsolidationsRepository = {
         con.dispatched_at,
         con.shipment_requested_at,
         con.customer_notified_shipment_at,
+        con.follow_up_sent_at,
+        con.review_requested_at,
         ca.address_label AS delivery_address_label,
         ca.exact_address AS delivery_exact_address,
         ca.district AS delivery_district,
@@ -306,9 +329,11 @@ export const ConsolidationsRepository = {
                pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, b.total_amount_crc, b.courier_cost_crc, b.delivery_cost_crc, b.profit_crc, b.has_unknown_cost,
                b.delivery_fee_crc, b.original_delivery_fee_crc, b.actual_delivery_fee_crc, b.change_returned, b.change_returned_at,
+               b.payment_notified_at,
                ps.share_crc, ps.share_percent, ps.status,
                con.delivery_method, con.delivery_address_id, con.tracking_code, con.dispatched_at,
                con.shipment_requested_at, con.customer_notified_shipment_at,
+               con.follow_up_sent_at, con.review_requested_at,
                ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province
     `;
@@ -387,7 +412,7 @@ export const ConsolidationsRepository = {
   },
 
   /**
-   * Ajuste del costo real de envío (paso 4, Notificación y cierre). El
+   * Ajuste del costo real de envío (paso 4, Cierre). El
    * transportista confirma un costo que puede diferir del que se usó al
    * generar el estimado — este método corrige lo que se le cobró al cliente.
    *
@@ -454,7 +479,7 @@ export const ConsolidationsRepository = {
   },
 
   /**
-   * Avanza del paso 4 (Notificación y cierre) al 5 (Finalizada). No toca
+   * Avanza del paso 4 (Cierre) al 5 (Finalizada). No toca
    * `status` ni paquetes — ya están en ENTREGADO desde que la orden entró al
    * paso 4 (ver ShipmentOrderStep en logistics.types.ts). Solo se permite
    * desde el paso 4: evita saltar pasos por una llamada directa a la API.
@@ -466,7 +491,7 @@ export const ConsolidationsRepository = {
       WHERE uuid = ${consolidationUuid} AND current_step = 4
       RETURNING id
     `;
-    if (!row) throw new Error('Solo se puede finalizar una orden que esté en el paso de notificación y cierre.');
+    if (!row) throw new Error('Solo se puede finalizar una orden que esté en el paso de cierre.');
   },
 
   /**
@@ -493,10 +518,12 @@ export const ConsolidationsRepository = {
    * proveedor, aquel al cliente.
    */
   markShipmentRequested: async (consolidationUuid: string): Promise<void> => {
-    await sql`
+    const [row] = await sql`
       UPDATE consolidations SET shipment_requested_at = NOW()
       WHERE uuid = ${consolidationUuid}
+      RETURNING id
     `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
   },
 
   /**
@@ -505,10 +532,47 @@ export const ConsolidationsRepository = {
    * "Cliente notificado / no notificado" del paso 3.
    */
   markCustomerNotifiedShipment: async (consolidationUuid: string): Promise<void> => {
-    await sql`
+    const [row] = await sql`
       UPDATE consolidations SET customer_notified_shipment_at = NOW()
       WHERE uuid = ${consolidationUuid}
+      RETURNING id
     `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+  },
+
+  /**
+   * Postventa: solo en órdenes finalizadas. Sin filas afectadas distingue
+   * "no existe" de "no está finalizada" para devolver 404 o 400.
+   */
+  markFollowUpSent: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET follow_up_sent_at = NOW()
+      WHERE uuid = ${consolidationUuid} AND current_step = ${ShipmentOrderStep.FINALIZADA}
+      RETURNING id
+    `;
+    if (!row) await ConsolidationsRepository.assertFinalizedForPostDelivery(consolidationUuid);
+  },
+
+  /** La reseña asume que el cliente ya respondió al seguimiento. */
+  markReviewRequested: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET review_requested_at = NOW()
+      WHERE uuid = ${consolidationUuid}
+        AND current_step = ${ShipmentOrderStep.FINALIZADA}
+        AND follow_up_sent_at IS NOT NULL
+      RETURNING id
+    `;
+    if (row) return;
+    await ConsolidationsRepository.assertFinalizedForPostDelivery(consolidationUuid);
+    throw new Error('Acción inválida: primero hay que hacer el seguimiento de la orden.');
+  },
+
+  assertFinalizedForPostDelivery: async (consolidationUuid: string): Promise<void> => {
+    const [c] = await sql`SELECT current_step FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1`;
+    if (!c) throw new Error('Orden de envío no encontrada.');
+    if (Number(c.current_step) !== ShipmentOrderStep.FINALIZADA) {
+      throw new Error('Acción inválida: la postventa solo aplica a órdenes finalizadas.');
+    }
   },
 
   deleteConsolidation: async (uuid: string): Promise<void> => {

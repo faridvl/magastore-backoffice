@@ -9,6 +9,7 @@ import {
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
+import type { Actor } from '@/shared/api/get-actor';
 import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
@@ -257,9 +258,9 @@ export const LogisticsService = {
     }
   },
 
-  confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {
+  confirmPreBilling: async (consolidationUuid: string, actor: Actor): Promise<{ billing_uuid: string }> => {
     try {
-      const result = await LogisticsRepository.confirmPreBilling(consolidationUuid);
+      const result = await LogisticsRepository.confirmPreBilling(consolidationUuid, actor);
       const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
       if (customerInfo) {
         const [billing] = await Promise.resolve([result]);

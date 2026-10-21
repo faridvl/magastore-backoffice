@@ -72,6 +72,7 @@ const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
   { value: ShipmentOrderStepFilter.DESPACHO, label: 'Despacho' },
   { value: ShipmentOrderStepFilter.NOTIFICACION, label: 'Cierre' },
   { value: ShipmentOrderStepFilter.FINALIZADA, label: 'Finalizadas' },
+  { value: ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE, label: 'Seguimiento pendiente' },
 ];
 
 // Ejes 2 y 3 — pago y notificación. El valor default lleva el nombre del eje

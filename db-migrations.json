@@ -240,6 +240,20 @@
           "checksum": "43cbdc76c4136781",
           "appliedAt": "2026-10-20T12:40:46.720Z",
           "appliedBy": "Farid"
+        },
+        {
+          "name": "033-billing-payment-authorship.sql",
+          "version": "033",
+          "checksum": "17a6664a33de7287",
+          "appliedAt": "2026-10-21T18:23:56.000Z",
+          "appliedBy": "Farid"
+        },
+        {
+          "name": "034-post-delivery-follow-up.sql",
+          "version": "034",
+          "checksum": "cc6d4478b342fbb7",
+          "appliedAt": "2026-10-21T18:23:56.000Z",
+          "appliedBy": "Farid"
         }
       ]
     },

@@ -60,6 +60,8 @@ export interface WizardStepsSectionProps {
   isCopyingRequest: boolean;
   handleNotifyCustomerShipmentRequested: () => void;
   isNotifyingShipmentRequested: boolean;
+  handleNotifyPaymentConfirmed: () => void;
+  isNotifyingPaymentConfirmed: boolean;
   handleOpenTrackingModal: () => void;
 
   canNotifyDispatch: boolean;
@@ -100,6 +102,7 @@ export interface WizardStepsSectionProps {
  */
 export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => {
   const { detail, deliveryMethodsData, activeDeliveryMethods } = props;
+  const deliveryMethodEntity = deliveryMethodsData?.find((m) => m.code === detail.delivery_method);
 
   const hasBilling = !!detail.billing_uuid;
   const hasPreBilling = !!detail.pre_billing_uuid;
@@ -603,14 +606,29 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           )}
         </div>
 
-        {/* PASO 3 — Despacho: orden real del trabajo confirmado por el dueño —
-            1) solicitar al proveedor, 2) el proveedor confirma y manda la
-            guía, 3) avisar al cliente, 4) recién ahí se puede avanzar. El
-            Siguiente queda bloqueado sin guía cargada. */}
+        {/* PASO 3 — Despacho: solicitar al proveedor, avisar al cliente, cargar
+            la guía que confirma el proveedor y avisar el despacho. El Siguiente
+            queda bloqueado sin guía. */}
         <div className={stepCardClass(isDispatchStep)}>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Despacho</p>
           <StepTimeline
             items={[
+              ...(isPaid ? [{
+                key: 'payment-notice',
+                title: 'Pago confirmado',
+                content: (
+                  <button
+                    onClick={props.handleNotifyPaymentConfirmed}
+                    disabled={props.isNotifyingPaymentConfirmed}
+                    title="Avisar al cliente que recibimos su pago"
+                    className={detail.billing_payment_notified_at
+                      ? 'w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40'
+                      : 'w-full flex items-center justify-center px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40'}
+                  >
+                    {detail.billing_payment_notified_at ? 'Reenviar aviso de pago' : 'Avisar pago al cliente'}
+                  </button>
+                ),
+              }] : []),
               {
                 key: 'request',
                 title: 'Solicitar envío',
@@ -695,7 +713,9 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                   </button>
                 ),
               },
-              ...(detail.tracking_code ? [{
+              // En retiro en tienda no hay rastreo que avisar; mientras cargan los
+              // métodos tampoco se muestra, para no parpadear el texto de configuración.
+              ...(detail.tracking_code && deliveryMethodEntity && !deliveryMethodEntity.is_pickup ? [{
                 key: 'dispatch-notice',
                 title: 'Aviso de despacho',
                 content: props.canNotifyDispatch ? (
@@ -754,11 +774,29 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         </div>
 
         {/* PASO 4 — Cierre: costo real del envío y vuelto. El aviso de despacho
-            vive en el paso 3, junto a la guía. */}
+            se manda en el paso 3; acá queda solo para reenviarlo. */}
         <div className={stepCardClass(isNotificationStep)}>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Cierre</p>
           <StepTimeline
             items={[
+              ...(detail.tracking_code ? [{
+                key: 'tracking-summary',
+                title: 'Guía de rastreo',
+                content: (
+                  <>
+                    <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
+                    {props.canNotifyDispatch && (
+                      <button
+                        onClick={props.handleNotifyDispatch}
+                        disabled={props.isNotifyingDispatch}
+                        className="mt-1 text-[11px] font-bold text-slate-500 underline underline-offset-2 hover:text-slate-800 disabled:opacity-40"
+                      >
+                        Reenviar aviso de despacho
+                      </button>
+                    )}
+                  </>
+                ),
+              }] : []),
               {
                 key: 'fee-info',
                 title: 'Costo real de envío',

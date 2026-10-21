@@ -1,16 +1,18 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
 import fs from 'fs';
 import { BillingDetail } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
+import { BUSINESS_WHATSAPP_DISPLAY } from '@/shared/constants/contact';
 
 const LOGO_BUFFER = fs.readFileSync(
   path.join(process.cwd(), 'public', 'logo', 'magastore-logo-2026.png'),
 );
 
 const fmtCRC = (n: number | string) =>
-  `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
+  formatCrc(Number(n)).replace('₡', 'CRC ');
 
 const fmtUSD = (n: number | string) =>
   `$ ${Number(n).toFixed(2)}`;
@@ -299,7 +301,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
             Correo electrónico: <Text style={s.contactHighlight}>magastore.cr@gmail.com</Text>
           </Text>
           <Text style={s.contactText}>
-            WhatsApp: <Text style={s.contactHighlight}>6204-8869</Text>
+            WhatsApp: <Text style={s.contactHighlight}>{BUSINESS_WHATSAPP_DISPLAY}</Text>
           </Text>
         </View>
 

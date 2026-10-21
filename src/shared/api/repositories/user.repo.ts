@@ -9,3 +9,13 @@ export const findByEmail = async (email: string) => {
   `;
   return result[0];
 };
+
+export const findNameById = async (id: number): Promise<{ id: number; name: string } | undefined> => {
+  const result = await sql`
+    SELECT id, name
+    FROM users
+    WHERE id = ${id}
+    LIMIT 1
+  `;
+  return result[0] as { id: number; name: string } | undefined;
+};

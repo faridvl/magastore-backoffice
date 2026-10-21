@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
-import { BillingDetail } from '@/types/logistics/logistics.types';
+import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
+import { BillingDetail, PaymentMethod } from '@/types/logistics/logistics.types';
+import { BACKFILLED_AUTHOR_LABEL, PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
@@ -13,7 +15,7 @@ interface Props {
   billingDetail: BillingDetail | null;
   isLoading: boolean;
   onClose: () => void;
-  onMarkAsPaid: () => void;
+  onMarkAsPaid: (paymentMethod: PaymentMethod) => void;
   isMarkingPaid: boolean;
   onDownloadPdf: (uuid: string, invoiceNumber?: number) => void;
   isDownloadingPdf: boolean;
@@ -29,6 +31,7 @@ export const BillingDetailModal: React.FC<Props> = ({
   isDownloadingPdf,
 }) => {
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const deliveryMethodLabel = resolveDeliveryMethodLabel(billingDetail?.delivery_method, deliveryMethodsData?.data);
 
   // Mismo desglose que el PDF de la factura: sale del monto real y no de la
@@ -143,6 +146,26 @@ export const BillingDetailModal: React.FC<Props> = ({
             )}
           </div>
 
+          {/* Autoría y método de pago */}
+          <div className="bg-slate-50 rounded-2xl p-5 mb-5 space-y-3">
+            <BillingRow label="Emitida por" value={formatAuthor(billingDetail.created_by_name, billingDetail.created_by_backfilled)} />
+            {billingDetail.is_paid && (
+              <>
+                <BillingRow label="Marcada pagada por" value={formatAuthor(billingDetail.paid_by_name, billingDetail.paid_by_backfilled)} />
+                <BillingRow
+                  label="Método de pago"
+                  value={billingDetail.payment_method ? PAYMENT_METHOD_LABELS[billingDetail.payment_method] : 'Sin registrar'}
+                />
+              </>
+            )}
+          </div>
+
+          {!billingDetail.is_paid && (
+            <div className="mb-5">
+              <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} disabled={isMarkingPaid} />
+            </div>
+          )}
+
           <div className="flex flex-col gap-3">
             <button
               onClick={() => onDownloadPdf(billingDetail.uuid, billingDetail.invoice_number)}
@@ -161,8 +184,9 @@ export const BillingDetailModal: React.FC<Props> = ({
               </button>
               {!billingDetail.is_paid && (
                 <button
-                  onClick={onMarkAsPaid}
-                  disabled={isMarkingPaid}
+                  onClick={() => paymentMethod && onMarkAsPaid(paymentMethod)}
+                  disabled={isMarkingPaid || !paymentMethod}
+                  title={paymentMethod ? undefined : 'Elige el método de pago'}
                   className="py-3.5 px-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-50"
                 >
                   {isMarkingPaid ? 'Procesando...' : 'Marcar como Pagado'}
@@ -187,6 +211,9 @@ export const BillingDetailModal: React.FC<Props> = ({
   </div>
   );
 };
+
+const formatAuthor = (name: string | null, isBackfilled: boolean) =>
+  isBackfilled ? BACKFILLED_AUTHOR_LABEL : name || 'Sin registrar';
 
 const BillingRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center text-sm">

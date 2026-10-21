@@ -20,12 +20,13 @@ import {
   buildShipmentDispatchedMessage,
   buildAddressConfirmationMessage,
   buildAddressRequestMessage,
+  buildPaymentConfirmedMessage,
 } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
-import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
+import { ConsolidationStatus, DeliveryMethod, AvailablePackage, PaymentMethod } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
@@ -66,6 +67,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const addressConfirmationTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_CONFIRMATION);
   const addressRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_REQUEST);
   const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
+  const paymentConfirmedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PAYMENT_CONFIRMED);
+  const [isNotifyingPaymentConfirmed, setIsNotifyingPaymentConfirmed] = useState(false);
 
   // dispatchTrackingCode se quitó: el input de guía en el modal del paso 2→3
   // desapareció junto con ese modal — cargarla vive ahora únicamente en el
@@ -109,9 +112,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   // responde "no", despacha igual y la orden queda visible en el filtro "Sin
   // pagar" del listado.
   const [showPaymentCheckModal, setShowPaymentCheckModal] = useState(false);
+  const [paymentCheckMethod, setPaymentCheckMethod] = useState<PaymentMethod | null>(null);
   const [isAdvancingToDispatch, setIsAdvancingToDispatch] = useState(false);
 
-  // Paso 4 (Notificación y cierre): ajuste del costo real de envío. Opcional
+  // Paso 4 (Cierre): ajuste del costo real de envío. Opcional
   // — igual que la guía de rastreo, se puede completar después. actualFeeDraft
   // arranca vacío (no con el fee facturado) para no sugerir un valor que el
   // operador podría confirmar sin fijarse.
@@ -225,6 +229,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const handleAdvanceToDispatchClick = () => {
     if (!detail) return;
     if (detail.billing_uuid && !detail.billing_is_paid) {
+      setPaymentCheckMethod(null);
       setShowPaymentCheckModal(true);
       return;
     }
@@ -238,13 +243,29 @@ export const useShipmentOrderDetail = (uuid?: string) => {
    */
   const handleConfirmPaymentCheck = async (wasPaid: boolean) => {
     if (!detail) return;
+    if (wasPaid && !paymentCheckMethod) {
+      toast.error('Elige el método de pago antes de confirmar.');
+      return;
+    }
     setIsAdvancingToDispatch(true);
     try {
-      if (wasPaid && detail.billing_uuid) {
-        await markAsPaid({ billingUuid: detail.billing_uuid });
+      const paidWith = wasPaid ? paymentCheckMethod : null;
+      if (paidWith && detail.billing_uuid) {
+        await markAsPaid({ billingUuid: detail.billing_uuid, paymentMethod: paidWith });
       }
       setShowPaymentCheckModal(false);
       await handleAdvanceToDispatchDirect();
+      // Con el pago confirmado lo siguiente es pedir el envío ya: se abre la
+      // solicitud al proveedor y se ofrece el aviso al cliente. Cerrar cualquiera
+      // de los dos no bloquea nada; el aviso queda disponible en el paso 3.
+      if (paidWith) {
+        toast.success('Pago registrado', {
+          description: '¿Le avisas al cliente que recibimos su pago?',
+          action: { label: 'Avisar al cliente', onClick: () => handleNotifyPaymentConfirmed() },
+          duration: 10000,
+        });
+        handleOpenShipmentRequestModal();
+      }
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar el pago.');
     } finally {
@@ -326,10 +347,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleMarkAsPaid = async () => {
+  const handleMarkAsPaid = async (paymentMethod: PaymentMethod) => {
     if (!detail?.billing_uuid) return;
     try {
-      await markAsPaid({ billingUuid: detail.billing_uuid });
+      await markAsPaid({ billingUuid: detail.billing_uuid, paymentMethod });
       await Promise.all([detailQuery.invalidate(), billingDetailQuery.invalidate()]);
       setShowBillingModal(false);
       toast.success('Factura marcada como pagada');
@@ -660,6 +681,37 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  /**
+   * Aviso al cliente de que su pago quedó registrado. payment_notified_at se
+   * estampa antes de abrir WhatsApp: fuera de iPad se navega en la misma vista.
+   */
+  const handleNotifyPaymentConfirmed = async () => {
+    if (!detail?.billing_uuid) return;
+    if (!detail.customer_phone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    setIsNotifyingPaymentConfirmed(true);
+    try {
+      const message = buildPaymentConfirmedMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        amountCrc: detail.billing_total_amount_crc,
+        templateBody: paymentConfirmedTemplateBody,
+      });
+      await ApiServiceClient(env.API.BASE_URL).patch(
+        `/billing?uuid=${detail.billing_uuid}&action=mark-payment-notified`,
+        {},
+      );
+      await detailQuery.invalidate();
+      await notifyWhatsApp(detail.customer_phone, message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo preparar el aviso de pago.');
+    } finally {
+      setIsNotifyingPaymentConfirmed(false);
+    }
+  };
+
   /** Aviso de despacho al cliente, con guía y enlace de rastreo. */
   const handleNotifyDispatch = async () => {
     if (!detail) return;
@@ -891,10 +943,12 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     // Stepper: paso 2→3 con el modal de pago no bloqueante
     handleAdvanceToDispatchClick,
     showPaymentCheckModal, setShowPaymentCheckModal,
+    paymentCheckMethod, setPaymentCheckMethod,
     handleConfirmPaymentCheck,
+    handleNotifyPaymentConfirmed, isNotifyingPaymentConfirmed,
     isAdvancingToDispatch,
 
-    // Stepper: paso 4 (Notificación y cierre) — costo real de envío + Finalizar
+    // Stepper: paso 4 (Cierre) — costo real de envío + Finalizar
     showActualFeeModal, setShowActualFeeModal,
     actualFeeDraft, setActualFeeDraft,
     handleOpenActualFeeModal,

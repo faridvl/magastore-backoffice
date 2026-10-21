@@ -339,6 +339,12 @@ export const CustomerService = {
     return CustomerRepo.getCustomerMetrics(id);
   },
 
+  /** Fidelización: registra que se invitó a volver a un cliente inactivo. */
+  markWinBackSent: async (id: string): Promise<void> => {
+    if (!UUID_PATTERN.test(id)) throw new Error('El ID del cliente es requerido y debe ser válido.');
+    return CustomerRepo.markWinBackSent(id);
+  },
+
   /**
    * Actualiza datos editables de un cliente existente
    */

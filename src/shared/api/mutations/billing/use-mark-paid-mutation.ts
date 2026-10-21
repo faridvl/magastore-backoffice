@@ -14,8 +14,8 @@ export function useMarkPaidMutation() {
     Error
   >({
     mutationKey: ['markBillingPaid'],
-    mutationFn: ({ billingUuid }: MarkPaidInput) =>
-      ApiServiceClient(env.API.BASE_URL).patch(`/billing?uuid=${billingUuid}`, {}),
+    mutationFn: ({ billingUuid, paymentMethod }: MarkPaidInput) =>
+      ApiServiceClient(env.API.BASE_URL).patch(`/billing?uuid=${billingUuid}`, { paymentMethod }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BILLING_LIST_KEY] });
     },

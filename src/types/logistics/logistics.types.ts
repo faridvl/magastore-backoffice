@@ -333,6 +333,12 @@ export interface BillingDetail {
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
+  payment_method: PaymentMethod | null;
+  created_by_name: string | null;
+  paid_by_name: string | null;
+  // true = autoría atribuida por el backfill de la migración 033, no registrada.
+  created_by_backfilled: boolean;
+  paid_by_backfilled: boolean;
   packages: BillingPackageLine[];
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
@@ -390,8 +396,18 @@ export interface BillingMonthlyReport {
   unknown_cost_count: number;
 }
 
+// Mismos valores que el CHECK de billing.payment_method (migración 033).
+export enum PaymentMethod {
+  SINPE_MOVIL = 'SINPE_MOVIL',
+  TRANSFERENCIA = 'TRANSFERENCIA',
+  EFECTIVO = 'EFECTIVO',
+  TARJETA = 'TARJETA',
+  OTRO = 'OTRO',
+}
+
 export interface MarkPaidInput {
   billingUuid: string;
+  paymentMethod: PaymentMethod;
 }
 
 // --- Participación de Farid sobre la ganancia ---
@@ -572,6 +588,7 @@ export interface ConsolidationDetail {
   billing_actual_delivery_fee_crc: number | null;
   billing_change_returned: boolean | null;
   billing_change_returned_at: string | null;
+  billing_payment_notified_at: string | null;
   // Participación de Farid sobre la ganancia de esta orden (migración 023).
   // Null mientras no se haya generado el estimado — se crea recién ahí.
   profit_share_crc: number | null;
@@ -595,6 +612,9 @@ export interface ConsolidationDetail {
   // Marca de "ya se avisó al CLIENTE que su envío fue solicitado" (migración
   // 030/031) — destinatario distinto de shipment_requested_at (proveedor).
   customer_notified_shipment_at: string | null;
+  // Postventa (migración 034): seguimiento y reseña, ambos en la orden finalizada.
+  follow_up_sent_at: string | null;
+  review_requested_at: string | null;
   // Cantón usado para resolver la zona (dirección de la orden, o la default
   // del cliente si la orden aún no tiene dirección asignada).
   zone_canton: string | null;

@@ -4,7 +4,9 @@ import {
   BillingDetail,
   BillingMonthlyReport,
   ProfitShareMonthlyReport,
+  PaymentMethod,
 } from '@/types/logistics/logistics.types';
+import type { Actor } from '@/shared/api/get-actor';
 import { PaginatedResponse } from '@/types/paginate.types';
 
 export const BillingService = {
@@ -96,14 +98,29 @@ export const BillingService = {
     }
   },
 
-  confirmPayment: async (billingUuid: string): Promise<Partial<BillingListItem>> => {
+  confirmPayment: async (
+    billingUuid: string,
+    paymentMethod: PaymentMethod,
+    actor: Actor,
+  ): Promise<Partial<BillingListItem>> => {
     if (!billingUuid) throw new Error('El UUID de la factura es requerido.');
 
     try {
-      return await BillingRepository.markBillingAsPaid(billingUuid);
+      return await BillingRepository.markBillingAsPaid(billingUuid, paymentMethod, actor);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Error al marcar la factura como pagada.';
       throw new Error(msg);
     }
   },
+
+  markPaymentNotified: async (billingUuid: string): Promise<{ uuid: string; payment_notified_at: string }> => {
+    if (!billingUuid) throw new Error('El UUID de la factura es requerido.');
+
+    const row = await BillingRepository.markPaymentNotified(billingUuid);
+    if (!row) throw new Error('Factura no encontrada o todavía sin pagar.');
+    return row;
+  },
 };
+
+export const isPaymentMethod = (value: unknown): value is PaymentMethod =>
+  typeof value === 'string' && (Object.values(PaymentMethod) as string[]).includes(value);

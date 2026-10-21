@@ -172,6 +172,8 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         setSearchTerm,
         handleNotifyWhatsApp,
         isNotifying,
+        handleInviteToComeBack,
+        isInvitingToComeBack,
         selectedPackageUuids,
         handleTogglePackage,
         clearSelection,
@@ -282,6 +284,29 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         {customer.is_active ? 'Activo' : 'Inactivo'}
                                     </Typography>
                                 </div>
+
+                                {/* Fidelización: solo para inactivos, que es a quienes va la invitación. */}
+                                {!customer.is_active && (
+                                    <div className="w-full mt-3 flex flex-col gap-2 md:items-center">
+                                        <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold md:text-center">
+                                            {customer.win_back_pending
+                                                ? 'Pendiente de invitar a volver'
+                                                : `Invitado el ${new Date(customer.win_back_sent_at ?? '').toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}`}
+                                        </Typography>
+                                        <button
+                                            onClick={handleInviteToComeBack}
+                                            disabled={isInvitingToComeBack}
+                                            className={`w-full flex items-center justify-center gap-2 py-3 min-h-[44px] rounded-2xl text-sm font-bold transition-all disabled:opacity-40 ${
+                                                customer.win_back_pending
+                                                    ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                                    : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
+                                            }`}
+                                        >
+                                            <MessageCircle size={15} />
+                                            {customer.win_back_pending ? 'Invitar a volver' : 'Volver a invitar'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

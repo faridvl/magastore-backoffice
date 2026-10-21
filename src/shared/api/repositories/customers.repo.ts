@@ -3,6 +3,16 @@ import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, Customer
 import { WarehouseRoutesRepository } from './warehouse-routes.repo';
 
 /**
+ * "Por invitar": inactivo y sin invitación desde su último paquete. Si volvió a
+ * comprar después de la última invitación y quedó inactivo otra vez, se le invita
+ * de nuevo. Requiere el alias `lp.last_package_at` en la consulta.
+ */
+const WIN_BACK_PENDING_SQL = sql.unsafe(`(
+  c.is_active = false
+  AND (c.win_back_sent_at IS NULL OR c.win_back_sent_at < lp.last_package_at)
+)`);
+
+/**
  * Resuelve los casilleros de un cliente nuevo: uno por cada ruta elegida, cada
  * uno con su propio código opcional.
  *
@@ -191,9 +201,16 @@ export const getPaginatedCustomers = async (
              c.customer_code, c.is_active, c.created_at, c.customer_type_id,
              ct.name AS customer_type_name,
              ct.billing_mode AS customer_type_billing_mode,
-             ct.discount_percent AS customer_type_discount_percent
+             ct.discount_percent AS customer_type_discount_percent,
+             c.win_back_sent_at,
+             ${WIN_BACK_PENDING_SQL} AS win_back_pending
       FROM customers c
       LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+      LEFT JOIN (
+        SELECT customer_id, MAX(created_at) AS last_package_at
+        FROM packages
+        GROUP BY customer_id
+      ) lp ON lp.customer_id = c.id
       ORDER BY c.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `,
@@ -228,9 +245,13 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
       ) as warehouse_codes_list,
       ct.name AS customer_type_name,
       ct.billing_mode AS customer_type_billing_mode,
-      ct.discount_percent AS customer_type_discount_percent
+      ct.discount_percent AS customer_type_discount_percent,
+      ${WIN_BACK_PENDING_SQL} AS win_back_pending
     FROM customers c
     LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+    LEFT JOIN LATERAL (
+      SELECT MAX(p.created_at) AS last_package_at FROM packages p WHERE p.customer_id = c.id
+    ) lp ON true
     WHERE c.id = ${id} LIMIT 1
   `;
 
@@ -537,6 +558,19 @@ export const deactivateInactiveCustomers = async (days: number): Promise<Deactiv
   return rows as unknown as DeactivatedCustomerRow[];
 };
 
+/** Estampa la invitación a volver. Solo para inactivos: es a quienes va dirigida. */
+export const markWinBackSent = async (customerId: string): Promise<void> => {
+  const [row] = await sql`
+    UPDATE customers SET win_back_sent_at = NOW()
+    WHERE id = ${customerId} AND is_active = false
+    RETURNING id
+  `;
+  if (row) return;
+  const [exists] = await sql`SELECT id FROM customers WHERE id = ${customerId} LIMIT 1`;
+  if (!exists) throw new Error('Cliente no encontrado.');
+  throw new Error('Acción inválida: la invitación a volver solo aplica a clientes inactivos.');
+};
+
 export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {
   const result = await sql`SELECT id FROM customers WHERE customer_code = ${code} LIMIT 1`;
   return result.length > 0;
@@ -683,6 +717,8 @@ const mapRowToCustomer = (raw: any): Customer => ({
   customer_type_name: raw.customer_type_name ?? null,
   customer_type_billing_mode: raw.customer_type_billing_mode ?? null,
   customer_type_discount_percent: raw.customer_type_discount_percent != null ? Number(raw.customer_type_discount_percent) : null,
+  win_back_sent_at: raw.win_back_sent_at ?? null,
+  win_back_pending: !!raw.win_back_pending,
   addresses: (raw.addresses_list || []).map((addr: any) => ({
     id: addr.id,
     customer_id: addr.customer_id,

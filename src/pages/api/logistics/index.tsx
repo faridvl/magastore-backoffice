@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { LogisticsService, MissingWarehouseCodeError } from '@/shared/api/services/logistics.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
+import { getActor } from '@/shared/api/get-actor';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const context = { req, res } as any;
@@ -81,7 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     if (!confirmUuid) {
                         return res.status(400).json({ message: 'consolidationUuid es requerido.' });
                     }
-                    const confirmed = await LogisticsService.confirmPreBilling(confirmUuid);
+                    const actor = await getActor({ req, res });
+                    if (!actor) {
+                        return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
+                    }
+                    const confirmed = await LogisticsService.confirmPreBilling(confirmUuid, actor);
                     return res.status(200).json(confirmed);
 
                 case 'bulk-status':

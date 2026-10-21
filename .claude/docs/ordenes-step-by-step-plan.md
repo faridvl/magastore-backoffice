@@ -1,5 +1,33 @@
 # Plan: Step-by-step en Órdenes de Envío
 
+## Estado actual (resumen vigente)
+
+El plan original de abajo hablaba de 3 pasos; lo implementado son **4 pasos +
+Finalizada**, y después de Finalizada viene la **postventa**:
+
+| `current_step` | Nombre | Qué se hace |
+|---|---|---|
+| 1 | Confirmación | Dirección y método; Siguiente genera el estimado |
+| 2 | Cobro | Enviar estimado/PDF, registrar el pago (no bloquea el avance) |
+| 3 | Despacho | Solicitud al proveedor, aviso al cliente, guía |
+| 4 | Cierre | Aviso de despacho, costo real de envío/vuelto, Finalizar |
+| 5 | Finalizada | Sin stepper; tarjeta Postventa + rentabilidad |
+
+**Postventa (migración 034).** En la orden finalizada, tarjeta "Postventa":
+- "Hacer seguimiento" abre WhatsApp (`POST_DELIVERY_FOLLOW_UP`) y estampa
+  `consolidations.follow_up_sent_at`. Si se despachó hace menos de
+  `FOLLOW_UP_DELAY_DAYS` (3) muestra un aviso, sin bloquear.
+- "Pedir reseña" aparece solo tras el seguimiento (`REVIEW_REQUEST`, estampa
+  `review_requested_at`). El enlace de reseñas va escrito en la plantilla como
+  `(link de reseñas)` y se edita en Ajustes → Plantillas.
+- Listado: el eje de paso tiene "Seguimiento pendiente" = finalizada, despachada
+  hace entre 3 y `FOLLOW_UP_WINDOW_DAYS` (30) días y sin seguimiento. Se combina
+  con pago/notificación/fechas; al elegirlo, el filtro de pago pasa a "todas".
+- Clientes: filtro "Por invitar" = inactivo sin invitación desde su último
+  paquete (`customers.win_back_sent_at`). "Invitar a volver" en el listado y en
+  el detalle abre WhatsApp (`CUSTOMER_WIN_BACK`) y estampa la fecha.
+- Constantes en `src/shared/constants/post-delivery.ts`.
+
 Estado: **implementado, pendiente de aplicar la migración en Neon y probar
 manualmente**. Acordado con el dueño sobre pizarra (foto) + conversación de
 alineación. `tsc --noEmit` y `npm run lint` limpios sobre el código nuevo.

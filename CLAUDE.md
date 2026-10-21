@@ -22,7 +22,10 @@ JWT_SECRET=your-secret-key
 RESEND_API_KEY=re_...
 EMAIL_FROM=notificaciones@tudominio.com
 EMAIL_LOGO_URL=https://tudominio.com/logo.png   # optional
+NEXT_PUBLIC_WHATSAPP_NUMBER=50662048869          # optional, formato wa.me (código de país + número)
 ```
+
+`NEXT_PUBLIC_WHATSAPP_NUMBER` lo usan el botón de WhatsApp de la landing y el teléfono impreso en los PDF de factura y estimado (`BUSINESS_WHATSAPP_DISPLAY` en `src/shared/constants/contact.ts`, últimos 8 dígitos como `XXXX-XXXX`). Sin la variable, los PDF imprimen `6204-8869`.
 
 `src/shared/api/config.ts` exposes `env.API.BASE_URL` — all API client calls go through that.
 

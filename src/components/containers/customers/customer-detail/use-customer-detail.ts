@@ -9,6 +9,7 @@ import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-cust
 import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
 import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
+import { useCustomerWinBack } from '@/hooks/use-customer-win-back';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { CustomerUpdateInput, CustomerAddressUpdateInput, CustomerAddress } from '@/types/customer/customer.types';
@@ -52,6 +53,7 @@ export const useCustomerDetail = (customerId: string) => {
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
   const { data: packagesRes, isLoading: loadingPackages } = useCustomerPackagesQuery(customerId);
   const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
+  const { invite: inviteToComeBack, invitingCustomerId } = useCustomerWinBack();
   const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
 
   const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
@@ -187,6 +189,11 @@ export const useCustomerDetail = (customerId: string) => {
     await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
   };
 
+  const handleInviteToComeBack = async () => {
+    if (!customer) return;
+    await inviteToComeBack(customer.id, customer.first_name.split(' ')[0] || customer.first_name, customer.phone);
+  };
+
   const handleTogglePackage = (packageUuid: string) => {
     setSelectedPackageUuids((prev) =>
       prev.includes(packageUuid) ? prev.filter((u) => u !== packageUuid) : [...prev, packageUuid],
@@ -318,6 +325,8 @@ export const useCustomerDetail = (customerId: string) => {
     setSearchTerm,
     handleNotifyWhatsApp,
     isNotifying,
+    handleInviteToComeBack,
+    isInvitingToComeBack: invitingCustomerId === customerId,
     selectedPackageUuids,
     handleTogglePackage,
     clearSelection,

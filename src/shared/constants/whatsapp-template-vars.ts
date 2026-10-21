@@ -13,6 +13,10 @@ export const WHATSAPP_TEMPLATE_CODES = {
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
   ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
   ADDRESS_REQUEST: 'ADDRESS_REQUEST',
+  PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  POST_DELIVERY_FOLLOW_UP: 'POST_DELIVERY_FOLLOW_UP',
+  REVIEW_REQUEST: 'REVIEW_REQUEST',
+  CUSTOMER_WIN_BACK: 'CUSTOMER_WIN_BACK',
 } as const;
 
 export type WhatsAppTemplateCode = (typeof WHATSAPP_TEMPLATE_CODES)[keyof typeof WHATSAPP_TEMPLATE_CODES];
@@ -33,14 +37,14 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
     { key: 'lista_paquetes', label: 'Lista con cada paquete de la orden y su peso, uno por línea' },
-    { key: 'desglose_paquetes', label: 'Cada paquete con su peso y su cobro, uno por línea — ej. * Amazon – 3.00 lb – ₡8,730' },
+    { key: 'desglose_paquetes', label: 'Cada paquete con su peso y su cobro, uno por línea — ej. * Amazon – 3.00 lb – ₡8.730' },
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
     { key: 'metodo_entrega', label: 'Cómo se entrega — ej. Correos de Costa Rica' },
-    { key: 'monto_envio', label: 'Cobro del envío sin la entrega — ej. ₡8,730' },
-    { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6,900 (o "Sin cargo" si es retiro)' },
+    { key: 'monto_envio', label: 'Cobro del envío sin la entrega — ej. ₡8.730' },
+    { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6.900 (o "Sin cargo" si es retiro)' },
     { key: 'descuento', label: 'Línea de descuento si el cliente tiene tarifa especial — ej. Descuento cliente (10%): -₡900. Vacío si no aplica' },
-    { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24,500' },
+    { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24.500' },
   ],
   // Va al PROVEEDOR, no al cliente: es el texto que se copia para pedirle el
   // despacho. De ahí que no incluya montos ni tarifas — el proveedor no factura
@@ -69,7 +73,13 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   SHIPMENT_REQUESTED_CUSTOMER_UNPAID: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
-    { key: 'monto', label: 'Total pendiente de pago — ej. ₡24,500' },
+    { key: 'monto', label: 'Total pendiente de pago — ej. ₡24.500' },
+  ],
+  // Va AL CLIENTE al registrar el pago de su factura (paso de cobro).
+  PAYMENT_CONFIRMED: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+    { key: 'monto', label: 'Monto pagado de la factura — ej. ₡24.500' },
   ],
   // Va AL CLIENTE al marcar la orden como despachada. metodo_entrega y
   // link_rastreo salen del catálogo de métodos, no del texto: escribirlos a mano
@@ -102,6 +112,17 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   ADDRESS_REQUEST: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  // Postventa. Sin id_orden: el cliente no conoce el número de orden. El enlace
+  // de reseñas va escrito en el texto, no como variable.
+  POST_DELIVERY_FOLLOW_UP: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+  ],
+  REVIEW_REQUEST: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+  ],
+  CUSTOMER_WIN_BACK: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
   ],
   WAREHOUSE_WELCOME: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },

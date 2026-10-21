@@ -4,6 +4,7 @@ import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { useCustomers } from './use-customers';
 import { Customer } from '@/types/customer/customer.types';
 import { ImportCustomersModal } from '../import/import-customers-modal';
+import { WinBackButton } from './win-back-button';
 
 export const CustomersContainer: React.FC = () => {
     const {
@@ -19,6 +20,8 @@ export const CustomersContainer: React.FC = () => {
         totalPages,
         isLoading,
         navigation,
+        handleInviteToComeBack,
+        invitingCustomerId,
     } = useCustomers();
 
     const [showImportModal, setShowImportModal] = useState(false);
@@ -74,13 +77,21 @@ export const CustomersContainer: React.FC = () => {
             header: 'Estado',
             accessor: 'is_active',
             render: (row) => (
-                <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border whitespace-nowrap ${
-                    row.is_active
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                        : 'bg-slate-50 text-slate-500 border-slate-200'
-                }`}>
-                    {row.is_active ? 'Activo' : 'Inactivo'}
-                </span>
+                <div className="flex flex-col items-start gap-2">
+                    <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border whitespace-nowrap ${
+                        row.is_active
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                    }`}>
+                        {row.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                    {row.win_back_pending && (
+                        <WinBackButton
+                            onClick={() => handleInviteToComeBack(row)}
+                            isLoading={invitingCustomerId === row.id}
+                        />
+                    )}
+                </div>
             ),
         },
         {
@@ -120,11 +131,12 @@ export const CustomersContainer: React.FC = () => {
 
                 {/* Filtro por estado + conteo de resultados */}
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-wrap">
                         {([
                             { key: 'all', label: 'Todos' },
                             { key: 'active', label: 'Activos' },
                             { key: 'inactive', label: 'Inactivos' },
+                            { key: 'win_back', label: 'Por invitar' },
                         ] as const).map((opt) => (
                             <button
                                 key={opt.key}
@@ -196,10 +208,10 @@ export const CustomersContainer: React.FC = () => {
                         )}
                     </div>
                 ) : customers.map((customer) => (
+                    <div key={customer.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:border-amber-100 transition-all">
                     <button
-                        key={customer.id}
                         onClick={() => navigation.admin.customers.detail(customer.id)}
-                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
+                        className="w-full p-4 text-left flex items-center justify-between gap-3 active:scale-[0.99]"
                     >
                         <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-800 text-sm truncate">{customer.first_name} {customer.last_name}</p>
@@ -222,6 +234,16 @@ export const CustomersContainer: React.FC = () => {
                             )}
                         </div>
                     </button>
+                    {/* Fuera del botón de la tarjeta: un botón no puede ir dentro de otro. */}
+                    {customer.win_back_pending && (
+                        <div className="px-4 pb-4 -mt-1 flex justify-end">
+                            <WinBackButton
+                                onClick={() => handleInviteToComeBack(customer)}
+                                isLoading={invitingCustomerId === customer.id}
+                            />
+                        </div>
+                    )}
+                    </div>
                 ))}
                 {/* Paginación mobile */}
                 {totalPages > 1 && (

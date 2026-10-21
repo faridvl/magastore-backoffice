@@ -5,6 +5,7 @@ import { getSettings } from '../repositories/settings.repo';
 import { LogisticsService } from './logistics.service';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { ConsolidationStatus, DeliveryMethod } from '@/types/logistics/logistics.types';
+import { isUuid } from '@/shared/utils/is-uuid';
 
 // ABIERTO → CERRADO ya no es una transición manual: ocurre automáticamente al
 // generar el estimado (ver LogisticsRepository.generatePreBilling). Desde ABIERTO
@@ -119,7 +120,7 @@ export const ConsolidationsService = {
   /** Registra o corrige la guía del transportista tras el despacho. */
   setTrackingCode: async (uuid: string, trackingCode: string | null) => {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
-    return ConsolidationsRepository.setTrackingCode(uuid, trackingCode);
+    return ConsolidationsRepository.setTrackingCode(uuid, trackingCode?.trim() || null);
   },
 
   /**
@@ -141,7 +142,7 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.markChangeReturned(uuid);
   },
 
-  /** Avanza del paso 4 (Notificación y cierre) al 5 (Finalizada). */
+  /** Avanza del paso 4 (Cierre) al 5 (Finalizada). */
   finalizeOrder: async (uuid: string) => {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.finalizeOrder(uuid);
@@ -240,5 +241,17 @@ export const ConsolidationsService = {
   markCustomerNotifiedShipment: async (consolidationUuid: string) => {
     if (!consolidationUuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.markCustomerNotifiedShipment(consolidationUuid);
+  },
+
+  /** Postventa: seguimiento enviado al cliente (orden finalizada). */
+  markFollowUpSent: async (consolidationUuid: string) => {
+    if (!isUuid(consolidationUuid)) throw new Error('UUID de orden de envío inválida.');
+    return ConsolidationsRepository.markFollowUpSent(consolidationUuid);
+  },
+
+  /** Postventa: reseña pedida, solo después del seguimiento. */
+  markReviewRequested: async (consolidationUuid: string) => {
+    if (!isUuid(consolidationUuid)) throw new Error('UUID de orden de envío inválida.');
+    return ConsolidationsRepository.markReviewRequested(consolidationUuid);
   },
 };

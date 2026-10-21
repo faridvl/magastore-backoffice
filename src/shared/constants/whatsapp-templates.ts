@@ -1,3 +1,4 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import { toast } from 'sonner';
 
 export type WhatsAppTemplateVars = Record<string, string>;
@@ -193,7 +194,6 @@ export type WhatsAppPackageLine = {
   amountCrc?: number | null;
 };
 
-const formatCrc = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
 /**
  * Una línea por paquete, con la tienda como etiqueta y el tracking como
@@ -537,6 +537,72 @@ export function buildShipmentRequestedUnpaidCustomerMessage(params: {
     id_orden: params.orderShortId,
     monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
   });
+}
+
+/** Aviso al cliente de que su pago quedó registrado (paso de cobro → despacho). */
+export const WHATSAPP_TEMPLATE_PAYMENT_CONFIRMED = `Hola, {{nombre}}! 👋🏻
+
+¡Recibimos tu pago de *{{monto}}*! 🙌🏻 Muchas gracias por tu confianza.
+
+Ya estamos preparando el envío de tu orden {{id_orden}}. 🚚📦 Te avisamos en cuanto vaya en camino.
+
+*MAGASTORE 📦✈️*`;
+
+export function buildPaymentConfirmedMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  amountCrc: number | null;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PAYMENT_CONFIRMED, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
+  });
+}
+
+export const WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP = `Hola, {{nombre}}! 👋🏻
+
+Queríamos confirmar que tu pedido haya llegado correctamente. 📦
+
+¿Todo llegó bien?
+
+Si tienes alguna duda o necesitas ayuda con tu pedido, estamos a tu disposición.
+
+*MAGASTORE 📦✈️*`;
+
+export const WHATSAPP_TEMPLATE_REVIEW_REQUEST = `💯 ¡Nos alegra saber que todo llegó bien, {{nombre}}!
+
+Tu experiencia es muy importante para nosotros. Si quedaste satisfecho con el servicio de MAGASTORE, ¿nos ayudarías dejando una reseña o compartiendo brevemente tu experiencia? ⭐
+
+👉 (link de reseñas)
+
+Tu opinión nos ayuda a seguir mejorando y también permite que más personas conozcan nuestro servicio.
+
+¡Muchas gracias por confiar en nosotros!
+
+*MAGASTORE 📦✈️*`;
+
+export const WHATSAPP_TEMPLATE_CUSTOMER_WIN_BACK = `🛍️ Cuando vuelvas a comprar por internet, aquí estaremos para ayudarte. 😊
+
+Puedes contar con MAGASTORE para traer tus compras desde Estados Unidos de forma rápida, segura y confiable. 📦✈️
+
+Y si necesitas ayuda para realizar una compra, también contamos con Compras Asistidas. 🛒
+
+¡Será un gusto ayudarte nuevamente, {{nombre}}! 💙
+
+*MAGASTORE 📦✈️*`;
+
+export function buildPostDeliveryFollowUpMessage(params: { firstName: string; templateBody?: string }): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP, { nombre: params.firstName });
+}
+
+export function buildReviewRequestMessage(params: { firstName: string; templateBody?: string }): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_REVIEW_REQUEST, { nombre: params.firstName });
+}
+
+export function buildCustomerWinBackMessage(params: { firstName: string; templateBody?: string }): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_CUSTOMER_WIN_BACK, { nombre: params.firstName });
 }
 
 export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:
