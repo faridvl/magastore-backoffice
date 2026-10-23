@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Search,
   ChevronRight,
@@ -12,9 +12,12 @@ import {
   CheckCircle,
   CheckSquare,
   Square,
-  ChevronDown,
 } from 'lucide-react';
 import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
+import { FilterBar, FilterBarField } from '@/components/common/filter-bar/filter-bar';
+import { formatCrc } from '@/shared/utils/format-crc';
+import { formatBusinessDate } from '@/shared/utils/timezone';
+import { packageStatusLabel, packageTypeLabel } from '@/shared/constants/package-labels';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import {
   useShipmentOrders,
@@ -60,13 +63,9 @@ const STEP_COLORS: Record<ShipmentOrderStep, string> = {
   [ShipmentOrderStep.FINALIZADA]: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
-const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 
-// Eje 1 — paso del wizard. Dropdown (no chips): con 4 pasos + Fin son 5
-// opciones y el dueño prefirió el selector clásico a botones compitiendo por
-// espacio horizontal.
 const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
-  { value: ShipmentOrderStepFilter.ALL, label: 'Todos los pasos' },
   { value: ShipmentOrderStepFilter.CONFIRMACION, label: 'Confirmación' },
   { value: ShipmentOrderStepFilter.COBRO, label: 'Cobro' },
   { value: ShipmentOrderStepFilter.DESPACHO, label: 'Despacho' },
@@ -75,30 +74,24 @@ const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
   { value: ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE, label: 'Seguimiento pendiente' },
 ];
 
-// Ejes 2 y 3 — pago y notificación. El valor default lleva el nombre del eje
-// en el label ("Pago: todas") porque un <select> colapsado solo muestra el
-// valor elegido — sin ese prefijo, "Todas" a secas no dice de qué eje es.
 const PAID_FILTERS: { value: ShipmentOrderPaidFilter; label: string }[] = [
-  { value: ShipmentOrderPaidFilter.ALL, label: 'Pago: todas' },
   { value: ShipmentOrderPaidFilter.PAGADA, label: 'Pagadas' },
   { value: ShipmentOrderPaidFilter.SIN_PAGAR, label: 'Sin pagar' },
 ];
 
 const NOTIFIED_FILTERS: { value: ShipmentOrderNotifiedFilter; label: string }[] = [
-  { value: ShipmentOrderNotifiedFilter.ALL, label: 'Notif.: todas' },
-  { value: ShipmentOrderNotifiedFilter.NOTIFICADA, label: 'Notificadas' },
-  { value: ShipmentOrderNotifiedFilter.SIN_NOTIFICAR, label: 'Sin notificar' },
+  { value: ShipmentOrderNotifiedFilter.NOTIFICADA, label: 'Estimado enviado' },
+  { value: ShipmentOrderNotifiedFilter.SIN_NOTIFICAR, label: 'Estimado sin enviar' },
 ];
 
 export const ShipmentOrdersContainer: React.FC = () => {
   const {
     page, setPage,
     search, setSearch,
-    stepFilter, handleStepFilterChange,
+    stepFilters, handleStepFiltersChange,
     paidFilter, handlePaidFilterChange,
     notifiedFilter, handleNotifiedFilterChange,
-    clearFilters,
-    activeFilterCount,
+    clearDates,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
     shipmentOrders, listMeta, isLoadingList,
@@ -132,10 +125,34 @@ export const ShipmentOrdersContainer: React.FC = () => {
   } = useShipmentOrders();
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
-  // Panel de filtros secundarios en mobile: pago, notificación y fechas no
-  // caben en línea junto a los chips de paso, así que se agrupan detrás de un
-  // botón con contador — mismo patrón que un botón "Filtros (n)" de Airbnb.
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const isCreatePickup = !!activeDeliveryMethods.find((m) => m.code === createDeliveryMethod)?.is_pickup;
+
+  const filterFields: FilterBarField[] = [
+    {
+      key: 'step',
+      label: 'Paso',
+      emptyLabel: 'Todos los pasos',
+      options: STEP_FILTERS,
+      values: stepFilters,
+      onValuesChange: (values) => handleStepFiltersChange(values as ShipmentOrderStepFilter[]),
+    },
+    {
+      key: 'paid',
+      label: 'Pago',
+      emptyLabel: 'Todas',
+      options: PAID_FILTERS,
+      value: paidFilter === ShipmentOrderPaidFilter.ALL ? null : paidFilter,
+      onChange: (value) => handlePaidFilterChange((value as ShipmentOrderPaidFilter | null) ?? ShipmentOrderPaidFilter.ALL),
+    },
+    {
+      key: 'notified',
+      label: 'Estimado al cliente',
+      emptyLabel: 'Todas',
+      options: NOTIFIED_FILTERS,
+      value: notifiedFilter === ShipmentOrderNotifiedFilter.ALL ? null : notifiedFilter,
+      onChange: (value) => handleNotifiedFilterChange((value as ShipmentOrderNotifiedFilter | null) ?? ShipmentOrderNotifiedFilter.ALL),
+    },
+  ];
 
   const listColumns: Column<ConsolidationListItem>[] = [
     {
@@ -156,7 +173,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
           {/* En pantallas angostas (iPad) las columnas Peso/Paquetes/Fecha se ocultan — se resumen aquí */}
           <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
-            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
+            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {formatBusinessDate(row.created_at)}
           </span>
         </div>
       ),
@@ -168,7 +185,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Paso',
       accessor: 'current_step',
       render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
           {STEP_LABELS[row.current_step]}
         </span>
       ),
@@ -192,7 +209,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Pago',
       accessor: 'payment_status',
       render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${PAYMENT_COLORS[row.payment_status]}`}>
           {PAYMENT_LABELS[row.payment_status]}
         </span>
       ),
@@ -225,7 +242,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       className: 'hidden xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
-          {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
+          {formatBusinessDate(row.created_at)}
         </span>
       ),
     },
@@ -255,12 +272,12 @@ export const ShipmentOrdersContainer: React.FC = () => {
   // no devuelve nada sin entender cuál fue.
   const emptyStateHint = (() => {
     const parts: string[] = [];
-    const stepLabel = STEP_FILTERS.find((f) => f.value === stepFilter)?.label;
-    if (stepFilter !== ShipmentOrderStepFilter.ALL && stepLabel) parts.push(stepLabel);
+    const stepLabels = STEP_FILTERS.filter((f) => stepFilters.includes(f.value)).map((f) => f.label);
+    if (stepLabels.length > 0) parts.push(stepLabels.join(' o '));
     if (paidFilter === ShipmentOrderPaidFilter.PAGADA) parts.push('pagadas');
     if (paidFilter === ShipmentOrderPaidFilter.SIN_PAGAR) parts.push('sin pagar');
-    if (notifiedFilter === ShipmentOrderNotifiedFilter.NOTIFICADA) parts.push('notificadas');
-    if (notifiedFilter === ShipmentOrderNotifiedFilter.SIN_NOTIFICAR) parts.push('sin notificar');
+    if (notifiedFilter === ShipmentOrderNotifiedFilter.NOTIFICADA) parts.push('con estimado enviado');
+    if (notifiedFilter === ShipmentOrderNotifiedFilter.SIN_NOTIFICAR) parts.push('con estimado sin enviar');
     return parts.length > 0
       ? `No hay órdenes en ${parts.join(', ')}`
       : 'No hay órdenes de envío que coincidan con la búsqueda';
@@ -270,76 +287,44 @@ export const ShipmentOrdersContainer: React.FC = () => {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
       {/* TOOLBAR */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        {/* Fila principal */}
-        <div className="flex items-center gap-3 p-4 border-b border-slate-50">
-          <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-            <input
-              type="text"
-              placeholder="Buscar por cliente, casillero o N° de orden..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-50 pl-9 pr-4 py-2.5 rounded-xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
-            />
-          </div>
-          <div className="hidden md:flex flex-shrink-0">
-            <DateRangeFilter
-              from={dateFrom} to={dateTo}
-              onFromChange={setDateFrom} onToChange={setDateTo}
-              onClear={() => { setDateFrom(''); setDateTo(''); }}
-            />
-          </div>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 flex-shrink-0"
-          >
-            <Plus size={14} strokeWidth={3} />
-            <span className="text-[10px] font-black uppercase tracking-[0.12em] whitespace-nowrap">Nueva Orden</span>
-          </button>
-        </div>
-
-        {/* 3 ejes de filtro combinables, todos como dropdown nativo — mismo
-            patrón que usan Airbnb/Linear/Stripe para un eje con varios valores
-            excluyentes: un <select> estilizado en vez de un componente de
-            dropdown propio (evita reimplementar click-outside, teclado y foco
-            desde cero) y, en mobile, el picker nativo del sistema operativo.
-            Los 3 van en línea en desktop; en mobile se apilan en 2 filas. */}
-        <div className="px-4 py-2.5 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center gap-2">
-          <div className="grid grid-cols-3 sm:flex sm:flex-1 gap-2 min-w-0">
-            <FilterSelect value={stepFilter} options={STEP_FILTERS} onChange={handleStepFilterChange} />
-            <FilterSelect value={paidFilter} options={PAID_FILTERS} onChange={handlePaidFilterChange} />
-            <FilterSelect value={notifiedFilter} options={NOTIFIED_FILTERS} onChange={handleNotifiedFilterChange} />
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0 justify-between sm:justify-end">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4">
+        <FilterBar
+          leading={
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                placeholder="Buscar cliente, casillero u orden"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full min-h-[44px] bg-slate-50 pl-10 pr-4 rounded-full border border-slate-100 outline-none focus:ring-2 focus:ring-slate-200 text-base"
+              />
+            </div>
+          }
+          trailing={
             <button
-              onClick={() => setShowMobileFilters((v) => !v)}
-              className="sm:hidden flex items-center px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-tight text-slate-500 bg-slate-50"
+              onClick={openCreateModal}
+              className="flex flex-1 sm:flex-none items-center justify-center gap-2 min-h-[44px] px-5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors"
             >
-              Fechas
+              <Plus size={16} strokeWidth={2.5} />
+              Nueva orden
             </button>
-            {activeFilterCount > 0 && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center text-[10px] font-black uppercase tracking-tight text-slate-400 hover:text-red-500 transition-colors whitespace-nowrap"
-              >
-                Limpiar ({activeFilterCount})
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Fechas — panel aparte solo en mobile (en desktop ya están en la
-            fila principal de la toolbar, ver más abajo). */}
-        {showMobileFilters && (
-          <div className="sm:hidden px-4 pb-3 pt-1 border-b border-slate-50">
-            <DateRangeFilter
-              from={dateFrom} to={dateTo}
-              onFromChange={setDateFrom} onToChange={setDateTo}
-              onClear={() => { setDateFrom(''); setDateTo(''); }}
-            />
-          </div>
-        )}
+          }
+          fields={filterFields}
+          extraPanelContent={
+            <div className="flex flex-col gap-2.5">
+              <span className="text-sm font-bold text-slate-900">Fecha de creación</span>
+              <DateRangeFilter
+                from={dateFrom} to={dateTo}
+                onFromChange={setDateFrom} onToChange={setDateTo}
+                onClear={clearDates}
+              />
+            </div>
+          }
+          extraActiveCount={dateFrom || dateTo ? 1 : 0}
+          onClearExtra={clearDates}
+          resultCount={isLoadingList ? undefined : listMeta.total}
+        />
       </div>
 
       {/* CARDS (mobile) */}
@@ -353,8 +338,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
             <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
               <Boxes size={24} className="text-slate-300" />
             </div>
-            <p className="font-black text-slate-400 text-sm">Sin órdenes de envío</p>
-            <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
+            <p className="font-bold text-slate-600 text-sm">Sin órdenes de envío</p>
+            <p className="text-slate-500 text-sm text-center px-8">
               {emptyStateHint}
             </p>
           </div>
@@ -385,13 +370,13 @@ export const ShipmentOrdersContainer: React.FC = () => {
               )}
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
                 {STEP_LABELS[row.current_step]}
               </span>
-              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${PAYMENT_COLORS[row.payment_status]}`}>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${PAYMENT_COLORS[row.payment_status]}`}>
                 {PAYMENT_LABELS[row.payment_status]}
               </span>
-              <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
+              <span className="text-[10px] text-slate-400">{formatBusinessDate(row.created_at)}</span>
             </div>
           </button>
         ))}
@@ -488,16 +473,16 @@ export const ShipmentOrdersContainer: React.FC = () => {
                 <Boxes size={18} className="text-slate-600" />
               </div>
               <div>
-                <p className="font-black text-slate-800 uppercase tracking-wider text-xs">Nueva Orden de Envío</p>
+                <p className="font-bold text-slate-900 text-base">Nueva orden de envío</p>
                 {createCustomer && createStep !== 'customer' && (
                   <p className="text-[11px] text-slate-400 mt-0.5">{createCustomer.first_name} {createCustomer.last_name}</p>
                 )}
               </div>
             </div>
-            <p className="text-[11px] text-slate-400 mb-6">
-              {createStep === 'customer' && 'Paso 1 de 3 — Elige el cliente'}
-              {createStep === 'packages' && 'Paso 2 de 3 — Elige los paquetes a incluir'}
-              {createStep === 'address' && 'Paso 3 de 3 — Dirección de entrega y método de envío'}
+            <p className="text-sm text-slate-500 mb-6">
+              {createStep === 'customer' && 'Paso 1 de 3: elige el cliente'}
+              {createStep === 'packages' && 'Paso 2 de 3: elige los paquetes'}
+              {createStep === 'address' && 'Paso 3 de 3: dirección y método de envío'}
             </p>
 
             {isLoadingCreateData ? (
@@ -587,7 +572,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
                               {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                             </p>
                             <p className="text-[10px] text-slate-400 truncate">
-                              {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
+                              {Number(pkg.weight_lb).toFixed(2)} lb · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
                             </p>
                           </div>
                         </button>
@@ -629,8 +614,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
                     {createAddresses.length === 0 ? 'Agregar' : 'Gestionar'}
                   </button>
                 </div>
-                {createAddresses.length === 0 ? (
-                  <p className="text-slate-400 text-sm py-4 text-center">Este cliente no tiene direcciones registradas.</p>
+                {isCreatePickup ? (
+                  <p className="text-slate-500 text-sm py-3 mb-4">No hace falta: el cliente retira en oficina.</p>
+                ) : createAddresses.length === 0 ? (
+                  <p className="text-slate-500 text-sm py-3 mb-4">Este cliente no tiene direcciones. Agrega una, o elige retiro en oficina.</p>
                 ) : (
                   <div className="space-y-2 mb-6">
                     {createAddresses.map((addr) => (
@@ -644,10 +631,15 @@ export const ShipmentOrdersContainer: React.FC = () => {
                         }`}
                       >
                         <div>
-                          <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                          <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
                           <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                             {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                           </p>
+                          {addr.recipient_name && (
+                            <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                              Recibe: {addr.recipient_name}
+                            </p>
+                          )}
                         </div>
                         {createAddressId === addr.id && (
                           <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
@@ -687,11 +679,11 @@ export const ShipmentOrdersContainer: React.FC = () => {
                     <ChevronLeft size={14} /> Atrás
                   </button>
                   <button
-                    onClick={handleConfirmCreate}
-                    disabled={!createAddressId || !createDeliveryMethod || isCreatingOrder}
-                    className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
+                    onClick={() => handleConfirmCreate(isCreatePickup)}
+                    disabled={(!createAddressId && !isCreatePickup) || !createDeliveryMethod || isCreatingOrder}
+                    className="py-3.5 px-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
                   >
-                    {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
+                    {isCreatingOrder ? 'Creando…' : 'Crear orden'}
                   </button>
                 </div>
               </>
@@ -709,41 +701,11 @@ export const ShipmentOrdersContainer: React.FC = () => {
           onSaved={handleCreateAddressesSaved}
           onClose={() => setShowCreateAddressesModal(false)}
           zIndexClassName="z-[70]"
+          startWithNewAddress={createAddresses.length === 0}
         />
       )}
     </div>
   );
 };
-
-/**
- * Dropdown nativo para un eje de filtro. Se usa <select> en vez de un
- * dropdown propio a propósito: con un eje ya en 5-6 valores (step) y otros
- * dos en 3, reimplementar click-outside/teclado/foco no aporta nada sobre el
- * control nativo del navegador — que además ya da el picker correcto en
- * mobile sin trabajo extra. El valor activo queda siempre visible como texto
- * del select, igual que en Airbnb/Linear/Stripe.
- */
-const FilterSelect = <T extends string>({
-  value,
-  options,
-  onChange,
-}: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (val: T) => void;
-}) => (
-  <div className="relative flex-1 min-w-0">
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as T)}
-      className="w-full appearance-none bg-slate-50 border border-slate-100 rounded-lg pl-3 pr-7 py-2 text-[11px] font-black uppercase tracking-tight text-slate-700 truncate outline-none focus:ring-2 focus:ring-amber-100 cursor-pointer"
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
-      ))}
-    </select>
-    <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-  </div>
-);
 
 export default ShipmentOrdersContainer;

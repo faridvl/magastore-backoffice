@@ -106,6 +106,8 @@ export interface PreBillingPDFData {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  delivery_recipient_name: string | null;
+  delivery_recipient_phone: string | null;
 }
 
 interface Props {
@@ -189,6 +191,9 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
                 {[data.delivery_exact_address, data.delivery_district, data.delivery_canton, data.delivery_province]
                   .filter(Boolean)
                   .join(', ')}
+                {data.delivery_recipient_name
+                  ? ` · Recibe: ${[data.delivery_recipient_name, data.delivery_recipient_phone].filter(Boolean).join(', ')}`
+                  : ''}
               </Text>
             </Text>
           </View>

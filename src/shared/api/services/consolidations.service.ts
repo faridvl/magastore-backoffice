@@ -142,6 +142,11 @@ export const ConsolidationsService = {
     return ConsolidationsRepository.markChangeReturned(uuid);
   },
 
+  advanceToClosing: async (uuid: string) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    return ConsolidationsRepository.advanceToClosing(uuid);
+  },
+
   /** Avanza del paso 4 (Cierre) al 5 (Finalizada). */
   finalizeOrder: async (uuid: string) => {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');

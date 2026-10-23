@@ -25,7 +25,7 @@ import { BillingDetailModal } from '@/components/common/billing-detail-modal/bil
 import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 import { CustomerBillingMode } from '@/types/customer/customer.types';
-import { useShipmentOrderDetail } from './use-shipment-order-detail';
+import { useShipmentOrderDetail, DetailConfirmAction } from './use-shipment-order-detail';
 import { WizardStepsSection } from './step-sections/wizard-steps-section';
 import { PostDeliverySection } from './step-sections/post-delivery-section';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
@@ -39,11 +39,13 @@ import {
 } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { formatCrc } from '@/shared/utils/format-crc';
+import { packageStatusLabel, packageTypeLabel } from '@/shared/constants/package-labels';
 
 const STATUS_LABELS: Record<ConsolidationStatus, string> = {
   ABIERTO: 'Abierto',
   CERRADO: 'Cerrado',
-  DESPACHADO: 'Despachado',
+  DESPACHADO: 'En camino',
   ENTREGADO: 'Entregado',
 };
 
@@ -54,7 +56,20 @@ const STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
-const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
+
+const CONFIRM_COPY: Record<DetailConfirmAction, { title: string; body: string; confirmLabel: string }> = {
+  [DetailConfirmAction.GO_BACK]: {
+    title: '¿Volver a Confirmación?',
+    body: 'Se descarta el estimado. Si ya se lo enviaste al cliente, después tendrás que generarlo y enviarlo de nuevo.',
+    confirmLabel: 'Sí, volver',
+  },
+  [DetailConfirmAction.UNASSIGN_PACKAGE]: {
+    title: '¿Quitar este paquete de la orden?',
+    body: 'El paquete vuelve a quedar disponible para otra orden del cliente.',
+    confirmLabel: 'Sí, quitar',
+  },
+};
 
 export const ShipmentOrderDetailContainer: React.FC = () => {
   const router = useRouter();
@@ -66,10 +81,13 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     isLoadingDetail,
     handleBack,
 
-    handleAdvanceStatus, isUpdating,
+    isUpdating,
+    handleAdvanceToClosing, isAdvancingToClosing,
+    isPickup,
+    confirmAction, setConfirmAction, handleConfirmAction,
+    requestGoBackToConfirmation, requestUnassignPackage,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
-    handleGoBackToConfirmation,
     handleAdvanceToDispatchClick,
     showPaymentCheckModal, setShowPaymentCheckModal,
     paymentCheckMethod, setPaymentCheckMethod,
@@ -85,7 +103,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleMarkChangeReturned, isMarkingChangeReturned,
     handleFinalizeOrder, isFinalizing,
 
-    handleUnassignPackage, isUnassigning,
+    isUnassigning,
 
     showPreBillingModal, setShowPreBillingModal,
     preBillingDeliveryMethod, setPreBillingDeliveryMethod,
@@ -172,67 +190,25 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
   const hasBilling = !!detail.billing_uuid;
   const hasPreBilling = !!detail.pre_billing_uuid;
-  const preBillingConfirmed = !!detail.pre_billing_confirmed;
   const isPaid = !!detail.billing_is_paid;
-  // Lo facturado manda sobre el estimado: es la cifra que el cliente debe pagar.
-  const amountToShow = detail.billing_total_amount_crc ?? detail.pre_billing_amount;
   const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === detail.delivery_method);
   const isDispatched = detail.status === ConsolidationStatus.DESPACHADO || detail.status === ConsolidationStatus.ENTREGADO;
   // El aviso de despacho necesita las tres cosas: sin guía no hay qué rastrear,
   // y sin URL configurada el mensaje llevaría un enlace vacío.
   const canNotifyDispatch = isDispatched && !!detail.tracking_code && !!deliveryMethodEntity?.tracking_url;
-  // Finalizada (paso 5): el stepper deja de mostrarse y la pantalla vuelve a
-  // ser la de siempre — decisión explícita del dueño ("por último finalizado
-  // deja la pantalla tal cual está actualmente").
-  const showStepper = detail.current_step !== ShipmentOrderStep.FINALIZADA;
-  // Wizard estricto: cada paso muestra únicamente sus propias cards — pedido
-  // explícito del dueño. Mobile: wizard estricto, un solo paso visible a la
-  // vez (JS oculta las secciones que no son el activo). Desktop/iPad (md+):
-  // los 4 se ven siempre, apilados en columna — el activo interactivo, los
-  // demás atenuados y bloqueados (stepSectionClass decide cuál es cuál).
-  const isConfirmationStep = detail.current_step === ShipmentOrderStep.CONFIRMACION;
-  const isCobroStep = detail.current_step === ShipmentOrderStep.COBRO;
-  const isDispatchStep = detail.current_step === ShipmentOrderStep.DESPACHO;
-  // "Agregar paquetes" en el header: disponible en el paso 1 (armado, sin
-  // estimado) y 2 (cobro, recalcula al agregar) — no en el 3, donde el
-  // proveedor ya tiene el bulto solicitado con la lista original.
-  const canAssignPackages = isConfirmationStep || isCobroStep;
-
-  /**
-   * Clases del contenedor de cada sección de paso. `isActive` decide todo:
-   * el paso activo tiene animate-in (transición al avanzar) y es interactivo;
-   * los demás quedan ocultos en mobile (hidden md:block) y, cuando sí se
-   * muestran (md+), atenuados y bloqueados con pointer-events-none — no
-   * editables ahí, para eso existe "Volver a abrir".
-   */
-  const stepSectionClass = (isActive: boolean) =>
-    isActive
-      ? 'animate-in fade-in slide-in-from-bottom-2 duration-300'
-      : 'hidden md:block opacity-40 grayscale pointer-events-none select-none';
-
-  // Paso 4 (Cierre): diferencia entre lo que se le cobró al
-  // cliente ORIGINALMENTE (billing_original_delivery_fee_crc — no
-  // billing_delivery_fee_crc, que ya fue sobreescrito con el valor real) y el
-  // costo real informado por el transportista. Solo hay vuelto si es positiva
-  // (se le cobró de más) — si el costo real fue igual o mayor, no hay nada
-  // que devolver.
-  const isNotificationStep = detail.current_step === ShipmentOrderStep.NOTIFICACION;
-  const hasActualFee = detail.billing_actual_delivery_fee_crc != null;
-  const originalFeeCrc = detail.billing_original_delivery_fee_crc ?? detail.billing_delivery_fee_crc;
-  const changeCrc = hasActualFee && originalFeeCrc != null
-    ? Number(originalFeeCrc) - Number(detail.billing_actual_delivery_fee_crc)
-    : 0;
-  const hasChangeDue = hasActualFee && changeCrc > 0;
+  // "Agregar paquetes": en Confirmación y en Cobro (recalcula el estimado); no en
+  // Despacho, donde el proveedor ya tiene la solicitud con la lista original.
+  const canAssignPackages = detail.current_step === ShipmentOrderStep.CONFIRMACION || detail.current_step === ShipmentOrderStep.COBRO;
+  const confirmCopy = confirmAction ? CONFIRM_COPY[confirmAction] : null;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8 pb-20">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 pb-20">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-col min-w-0 w-full md:w-auto">
-          {/* Oculto en móvil: la flecha del header ya cumple esta función y en
-              pantalla angosta este enlace consumía una línea entera. */}
-          <button onClick={handleBack} className="hidden sm:flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
-            <ChevronLeft size={14} /> Volver a órdenes de envío
+          {/* En móvil la flecha del header ya vuelve atrás. */}
+          <button onClick={handleBack} className="hidden sm:flex items-center gap-1.5 min-h-[32px] text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold mb-2">
+            <ChevronLeft size={16} /> Órdenes de envío
           </button>
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             <Typography variant={TypographyVariant.HEADER} className="tracking-tighter break-words">
@@ -246,39 +222,23 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               />
             )}
           </div>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1 break-words">
-            {detail.customer_code} · {detail.customer_email}
+          <p className="text-slate-500 text-sm font-medium mt-1 break-words">
+            {detail.customer_code} · {detail.customer_email.toLowerCase()}
           </p>
         </div>
-        {/* Acciones de estado + badge. Antes vivían al pie de la página, debajo
-            de la rentabilidad, donde el operador no las encontraba. En móvil la
-            acción principal ocupa el ancho y las secundarias van a su lado. */}
-        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
-          {/* "Volver a abrir" se quitó de acá: ahora vive como "Atrás" dentro
-              de la card del paso 2, junto al Siguiente (pedido del dueño) —
-              una sola forma de hacer la acción, no duplicada entre header y
-              card. Ver handleGoBackToConfirmation en el hook. */}
-          {/* "Ver factura" — siempre visible desde que existe factura, sin
-              importar el paso. Antes vivía como card suelta solo en el paso 2;
-              el dueño pidió que quede fijo arriba, como el resto de acciones
-              de cabecera. */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${STATUS_COLORS[detail.status]}`}>
+            {isPickup && detail.status === ConsolidationStatus.DESPACHADO ? 'Listo para retiro' : STATUS_LABELS[detail.status]}
+          </span>
           {hasBilling && (
             <button
               onClick={() => setShowBillingModal(true)}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-[11px] hover:bg-emerald-100 transition-all"
+              className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
             >
-              <FileText size={13} />
+              <FileText size={14} />
               Ver factura
             </button>
           )}
-          {/* El avance de paso (Generar Estimado / Confirmar Estimado /
-              Marcar Despachado / Finalizar) NO vive acá — cada paso tiene su
-              propio botón dentro de su card, siguiendo la estructura de la
-              pizarra original del dueño. El header solo tiene lo que aplica
-              sin importar el paso: reabrir, ver factura, badge de estado. */}
-          <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_COLORS[detail.status]}`}>
-            {STATUS_LABELS[detail.status]}
-          </span>
         </div>
       </div>
 
@@ -286,6 +246,13 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         detail={detail}
         deliveryMethodsData={deliveryMethodsData?.data}
         activeDeliveryMethods={activeDeliveryMethods}
+        isPickup={isPickup}
+        finalizedContent={
+          <>
+            <PostDeliverySection detail={detail} />
+            {detail.packages.length > 0 && <ProfitCard detail={detail} />}
+          </>
+        }
         step1BlockedReason={step1BlockedReason}
         isGeneratingPreBilling={isGeneratingPreBilling}
         handleGenerateEstimateClick={handleGenerateEstimateClick}
@@ -297,9 +264,11 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         setPreBillingDeliveryMethod={setPreBillingDeliveryMethod}
         setShowPreBillingModal={setShowPreBillingModal}
         isUpdating={isUpdating}
+        isAdvancingToDispatch={isAdvancingToDispatch}
         handleAdvanceToDispatchClick={handleAdvanceToDispatchClick}
-        handleAdvanceStatus={handleAdvanceStatus}
-        handleGoBackToConfirmation={handleGoBackToConfirmation}
+        isAdvancingToClosing={isAdvancingToClosing}
+        handleAdvanceToClosing={handleAdvanceToClosing}
+        requestGoBackToConfirmation={requestGoBackToConfirmation}
         setShowBillingModal={setShowBillingModal}
         handleOpenShipmentRequestModal={handleOpenShipmentRequestModal}
         isCopyingRequest={isCopyingRequest}
@@ -326,17 +295,39 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         canAssignPackages={canAssignPackages}
         handleOpenAssignModal={handleOpenAssignModal}
         isLoadingAvailable={isLoadingAvailable}
-        handleUnassignPackage={handleUnassignPackage}
+        requestUnassignPackage={requestUnassignPackage}
         isUnassigning={isUnassigning}
       />
 
-      {detail.current_step === ShipmentOrderStep.FINALIZADA && <PostDeliverySection detail={detail} />}
-
-      {/* RENTABILIDAD (solo interno — no aparece en el PDF ni en nada visible al
-          cliente). Solo en Finalizada: es la ganancia definitiva de la orden ya
-          cerrada, no un dato operativo del wizard — el dueño pidió que no se
-          muestre hasta que el ciclo esté completo. */}
-      {detail.current_step === ShipmentOrderStep.FINALIZADA && detail.packages.length > 0 && <ProfitCard detail={detail} />}
+      {/* MODAL: CONFIRMAR UNA ACCIÓN QUE DESCARTA TRABAJO */}
+      {confirmCopy && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setConfirmAction(null)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="font-bold text-slate-900 text-base">{confirmCopy.title}</p>
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">{confirmCopy.body}</p>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="flex-1 min-h-[44px] rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                className="flex-1 min-h-[44px] rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition-colors"
+              >
+                {confirmCopy.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: DETALLE DE FACTURA (mismo modal que Facturación) */}
       {showBillingModal && (
@@ -429,10 +420,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
                   {hasBilling
-                    ? 'La orden volverá a ABIERTO y la factura generada se eliminará (quedó calculada con el peso/paquetes actuales). Deberás generar el estimado y confirmarlo de nuevo tras editar.'
+                    ? 'Se descarta la factura sin pagar. Después de editar, tendrás que generar y confirmar el estimado de nuevo.'
                     : hasPreBilling
-                      ? 'La orden volverá a ABIERTO y el estimado generado se eliminará (quedó calculado con el peso/paquetes actuales). Deberás generarlo de nuevo tras editar.'
-                      : 'La orden de envío volverá a estado ABIERTO y podrás seguir editándola.'}
+                      ? 'Se descarta el estimado. Después de editar, tendrás que generarlo de nuevo.'
+                      : 'Podrás seguir editándola.'}
                 </p>
               </div>
             </div>
@@ -470,7 +461,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 <FileText size={18} className="text-slate-600" />
               </div>
               <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Generar Prefactura
+                Generar estimado
               </Typography>
             </div>
 
@@ -510,7 +501,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 disabled={isGeneratingPreBilling}
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
-                {isGeneratingPreBilling ? 'Generando...' : 'Generar Estimado'}
+                {isGeneratingPreBilling ? 'Generando…' : 'Generar estimado'}
               </button>
             </div>
           </div>
@@ -571,10 +562,15 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                     }`}
                   >
                     <div>
-                      <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                      <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
                       <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                         {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                       </p>
+                      {addr.recipient_name && (
+                        <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                          Recibe: {addr.recipient_name}
+                        </p>
+                      )}
                     </div>
                     {selectedAddressId === addr.id && (
                       <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
@@ -693,7 +689,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </Typography>
             </div>
             <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              Datos de quien recibe. Vienen del cliente; corrígelos si el envío va a otra persona.
+              Datos de quien recibe, tomados de la dirección de entrega. Corrígelos si hace falta.
             </p>
 
             <div className="space-y-3 mb-6">
@@ -702,7 +698,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 <input
                   value={receiverName}
                   onChange={(e) => setReceiverName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
                 />
               </div>
               <div>
@@ -710,7 +706,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 <input
                   value={receiverPhone}
                   onChange={(e) => setReceiverPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
                 />
               </div>
               <div>
@@ -718,7 +714,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 <input
                   value={receiverIdCard}
                   onChange={(e) => setReceiverIdCard(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
                 />
               </div>
             </div>
@@ -766,12 +762,12 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               value={trackingDraft}
               onChange={(e) => setTrackingDraft(e.target.value)}
               placeholder="Ej. EZ292332205CR"
-              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 mb-2"
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-base font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 mb-2"
             />
             <p className="text-[11px] text-slate-400 mb-6">
               {deliveryMethodEntity?.tracking_url
-                ? 'Con la guía registrada podés enviarle el aviso de despacho al cliente.'
-                : 'Este método de entrega no tiene enlace de rastreo configurado. Agregalo en Ajustes → Métodos de entrega para poder avisar al cliente.'}
+                ? 'Con la guía cargada puedes enviarle al cliente el aviso de despacho.'
+                : 'Este método no tiene enlace de rastreo. Agrégalo en Ajustes → Métodos de entrega para poder avisar al cliente.'}
             </p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -783,7 +779,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </button>
               <button
                 onClick={handleSaveTrackingCode}
-                disabled={isSavingTracking}
+                disabled={isSavingTracking || !trackingDraft.trim()}
                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
               >
                 {isSavingTracking ? 'Guardando...' : 'Guardar'}
@@ -824,7 +820,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               value={actualFeeDraft}
               onChange={(e) => setActualFeeDraft(e.target.value)}
               placeholder="Ej. 4200"
-              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 mb-2"
+              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-base font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 mb-2"
             />
             <p className="text-[11px] text-slate-400 mb-6">
               Esto corrige lo que se le cobró al cliente por el envío. Si se le cobró de más,
@@ -871,8 +867,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                 </p>
                 <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
                   {hasBilling
-                    ? 'La factura ya guardó la dirección y la tarifa de entrega aplicadas. Cambiarlas ahora no recalcularía el monto cobrado. Para editarlas, volvé a abrir la orden — se descartará la factura y deberás generar el estimado de nuevo.'
-                    : 'El estimado ya se calculó con estos datos. Para cambiarlos, volvé a abrir la orden — se descartará el estimado y deberás generarlo de nuevo.'}
+                    ? 'La factura ya tiene la dirección y la tarifa de entrega. Para cambiarlas, vuelve a abrir la orden: se descarta la factura y tendrás que generar el estimado de nuevo.'
+                    : 'El estimado ya se calculó con estos datos. Para cambiarlos, vuelve a abrir la orden: se descarta el estimado y tendrás que generarlo de nuevo.'}
                 </p>
               </div>
             </div>
@@ -915,7 +911,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                   <Package size={18} className="text-slate-600" />
                 </div>
                 <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                  Agregar Paquetes
+                  Agregar paquetes
                 </Typography>
               </div>
               {selectedPackageUuids.length > 0 && (
@@ -933,7 +929,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               <div className="text-center py-8">
                 <Package size={32} className="text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 text-sm">No hay paquetes disponibles para este cliente.</p>
-                <p className="text-slate-400 text-xs mt-1">Los paquetes ya asignados a otra orden de envío no aparecen aquí.</p>
+                <p className="text-slate-400 text-xs mt-1">Los paquetes que ya están en otra orden no aparecen aquí.</p>
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
@@ -958,7 +954,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                           {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                         </p>
                         <p className="text-[10px] text-slate-400 truncate">
-                          {Number(pkg.weight_lb).toFixed(2)} lb · {pkg.package_type} · {pkg.status}
+                          {Number(pkg.weight_lb).toFixed(2)} lb · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
                         </p>
                       </div>
                     </button>
@@ -1000,7 +996,11 @@ const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => (
 const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => {
   const cobroTotal = Number(detail.billing_total_amount_crc ?? 0);
   const courierCost = detail.billing_courier_cost_crc != null ? Number(detail.billing_courier_cost_crc) : null;
-  const deliveryCost = detail.billing_delivery_cost_crc != null ? Number(detail.billing_delivery_cost_crc) : null;
+  // Con el costo real cargado en el Cierre, el cobro total ya lo incluye: el
+  // costo debe ser el mismo, si no cobro − costo deja de dar la ganancia.
+  const deliveryCost = detail.billing_actual_delivery_fee_crc != null
+    ? Number(detail.billing_actual_delivery_fee_crc)
+    : detail.billing_delivery_cost_crc != null ? Number(detail.billing_delivery_cost_crc) : null;
   const gananciaTotal = detail.billing_profit_crc != null ? Number(detail.billing_profit_crc) : null;
   const margen = gananciaTotal != null && cobroTotal > 0 ? (gananciaTotal / cobroTotal) * 100 : null;
   const hasUnknownCost = detail.billing_has_unknown_cost === true;

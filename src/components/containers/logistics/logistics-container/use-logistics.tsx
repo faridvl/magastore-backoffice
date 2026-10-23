@@ -46,7 +46,14 @@ export const usePackages = (pageSize = 7) => {
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-    const [selection, setSelection] = useState<StoredSelection>(readStoredSelection);
+    // Se lee de sessionStorage después de montar: leerla en el primer render hacía
+    // que el servidor y el navegador dibujaran distinto (error de hidratación).
+    const [selection, setSelection] = useState<StoredSelection>(EMPTY_SELECTION);
+    const [hasRestoredSelection, setHasRestoredSelection] = useState(false);
+    useEffect(() => {
+        setSelection(readStoredSelection());
+        setHasRestoredSelection(true);
+    }, []);
     const selectedUuids = selection.uuids;
     const selectedCustomerId = selection.customerId;
 
@@ -64,13 +71,13 @@ export const usePackages = (pageSize = 7) => {
     // Persiste la selección en sessionStorage — sobrevive a un "back" del navegador
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || !hasRestoredSelection) return;
         if (selection.uuids.length === 0) {
             window.sessionStorage.removeItem(SELECTION_STORAGE_KEY);
         } else {
             window.sessionStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(selection));
         }
-    }, [selection]);
+    }, [selection, hasRestoredSelection]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -143,7 +150,7 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
+    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId: string | undefined, deliveryMethod: DeliveryMethod) => {
         try {
             const result = await createShipmentOrderWithPackages({
                 customerUuid,
@@ -174,9 +181,28 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const handleConfirmCreateOrderWithAddress = async () => {
-        if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
-        await createOrderAndRedirect(addressModalTarget.packageUuids, addressModalTarget.customerUuid, selectedAddressId, selectedDeliveryMethod);
+    // Una dirección recién agregada desde el modal se elige de una vez: el
+    // operador la creó justo para esta orden.
+    const handleAddressesSaved = (addresses: CustomerAddress[]) => {
+        setAddressModalTarget((prev) => {
+            if (!prev) return prev;
+            const previousIds = new Set(prev.addresses.map((a) => a.id));
+            const created = addresses.find((a) => !previousIds.has(a.id));
+            if (created) setSelectedAddressId(created.id);
+            return { ...prev, addresses };
+        });
+    };
+
+    // En retiro en oficina no hay entrega: la orden se crea sin dirección.
+    const handleConfirmCreateOrderWithAddress = async (isPickup: boolean) => {
+        if (!addressModalTarget || !selectedDeliveryMethod) return;
+        if (!isPickup && !selectedAddressId) return;
+        await createOrderAndRedirect(
+            addressModalTarget.packageUuids,
+            addressModalTarget.customerUuid,
+            isPickup ? undefined : selectedAddressId,
+            selectedDeliveryMethod,
+        );
         setAddressModalTarget(null);
         setSelectedAddressId('');
         setSelectedDeliveryMethod(null);
@@ -212,6 +238,7 @@ export const usePackages = (pageSize = 7) => {
         notifyMultiple,
 
         // Modal: elegir dirección de entrega + método de envío al crear la orden
+        handleAddressesSaved,
         addressModalTarget,
         setAddressModalTarget,
         selectedAddressId,

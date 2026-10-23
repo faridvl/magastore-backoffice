@@ -1,3 +1,4 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import React, { useState } from 'react';
 import { X, CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
@@ -8,7 +9,7 @@ import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-deliv
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 
-const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 interface Props {

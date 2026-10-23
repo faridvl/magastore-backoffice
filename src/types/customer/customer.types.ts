@@ -7,6 +7,10 @@ export interface CustomerAddressInput {
   exact_address: string;
   address_label?: string;
   is_default?: boolean;
+  // Quién recibe, cuando no es el propio cliente (migración 035). Vacíos = el cliente.
+  recipient_name?: string | null;
+  recipient_phone?: string | null;
+  recipient_id_card?: string | null;
 }
 
 export interface CustomerAddressUpdateInput {
@@ -17,6 +21,9 @@ export interface CustomerAddressUpdateInput {
   exact_address: string;
   address_label?: string;
   is_default?: boolean;
+  recipient_name?: string | null;
+  recipient_phone?: string | null;
+  recipient_id_card?: string | null;
 }
 
 /**

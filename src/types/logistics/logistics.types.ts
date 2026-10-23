@@ -589,6 +589,10 @@ export interface ConsolidationDetail {
   billing_change_returned: boolean | null;
   billing_change_returned_at: string | null;
   billing_payment_notified_at: string | null;
+  billing_payment_method: PaymentMethod | null;
+  billing_paid_at: string | null;
+  billing_invoice_number: number | null;
+  billing_paid_by_name: string | null;
   // Participación de Farid sobre la ganancia de esta orden (migración 023).
   // Null mientras no se haya generado el estimado — se crea recién ahí.
   profit_share_crc: number | null;
@@ -601,6 +605,10 @@ export interface ConsolidationDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  // Quién recibe en la dirección de la orden; null = el propio cliente.
+  delivery_recipient_name: string | null;
+  delivery_recipient_phone: string | null;
+  delivery_recipient_id_card: string | null;
   // Guía del transportista y fecha del despacho (migración 027). Null mientras
   // la orden no se haya despachado, y también después si se despachó sin guía
   // —es opcional— o si el método es de retiro en oficina.

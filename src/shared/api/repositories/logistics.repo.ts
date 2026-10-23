@@ -383,22 +383,36 @@ export const LogisticsRepository = {
       `;
       if (existingBill) throw new Error('Esta orden de envío ya tiene una factura generada.');
 
+      const [methodRow] = pre.delivery_method
+        ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${pre.delivery_method}`
+        : [null];
+
       // La dirección snapshot usa la fijada en la orden (delivery_address_id), no la
       // is_default del cliente — pueden diferir si el operador la cambió para este envío.
-      const [addressRow] = c.delivery_address_id
-        ? await sql`
-            SELECT exact_address, district, canton, province FROM customer_addresses
-            WHERE id = ${c.delivery_address_id}
-          `
-        : await sql`
-            SELECT exact_address, district, canton, province FROM customer_addresses
-            WHERE customer_id = ${c.customer_id}
-            ORDER BY is_default DESC LIMIT 1
-          `;
+      // En retiro en oficina no hay entrega: la factura no debe imprimir dirección.
+      const [addressRow] = methodRow?.is_pickup
+        ? [null]
+        : c.delivery_address_id
+          ? await sql`
+              SELECT exact_address, district, canton, province, recipient_name, recipient_phone FROM customer_addresses
+              WHERE id = ${c.delivery_address_id}
+            `
+          : await sql`
+              SELECT exact_address, district, canton, province, recipient_name, recipient_phone FROM customer_addresses
+              WHERE customer_id = ${c.customer_id}
+              ORDER BY is_default DESC LIMIT 1
+            `;
       const addressSnapshot = addressRow
-        ? [addressRow.exact_address, addressRow.district, addressRow.canton, addressRow.province]
+        ? [
+            [addressRow.exact_address, addressRow.district, addressRow.canton, addressRow.province]
+              .filter(Boolean)
+              .join(', '),
+            addressRow.recipient_name
+              ? `Recibe: ${[addressRow.recipient_name, addressRow.recipient_phone].filter(Boolean).join(', ')}`
+              : null,
+          ]
             .filter(Boolean)
-            .join(', ')
+            .join(' · ')
         : null;
 
       // Ganancia congelada al confirmar: courier_cost_crc se calcula de los
@@ -413,9 +427,6 @@ export const LogisticsRepository = {
       const courierCostCrc = Number(courierCostRow.total);
       const deliveryCostCrc = pre.delivery_cost_crc != null ? Number(pre.delivery_cost_crc) : null;
 
-      const [methodRow] = pre.delivery_method
-        ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${pre.delivery_method}`
-        : [null];
       const hasUnknownCost = deliveryCostCrc == null && pre.delivery_method != null && !methodRow?.is_pickup;
       const profitCrc = Number(pre.estimated_amount_crc) - courierCostCrc - (deliveryCostCrc ?? 0);
 

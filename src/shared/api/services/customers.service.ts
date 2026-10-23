@@ -15,7 +15,13 @@ function validateAndNormalizeAddress<T extends CustomerAddressInput | CustomerAd
   // La dirección exacta la escribe el operador a mano: se guarda en mayúsculas
   // igual que el resto de los datos del cliente. Provincia/cantón/distrito
   // vienen de resolveLocation y conservan la grafía oficial.
-  return { ...addr, ...resolved, exact_address: addr.exact_address?.trim().toUpperCase() ?? addr.exact_address };
+  const normalized = { ...addr, ...resolved, exact_address: addr.exact_address?.trim().toUpperCase() ?? addr.exact_address };
+  // Solo se tocan si vienen: la edición completa del cliente reenvía direcciones
+  // sin estos campos y no debe borrar quién recibe.
+  if ('recipient_name' in addr) normalized.recipient_name = addr.recipient_name?.trim().toUpperCase() || null;
+  if ('recipient_phone' in addr) normalized.recipient_phone = addr.recipient_phone?.trim() || null;
+  if ('recipient_id_card' in addr) normalized.recipient_id_card = addr.recipient_id_card?.trim() || null;
+  return normalized;
 }
 
 /**

@@ -166,6 +166,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { updated: true } });
       }
 
+      if (action === 'advance-to-closing') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.advanceToClosing(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
       if (action === 'finalize') {
         if (!consolidationUuid) {
           return res.status(400).json({ message: 'consolidationUuid es requerido.' });

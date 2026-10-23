@@ -30,6 +30,12 @@ import { ConsolidationStatus, DeliveryMethod, AvailablePackage, PaymentMethod } 
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
+/** Acciones que descartan trabajo y por eso piden confirmación antes de ejecutarse. */
+export enum DetailConfirmAction {
+  GO_BACK = 'GO_BACK',
+  UNASSIGN_PACKAGE = 'UNASSIGN_PACKAGE',
+}
+
 export const useShipmentOrderDetail = (uuid?: string) => {
   const router = useRouter();
 
@@ -124,11 +130,16 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isSavingActualFee, setIsSavingActualFee] = useState(false);
   const [isMarkingChangeReturned, setIsMarkingChangeReturned] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isAdvancingToClosing, setIsAdvancingToClosing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<DetailConfirmAction | null>(null);
+  const [packageToUnassign, setPackageToUnassign] = useState<string | null>(null);
 
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === detail?.delivery_method);
+  const isPickup = !!deliveryMethodEntity?.is_pickup;
 
   // Detalle de la factura para el modal — solo se consulta al abrirlo
   const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
@@ -143,6 +154,11 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
   const handleBack = () => router.push('/admin/shipment-orders');
+
+  const requestUnassignPackage = (packageUuid: string) => {
+    setPackageToUnassign(packageUuid);
+    setConfirmAction(DetailConfirmAction.UNASSIGN_PACKAGE);
+  };
 
   const handleUnassignPackage = async (packageUuid: string) => {
     try {
@@ -170,10 +186,22 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     if (!detail) return;
     try {
       await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
-      toast.success('Orden de envío devuelta al paso de confirmación');
+      toast.success('La orden volvió a Confirmación. El estimado se descartó.');
       await detailQuery.invalidate();
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo volver al paso anterior.');
+    }
+  };
+
+  const requestGoBackToConfirmation = () => setConfirmAction(DetailConfirmAction.GO_BACK);
+
+  const handleConfirmAction = async () => {
+    const action = confirmAction;
+    setConfirmAction(null);
+    if (action === DetailConfirmAction.GO_BACK) await handleGoBackToConfirmation();
+    if (action === DetailConfirmAction.UNASSIGN_PACKAGE && packageToUnassign) {
+      await handleUnassignPackage(packageToUnassign);
+      setPackageToUnassign(null);
     }
   };
 
@@ -211,7 +239,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     setIsAdvancingToDispatch(true);
     try {
       await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.DESPACHADO, currentStatus: ConsolidationStatus.CERRADO });
-      toast.success('Orden de envío en el paso de Despacho');
+      toast.success('La orden pasó a Despacho');
       await detailQuery.invalidate();
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo avanzar al paso de despacho.');
@@ -254,18 +282,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         await markAsPaid({ billingUuid: detail.billing_uuid, paymentMethod: paidWith });
       }
       setShowPaymentCheckModal(false);
+      // El paso 3 ya lista en orden el aviso de pago y la solicitud al
+      // proveedor: abrir además un modal y un aviso a la vez competía por la atención.
       await handleAdvanceToDispatchDirect();
-      // Con el pago confirmado lo siguiente es pedir el envío ya: se abre la
-      // solicitud al proveedor y se ofrece el aviso al cliente. Cerrar cualquiera
-      // de los dos no bloquea nada; el aviso queda disponible en el paso 3.
-      if (paidWith) {
-        toast.success('Pago registrado', {
-          description: '¿Le avisas al cliente que recibimos su pago?',
-          action: { label: 'Avisar al cliente', onClick: () => handleNotifyPaymentConfirmed() },
-          duration: 10000,
-        });
-        handleOpenShipmentRequestModal();
-      }
+      if (paidWith) toast.success('Pago registrado');
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar el pago.');
     } finally {
@@ -273,29 +293,21 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleAdvanceStatus = async () => {
-    if (!detail) return;
-    const { uuid: consolidationUuid, status } = detail;
-    const nextMap: Record<ConsolidationStatus, ConsolidationStatus | null> = {
-      [ConsolidationStatus.ABIERTO]: null,
-      [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
-      [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
-      [ConsolidationStatus.ENTREGADO]: null,
-    };
-    const next = nextMap[status];
-    if (!next) return;
+  /** Paso 3 → 4. La orden sigue Despachada: pasa a Entregada recién al finalizar. */
+  const handleAdvanceToClosing = async () => {
+    if (!uuid) return;
+    setIsAdvancingToClosing(true);
     try {
-      // NOTA: no se llama a bulk-status acá. ConsolidationsRepository.updateConsolidationStatus
-      // (logistics.repo.ts) ya mueve todos los paquetes de la orden a ENTREGADO dentro de la
-      // misma transacción del PATCH cuando newStatus === ENTREGADO — llamarlo de nuevo desde
-      // acá era una llamada redundante que además fallaba (bulkUpdateStatus intentaba escribir
-      // en packages.updated_at, columna que no existe en esa tabla) y hacía caer el avance de
-      // paso entero al catch aunque el cambio de status ya se hubiera guardado.
-      await updateStatus({ consolidationUuid, status: next, currentStatus: status });
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'advance-to-closing',
+        consolidationUuid: uuid,
+      });
       await detailQuery.invalidate();
-      toast.success(`Estado actualizado a ${next}`);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo avanzar el estado de la orden de envío. Intenta de nuevo.');
+      toast.success('La orden pasó a Cierre');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo pasar al cierre. Intenta de nuevo.');
+    } finally {
+      setIsAdvancingToClosing(false);
     }
   };
 
@@ -310,10 +322,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         deliveryMethod: detail?.delivery_method ?? preBillingDeliveryMethod,
       });
       await detailQuery.invalidate();
-      toast.success('Prefactura generada correctamente. La orden de envío pasó a estado Cerrado.');
+      toast.success('Estimado generado. La orden pasó a Cobro.');
       setShowPreBillingModal(false);
     } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo generar la prefactura. Intenta de nuevo.');
+      toast.error(err?.message ?? 'No se pudo generar el estimado. Intenta de nuevo.');
     } finally {
       setIsGeneratingPreBilling(false);
     }
@@ -338,9 +350,9 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         consolidationUuid: uuid,
       });
       await detailQuery.invalidate();
-      toast.success('Prefactura confirmada y factura generada');
+      toast.success('Estimado confirmado: se generó la factura');
     } catch (err: any) {
-      const msg = err?.message || 'No se pudo confirmar la prefactura.';
+      const msg = err?.message || 'No se pudo confirmar el estimado.';
       toast.error(msg);
     } finally {
       setIsConfirmingPreBilling(false);
@@ -537,9 +549,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de solicitar el envío.');
       return;
     }
-    setReceiverName(detail.customer_name);
-    setReceiverPhone(detail.customer_phone ?? '');
-    setReceiverIdCard(detail.customer_id_card ?? '');
+    // Quien recibe sale de la dirección; si no tiene, es el propio cliente.
+    setReceiverName(detail.delivery_recipient_name ?? detail.customer_name);
+    setReceiverPhone(detail.delivery_recipient_phone ?? detail.customer_phone ?? '');
+    setReceiverIdCard(detail.delivery_recipient_id_card ?? detail.customer_id_card ?? '');
     setShowShipmentRequestModal(true);
   };
 
@@ -647,9 +660,9 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       const message = buildAddressConfirmationMessage({
         firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
-        receiverName: detail.customer_name,
-        idCard: detail.customer_id_card,
-        phone: detail.customer_phone,
+        receiverName: detail.delivery_recipient_name ?? detail.customer_name,
+        idCard: detail.delivery_recipient_id_card ?? detail.customer_id_card,
+        phone: detail.delivery_recipient_phone ?? detail.customer_phone,
         province: detail.delivery_province,
         canton: detail.delivery_canton,
         district: detail.delivery_district,
@@ -748,6 +761,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   /** Registra o corrige la guía después del despacho. */
   const handleSaveTrackingCode = async () => {
     if (!uuid) return;
+    if (!trackingDraft.trim()) {
+      toast.error('Escribe el número de guía.');
+      return;
+    }
     setIsSavingTracking(true);
     try {
       await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
@@ -813,7 +830,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         consolidationUuid: uuid,
       });
       await detailQuery.invalidate();
-      toast.success('Vuelto registrado como entregado');
+      toast.success('Vuelto registrado como devuelto');
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo registrar el vuelto.');
     } finally {
@@ -924,8 +941,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   // fallar.
   const step1BlockedReason = !detail
     ? null
-    : !detail.delivery_exact_address
-      ? 'Confirma la dirección de entrega antes de generar el estimado.'
+    : !detail.delivery_exact_address && !isPickup
+      ? 'Registra la dirección de entrega antes de generar el estimado.'
       : !detail.delivery_method
         ? 'Elige un método de envío antes de generar el estimado.'
         : null;
@@ -935,7 +952,11 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     isLoadingDetail,
     handleBack,
 
-    handleAdvanceStatus, isUpdating,
+    isUpdating,
+    handleAdvanceToClosing, isAdvancingToClosing,
+    isPickup, deliveryMethodEntity,
+    confirmAction, setConfirmAction, handleConfirmAction,
+    requestGoBackToConfirmation, requestUnassignPackage,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
     handleGoBackToConfirmation,

@@ -254,6 +254,13 @@
           "checksum": "cc6d4478b342fbb7",
           "appliedAt": "2026-10-21T18:23:56.000Z",
           "appliedBy": "Farid"
+        },
+        {
+          "name": "035-address-recipient.sql",
+          "version": "035",
+          "checksum": "b329a1d0fb251af4",
+          "appliedAt": "2026-10-23T15:50:07.267Z",
+          "appliedBy": "Farid"
         }
       ]
     },

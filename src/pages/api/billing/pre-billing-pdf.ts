@@ -28,6 +28,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
       ca.district AS delivery_district,
       ca.canton AS delivery_canton,
       ca.province AS delivery_province,
+      ca.recipient_name AS delivery_recipient_name,
+      ca.recipient_phone AS delivery_recipient_phone,
       COALESCE(
         json_agg(
           json_build_object('tracking_number', p.tracking_number, 'weight_lb', p.weight_lb)
@@ -45,7 +47,7 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
              pb.applied_rate_usd, pb.applied_exchange, pb.applied_billing_mode,
              pb.applied_discount_percent, pb.total_weight_charged, pb.created_at,
              con.total_weight_lb, c.first_name, c.last_name, c.customer_code, c.email,
-             ca.exact_address, ca.district, ca.canton, ca.province
+             ca.exact_address, ca.district, ca.canton, ca.province, ca.recipient_name, ca.recipient_phone
   `;
   if (!row) return null;
   return {
@@ -68,6 +70,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
     delivery_district: row.delivery_district ?? null,
     delivery_canton: row.delivery_canton ?? null,
     delivery_province: row.delivery_province ?? null,
+    delivery_recipient_name: row.delivery_recipient_name ?? null,
+    delivery_recipient_phone: row.delivery_recipient_phone ?? null,
   };
 }
 

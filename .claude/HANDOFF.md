@@ -13,30 +13,16 @@
 - Teléfono del PDF: lo cambia el usuario en Vercel (`NEXT_PUBLIC_WHATSAPP_NUMBER`).
 - Logo oficial: sistema de logos del 30/08/2026 en `D:\Documentos\Docs_Clientes\Magastore\` (brand book con los mismos colores que `src/components/landing/tokens.ts`).
 
-## En qué estamos (rama `feat/ui-ordenes-marca`)
-- Hecho: PDF de factura y estimado con negro/dorado y logo secundario (`b7f1ea0`).
-- Recorrido completo probado con el cliente PRB201 en dev. Hallazgos:
-  1. Crear orden desde Paquetes: cliente sin dirección queda trabado (no ofrece agregar).
-  2. Retiro en oficina exige dirección.
-  3. Paso 3: "Siguiente" marca la orden y los paquetes como ENTREGADO al cargar la guía (el rastreo público dice "Entregado" con el paquete en camino).
-  4. Cierre: el botón del vuelto dice "Marcar entregado".
-  5. Rentabilidad finalizada: "Costo entrega" no refleja el costo real cargado (los números no suman).
-  6. Finalizada no muestra paquetes, dirección, guía ni pago.
-  7. Escritorio 1280 px: la columna Cierre queda cortada.
-  8. "Atrás" en paso 2 y quitar paquete no piden confirmación.
-  9. Guardar guía vacía cierra sin aviso; montos con espacio (`₡27 867`) en vez de `₡27.867`.
-  10. Al confirmar pago se abren dos cosas a la vez (aviso al cliente y solicitud al proveedor).
-- Producción y dev son bases distintas; producción tiene aplicadas hasta la 027.
+## En qué estamos (rama `feat/ui-ordenes-marca`, sin subir)
+- PDF de marca (`b7f1ea0`) y workflow de migraciones en main (`73ab4cf`; falta el secreto `DATABASE_URL` en el entorno `production` de GitHub).
+- Hallazgos 1–10 corregidos, detalle rediseñado (un paso activo como lista de tareas, resumen al costado, ficha de orden finalizada con historial), filtros con casillas (`FilterBar` común), quién recibe por dirección (migración 035, aplicada solo en dev).
+- Semántica nueva: paso 3 → 4 deja la orden Despachada; Finalizar la marca Entregada junto con los paquetes. Retiro en oficina sin dirección ni guía.
+- Probado en dev con PRB202 (retiro, sin pago y luego pago en efectivo) y PRB203 (Correos, recibe la mamá), móvil y escritorio.
 
-## Decidido el 23/10/2026
-- Migraciones: workflow en `main` con registro en la tabla `schema_migrations` de la base; punto de partida = lo que `db-migrations.json` tiene en prod (hasta 027). Hecho y probado en dev; falta que el usuario cargue el secreto.
-- Paso 3: "Siguiente" deja la orden en camino (Despachado); Entregado recién al finalizar en el Cierre.
-- Retiro en oficina se crea sin dirección.
-- Quién recibe: nombre, teléfono y cédula, opcionales por dirección; vacíos = datos del cliente.
-
-## Qué sigue
-1. Corregir hallazgos 1–10 y rediseñar la UI de órdenes (pasos, filtros).
-2. "Quién recibe" por dirección (migración nueva).
+## Observaciones sin cambiar
+- Los paquetes pasan a "En trámite" recién al registrar el pago: despachados sin pago siguen "En Panamá" en el rastreo.
+- Quedan órdenes de prueba de postventa (PRB101) con 0 paquetes en dev.
 
 ## Preguntas abiertas
-- ¿Qué base usa Vercel en producción? Debe ser `ep-blue-sky…`, la misma del secreto `DATABASE_URL`.
+- Quién recibe: hoy va en cada dirección (un "destino" = dónde + quién). Si dos personas reciben en la misma casa hay que repetir la dirección. ¿Separar personas y direcciones?
+- ¿Qué base usa Vercel en producción? Debe ser la misma del secreto `DATABASE_URL` (`ep-blue-sky…`).

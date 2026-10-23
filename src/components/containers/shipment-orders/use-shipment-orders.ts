@@ -54,7 +54,8 @@ export const useShipmentOrders = () => {
   // diario. El panel Operativo enlaza acá con ?payment=... (valores del enum
   // viejo, ver el useEffect de abajo) o, desde otros lugares nuevos, con
   // ?step=/?paid=/?notified= directos.
-  const [stepFilter, setStepFilter] = useState<ShipmentOrderStepFilter>(ShipmentOrderStepFilter.ALL);
+  // Varios pasos a la vez: el operador revisa, por ejemplo, Cobro y Despacho juntos.
+  const [stepFilters, setStepFilters] = useState<ShipmentOrderStepFilter[]>([]);
   const [paidFilter, setPaidFilter] = useState<ShipmentOrderPaidFilter>(ShipmentOrderPaidFilter.SIN_PAGAR);
   const [notifiedFilter, setNotifiedFilter] = useState<ShipmentOrderNotifiedFilter>(ShipmentOrderNotifiedFilter.ALL);
   const [dateFrom, setDateFrom] = useState('');
@@ -115,7 +116,7 @@ export const useShipmentOrders = () => {
       touched = true;
     } else if (legacyPayment === 'PENDIENTE_PAGO') {
       setPaidFilter(ShipmentOrderPaidFilter.SIN_PAGAR);
-      setStepFilter(ShipmentOrderStepFilter.ALL);
+      setStepFilters([]);
       touched = true;
     } else if (legacyPayment === 'PAGADO') {
       setPaidFilter(ShipmentOrderPaidFilter.PAGADA);
@@ -126,12 +127,12 @@ export const useShipmentOrders = () => {
       // orden recién entregada aterriza — sin filtro de step no se podría
       // distinguir "recién entregada, con seguimiento pendiente" de
       // "finalizada hace tiempo" en un solo valor.
-      setStepFilter(ShipmentOrderStepFilter.NOTIFICACION);
+      setStepFilters([ShipmentOrderStepFilter.NOTIFICACION]);
       touched = true;
     }
 
     if (stepParam && stepParam in ShipmentOrderStepFilter) {
-      setStepFilter(ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter]);
+      setStepFilters([ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter]]);
       touched = true;
     }
     if (paidParam && paidParam in ShipmentOrderPaidFilter) {
@@ -150,7 +151,7 @@ export const useShipmentOrders = () => {
     page,
     PAGE_SIZE,
     debouncedSearch || undefined,
-    stepFilter,
+    stepFilters.length > 0 ? stepFilters.join(',') : ShipmentOrderStepFilter.ALL,
     paidFilter,
     notifiedFilter,
     dateFrom || undefined,
@@ -243,8 +244,12 @@ export const useShipmentOrders = () => {
    * Query: invalidar la caché que usa el modal no refrescaría nada acá.
    */
   const handleCreateAddressesSaved = (addresses: CustomerAddress[]) => {
+    const previousIds = new Set(createAddresses.map((a) => a.id));
+    const created = addresses.find((a) => !previousIds.has(a.id));
     setCreateAddresses(addresses);
     setCreateAddressId((prev) => {
+      // La recién creada se hizo para esta orden: queda elegida.
+      if (created) return created.id;
       // La seleccionada sigue existiendo: se respeta, aunque el operador acabe
       // de editar otra.
       if (prev && addresses.some((a) => a.id === prev)) return prev;
@@ -252,13 +257,15 @@ export const useShipmentOrders = () => {
     });
   };
 
-  const handleConfirmCreate = async () => {
-    if (!createCustomer || createSelectedPackageUuids.length === 0 || !createAddressId || !createDeliveryMethod) return;
+  // En retiro en oficina no hay entrega: la orden se crea sin dirección.
+  const handleConfirmCreate = async (isPickup: boolean) => {
+    if (!createCustomer || createSelectedPackageUuids.length === 0 || !createDeliveryMethod) return;
+    if (!isPickup && !createAddressId) return;
     try {
       const result = await createShipmentOrderWithPackages({
         customerUuid: createCustomer.customer_id,
         packageUuids: createSelectedPackageUuids,
-        deliveryAddressId: createAddressId,
+        deliveryAddressId: isPickup ? undefined : createAddressId,
         deliveryMethod: createDeliveryMethod,
       });
       toast.success('Orden de envío creada correctamente');
@@ -281,10 +288,12 @@ export const useShipmentOrders = () => {
     }
   };
 
-  const handleStepFilterChange = (val: ShipmentOrderStepFilter) => {
-    setStepFilter(val);
+  const handleStepFiltersChange = (values: ShipmentOrderStepFilter[]) => {
     // El default "Sin pagar" escondería casi todo el seguimiento: la mayoría ya pagó.
-    if (val === ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE) setPaidFilter(ShipmentOrderPaidFilter.ALL);
+    const addsFollowUp = values.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE)
+      && !stepFilters.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE);
+    if (addsFollowUp) setPaidFilter(ShipmentOrderPaidFilter.ALL);
+    setStepFilters(values);
     setPage(1);
   };
 
@@ -298,22 +307,11 @@ export const useShipmentOrders = () => {
     setPage(1);
   };
 
-  const clearFilters = () => {
-    setStepFilter(ShipmentOrderStepFilter.ALL);
-    setPaidFilter(ShipmentOrderPaidFilter.ALL);
-    setNotifiedFilter(ShipmentOrderNotifiedFilter.ALL);
+  const clearDates = () => {
     setDateFrom('');
     setDateTo('');
     setPage(1);
   };
-
-  const activeFilterCount = [
-    stepFilter !== ShipmentOrderStepFilter.ALL,
-    paidFilter !== ShipmentOrderPaidFilter.ALL,
-    notifiedFilter !== ShipmentOrderNotifiedFilter.ALL,
-    !!dateFrom,
-    !!dateTo,
-  ].filter(Boolean).length;
 
   const handleSelectRow = (item: ConsolidationListItem) => {
     router.push(`/admin/shipment-orders/${item.uuid}`);
@@ -323,11 +321,10 @@ export const useShipmentOrders = () => {
     // List — 3 ejes de filtro independientes y combinables
     page, setPage,
     search, setSearch,
-    stepFilter, handleStepFilterChange,
+    stepFilters, handleStepFiltersChange,
     paidFilter, handlePaidFilterChange,
     notifiedFilter, handleNotifiedFilterChange,
-    clearFilters,
-    activeFilterCount,
+    clearDates,
     dateFrom, setDateFrom: (v: string) => { setDateFrom(v); setPage(1); },
     dateTo, setDateTo: (v: string) => { setDateTo(v); setPage(1); },
     shipmentOrders: listData?.data ?? [],

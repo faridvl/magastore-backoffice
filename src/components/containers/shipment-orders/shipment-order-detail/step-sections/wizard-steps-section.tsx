@@ -1,33 +1,31 @@
 import React from 'react';
-import {
-  CheckCircle,
-  AlertCircle,
-  Plus,
-  MessageCircle,
-} from 'lucide-react';
+import { Check, Plus, AlertCircle } from 'lucide-react';
 import { ConsolidationStatus, ConsolidationDetail, ShipmentOrderStep, DeliveryMethod, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { formatCrc } from '@/shared/utils/format-crc';
+import { formatBusinessDate } from '@/shared/utils/timezone';
 import { PackageTable } from './package-table';
-import { StepTimeline } from './step-timeline';
+import { OrderSummaryCard } from './order-summary-card';
+import { FinalizedSummary } from './finalized-summary';
+import { StepAction, StepActionVariant, ChecklistRow, StepCard, StepFooter } from './step-ui';
 
-// Figurita de pasos del wizard. 4 pasos numerados — la orden nace con
-// paquetes asignados, así que "asignar paquetes" no es un paso propio.
-// Finalizada (5) no se dibuja en la línea: cuando la orden llega ahí, el
-// stepper entero deja de mostrarse y la pantalla vuelve a ser la de siempre.
+// Finalizada (5) no se dibuja en la línea: ahí la pantalla pasa a postventa.
 const STEP_ITEMS: { step: ShipmentOrderStep; label: string }[] = [
   { step: ShipmentOrderStep.CONFIRMACION, label: 'Confirmación' },
   { step: ShipmentOrderStep.COBRO, label: 'Cobro' },
   { step: ShipmentOrderStep.DESPACHO, label: 'Despacho' },
   { step: ShipmentOrderStep.NOTIFICACION, label: 'Cierre' },
 ];
-
-const formatCRC = (n: number) => `₡${Math.round(n).toLocaleString('es-CR')}`;
+const STEP_COUNT = STEP_ITEMS.length;
 
 export interface WizardStepsSectionProps {
   detail: ConsolidationDetail;
   deliveryMethodsData: DeliveryMethodEntity[] | undefined;
   activeDeliveryMethods: DeliveryMethodEntity[];
+  isPickup: boolean;
+  // Lo que se muestra en lugar del paso cuando la orden está finalizada.
+  finalizedContent: React.ReactNode;
 
   step1BlockedReason: string | null;
   isGeneratingPreBilling: boolean;
@@ -42,18 +40,11 @@ export interface WizardStepsSectionProps {
   setShowPreBillingModal: (v: boolean) => void;
 
   isUpdating: boolean;
+  isAdvancingToDispatch: boolean;
   handleAdvanceToDispatchClick: () => void;
-  // Transición dinámica de status (calcula CERRADO→DESPACHADO o
-  // DESPACHADO→ENTREGADO según detail.status en el momento) — la usa el
-  // Siguiente del paso 3, que NO debe reutilizar el modal de despacho
-  // (setQuickActionTarget('dispatch')) porque ese quedó fijo a la transición
-  // del paso 2→3.
-  handleAdvanceStatus: () => void;
-  // "Atrás" del paso 2 — ejecuta la reapertura directo, sin modal ni el texto
-  // "Volver a abrir": vive junto al Siguiente en la card, mismo criterio de
-  // "back ≡ reabrir" ya acordado (solo visible si la factura no está pagada;
-  // desde el paso 3 no existe, el proveedor ya tiene la solicitud).
-  handleGoBackToConfirmation: () => void;
+  isAdvancingToClosing: boolean;
+  handleAdvanceToClosing: () => void;
+  requestGoBackToConfirmation: () => void;
   setShowBillingModal: (v: boolean) => void;
 
   handleOpenShipmentRequestModal: () => void;
@@ -84,37 +75,66 @@ export interface WizardStepsSectionProps {
   canAssignPackages: boolean;
   handleOpenAssignModal: () => void;
   isLoadingAvailable: boolean;
-  handleUnassignPackage: (packageUuid: string) => void;
+  requestUnassignPackage: (packageUuid: string) => void;
   isUnassigning: boolean;
 }
 
+const StatTile: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-3 py-3 sm:p-4 text-center min-w-0">
+    <p className="text-xs font-bold text-slate-400">{label}</p>
+    <div className="font-extrabold text-slate-800 text-base sm:text-lg mt-0.5 truncate">{children}</div>
+  </div>
+);
+
+const Stepper: React.FC<{ currentStep: ShipmentOrderStep }> = ({ currentStep }) => (
+  <ol className="flex items-center bg-white rounded-[2rem] border border-slate-100 shadow-sm px-4 py-4 sm:px-6">
+    {STEP_ITEMS.map((item, idx) => {
+      const isCompleted = currentStep > item.step;
+      const isActive = currentStep === item.step;
+      return (
+        <React.Fragment key={item.step}>
+          <li className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            <span
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 ${
+                isCompleted
+                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                  : isActive
+                    ? 'bg-slate-900 border-slate-900 text-white'
+                    : 'bg-white border-slate-200 text-slate-400'
+              }`}
+            >
+              {isCompleted ? <Check size={16} /> : item.step}
+            </span>
+            <span className={`text-xs font-semibold whitespace-nowrap ${isActive ? 'text-slate-900' : isCompleted ? 'text-emerald-700' : 'text-slate-400'}`}>
+              {item.label}
+            </span>
+          </li>
+          {idx < STEP_ITEMS.length - 1 && (
+            <li aria-hidden className={`flex-1 h-0.5 mx-2 mb-5 rounded-full ${currentStep > item.step ? 'bg-emerald-500' : 'bg-slate-100'}`} />
+          )}
+        </React.Fragment>
+      );
+    })}
+  </ol>
+);
+
 /**
- * Wizard completo: stats row + figurita de pasos + contenido de cada paso +
- * lista de paquetes. Extraído del contenedor principal porque ese archivo
- * (shipment-order-detail.tsx) superaba las ~1900 líneas y cada edición grande
- * corría riesgo de desbalancear el JSX anidado — un componente propio, más
- * chico, es más fácil de verificar de forma aislada.
- *
- * Layout: mobile muestra solo el paso activo (wizard estricto, JS oculta el
- * resto). Desktop/iPad (md+) muestra los 4 pasos en fila horizontal, el activo
- * interactivo y los demás atenuados/bloqueados — pedido explícito del dueño,
- * con scroll horizontal como red de seguridad si no entra en 768px.
+ * Detalle de la orden por pasos: se ve solo el paso activo, como lista de
+ * tareas con su estado y una única acción principal al pie. El resumen de la
+ * orden queda al costado en escritorio para consultar lo ya definido sin
+ * tener que ver los otros pasos.
  */
 export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => {
-  const { detail, deliveryMethodsData, activeDeliveryMethods } = props;
-  const deliveryMethodEntity = deliveryMethodsData?.find((m) => m.code === detail.delivery_method);
+  const { detail, deliveryMethodsData, activeDeliveryMethods, isPickup } = props;
 
   const hasBilling = !!detail.billing_uuid;
   const hasPreBilling = !!detail.pre_billing_uuid;
   const preBillingConfirmed = !!detail.pre_billing_confirmed;
   const isPaid = !!detail.billing_is_paid;
   const amountToShow = detail.billing_total_amount_crc ?? detail.pre_billing_amount;
-
-  const showStepper = detail.current_step !== ShipmentOrderStep.FINALIZADA;
-  const isConfirmationStep = detail.current_step === ShipmentOrderStep.CONFIRMACION;
-  const isCobroStep = detail.current_step === ShipmentOrderStep.COBRO;
-  const isDispatchStep = detail.current_step === ShipmentOrderStep.DESPACHO;
-  const isNotificationStep = detail.current_step === ShipmentOrderStep.NOTIFICACION;
+  const isFinalized = detail.current_step === ShipmentOrderStep.FINALIZADA;
+  const hasAddress = !!detail.delivery_exact_address;
+  const totalWeight = Number(detail.total_weight_lb).toFixed(2);
 
   const hasActualFee = detail.billing_actual_delivery_fee_crc != null;
   const originalFeeCrc = detail.billing_original_delivery_fee_crc ?? detail.billing_delivery_fee_crc;
@@ -122,787 +142,497 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
     ? Number(originalFeeCrc) - Number(detail.billing_actual_delivery_fee_crc)
     : 0;
   const hasChangeDue = hasActualFee && changeCrc > 0;
+  const stepLabel = (step: ShipmentOrderStep) => `Paso ${step} de ${STEP_COUNT}`;
 
-  /**
-   * Clases de cada tarjeta de paso. flex flex-col + h-full: las 4 cards se
-   * estiran a la altura de la más alta (el padre ya es un flex row en
-   * desktop) y cada una empuja su timeline con flex-1, dejando el "Siguiente"
-   * (el último punto del timeline, marcado isAction) siempre al fondo — para
-   * que los 4 botones de avance queden a la misma altura sin importar cuántos
-   * puntos tenga cada paso arriba. El activo es interactivo y con transición
-   * al entrar; los demás quedan ocultos en mobile (hidden md:block) y, en
-   * desktop, atenuados y bloqueados con pointer-events-none — no editables
-   * ahí, para eso existe "Volver a abrir".
-   */
-  const stepCardClass = (isActive: boolean) =>
-    // Sin h-full a propósito: en un flex row, items-stretch (default) del
-    // padre ya iguala la altura de las 4 cards a la más alta por sí solo.
-    // h-full lo contradecía (fuerza 100% de un padre sin altura intrínseca en
-    // vez de dejar que stretch la calcule), por eso las cards no quedaban
-    // parejas.
-    `flex-1 min-w-[280px] md:min-w-[260px] flex flex-col bg-white rounded-[2rem] border shadow-sm p-5 transition-all ${
-      isActive
-        ? 'border-slate-100 animate-in fade-in slide-in-from-bottom-2 duration-300'
-        : 'hidden md:flex border-slate-100 opacity-40 grayscale pointer-events-none select-none'
-    }`;
+  const renderConfirmation = () => (
+    <StepCard
+      stepLabel={stepLabel(ShipmentOrderStep.CONFIRMACION)}
+      title="Confirmación"
+      description={isPickup
+        ? 'Revisa los paquetes y genera el estimado. El cliente retira en oficina.'
+        : 'Confirma con el cliente a dónde se entrega y quién recibe, y genera el estimado.'}
+      footer={
+        <StepFooter
+          hint={props.step1BlockedReason}
+          next={
+            <StepAction
+              variant={StepActionVariant.PRIMARY}
+              onClick={props.handleGenerateEstimateClick}
+              disabled={detail.packages.length === 0 || props.isGeneratingPreBilling || !!props.step1BlockedReason}
+            >
+              {props.isGeneratingPreBilling ? 'Generando…' : 'Generar estimado'}
+            </StepAction>
+          }
+        />
+      }
+    >
+      {isPickup ? (
+        <ChecklistRow title="Dirección de entrega" isDone>
+          No hace falta: el cliente retira en oficina.
+        </ChecklistRow>
+      ) : (
+        <ChecklistRow
+          title="Dirección de entrega"
+          isDone={hasAddress}
+          action={
+            <>
+              {hasAddress ? (
+                <StepAction onClick={props.handleCopyAddressConfirmation} disabled={props.isCopyingAddressConfirmation}>
+                  Copiar confirmación
+                </StepAction>
+              ) : (
+                <StepAction onClick={props.handleCopyAddressRequest} disabled={props.isCopyingAddressRequest}>
+                  Pedir al cliente
+                </StepAction>
+              )}
+              <StepAction onClick={props.handleOpenAddressModal} disabled={props.isLoadingAddresses}>
+                {hasAddress ? 'Cambiar' : 'Registrar'}
+              </StepAction>
+            </>
+          }
+        >
+          {hasAddress ? (
+            <>
+              <p className="text-slate-700 font-semibold">{detail.delivery_address_label || 'Dirección'}</p>
+              <p>
+                {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
+                {detail.delivery_canton ? ` · Zona ${resolveZone(detail.delivery_canton)}` : ''}
+              </p>
+              <p className="mt-1">
+                Recibe: {detail.delivery_recipient_name
+                  ? [detail.delivery_recipient_name, detail.delivery_recipient_phone].filter(Boolean).join(' · ')
+                  : 'el cliente'}
+              </p>
+            </>
+          ) : (
+            'Sin dirección todavía. Pídela al cliente o regístrala.'
+          )}
+        </ChecklistRow>
+      )}
+      <ChecklistRow
+        title="Método de envío"
+        isDone={!!detail.delivery_method}
+        action={<StepAction onClick={props.handleOpenMethodModal}>Cambiar</StepAction>}
+      >
+        {detail.delivery_method
+          ? resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData)
+          : 'Sin elegir: se pedirá al generar el estimado.'}
+      </ChecklistRow>
+      <ChecklistRow title="Paquetes" isDone={detail.packages.length > 0}>
+        {detail.packages.length} paquete(s) · {totalWeight} lb
+      </ChecklistRow>
+    </StepCard>
+  );
 
-  if (!showStepper) return null;
+  const renderCobro = () => {
+    const notifyRow = (
+      <ChecklistRow
+        title="Estimado enviado al cliente"
+        isDone={!!detail.pre_billing_notified_at}
+        action={
+          <StepAction onClick={props.handleNotifyPreBilling} disabled={props.isNotifyingPreBilling}>
+            {detail.pre_billing_notified_at ? 'Reenviar' : 'Enviar por WhatsApp'}
+          </StepAction>
+        }
+      >
+        {detail.pre_billing_notified_at
+          ? `Enviado el ${formatBusinessDate(detail.pre_billing_notified_at)}`
+          : 'Todavía no se envió.'}
+      </ChecklistRow>
+    );
+    const pdfAction = (
+      <StepAction onClick={() => props.handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}>
+        Descargar PDF
+      </StepAction>
+    );
+    const backLink = (
+      <StepAction variant={StepActionVariant.LINK} onClick={props.requestGoBackToConfirmation} disabled={props.isUpdating}>
+        Atrás
+      </StepAction>
+    );
+
+    if (hasBilling) {
+      return (
+        <StepCard
+          stepLabel={stepLabel(ShipmentOrderStep.COBRO)}
+          title="Cobro"
+          description="Cuando el cliente pague, pasa la orden a despacho. Si despachas sin pago, queda marcada como pendiente."
+          footer={
+            <StepFooter
+              back={!isPaid ? backLink : undefined}
+              next={
+                <StepAction
+                  variant={StepActionVariant.PRIMARY}
+                  onClick={props.handleAdvanceToDispatchClick}
+                  disabled={props.isUpdating || props.isAdvancingToDispatch}
+                >
+                  {props.isAdvancingToDispatch ? 'Pasando…' : 'Pasar a despacho'}
+                </StepAction>
+              }
+            />
+          }
+        >
+          <ChecklistRow
+            title="Factura"
+            isDone={isPaid}
+            action={
+              <>
+                <StepAction onClick={() => props.setShowBillingModal(true)}>Ver factura</StepAction>
+                {detail.pre_billing_uuid && pdfAction}
+              </>
+            }
+          >
+            <span className="text-lg font-extrabold text-slate-900">{formatCrc(Number(detail.billing_total_amount_crc ?? 0))}</span>
+            <span className={`ml-2 ${isPaid ? 'text-emerald-700' : 'text-amber-700'}`}>{isPaid ? 'Pagada' : 'Pendiente de pago'}</span>
+          </ChecklistRow>
+          {detail.pre_billing_uuid && notifyRow}
+        </StepCard>
+      );
+    }
+
+    if (preBillingConfirmed) {
+      // Estimado confirmado sin factura: datos viejos o inconsistentes. La única
+      // salida sana es volver a Confirmación y generarlo de nuevo.
+      return (
+        <StepCard
+          stepLabel={stepLabel(ShipmentOrderStep.COBRO)}
+          title="Cobro"
+          footer={<StepFooter back={backLink} next={null} />}
+        >
+          <ChecklistRow title="Falta la factura" isDone={false}>
+            <span className="flex items-start gap-2 text-amber-700">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              El estimado quedó confirmado pero no se generó la factura. Vuelve atrás y genera el estimado de nuevo.
+            </span>
+          </ChecklistRow>
+        </StepCard>
+      );
+    }
+
+    return (
+      <StepCard
+        stepLabel={stepLabel(ShipmentOrderStep.COBRO)}
+        title="Cobro"
+        description="Envía el estimado al cliente y confírmalo cuando lo apruebe. Al confirmarlo se genera la factura."
+        footer={
+          <StepFooter
+            back={backLink}
+            next={
+              <StepAction
+                variant={StepActionVariant.PRIMARY}
+                onClick={props.handleConfirmPreBilling}
+                disabled={props.isConfirmingPreBilling}
+              >
+                {props.isConfirmingPreBilling ? 'Confirmando…' : 'Confirmar estimado'}
+              </StepAction>
+            }
+          />
+        }
+      >
+        <ChecklistRow
+          title="Estimado"
+          isDone
+          action={
+            <>
+              {pdfAction}
+              <StepAction
+                onClick={() => {
+                  props.setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? activeDeliveryMethods[0]?.code ?? ('' as DeliveryMethod));
+                  props.setShowPreBillingModal(true);
+                }}
+              >
+                Recalcular
+              </StepAction>
+            </>
+          }
+        >
+          <span className="text-lg font-extrabold text-slate-900">{formatCrc(Number(detail.pre_billing_amount ?? 0))}</span>
+          {detail.pre_billing_delivery_method && (
+            <span className="ml-2">Entrega: {resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData)}</span>
+          )}
+          <p className="text-xs mt-1">Si cambiaron las tarifas después de enviarlo, recalcula antes de confirmar.</p>
+        </ChecklistRow>
+        {notifyRow}
+      </StepCard>
+    );
+  };
+
+  const renderDespacho = () => {
+    const paymentRow = (
+      <ChecklistRow
+        title="Pago"
+        isDone={isPaid}
+        action={isPaid ? (
+          <StepAction onClick={props.handleNotifyPaymentConfirmed} disabled={props.isNotifyingPaymentConfirmed}>
+            {detail.billing_payment_notified_at ? 'Reenviar aviso' : 'Avisar pago al cliente'}
+          </StepAction>
+        ) : (
+          <StepAction onClick={() => props.setShowBillingModal(true)}>Registrar pago</StepAction>
+        )}
+      >
+        {isPaid
+          ? detail.billing_payment_notified_at
+            ? `Pagada · aviso enviado el ${formatBusinessDate(detail.billing_payment_notified_at)}`
+            : 'Pagada · falta avisarle al cliente'
+          : isPickup
+            ? 'Pendiente de pago: cóbralo cuando retire.'
+            : 'Pendiente de pago: el aviso al cliente le recordará el monto.'}
+      </ChecklistRow>
+    );
+
+    if (isPickup) {
+      return (
+        <StepCard
+          stepLabel={stepLabel(ShipmentOrderStep.DESPACHO)}
+          title="Listo para retiro"
+          description="El cliente retira en oficina: no hay solicitud al proveedor ni guía."
+          footer={
+            <StepFooter
+              next={
+                <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleAdvanceToClosing} disabled={props.isAdvancingToClosing}>
+                  {props.isAdvancingToClosing ? 'Pasando…' : 'Pasar a cierre'}
+                </StepAction>
+              }
+            />
+          }
+        >
+          {paymentRow}
+        </StepCard>
+      );
+    }
+
+    return (
+      <StepCard
+        stepLabel={stepLabel(ShipmentOrderStep.DESPACHO)}
+        title="Despacho"
+        description="Pide el envío al proveedor, avisa al cliente y carga la guía cuando el proveedor la confirme."
+        footer={
+          <StepFooter
+            hint={!detail.tracking_code ? 'Carga la guía para pasar al cierre.' : null}
+            next={
+              <StepAction
+                variant={StepActionVariant.PRIMARY}
+                onClick={props.handleAdvanceToClosing}
+                disabled={props.isAdvancingToClosing || !detail.tracking_code}
+              >
+                {props.isAdvancingToClosing ? 'Pasando…' : 'Pasar a cierre'}
+              </StepAction>
+            }
+          />
+        }
+      >
+        {paymentRow}
+        <ChecklistRow
+          title="Solicitud al proveedor"
+          isDone={!!detail.shipment_requested_at}
+          action={
+            <StepAction onClick={props.handleOpenShipmentRequestModal} disabled={props.isCopyingRequest}>
+              {detail.shipment_requested_at ? 'Copiar de nuevo' : 'Copiar solicitud'}
+            </StepAction>
+          }
+        >
+          {detail.shipment_requested_at
+            ? `Solicitada el ${formatBusinessDate(detail.shipment_requested_at)}`
+            : 'Copia la solicitud y pégala en el chat del proveedor.'}
+        </ChecklistRow>
+        <ChecklistRow
+          title="Aviso al cliente"
+          isDone={!!detail.customer_notified_shipment_at}
+          action={
+            <StepAction onClick={props.handleNotifyCustomerShipmentRequested} disabled={props.isNotifyingShipmentRequested}>
+              {detail.customer_notified_shipment_at ? 'Reenviar' : isPaid ? 'Avisar' : 'Avisar y recordar pago'}
+            </StepAction>
+          }
+        >
+          {detail.customer_notified_shipment_at
+            ? `Avisado el ${formatBusinessDate(detail.customer_notified_shipment_at)}`
+            : 'Avísale que su envío ya fue solicitado.'}
+        </ChecklistRow>
+        <ChecklistRow
+          title="Guía del proveedor"
+          isDone={!!detail.tracking_code}
+          action={
+            <StepAction onClick={props.handleOpenTrackingModal}>
+              {detail.tracking_code ? 'Editar' : 'Agregar guía'}
+            </StepAction>
+          }
+        >
+          {detail.tracking_code
+            ? <span className="font-mono text-slate-700 break-all">{detail.tracking_code}</span>
+            : 'Esperando que el proveedor la confirme.'}
+        </ChecklistRow>
+        {detail.tracking_code && (
+          <ChecklistRow
+            title="Aviso de despacho"
+            isDone={null}
+            action={props.canNotifyDispatch ? (
+              <StepAction onClick={props.handleNotifyDispatch} disabled={props.isNotifyingDispatch}>
+                Avisar despacho
+              </StepAction>
+            ) : undefined}
+          >
+            {props.canNotifyDispatch
+              ? 'Envíale al cliente la guía con el enlace de rastreo.'
+              : 'Este método no tiene enlace de rastreo. Agrégalo en Ajustes → Métodos de entrega.'}
+          </ChecklistRow>
+        )}
+      </StepCard>
+    );
+  };
+
+  const renderCierre = () => (
+    <StepCard
+      stepLabel={stepLabel(ShipmentOrderStep.NOTIFICACION)}
+      title="Cierre"
+      description={isPickup
+        ? 'Finaliza la orden cuando el cliente retire sus paquetes.'
+        : 'Cuando el paquete llegue, registra el costo real del envío y finaliza la orden.'}
+      footer={
+        <StepFooter
+          hint="Al finalizar, la orden y sus paquetes quedan como entregados."
+          next={
+            <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleFinalizeOrder} disabled={props.isFinalizing}>
+              {props.isFinalizing ? 'Finalizando…' : 'Finalizar orden'}
+            </StepAction>
+          }
+        />
+      }
+    >
+      {!isPickup && detail.tracking_code && (
+        <ChecklistRow
+          title="En camino"
+          isDone
+          action={props.canNotifyDispatch ? (
+            <StepAction variant={StepActionVariant.LINK} onClick={props.handleNotifyDispatch} disabled={props.isNotifyingDispatch}>
+              Reenviar aviso de despacho
+            </StepAction>
+          ) : undefined}
+        >
+          Guía <span className="font-mono text-slate-700 break-all">{detail.tracking_code}</span>
+        </ChecklistRow>
+      )}
+      {!isPickup && (
+        <ChecklistRow
+          title="Costo real del envío"
+          isDone={hasActualFee}
+          action={
+            <StepAction onClick={props.handleOpenActualFeeModal}>
+              {hasActualFee ? 'Editar' : 'Registrar'}
+            </StepAction>
+          }
+        >
+          {hasActualFee
+            ? `${formatCrc(Number(detail.billing_actual_delivery_fee_crc))} · se cobró ${formatCrc(Number(originalFeeCrc ?? 0))}`
+            : 'Opcional: lo que cobró el transportista, si difiere de lo cobrado.'}
+        </ChecklistRow>
+      )}
+      {hasChangeDue && (
+        <ChecklistRow
+          title={`Vuelto de ${formatCrc(changeCrc)}`}
+          isDone={!!detail.billing_change_returned}
+          action={!detail.billing_change_returned ? (
+            <StepAction onClick={props.handleMarkChangeReturned} disabled={props.isMarkingChangeReturned}>
+              Marcar como devuelto
+            </StepAction>
+          ) : undefined}
+        >
+          {detail.billing_change_returned ? 'Devuelto al cliente.' : 'Se le cobró de más al cliente por el envío.'}
+        </ChecklistRow>
+      )}
+      {isPickup && (
+        <ChecklistRow title="Retiro en oficina" isDone={null}>
+          Finaliza cuando el cliente haya retirado.
+        </ChecklistRow>
+      )}
+      {hasBilling && !isPaid && (
+        <ChecklistRow
+          title="Pago"
+          isDone={false}
+          action={<StepAction onClick={() => props.setShowBillingModal(true)}>Registrar pago</StepAction>}
+        >
+          La factura sigue pendiente de pago.
+        </ChecklistRow>
+      )}
+    </StepCard>
+  );
+
+  const activeStep = {
+    [ShipmentOrderStep.CONFIRMACION]: renderConfirmation,
+    [ShipmentOrderStep.COBRO]: renderCobro,
+    [ShipmentOrderStep.DESPACHO]: renderDespacho,
+    [ShipmentOrderStep.NOTIFICACION]: renderCierre,
+  }[detail.current_step as Exclude<ShipmentOrderStep, ShipmentOrderStep.FINALIZADA>];
+
+  const canUnassign = detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length > 1;
 
   return (
     <>
-      {/* STATS ROW — arriba del wizard: es lo primero que el operador necesita
-          ver al abrir la orden (cuánto pesa, cuánto debe, si ya pagó). */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Peso Total</p>
-          <p className="font-black text-slate-800 text-base">
-            {Number(detail.total_weight_lb).toFixed(2)} <span className="text-xs text-slate-400">lb</span>
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto</p>
-          <p className="font-black text-slate-800 text-base">
-            {amountToShow != null ? formatCRC(Number(amountToShow)) : <span className="text-slate-300">—</span>}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center col-span-2 sm:col-span-1">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pago</p>
-          {hasBilling ? (
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wide border inline-block ${isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-              {isPaid ? 'Pagada' : 'Pendiente'}
-            </span>
-          ) : (
-            <span className="text-[11px] font-bold text-slate-300">Sin factura</span>
-          )}
-        </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <StatTile label="Peso">{totalWeight} <span className="text-xs text-slate-400">lb</span></StatTile>
+        <StatTile label="Monto">
+          {amountToShow != null ? formatCrc(Number(amountToShow)) : <span className="text-slate-300">—</span>}
+        </StatTile>
+        <StatTile label="Pago">
+          {hasBilling
+            ? <span className={isPaid ? 'text-emerald-700' : 'text-amber-700'}>{isPaid ? 'Pagada' : 'Pendiente'}</span>
+            : <span className="text-slate-400 text-sm">Sin factura</span>}
+        </StatTile>
       </div>
 
-      {/* STEPPER (círculos de progreso) */}
-      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
-        <div className="flex items-center">
-          {STEP_ITEMS.map((item, idx) => {
-            const isCompleted = detail.current_step > item.step;
-            const isActive = detail.current_step === item.step;
-            return (
-              <React.Fragment key={item.step}>
-                <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black border-2 transition-all ${
-                      isCompleted
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : isActive
-                          ? 'bg-slate-900 border-slate-900 text-white'
-                          : 'bg-white border-slate-200 text-slate-300'
-                    }`}
-                  >
-                    {isCompleted ? <CheckCircle size={16} /> : item.step}
-                  </div>
-                  <span
-                    className={`text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
-                      isActive ? 'text-slate-800' : isCompleted ? 'text-emerald-600' : 'text-slate-300'
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-                {idx < STEP_ITEMS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 mb-4 rounded-full transition-all ${
-                    detail.current_step > item.step ? 'bg-emerald-500' : 'bg-slate-100'
-                  }`} />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
+      {!isFinalized && <Stepper currentStep={detail.current_step} />}
 
-      {/* LOS 4 PASOS — fila horizontal en desktop/iPad (md+), scroll
-          horizontal si no entra; en mobile solo se ve el activo (hidden en
-          los demás vía stepCardClass). El overflow-x va en un wrapper
-          separado del que hace items-stretch: overflow + stretch en el mismo
-          nivel flex hacía que la altura no se igualara (el navegador no tenía
-          una altura de referencia clara para estirar dentro de un contenedor
-          con scroll), por eso las cards no quedaban parejas. */}
-      <div className="md:overflow-x-auto md:pb-2">
-        <div className="flex flex-col md:flex-row md:items-stretch gap-4">
+      <div className={`grid grid-cols-1 gap-6 items-start ${isFinalized ? '' : 'lg:grid-cols-[minmax(0,1fr)_320px]'}`}>
+        <div className="space-y-6 min-w-0">
+          {isFinalized ? (
+            <>
+              <FinalizedSummary
+                detail={detail}
+                deliveryMethods={deliveryMethodsData}
+                isPickup={isPickup}
+                onOpenBilling={() => props.setShowBillingModal(true)}
+              />
+              {props.finalizedContent}
+            </>
+          ) : activeStep?.()}
 
-        {/* PASO 1 — Confirmación: cada botón visible es su propio punto del
-            timeline (pedido explícito del dueño), no agrupados bajo un
-            título compartido. */}
-        <div className={stepCardClass(isConfirmationStep)}>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Confirmación</p>
-          <StepTimeline
-            items={[
-              {
-                key: 'address-info',
-                title: 'Dirección de entrega',
-                content: detail.delivery_exact_address ? (
-                  <>
-                    <p className="text-sm font-bold text-slate-800">{detail.delivery_address_label || 'Dirección'}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
-                      {detail.delivery_canton ? ` · Zona ${resolveZone(detail.delivery_canton)}` : ''}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin dirección asignada</p>
-                ),
-              },
-              {
-                key: 'address-action',
-                title: detail.delivery_exact_address ? 'Confirmar con el cliente' : 'Pedir dirección',
-                content: detail.delivery_exact_address ? (
-                  <button
-                    onClick={props.handleCopyAddressConfirmation}
-                    disabled={props.isCopyingAddressConfirmation}
-                    title="Copiar mensaje para que el cliente confirme la dirección"
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
-                  >
-                    Confirmar dirección
-                  </button>
-                ) : (
-                  <button
-                    onClick={props.handleCopyAddressRequest}
-                    disabled={props.isCopyingAddressRequest}
-                    title="Copiar mensaje para pedirle los datos de entrega al cliente"
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
-                  >
-                    Pedir dirección
-                  </button>
-                ),
-              },
-              {
-                key: 'address-change',
-                title: detail.delivery_exact_address ? 'Cambiar dirección' : 'Registrar dirección',
-                content: (
-                  <button
-                    onClick={props.handleOpenAddressModal}
-                    disabled={props.isLoadingAddresses}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
-                  >
-                    {detail.delivery_exact_address ? 'Cambiar' : 'Registrar'}
-                  </button>
-                ),
-              },
-              {
-                key: 'method-info',
-                title: 'Método de envío',
-                content: detail.delivery_method ? (
-                  <p className="text-sm font-bold text-slate-800">{resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData)}</p>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin elegir — se pedirá al generar el estimado</p>
-                ),
-              },
-              {
-                key: 'method-change',
-                title: 'Cambiar método',
-                content: (
-                  <button
-                    onClick={props.handleOpenMethodModal}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all"
-                  >
-                    Cambiar
-                  </button>
-                ),
-              },
-              ...(!hasPreBilling ? [{
-                key: 'estimate',
-                title: 'Generar estimado',
-                isAction: true,
-                content: (
-                  <>
-                    <p className="text-[11px] text-slate-400 mb-2">
-                      {props.step1BlockedReason ?? 'Genera el estimado para enviar al cliente.'}
-                    </p>
-                    <button
-                      onClick={props.handleGenerateEstimateClick}
-                      disabled={detail.packages.length === 0 || props.isGeneratingPreBilling || !!props.step1BlockedReason}
-                      title={props.step1BlockedReason ?? 'Genera el estimado y avanza al paso de cobro'}
-                      className="w-full flex items-center justify-center px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-                    >
-                      {props.isGeneratingPreBilling ? 'Generando...' : 'Siguiente'}
-                    </button>
-                  </>
-                ),
-              }] : []),
-            ]}
-          />
-        </div>
-
-        {/* PASO 2 — Cobro: cada botón visible es su propio punto del
-            timeline. Orden confirmado por el dueño para la rama con factura:
-            PDF, WhatsApp, Ver detalle, Siguiente. */}
-        <div className={stepCardClass(isCobroStep)}>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Cobro</p>
-
-          {detail.pre_billing_notified_at && !hasBilling && (
-            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 mb-3">
-              <MessageCircle size={14} className="text-blue-500 flex-shrink-0" />
-              <p className="text-xs font-bold text-blue-700">
-                Notificado el {new Date(detail.pre_billing_notified_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })} · esperando pago
-              </p>
+          <section className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-base font-extrabold text-slate-900">Paquetes ({detail.packages.length})</h2>
+              {props.canAssignPackages && (
+                <StepAction
+                  onClick={props.handleOpenAssignModal}
+                  disabled={props.isLoadingAvailable}
+                  title={detail.current_step === ShipmentOrderStep.COBRO ? 'Se recalculará el estimado' : undefined}
+                >
+                  <Plus size={14} /> Agregar
+                </StepAction>
+              )}
             </div>
-          )}
-
-          {!hasBilling && preBillingConfirmed && (
-            <StepTimeline
-              items={[
-                {
-                  key: 'confirmed',
-                  title: 'Prefactura confirmada',
-                  content: <p className="text-sm font-black text-emerald-800">{formatCRC(detail.pre_billing_amount ?? 0)}</p>,
-                },
-                {
-                  key: 'pdf',
-                  title: 'PDF',
-                  content: (
-                    <button
-                      onClick={() => props.handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
-                    >
-                      PDF
-                    </button>
-                  ),
-                },
-                {
-                  key: 'whatsapp',
-                  title: 'WhatsApp',
-                  content: (
-                    <button
-                      onClick={props.handleNotifyPreBilling}
-                      disabled={props.isNotifyingPreBilling}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all disabled:opacity-40"
-                    >
-                      {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
-                    </button>
-                  ),
-                },
-                {
-                  key: 'inconsistent',
-                  title: 'Estado inconsistente',
-                  isAction: true,
-                  // Este estado (prefactura is_confirmed=true pero sin
-                  // factura) no debería ocurrir en el flujo actual:
-                  // confirmPreBilling crea la factura y marca
-                  // is_confirmed=true en la misma transacción
-                  // (logistics.repo.ts). Solo aparece en datos de una orden
-                  // anterior a ese cambio o inconsistentes. No se ofrece un
-                  // "Siguiente" que reintente confirmar — el backend lo
-                  // rechaza explícitamente. Sí se ofrece "Atrás": es la única
-                  // salida sana de este estado sin llamar a soporte (borra
-                  // el estimado y vuelve al paso 1).
-                  content: (
-                    <>
-                      <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2.5 mb-2">
-                        <AlertCircle size={13} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-amber-700 leading-relaxed">
-                          Esta orden quedó confirmada sin factura generada — un estado inconsistente que no debería
-                          ocurrir.
-                        </p>
-                      </div>
-                      <button
-                        onClick={props.handleGoBackToConfirmation}
-                        disabled={props.isUpdating}
-                        title="Vuelve al paso de confirmación — el estimado se descarta"
-                        className="w-full flex items-center justify-center px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold text-xs hover:bg-amber-100 transition-all disabled:opacity-40"
-                      >
-                        Atrás
-                      </button>
-                    </>
-                  ),
-                },
-              ]}
-            />
-          )}
-
-          {!hasBilling && !preBillingConfirmed && (
-            <StepTimeline
-              items={[
-                {
-                  key: 'pending',
-                  title: 'Estimado pendiente de confirmación',
-                  content: (
-                    <>
-                      {detail.pre_billing_delivery_method && (
-                        <p className="text-[10px] text-amber-700 mb-2">
-                          Entrega: {resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData)}
-                        </p>
-                      )}
-                      <p className="text-xl font-black text-amber-900">{formatCRC(detail.pre_billing_amount ?? 0)}</p>
-                    </>
-                  ),
-                },
-                {
-                  key: 'pdf',
-                  title: 'PDF',
-                  content: (
-                    <button
-                      onClick={() => props.handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-amber-200 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-50 transition-all"
-                    >
-                      PDF
-                    </button>
-                  ),
-                },
-                {
-                  key: 'whatsapp',
-                  title: 'WhatsApp',
-                  content: (
-                    <button
-                      onClick={props.handleNotifyPreBilling}
-                      disabled={props.isNotifyingPreBilling}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-amber-200 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-50 transition-all disabled:opacity-40"
-                    >
-                      {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
-                    </button>
-                  ),
-                },
-                {
-                  key: 'recalculate',
-                  title: 'Recalcular',
-                  content: (
-                    <button
-                      onClick={() => {
-                        props.setPreBillingDeliveryMethod(detail.pre_billing_delivery_method ?? activeDeliveryMethods[0]?.code ?? ('' as DeliveryMethod));
-                        props.setShowPreBillingModal(true);
-                      }}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-amber-200 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-50 transition-all"
-                    >
-                      Recalcular
-                    </button>
-                  ),
-                },
-                {
-                  key: 'confirm',
-                  title: 'Confirmar estimado',
-                  isAction: true,
-                  // Atrás siempre disponible acá: esta rama nunca tiene
-                  // factura (!hasBilling), así que no hay pago que proteger —
-                  // a diferencia de la rama hasBilling, donde sí se chequea
-                  // isPaid.
-                  content: (
-                    <>
-                      <div className="flex flex-col gap-2 mb-2">
-                        <button
-                          onClick={props.handleGoBackToConfirmation}
-                          disabled={props.isUpdating}
-                          title="Vuelve al paso de confirmación — el estimado se descarta"
-                          className="w-full flex items-center justify-center px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold text-xs hover:bg-amber-100 transition-all disabled:opacity-40"
-                        >
-                          Atrás
-                        </button>
-                        <button
-                          onClick={props.handleConfirmPreBilling}
-                          disabled={props.isConfirmingPreBilling}
-                          title="Confirma el estimado y genera la factura"
-                          className="w-full flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-                        >
-                          {props.isConfirmingPreBilling ? 'Confirmando...' : 'Siguiente'}
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-amber-700/80 leading-relaxed">
-                        Si las tarifas cambiaron desde que se generó y ya compartiste el monto, usa &quot;Recalcular&quot; antes de confirmar.
-                      </p>
-                    </>
-                  ),
-                },
-              ]}
-            />
-          )}
-
-          {hasBilling && (
-            <StepTimeline
-              items={[
-                {
-                  key: 'billing',
-                  title: 'Factura generada',
-                  content: (
-                    <>
-                      <p className="text-sm font-black text-emerald-800">{isPaid ? 'Pagada' : 'Pendiente de pago'}</p>
-                      {!isPaid && (
-                        <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mt-2">
-                          <AlertCircle size={14} className="text-amber-500 flex-shrink-0" />
-                          <p className="text-xs font-bold text-amber-700">Esperando confirmación de pago</p>
-                        </div>
-                      )}
-                    </>
-                  ),
-                },
-                // PDF, WhatsApp, Ver detalle, Siguiente — orden confirmado por
-                // el dueño para esta rama (factura ya generada).
-                ...(detail.pre_billing_uuid ? [
-                  {
-                    key: 'pdf',
-                    title: 'PDF',
-                    content: (
-                      <button
-                        onClick={() => props.handleDownloadPreBillingPDF(detail.pre_billing_uuid!, detail.customer_code)}
-                        className="w-full flex items-center justify-center px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
-                      >
-                        PDF
-                      </button>
-                    ),
-                  },
-                  {
-                    key: 'whatsapp',
-                    title: 'WhatsApp',
-                    content: (
-                      <button
-                        onClick={props.handleNotifyPreBilling}
-                        disabled={props.isNotifyingPreBilling}
-                        className="w-full flex items-center justify-center px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all disabled:opacity-40"
-                      >
-                        {detail.pre_billing_notified_at ? 'Reenviar' : 'WhatsApp'}
-                      </button>
-                    ),
-                  },
-                ] : []),
-                {
-                  key: 'detail',
-                  title: 'Ver detalle',
-                  content: (
-                    <button
-                      onClick={() => props.setShowBillingModal(true)}
-                      className="w-full flex items-center justify-center px-3 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-50 transition-all"
-                    >
-                      Ver detalle
-                    </button>
-                  ),
-                },
-                {
-                  key: 'advance',
-                  title: 'Avanzar a despacho',
-                  isAction: true,
-                  // Atrás vive junto al Siguiente, en la misma fila — pedido
-                  // explícito del dueño. Solo si no está pagada (mismo
-                  // criterio que "Volver a abrir" del header): ejecuta la
-                  // reapertura directo, sin modal ni el texto "Volver a
-                  // abrir".
-                  content: (
-                    <div className="flex flex-col gap-2">
-                      {!isPaid && (
-                        <button
-                          onClick={props.handleGoBackToConfirmation}
-                          disabled={props.isUpdating}
-                          title="Vuelve al paso de confirmación — el estimado se descarta"
-                          className="w-full flex items-center justify-center px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-bold text-xs hover:bg-amber-100 transition-all disabled:opacity-40"
-                        >
-                          Atrás
-                        </button>
-                      )}
-                      <button
-                        onClick={props.handleAdvanceToDispatchClick}
-                        disabled={props.isUpdating}
-                        title="Avanza al paso de despacho"
-                        className="w-full flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-                      >
-                        {props.isUpdating ? 'Actualizando...' : 'Siguiente'}
-                      </button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          )}
-        </div>
-
-        {/* PASO 3 — Despacho: solicitar al proveedor, avisar al cliente, cargar
-            la guía que confirma el proveedor y avisar el despacho. El Siguiente
-            queda bloqueado sin guía. */}
-        <div className={stepCardClass(isDispatchStep)}>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Despacho</p>
-          <StepTimeline
-            items={[
-              ...(isPaid ? [{
-                key: 'payment-notice',
-                title: 'Pago confirmado',
-                content: (
-                  <button
-                    onClick={props.handleNotifyPaymentConfirmed}
-                    disabled={props.isNotifyingPaymentConfirmed}
-                    title="Avisar al cliente que recibimos su pago"
-                    className={detail.billing_payment_notified_at
-                      ? 'w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40'
-                      : 'w-full flex items-center justify-center px-3 py-2 bg-emerald-600 text-white rounded-xl font-bold text-[11px] hover:bg-emerald-500 transition-all disabled:opacity-40'}
-                  >
-                    {detail.billing_payment_notified_at ? 'Reenviar aviso de pago' : 'Avisar pago al cliente'}
-                  </button>
-                ),
-              }] : []),
-              {
-                key: 'request',
-                title: 'Solicitar envío',
-                content: (
-                  <button
-                    onClick={props.handleOpenShipmentRequestModal}
-                    disabled={props.isCopyingRequest}
-                    title="Preparar solicitud de envío para el proveedor"
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
-                  >
-                    Solicitar envío
-                  </button>
-                ),
-              },
-              {
-                key: 'notify-customer',
-                title: 'Avisar al cliente',
-                content: (
-                  <button
-                    onClick={props.handleNotifyCustomerShipmentRequested}
-                    disabled={props.isNotifyingShipmentRequested}
-                    title={isPaid ? 'Avisar al cliente que su envío fue solicitado' : 'Avisar al cliente que su envío fue solicitado y recordarle el pago pendiente'}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
-                  >
-                    {detail.customer_notified_shipment_at ? 'Reenviar aviso al cliente' : isPaid ? 'Avisar al cliente' : 'Avisar y recordar pago'}
-                  </button>
-                ),
-              },
-              {
-                key: 'notify-status',
-                title: 'Cliente notificado',
-                content: (
-                  <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 border ${
-                    detail.customer_notified_shipment_at ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'
-                  }`}>
-                    <p className={`text-xs font-bold ${detail.customer_notified_shipment_at ? 'text-blue-700' : 'text-slate-500'}`}>
-                      {detail.customer_notified_shipment_at
-                        ? new Date(detail.customer_notified_shipment_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })
-                        : 'Cliente sin notificar'}
-                    </p>
-                  </div>
-                ),
-              },
-              // Cargar la guía ES la confirmación del proveedor (dato
-              // confirmado por el dueño) — este chip de "esperando" solo se
-              // muestra mientras se solicitó pero todavía no hay guía. Una
-              // vez cargada, el punto de abajo (Guía de rastreo) ya la
-              // muestra como confirmada; mostrar los dos a la vez sería
-              // redundante.
-              ...(detail.shipment_requested_at && !detail.tracking_code ? [{
-                key: 'request-status',
-                title: 'Envío solicitado',
-                content: (
-                  <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-2xl px-4 py-3">
-                    <p className="text-xs font-bold text-violet-700">
-                      {new Date(detail.shipment_requested_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })} · esperando que el proveedor confirme la guía
-                    </p>
-                  </div>
-                ),
-              }] : []),
-              {
-                key: 'tracking-info',
-                title: 'Guía de rastreo',
-                content: detail.tracking_code ? (
-                  <>
-                    <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
-                    <p className="text-[10px] text-emerald-600 mt-1">Proveedor confirmó el envío ✓</p>
-                  </>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin guía — el proveedor la confirma después de solicitar el envío</p>
-                ),
-              },
-              {
-                key: 'tracking-action',
-                title: detail.tracking_code ? 'Editar guía' : 'Agregar guía',
-                content: (
-                  <button
-                    onClick={props.handleOpenTrackingModal}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all"
-                  >
-                    {detail.tracking_code ? 'Editar guía' : 'Agregar guía'}
-                  </button>
-                ),
-              },
-              // En retiro en tienda no hay rastreo que avisar; mientras cargan los
-              // métodos tampoco se muestra, para no parpadear el texto de configuración.
-              ...(detail.tracking_code && deliveryMethodEntity && !deliveryMethodEntity.is_pickup ? [{
-                key: 'dispatch-notice',
-                title: 'Aviso de despacho',
-                content: props.canNotifyDispatch ? (
-                  <button
-                    onClick={props.handleNotifyDispatch}
-                    disabled={props.isNotifyingDispatch}
-                    title="Enviar al cliente la guía y el enlace de rastreo"
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-900 text-white rounded-xl font-bold text-[11px] hover:bg-slate-800 transition-all disabled:opacity-40"
-                  >
-                    Avisar despacho
-                  </button>
-                ) : (
-                  <p className="text-[11px] text-slate-400">
-                    El método de entrega no tiene enlace de rastreo. Configúralo en Ajustes → Métodos de entrega para poder avisar el despacho.
+            {detail.packages.length === 0 ? (
+              <p className="text-center py-6 text-slate-400 text-sm">Esta orden no tiene paquetes.</p>
+            ) : (
+              <>
+                <PackageTable
+                  packages={detail.packages}
+                  canUnassign={canUnassign}
+                  isUnassigning={props.isUnassigning}
+                  onUnassign={props.requestUnassignPackage}
+                />
+                {detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length === 1 && (
+                  <p className="text-xs text-slate-500 mt-3 text-center">
+                    Es el único paquete de la orden: no se puede quitar. Para vaciarla, elimina la orden desde el listado.
                   </p>
-                ),
-              }] : []),
-              {
-                key: 'dispatch',
-                title: 'Marcar entregado',
-                isAction: true,
-                // Este botón es el Siguiente del paso 3 (Despacho → paso 4,
-                // Cierre): la transición de status es
-                // DESPACHADO→ENTREGADO. Usa handleAdvanceStatus (calcula la
-                // transición según detail.status en el momento), NO
-                // setQuickActionTarget('dispatch') — ese abre el modal de
-                // despacho que ya se usó para entrar a ESTE paso (paso
-                // 2→3, CERRADO→DESPACHADO) y reintentarlo acá fallaba porque
-                // el backend rechaza la transición sobre una orden que ya no
-                // está en CERRADO. Era el bug reportado ("no me deja pasar").
-                //
-                // Bloqueado sin guía: el dueño confirmó que en la práctica no
-                // se avanza sin que el proveedor haya mandado el número de
-                // guía — a diferencia de la guía del modal de despacho (paso
-                // 2→3), que sigue siendo opcional ahí.
-                content: (
-                  <>
-                    {!detail.tracking_code && (
-                      <p className="text-[10px] text-slate-400 mb-2">
-                        Carga la guía del proveedor antes de continuar.
-                      </p>
-                    )}
-                    <button
-                      onClick={props.handleAdvanceStatus}
-                      disabled={props.isUpdating || !detail.tracking_code}
-                      title={!detail.tracking_code ? 'Carga la guía de rastreo antes de continuar' : 'Marca la orden como entregada y avanza al cierre'}
-                      className="w-full flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-                    >
-                      {props.isUpdating ? 'Actualizando...' : 'Siguiente'}
-                    </button>
-                  </>
-                ),
-              },
-            ]}
-          />
-        </div>
-
-        {/* PASO 4 — Cierre: costo real del envío y vuelto. El aviso de despacho
-            se manda en el paso 3; acá queda solo para reenviarlo. */}
-        <div className={stepCardClass(isNotificationStep)}>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Cierre</p>
-          <StepTimeline
-            items={[
-              ...(detail.tracking_code ? [{
-                key: 'tracking-summary',
-                title: 'Guía de rastreo',
-                content: (
-                  <>
-                    <p className="text-sm font-bold text-slate-800 font-mono break-all">{detail.tracking_code}</p>
-                    {props.canNotifyDispatch && (
-                      <button
-                        onClick={props.handleNotifyDispatch}
-                        disabled={props.isNotifyingDispatch}
-                        className="mt-1 text-[11px] font-bold text-slate-500 underline underline-offset-2 hover:text-slate-800 disabled:opacity-40"
-                      >
-                        Reenviar aviso de despacho
-                      </button>
-                    )}
-                  </>
-                ),
-              }] : []),
-              {
-                key: 'fee-info',
-                title: 'Costo real de envío',
-                content: hasActualFee ? (
-                  <>
-                    <p className="text-sm font-bold text-slate-800">{formatCRC(Number(detail.billing_actual_delivery_fee_crc))}</p>
-                    {originalFeeCrc != null && (
-                      <p className="text-xs text-slate-500 mt-0.5">Cobrado: {formatCRC(Number(originalFeeCrc))}</p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-slate-400 italic">Sin confirmar</p>
-                ),
-              },
-              {
-                key: 'fee-action',
-                title: hasActualFee ? 'Editar costo real' : 'Agregar costo real',
-                content: (
-                  <button
-                    onClick={props.handleOpenActualFeeModal}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all"
-                  >
-                    {hasActualFee ? 'Editar costo real' : 'Agregar costo real'}
-                  </button>
-                ),
-              },
-              ...(hasChangeDue ? [{
-                key: 'change',
-                title: `Devolver ${formatCRC(changeCrc)}`,
-                content: (
-                  <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                    <p className="text-[11px] text-amber-600 mb-2">
-                      {detail.billing_change_returned ? 'Ya marcado como entregado.' : 'Se le cobró de más al cliente.'}
-                    </p>
-                    {!detail.billing_change_returned && (
-                      <button
-                        onClick={props.handleMarkChangeReturned}
-                        disabled={props.isMarkingChangeReturned}
-                        className="w-full flex items-center justify-center px-3 py-2 bg-amber-500 text-white rounded-xl font-bold text-[11px] hover:bg-amber-600 transition-all disabled:opacity-40"
-                      >
-                        Marcar entregado
-                      </button>
-                    )}
-                  </div>
-                ),
-              }] : []),
-              {
-                key: 'finalize',
-                title: 'Finalizar',
-                isAction: true,
-                content: (
-                  <>
-                    <p className="text-[10px] text-slate-400 mb-2">
-                      El costo real de envío es opcional — se puede completar más adelante.
-                    </p>
-                    <button
-                      onClick={props.handleFinalizeOrder}
-                      disabled={props.isFinalizing}
-                      title="Finaliza la orden de envío"
-                      className="w-full flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all disabled:opacity-40"
-                    >
-                      {props.isFinalizing ? 'Finalizando...' : 'Siguiente'}
-                    </button>
-                  </>
-                ),
-              },
-            ]}
-          />
-        </div>
-        </div>
-      </div>
-
-      {/* PACKAGES LIST — siempre visible, fuera del wizard por paso. */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            Paquetes en esta orden de envío
-          </p>
-          {props.canAssignPackages && (
-            <button
-              onClick={props.handleOpenAssignModal}
-              disabled={props.isLoadingAvailable}
-              title={detail.current_step === ShipmentOrderStep.COBRO ? 'Recalculará el estimado ya generado' : undefined}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all disabled:opacity-40"
-            >
-              <Plus size={12} />
-              Agregar paquetes
-            </button>
-          )}
-        </div>
-        {detail.packages.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-sm">Sin paquetes asignados aún.</div>
-        ) : (
-          <>
-            <PackageTable
-              packages={detail.packages}
-              canUnassign={detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length > 1}
-              isUnassigning={props.isUnassigning}
-              onUnassign={props.handleUnassignPackage}
-            />
-            {detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length === 1 && (
-              <p className="text-[11px] text-slate-400 mt-3 text-center">
-                Es el único paquete de la orden — no se puede quitar. Para vaciarla, elimina la orden completa desde el listado.
-              </p>
+                )}
+              </>
             )}
-          </>
+          </section>
+        </div>
+
+        {/* En la finalizada la ficha ya trae todo el resumen. */}
+        {!isFinalized && (
+          <aside className="lg:sticky lg:top-24">
+            <OrderSummaryCard detail={detail} deliveryMethods={deliveryMethodsData} isPickup={isPickup} />
+          </aside>
         )}
       </div>
     </>

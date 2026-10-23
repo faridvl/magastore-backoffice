@@ -8,6 +8,7 @@ import { Column, NewTable } from '@/components/common/new-table/new-table';
 import { NotifyPackagesModal } from '@/components/common/notify-packages-modal/notify-packages-modal';
 import { LogisticsPackage } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
 
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
@@ -47,10 +48,12 @@ export const LogisticsContainer: React.FC = () => {
         notifyMultiple,
         addressModalTarget, setAddressModalTarget, selectedAddressId, setSelectedAddressId,
         selectedDeliveryMethod, setSelectedDeliveryMethod,
-        handleConfirmCreateOrderWithAddress,
+        handleConfirmCreateOrderWithAddress, handleAddressesSaved,
     } = usePackages(PAGE_SIZE);
     const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
     const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
+    const [showManageAddresses, setShowManageAddresses] = React.useState(false);
+    const isPickupSelected = !!activeDeliveryMethods.find((m) => m.code === selectedDeliveryMethod)?.is_pickup;
 
     const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
     const visibleSelectedCount = packages.filter((p) => selectedUuids.includes(p.uuid)).length;
@@ -463,10 +466,24 @@ export const LogisticsContainer: React.FC = () => {
                                 <MapPin size={18} className="text-slate-600" />
                             </div>
                             <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                                ¿A cuál dirección se entrega este envío?
+                                Nueva orden de envío
                             </Typography>
                         </div>
 
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                            <p className="text-xs font-bold text-slate-500">Dirección de entrega</p>
+                            <button
+                                onClick={() => setShowManageAddresses(true)}
+                                className="inline-flex items-center gap-1.5 min-h-[36px] px-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
+                            >
+                                <Plus size={14} /> {addressModalTarget.addresses.length === 0 ? 'Agregar' : 'Gestionar'}
+                            </button>
+                        </div>
+                        {isPickupSelected ? (
+                            <p className="text-sm text-slate-500 mb-6">No hace falta: el cliente retira en oficina.</p>
+                        ) : addressModalTarget.addresses.length === 0 ? (
+                            <p className="text-sm text-slate-500 mb-6">Este cliente no tiene direcciones. Agrega una, o elige retiro en oficina.</p>
+                        ) : (
                         <div className="space-y-2 mb-6">
                             {addressModalTarget.addresses.map((addr) => (
                                 <button
@@ -479,10 +496,15 @@ export const LogisticsContainer: React.FC = () => {
                                     }`}
                                 >
                                     <div>
-                                        <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Default' : ''}</p>
+                                        <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
                                         <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                                             {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                                         </p>
+                                        {addr.recipient_name && (
+                                          <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                                            Recibe: {addr.recipient_name}
+                                          </p>
+                                        )}
                                     </div>
                                     {selectedAddressId === addr.id && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
@@ -490,8 +512,9 @@ export const LogisticsContainer: React.FC = () => {
                                 </button>
                             ))}
                         </div>
+                        )}
 
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                        <p className="text-xs font-bold text-slate-500 mb-2">
                             Método de envío
                         </p>
                         <div className="space-y-2 mb-6">
@@ -521,15 +544,26 @@ export const LogisticsContainer: React.FC = () => {
                                 Cancelar
                             </button>
                             <button
-                                onClick={handleConfirmCreateOrderWithAddress}
-                                disabled={!selectedAddressId || !selectedDeliveryMethod || isCreatingOrder}
+                                onClick={() => handleConfirmCreateOrderWithAddress(isPickupSelected)}
+                                disabled={(!selectedAddressId && !isPickupSelected) || !selectedDeliveryMethod || isCreatingOrder}
                                 className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
                             >
-                                {isCreatingOrder ? 'Creando...' : 'Crear Orden de Envío'}
+                                {isCreatingOrder ? 'Creando…' : 'Crear orden'}
                             </button>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showManageAddresses && addressModalTarget && (
+                <CustomerAddressesModal
+                    customerId={addressModalTarget.customerUuid}
+                    addresses={addressModalTarget.addresses}
+                    onSaved={handleAddressesSaved}
+                    onClose={() => setShowManageAddresses(false)}
+                    zIndexClassName="z-[70]"
+                    startWithNewAddress={addressModalTarget.addresses.length === 0}
+                />
             )}
 
             {/* MODAL: NOTIFICAR POR WHATSAPP (paquetes sin orden, envío individual por cliente) */}
