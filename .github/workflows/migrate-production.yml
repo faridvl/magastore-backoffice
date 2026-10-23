@@ -1,0 +1,44 @@
+name: Migraciones de producción
+
+# Corre al hacer merge de un PR a main. También se puede lanzar a mano desde
+# la pestaña Actions (por ejemplo, para reintentar tras corregir un .sql).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nunca dos corridas a la vez contra la misma base; una nueva espera a la anterior.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    # El secreto DATABASE_URL vive en el entorno "production" de GitHub, no en
+    # los secretos del repo, para que ningún otro workflow pueda leerlo.
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Solo se necesita el driver de Neon: sin scripts de instalación.
+      - run: npm ci --ignore-scripts
+
+      - name: Migraciones pendientes
+        run: node .github/scripts/migrate.mjs --env prod --dry-run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Aplicar migraciones
+        run: node .github/scripts/migrate.mjs --env prod
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

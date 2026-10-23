@@ -147,17 +147,13 @@ src/
 
 ## Migraciones SQL
 
-Scripts en `scripts/` — deben ejecutarse en orden en Neon:
+Archivos numerados en `scripts/` (`NNN-descripcion.sql`), idempotentes (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`).
 
-| Script | Descripción |
-|---|---|
-| `003-normalize-package-type.sql` | Normaliza valores de package_type |
-| `004-users-role-column.sql` | Columna role en tabla users |
-| `005-package-events-trigger.sql` | Trigger que registra eventos automáticos en bitácora |
-| `006-billing-address-snapshot.sql` | Columna de snapshot de dirección de entrega en billing |
-| `007-packages-address-id.sql` | Columna address_id en packages para dirección de entrega |
+- **Producción:** se aplican solas al hacer merge a `main`, con el workflow `.github/workflows/migrate-production.yml`. El registro de lo aplicado vive en la tabla `schema_migrations` de la propia base. Requiere el secreto `DATABASE_URL` en el entorno `production` de GitHub (Settings → Environments).
+- **Desarrollo:** `dbmigrate up "[DEV] MAGASTORE"` desde la raíz, que registra en `db-migrations.json`.
+- Ver lo que falta sin aplicar nada: `DATABASE_URL=... node .github/scripts/migrate.mjs --dry-run`.
 
-Todos ejecutados en el ambiente de producción (Neon).
+Cada migración corre en su propia transacción junto con su registro: si falla, no queda a medias y el workflow termina en error sin seguir con las siguientes.
 
 ---
 
