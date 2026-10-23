@@ -29,6 +29,7 @@ import { useShipmentOrderDetail, DetailConfirmAction } from './use-shipment-orde
 import { WizardStepsSection } from './step-sections/wizard-steps-section';
 import { PostDeliverySection } from './step-sections/post-delivery-section';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
+import { CustomerRecipientsList } from '@/components/containers/customers/customer-recipients/customer-recipients-list';
 import {
   ConsolidationStatus,
   ConsolidationPackage,
@@ -85,6 +86,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleAdvanceToClosing, isAdvancingToClosing,
     isPickup,
     confirmAction, setConfirmAction, handleConfirmAction,
+    showRecipientModal, setShowRecipientModal, handleOpenRecipientModal, handleSetRecipient,
     requestGoBackToConfirmation, requestUnassignPackage,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
@@ -292,12 +294,41 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         handleOpenAddressModal={handleOpenAddressModal}
         isLoadingAddresses={isLoadingAddresses}
         handleOpenMethodModal={handleOpenMethodModal}
+        handleOpenRecipientModal={handleOpenRecipientModal}
         canAssignPackages={canAssignPackages}
         handleOpenAssignModal={handleOpenAssignModal}
         isLoadingAvailable={isLoadingAvailable}
         requestUnassignPackage={requestUnassignPackage}
         isUnassigning={isUnassigning}
       />
+
+      {/* MODAL: QUIÉN RECIBE */}
+      {showRecipientModal && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center sm:p-4"
+          onClick={() => setShowRecipientModal(false)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-lg font-bold text-slate-900">¿Quién recibe?</p>
+            <p className="text-sm text-slate-500 mt-1 mb-4">Elige al cliente o a otra persona. Se usa en la solicitud al proveedor, la confirmación y la factura.</p>
+            <CustomerRecipientsList
+              customerId={detail.customer_id}
+              customerName={detail.customer_name}
+              selectedId={detail.recipient_id}
+              onSelect={handleSetRecipient}
+            />
+            <button
+              onClick={() => setShowRecipientModal(false)}
+              className="w-full mt-4 min-h-[44px] rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: CONFIRMAR UNA ACCIÓN QUE DESCARTA TRABAJO */}
       {confirmCopy && (
@@ -566,11 +597,6 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                       <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                         {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                       </p>
-                      {addr.recipient_name && (
-                        <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
-                          Recibe: {addr.recipient_name}
-                        </p>
-                      )}
                     </div>
                     {selectedAddressId === addr.id && (
                       <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />

@@ -9,6 +9,7 @@ import { NotifyPackagesModal } from '@/components/common/notify-packages-modal/n
 import { LogisticsPackage } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
+import { CustomerRecipientsList } from '@/components/containers/customers/customer-recipients/customer-recipients-list';
 
 // --- Sub-componente interno para las métricas rápidas ---
 const MetricItem = ({ label, value, color, icon }: { label: string; value: number | string; color: string; icon: React.ReactNode }) => {
@@ -48,12 +49,15 @@ export const LogisticsContainer: React.FC = () => {
         notifyMultiple,
         addressModalTarget, setAddressModalTarget, selectedAddressId, setSelectedAddressId,
         selectedDeliveryMethod, setSelectedDeliveryMethod,
+        selectedRecipientId, setSelectedRecipientId,
         handleConfirmCreateOrderWithAddress, handleAddressesSaved,
     } = usePackages(PAGE_SIZE);
     const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
     const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
     const [showManageAddresses, setShowManageAddresses] = React.useState(false);
     const isPickupSelected = !!activeDeliveryMethods.find((m) => m.code === selectedDeliveryMethod)?.is_pickup;
+    const modalCustomer = packages.find((p) => p.customer_id === addressModalTarget?.customerUuid);
+    const modalCustomerName = [modalCustomer?.first_name, modalCustomer?.last_name].filter(Boolean).join(' ') || 'El cliente';
 
     const showSelection = viewMode === 'activos' && consolidationFilter === 'SIN_ORDEN';
     const visibleSelectedCount = packages.filter((p) => selectedUuids.includes(p.uuid)).length;
@@ -500,11 +504,6 @@ export const LogisticsContainer: React.FC = () => {
                                         <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                                             {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                                         </p>
-                                        {addr.recipient_name && (
-                                          <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
-                                            Recibe: {addr.recipient_name}
-                                          </p>
-                                        )}
                                     </div>
                                     {selectedAddressId === addr.id && (
                                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
@@ -512,6 +511,18 @@ export const LogisticsContainer: React.FC = () => {
                                 </button>
                             ))}
                         </div>
+                        )}
+
+                        {!isPickupSelected && (
+                            <div className="mb-6">
+                                <p className="text-xs font-bold text-slate-500 mb-2">¿Quién recibe?</p>
+                                <CustomerRecipientsList
+                                    customerId={addressModalTarget.customerUuid}
+                                    customerName={modalCustomerName}
+                                    selectedId={selectedRecipientId}
+                                    onSelect={setSelectedRecipientId}
+                                />
+                            </div>
                         )}
 
                         <p className="text-xs font-bold text-slate-500 mb-2">

@@ -605,7 +605,8 @@ export interface ConsolidationDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
-  // Quién recibe en la dirección de la orden; null = el propio cliente.
+  // Persona elegida para recibir (migración 035); null = el propio cliente.
+  recipient_id: string | null;
   delivery_recipient_name: string | null;
   delivery_recipient_phone: string | null;
   delivery_recipient_id_card: string | null;
@@ -668,6 +669,8 @@ export interface CreateConsolidationWithPackagesInput {
   // Elegido junto con la dirección al crear la orden. Opcional por compatibilidad
   // con órdenes viejas; generatePreBilling cae a pedirlo explícito si falta.
   deliveryMethod?: DeliveryMethod;
+  // Persona que recibe; sin valor recibe el propio cliente.
+  recipientId?: string | null;
 }
 
 export interface UpdateConsolidationStatusInput {

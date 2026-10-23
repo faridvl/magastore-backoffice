@@ -62,12 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST') {
-      const { customerUuid, packageUuids, deliveryAddressId, deliveryMethod } = req.body;
+      const { customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId } = req.body;
       if (!customerUuid) {
         return res.status(400).json({ message: 'customerUuid es requerido.' });
       }
       const consolidation = packageUuids?.length
-        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod)
+        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId ?? null)
         : await ConsolidationsService.createConsolidation(customerUuid);
       return res.status(201).json({ data: consolidation });
     }
@@ -83,6 +83,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ message: 'consolidationUuid y addressId son requeridos.' });
         }
         await ConsolidationsService.setDeliveryAddress(consolidationUuid, addressId);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      // null o vacío = recibe el propio cliente.
+      if (action === 'set-recipient') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.setRecipient(consolidationUuid, req.body.recipientId || null);
         return res.status(200).json({ data: { updated: true } });
       }
 

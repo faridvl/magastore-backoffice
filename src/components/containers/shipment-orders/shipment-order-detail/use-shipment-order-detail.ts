@@ -132,6 +132,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [isAdvancingToClosing, setIsAdvancingToClosing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<DetailConfirmAction | null>(null);
+  const [showRecipientModal, setShowRecipientModal] = useState(false);
   const [packageToUnassign, setPackageToUnassign] = useState<string | null>(null);
 
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
@@ -457,6 +458,31 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       toast.error(err?.message ?? 'No se pudo actualizar la dirección de entrega.');
     } finally {
       setIsSavingAddress(false);
+    }
+  };
+
+  const handleOpenRecipientModal = () => {
+    if (detail?.billing_uuid) {
+      toast.error('No se puede cambiar quién recibe: la orden ya tiene factura.');
+      return;
+    }
+    setShowRecipientModal(true);
+  };
+
+  // Elegir en la lista guarda de una vez: es un solo toque, sin "Guardar" aparte.
+  const handleSetRecipient = async (recipientId: string | null) => {
+    if (!uuid) return;
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-recipient',
+        consolidationUuid: uuid,
+        recipientId,
+      });
+      await detailQuery.invalidate();
+      toast.success('Quién recibe actualizado');
+      setShowRecipientModal(false);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cambiar quién recibe.');
     }
   };
 
@@ -955,6 +981,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     isUpdating,
     handleAdvanceToClosing, isAdvancingToClosing,
     isPickup, deliveryMethodEntity,
+    showRecipientModal, setShowRecipientModal, handleOpenRecipientModal, handleSetRecipient,
     confirmAction, setConfirmAction, handleConfirmAction,
     requestGoBackToConfirmation, requestUnassignPackage,
     quickActionTarget, setQuickActionTarget,

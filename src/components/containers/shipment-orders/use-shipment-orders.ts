@@ -76,6 +76,8 @@ export const useShipmentOrders = () => {
   const [createAddresses, setCreateAddresses] = useState<CustomerAddress[]>([]);
   const [createAddressId, setCreateAddressId] = useState('');
   const [createDeliveryMethod, setCreateDeliveryMethod] = useState<DeliveryMethod | null>(null);
+  // null = recibe el propio cliente.
+  const [createRecipientId, setCreateRecipientId] = useState<string | null>(null);
   const [isLoadingCreateData, setIsLoadingCreateData] = useState(false);
   const [showCreateAddressesModal, setShowCreateAddressesModal] = useState(false);
 
@@ -228,6 +230,7 @@ export const useShipmentOrders = () => {
       setCreateAddresses(data);
       setCreateAddressId(data.find((a: CustomerAddress) => a.is_default)?.id ?? data[0]?.id ?? '');
       setCreateDeliveryMethod(null);
+      setCreateRecipientId(null);
       setCreateStep('address');
     } catch {
       toast.error('No se pudieron cargar las direcciones del cliente.');
@@ -266,6 +269,7 @@ export const useShipmentOrders = () => {
         customerUuid: createCustomer.customer_id,
         packageUuids: createSelectedPackageUuids,
         deliveryAddressId: isPickup ? undefined : createAddressId,
+        recipientId: isPickup ? null : createRecipientId,
         deliveryMethod: createDeliveryMethod,
       });
       toast.success('Orden de envío creada correctamente');
@@ -356,6 +360,7 @@ export const useShipmentOrders = () => {
     showCreateAddressesModal, setShowCreateAddressesModal,
     handleCreateAddressesSaved,
     createDeliveryMethod, setCreateDeliveryMethod,
+    createRecipientId, setCreateRecipientId,
     handleConfirmCreate,
     isLoadingCreateData,
     isCreatingOrder,

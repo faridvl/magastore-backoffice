@@ -368,7 +368,7 @@ export const LogisticsRepository = {
       await sql`BEGIN`;
 
       const [c] = await sql`
-        SELECT id, customer_id, total_weight_lb, delivery_address_id FROM consolidations WHERE uuid = ${consolidationUuid}
+        SELECT id, customer_id, total_weight_lb, delivery_address_id, recipient_id FROM consolidations WHERE uuid = ${consolidationUuid}
       `;
       if (!c) throw new Error('Orden de envío no encontrada.');
 
@@ -394,21 +394,24 @@ export const LogisticsRepository = {
         ? [null]
         : c.delivery_address_id
           ? await sql`
-              SELECT exact_address, district, canton, province, recipient_name, recipient_phone FROM customer_addresses
+              SELECT exact_address, district, canton, province FROM customer_addresses
               WHERE id = ${c.delivery_address_id}
             `
           : await sql`
-              SELECT exact_address, district, canton, province, recipient_name, recipient_phone FROM customer_addresses
+              SELECT exact_address, district, canton, province FROM customer_addresses
               WHERE customer_id = ${c.customer_id}
               ORDER BY is_default DESC LIMIT 1
             `;
+      const [recipientRow] = c.recipient_id
+        ? await sql`SELECT full_name, phone FROM customer_recipients WHERE id = ${c.recipient_id}`
+        : [null];
       const addressSnapshot = addressRow
         ? [
             [addressRow.exact_address, addressRow.district, addressRow.canton, addressRow.province]
               .filter(Boolean)
               .join(', '),
-            addressRow.recipient_name
-              ? `Recibe: ${[addressRow.recipient_name, addressRow.recipient_phone].filter(Boolean).join(', ')}`
+            recipientRow
+              ? `Recibe: ${[recipientRow.full_name, recipientRow.phone].filter(Boolean).join(', ')}`
               : null,
           ]
             .filter(Boolean)

@@ -67,6 +67,8 @@ export const usePackages = (pageSize = 7) => {
     } | null>(null);
     const [selectedAddressId, setSelectedAddressId] = useState('');
     const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod | null>(null);
+    // null = recibe el propio cliente.
+    const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(null);
 
     // Persiste la selección en sessionStorage — sobrevive a un "back" del navegador
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
@@ -150,12 +152,19 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId: string | undefined, deliveryMethod: DeliveryMethod) => {
+    const createOrderAndRedirect = async (
+        packageUuids: string[],
+        customerUuid: string,
+        deliveryAddressId: string | undefined,
+        deliveryMethod: DeliveryMethod,
+        recipientId: string | null,
+    ) => {
         try {
             const result = await createShipmentOrderWithPackages({
                 customerUuid,
                 packageUuids,
                 deliveryAddressId,
+                recipientId,
                 deliveryMethod,
             });
             toast.success('Orden de envío creada correctamente');
@@ -175,6 +184,7 @@ export const usePackages = (pageSize = 7) => {
 
             setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0]?.id ?? '');
             setSelectedDeliveryMethod(null);
+            setSelectedRecipientId(null);
             setAddressModalTarget({ customerUuid: selectedCustomerId, packageUuids: selectedUuids, addresses });
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
@@ -202,6 +212,7 @@ export const usePackages = (pageSize = 7) => {
             addressModalTarget.customerUuid,
             isPickup ? undefined : selectedAddressId,
             selectedDeliveryMethod,
+            isPickup ? null : selectedRecipientId,
         );
         setAddressModalTarget(null);
         setSelectedAddressId('');
@@ -245,6 +256,8 @@ export const usePackages = (pageSize = 7) => {
         setSelectedAddressId,
         selectedDeliveryMethod,
         setSelectedDeliveryMethod,
+        selectedRecipientId,
+        setSelectedRecipientId,
         handleConfirmCreateOrderWithAddress,
     };
 };

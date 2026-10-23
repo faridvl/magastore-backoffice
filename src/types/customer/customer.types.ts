@@ -7,10 +7,6 @@ export interface CustomerAddressInput {
   exact_address: string;
   address_label?: string;
   is_default?: boolean;
-  // Quién recibe, cuando no es el propio cliente (migración 035). Vacíos = el cliente.
-  recipient_name?: string | null;
-  recipient_phone?: string | null;
-  recipient_id_card?: string | null;
 }
 
 export interface CustomerAddressUpdateInput {
@@ -21,9 +17,6 @@ export interface CustomerAddressUpdateInput {
   exact_address: string;
   address_label?: string;
   is_default?: boolean;
-  recipient_name?: string | null;
-  recipient_phone?: string | null;
-  recipient_id_card?: string | null;
 }
 
 /**
@@ -238,4 +231,21 @@ export interface CustomerWarehouseCode {
   warehouse_route_id: number;
   code: string;
   assigned_at: string;
+}
+
+/** Persona que recibe por el cliente (familiar, vecino). Se elige por orden, aparte de la dirección. */
+export interface CustomerRecipient {
+  id: string;
+  customer_id: string;
+  full_name: string;
+  phone: string | null;
+  id_card: string | null;
+  created_at: string;
+}
+
+export interface CustomerRecipientInput {
+  id?: string;
+  full_name: string;
+  phone?: string | null;
+  id_card?: string | null;
 }

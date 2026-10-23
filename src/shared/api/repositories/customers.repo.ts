@@ -149,8 +149,7 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
       ),
       ins_addr AS (
         INSERT INTO customer_addresses (
-          customer_id, province, canton, district, exact_address, address_label, is_default,
-          recipient_name, recipient_phone, recipient_id_card
+          customer_id, province, canton, district, exact_address, address_label, is_default
         )
         SELECT
           new_cust.id,
@@ -159,10 +158,7 @@ export const createCustomerWithAddresses = async (data: CustomerInput): Promise<
           (addr->>'district'),
           (addr->>'exact_address'),
           COALESCE(addr->>'address_label', 'Casa'),
-          COALESCE((addr->>'is_default')::boolean, false),
-          NULLIF(addr->>'recipient_name', ''),
-          NULLIF(addr->>'recipient_phone', ''),
-          NULLIF(addr->>'recipient_id_card', '')
+          COALESCE((addr->>'is_default')::boolean, false)
         FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
         RETURNING *
       )
@@ -268,8 +264,7 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
  */
 export const getCustomerAddresses = async (customerId: string): Promise<CustomerAddress[]> => {
   const rows = await sql`
-    SELECT id, customer_id, province, canton, district, exact_address, address_label, is_default,
-      recipient_name, recipient_phone, recipient_id_card, created_at
+    SELECT id, customer_id, province, canton, district, exact_address, address_label, is_default, created_at
     FROM customer_addresses
     WHERE customer_id = ${customerId}
     ORDER BY is_default DESC, created_at ASC
@@ -305,18 +300,15 @@ export const upsertCustomerAddress = async (
           district      = ${addr.district},
           exact_address = ${addr.exact_address},
           address_label = ${addr.address_label ?? 'Casa'},
-          is_default    = ${addr.is_default ?? false},
-          recipient_name    = CASE WHEN ${'recipient_name' in addr}::boolean THEN ${addr.recipient_name ?? null} ELSE recipient_name END,
-          recipient_phone   = CASE WHEN ${'recipient_phone' in addr}::boolean THEN ${addr.recipient_phone ?? null} ELSE recipient_phone END,
-          recipient_id_card = CASE WHEN ${'recipient_id_card' in addr}::boolean THEN ${addr.recipient_id_card ?? null} ELSE recipient_id_card END
+          is_default    = ${addr.is_default ?? false}
         WHERE id = ${addr.id} AND customer_id = ${customerId}
         RETURNING id
       `;
       if (!updated) throw new Error('La dirección no existe o no pertenece a este cliente.');
     } else {
       await sql`
-        INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default, recipient_name, recipient_phone, recipient_id_card)
-        VALUES (${customerId}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false}, ${addr.recipient_name ?? null}, ${addr.recipient_phone ?? null}, ${addr.recipient_id_card ?? null})
+        INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+        VALUES (${customerId}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false})
       `;
     }
 
@@ -444,16 +436,13 @@ export const updateCustomer = async (id: string, data: CustomerUpdateInput): Pro
             district      = ${addr.district},
             exact_address = ${addr.exact_address},
             address_label = ${addr.address_label ?? 'Casa'},
-            is_default    = ${addr.is_default ?? false},
-            recipient_name    = CASE WHEN ${'recipient_name' in addr}::boolean THEN ${addr.recipient_name ?? null} ELSE recipient_name END,
-            recipient_phone   = CASE WHEN ${'recipient_phone' in addr}::boolean THEN ${addr.recipient_phone ?? null} ELSE recipient_phone END,
-            recipient_id_card = CASE WHEN ${'recipient_id_card' in addr}::boolean THEN ${addr.recipient_id_card ?? null} ELSE recipient_id_card END
+            is_default    = ${addr.is_default ?? false}
           WHERE id = ${addr.id} AND customer_id = ${id}
         `;
       } else {
         await sql`
-          INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default, recipient_name, recipient_phone, recipient_id_card)
-          VALUES (${id}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false}, ${addr.recipient_name ?? null}, ${addr.recipient_phone ?? null}, ${addr.recipient_id_card ?? null})
+          INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
+          VALUES (${id}, ${addr.province}, ${addr.canton}, ${addr.district}, ${addr.exact_address}, ${addr.address_label ?? 'Casa'}, ${addr.is_default ?? false})
         `;
       }
     }

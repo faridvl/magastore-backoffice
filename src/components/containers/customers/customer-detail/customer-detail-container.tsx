@@ -151,6 +151,7 @@ import { Button, ButtonVariant } from '@/components/common/button/button';
 import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
 import { CustomerAddressesModal } from './customer-addresses-modal';
+import { CustomerRecipientsList } from '../customer-recipients/customer-recipients-list';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
 import { notifyWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
@@ -530,6 +531,14 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                     </div>
                                                 ))}
                                             </div>
+                                        </div>
+
+                                        <div className="bg-white p-5 lg:p-8 rounded-[24px] lg:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+                                            <div>
+                                                <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Personas que reciben</Typography>
+                                                <p className="text-sm text-slate-500 mt-1">Quienes pueden recibir por el cliente. En cada orden se elige quién recibe.</p>
+                                            </div>
+                                            <CustomerRecipientsList customerId={customer.id} customerName={`${customer.first_name} ${customer.last_name}`} />
                                         </div>
 
                                         {/* Perfil Operativo — solo datos reales, se edita desde "Editar cliente" */}

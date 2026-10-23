@@ -21,9 +21,6 @@ const EMPTY_DRAFT: Draft = {
   exact_address: '',
   address_label: 'Casa',
   is_default: false,
-  recipient_name: '',
-  recipient_phone: '',
-  recipient_id_card: '',
 };
 
 interface Props {
@@ -162,13 +159,6 @@ export const CustomerAddressesModal: React.FC<Props> = ({
                       <br />
                       {addr.exact_address}
                     </p>
-                    {addr.recipient_name && (
-                      <p className="text-xs text-slate-600 font-semibold mt-1 break-words">
-                        Recibe: {addr.recipient_name}
-                        {addr.recipient_phone ? ` · ${addr.recipient_phone}` : ''}
-                        {addr.recipient_id_card ? ` · Cédula ${addr.recipient_id_card}` : ''}
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -260,45 +250,6 @@ export const CustomerAddressesModal: React.FC<Props> = ({
                   >
                     {ADDRESS_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
                   </select>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <p className={LABEL_CLASSNAME}>¿Quién recibe?</p>
-                  <p className="text-[11px] text-slate-500 ml-1 mt-0.5">
-                    Solo si no lo recibe el cliente (por ejemplo, un familiar). Vacío = el cliente.
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <label className={LABEL_CLASSNAME}>Nombre</label>
-                    <input
-                      value={draft.recipient_name ?? ''}
-                      onChange={(e) => updateDraft('recipient_name', e.target.value)}
-                      placeholder="Nombre completo"
-                      className={SELECT_CLASSNAME}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={LABEL_CLASSNAME}>Teléfono</label>
-                    <input
-                      value={draft.recipient_phone ?? ''}
-                      onChange={(e) => updateDraft('recipient_phone', e.target.value)}
-                      placeholder="8888-7777"
-                      inputMode="tel"
-                      className={SELECT_CLASSNAME}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className={LABEL_CLASSNAME}>Cédula</label>
-                    <input
-                      value={draft.recipient_id_card ?? ''}
-                      onChange={(e) => updateDraft('recipient_id_card', e.target.value)}
-                      placeholder="1-2345-6789"
-                      className={SELECT_CLASSNAME}
-                    />
-                  </div>
                 </div>
               </div>
 

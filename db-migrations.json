@@ -256,9 +256,9 @@
           "appliedBy": "Farid"
         },
         {
-          "name": "035-address-recipient.sql",
+          "name": "035-customer-recipients.sql",
           "version": "035",
-          "checksum": "b329a1d0fb251af4",
+          "checksum": "3d0973b19cac45c3",
           "appliedAt": "2026-10-23T15:50:07.267Z",
           "appliedBy": "Farid"
         }

@@ -28,6 +28,7 @@ import {
 import { ConsolidationListItem, ConsolidationStatus, ConsolidationPaymentStatus, ShipmentOrderStep, AvailablePackage } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
+import { CustomerRecipientsList } from '@/components/containers/customers/customer-recipients/customer-recipients-list';
 
 const PAYMENT_LABELS: Record<ConsolidationPaymentStatus, string> = {
   SIN_ESTIMADO: 'Sin estimado',
@@ -118,6 +119,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     showCreateAddressesModal, setShowCreateAddressesModal,
     handleCreateAddressesSaved,
     createDeliveryMethod, setCreateDeliveryMethod,
+    createRecipientId, setCreateRecipientId,
     handleConfirmCreate,
     isLoadingCreateData,
     isCreatingOrder,
@@ -635,17 +637,24 @@ export const ShipmentOrdersContainer: React.FC = () => {
                           <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
                             {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                           </p>
-                          {addr.recipient_name && (
-                            <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
-                              Recibe: {addr.recipient_name}
-                            </p>
-                          )}
                         </div>
                         {createAddressId === addr.id && (
                           <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                         )}
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {!isCreatePickup && createCustomer && (
+                  <div className="mb-6">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Quién recibe?</p>
+                    <CustomerRecipientsList
+                      customerId={createCustomer.customer_id}
+                      customerName={`${createCustomer.first_name} ${createCustomer.last_name}`}
+                      selectedId={createRecipientId}
+                      onSelect={setCreateRecipientId}
+                    />
                   </div>
                 )}
 

@@ -29,13 +29,15 @@ export const ConsolidationsService = {
     packageUuids: string[],
     deliveryAddressId?: string,
     deliveryMethod?: DeliveryMethod,
+    recipientId?: string | null,
   ) => {
     if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
+    if (recipientId && !isUuid(recipientId)) throw new Error('Persona inválida: no pertenece a este cliente.');
     if (!packageUuids || packageUuids.length === 0) {
       throw new Error('Debe seleccionar al menos un paquete para crear la orden de envío.');
     }
 
-    return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod);
+    return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId);
   },
 
   listConsolidations: async (
@@ -140,6 +142,12 @@ export const ConsolidationsService = {
   markChangeReturned: async (uuid: string) => {
     if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
     return ConsolidationsRepository.markChangeReturned(uuid);
+  },
+
+  setRecipient: async (uuid: string, recipientId: string | null) => {
+    if (!uuid) throw new Error('Se requiere el UUID de la orden de envío.');
+    if (recipientId && !isUuid(recipientId)) throw new Error('Persona inválida: no pertenece a este cliente.');
+    return ConsolidationsRepository.setRecipient(uuid, recipientId);
   },
 
   advanceToClosing: async (uuid: string) => {

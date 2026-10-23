@@ -48,6 +48,7 @@ export const ConsolidationsRepository = {
     packageUuids: string[],
     deliveryAddressId?: string,
     deliveryMethod?: DeliveryMethod,
+    recipientId?: string | null,
   ): Promise<{ uuid: string; status: ConsolidationStatus; total_weight_lb: number }> => {
     await sql`BEGIN`;
     try {
@@ -83,9 +84,16 @@ export const ConsolidationsRepository = {
         }
       }
 
+      if (recipientId) {
+        const [recipient] = await sql`
+          SELECT id FROM customer_recipients WHERE id = ${recipientId} AND customer_id = ${customerUuid}
+        `;
+        if (!recipient) throw new Error('Persona inválida: no pertenece a este cliente.');
+      }
+
       const [created] = await sql`
-        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id, delivery_method)
-        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId}, ${deliveryMethod ?? null})
+        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id, delivery_method, recipient_id)
+        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId}, ${deliveryMethod ?? null}, ${recipientId ?? null})
         RETURNING id, uuid, status
       `;
 
@@ -308,9 +316,10 @@ export const ConsolidationsRepository = {
         ca.district AS delivery_district,
         ca.canton AS delivery_canton,
         ca.province AS delivery_province,
-        ca.recipient_name AS delivery_recipient_name,
-        ca.recipient_phone AS delivery_recipient_phone,
-        ca.recipient_id_card AS delivery_recipient_id_card,
+        con.recipient_id,
+        cr.full_name AS delivery_recipient_name,
+        cr.phone AS delivery_recipient_phone,
+        cr.id_card AS delivery_recipient_id_card,
         COALESCE(
           ca.canton,
           (SELECT canton FROM customer_addresses
@@ -325,6 +334,7 @@ export const ConsolidationsRepository = {
       LEFT JOIN billing b ON b.consolidation_id = con.id
       LEFT JOIN profit_shares ps ON ps.consolidation_id = con.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
+      LEFT JOIN customer_recipients cr ON cr.id = con.recipient_id
       CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
       GROUP BY con.uuid, con.customer_id, con.status, con.current_step, con.total_weight_lb,
@@ -341,7 +351,7 @@ export const ConsolidationsRepository = {
                con.follow_up_sent_at, con.review_requested_at,
                ca.address_label, ca.exact_address,
                ca.district, ca.canton, ca.province,
-               ca.recipient_name, ca.recipient_phone, ca.recipient_id_card
+               con.recipient_id, cr.full_name, cr.phone, cr.id_card
     `;
     return row ? (row as ConsolidationDetail) : null;
   },
@@ -368,6 +378,30 @@ export const ConsolidationsRepository = {
 
     await sql`
       UPDATE consolidations SET delivery_address_id = ${addressId}, updated_at = NOW()
+      WHERE id = ${row.id}
+    `;
+  },
+
+  /**
+   * Elige quién recibe la orden (null = el propio cliente). Se puede cambiar
+   * mientras no haya factura: la factura guarda el nombre en su copia de la
+   * dirección, y cambiarlo después no se reflejaría ahí.
+   */
+  setRecipient: async (uuid: string, recipientId: string | null): Promise<void> => {
+    const [row] = await sql`
+      SELECT con.id, cr.id AS recipient_id, b.id AS billing_id
+      FROM consolidations con
+      LEFT JOIN customer_recipients cr ON cr.id = ${recipientId} AND cr.customer_id = con.customer_id
+      LEFT JOIN billing b ON b.consolidation_id = con.id
+      WHERE con.uuid = ${uuid}
+      LIMIT 1
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+    if (row.billing_id) throw new Error('No se puede cambiar quién recibe: la orden ya tiene factura.');
+    if (recipientId && !row.recipient_id) throw new Error('Persona inválida: no pertenece a este cliente.');
+
+    await sql`
+      UPDATE consolidations SET recipient_id = ${recipientId}, updated_at = NOW()
       WHERE id = ${row.id}
     `;
   },

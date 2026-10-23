@@ -71,6 +71,7 @@ export interface WizardStepsSectionProps {
   handleOpenAddressModal: () => void;
   isLoadingAddresses: boolean;
   handleOpenMethodModal: () => void;
+  handleOpenRecipientModal: () => void;
 
   canAssignPackages: boolean;
   handleOpenAssignModal: () => void;
@@ -198,15 +199,21 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                 {detail.delivery_exact_address}, {detail.delivery_district}, {detail.delivery_canton}, {detail.delivery_province}
                 {detail.delivery_canton ? ` · Zona ${resolveZone(detail.delivery_canton)}` : ''}
               </p>
-              <p className="mt-1">
-                Recibe: {detail.delivery_recipient_name
-                  ? [detail.delivery_recipient_name, detail.delivery_recipient_phone].filter(Boolean).join(' · ')
-                  : 'el cliente'}
-              </p>
             </>
           ) : (
             'Sin dirección todavía. Pídela al cliente o regístrala.'
           )}
+        </ChecklistRow>
+      )}
+      {!isPickup && (
+        <ChecklistRow
+          title="Quién recibe"
+          isDone
+          action={<StepAction onClick={props.handleOpenRecipientModal}>Cambiar</StepAction>}
+        >
+          {detail.delivery_recipient_name
+            ? [detail.delivery_recipient_name, detail.delivery_recipient_phone].filter(Boolean).join(' · ')
+            : `El cliente (${detail.customer_name})`}
         </ChecklistRow>
       )}
       <ChecklistRow
