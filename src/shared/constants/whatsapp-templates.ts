@@ -123,7 +123,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export async function copyWhatsAppMessage(message: string): Promise<boolean> {
   const ok = await copyToClipboard(message);
   if (ok) {
-    toast.success('Mensaje copiado. Pegalo en WhatsApp Web.');
+    toast.success('Mensaje copiado. Pégalo en WhatsApp Web.');
   } else {
     toast.error('No se pudo copiar el mensaje.');
   }
