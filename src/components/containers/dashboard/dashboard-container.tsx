@@ -1,304 +1,312 @@
 import React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell,
 } from 'recharts';
-import { TrendingUp, Package, Clock, Users, Scale, PiggyBank, HandCoins } from 'lucide-react';
+import { Package, Scale, Users, RotateCcw, AlertCircle } from 'lucide-react';
 import { useDashboard } from './use-dashboard';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 import { formatCrc } from '@/shared/utils/format-crc';
 
 const formatCRC = formatCrc;
 
+// Recharts pide colores literales; son los de `primary` y `neutral` del tailwind.config.
+const CHART_STROKE = '#3f9c85';
+const CHART_FILL = '#5ec4aa';
+const CHART_GRID = '#e7e5e0';
+const CHART_TICK = '#9c9a94';
+
 const STATUS_LABELS: Record<string, string> = {
   [PackageStatus.PANAMA]: 'En Panamá',
-  [PackageStatus.EN_TRAMITE]: 'En Trámite',
+  [PackageStatus.EN_TRAMITE]: 'En trámite',
   [PackageStatus.ENTREGADO]: 'Entregado',
 };
 
-function StatCardSkeleton() {
+const STATUS_BADGE: Record<string, string> = {
+  [PackageStatus.PANAMA]: 'bg-neutral-100 text-neutral-600',
+  [PackageStatus.EN_TRAMITE]: 'bg-accent-soft text-warning-dark',
+  [PackageStatus.ENTREGADO]: 'bg-primary-soft text-primary-dark',
+};
+
+const CARD = 'bg-white rounded-3xl border border-neutral-200/70 shadow-sm';
+
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm animate-pulse">
-      <div className="flex items-start justify-between">
-        <div className="h-3 w-24 bg-slate-100 rounded" />
-        <div className="h-8 w-8 md:h-9 md:w-9 bg-slate-100 rounded-full" />
-      </div>
-      <div className="h-7 w-20 bg-slate-100 rounded mt-3" />
+    <div>
+      <h3 className="font-black text-neutral-900 tracking-tight">{title}</h3>
+      <p className="text-neutral-400 text-xs font-semibold mt-0.5">{subtitle}</p>
     </div>
   );
 }
 
-export const DashboardContainer: React.FC = () => {
-  const { stats, isLoading, isError } = useDashboard();
+function Shimmer({ className }: { className: string }) {
+  return <div className={`bg-neutral-100 rounded-lg animate-pulse ${className}`} />;
+}
 
-  const kpiCards = [
+export const DashboardContainer: React.FC = () => {
+  const {
+    stats, monthTitle, topCustomerMax, isLoading, isError, isRetrying, handleRetry,
+  } = useDashboard();
+
+  if (isError) {
+    return (
+      <div className={`${CARD} p-8 flex flex-col items-center text-center gap-3`}>
+        <div className="h-12 w-12 rounded-full bg-danger/10 text-danger flex items-center justify-center">
+          <AlertCircle size={22} />
+        </div>
+        <p className="font-black text-neutral-900">No pudimos cargar el resumen</p>
+        <p className="text-sm text-neutral-500">Revisa tu conexión e intenta de nuevo.</p>
+        <button
+          type="button"
+          onClick={handleRetry}
+          disabled={isRetrying}
+          className="mt-2 min-h-[44px] px-5 rounded-xl bg-neutral-900 text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60"
+        >
+          <RotateCcw size={16} className={isRetrying ? 'animate-spin' : undefined} />
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  const heroFigures = [
     {
-      label: 'Paquetes este mes',
-      value: isLoading ? '—' : String(stats.packagesThisMonth),
-      hint: undefined as string | undefined,
-      icon: Package,
-      iconClass: 'bg-amber-100 text-amber-700',
-    },
-    {
-      label: 'Libras este mes',
-      value: isLoading ? '—' : `${stats.weightLbThisMonth.toLocaleString('es-CR')} lb`,
-      hint: undefined as string | undefined,
-      icon: Scale,
-      iconClass: 'bg-amber-100 text-amber-700',
-    },
-    {
-      label: 'Por Cobrar',
-      value: isLoading ? '—' : formatCRC(stats.pendingBillingCRC),
-      hint: undefined as string | undefined,
-      icon: Clock,
-      iconClass: 'bg-orange-100 text-orange-700',
-    },
-    {
-      label: 'Facturado del mes',
-      value: isLoading ? '—' : formatCRC(stats.revenueThisMonthCRC),
-      hint: undefined as string | undefined,
-      icon: TrendingUp,
-      iconClass: 'bg-emerald-100 text-emerald-700',
-    },
-    {
-      label: 'Ganancia del mes',
-      value: isLoading ? '—' : formatCRC(stats.profitThisMonthCRC),
-      hint:
-        stats.unknownCostCountThisMonth > 0
-          ? `${stats.unknownCostCountThisMonth} sin costo de entrega: cifra incompleta`
-          : undefined,
-      hintClass: 'text-orange-600',
-      icon: PiggyBank,
-      iconClass: 'bg-emerald-100 text-emerald-700',
+      label: 'Ganancia',
+      value: formatCRC(stats.profitThisMonthCRC),
+      hint: 'del mes',
+      valueClass: 'text-primary-light',
     },
     {
       label: 'Para Farid',
-      value: isLoading ? '—' : formatCRC(stats.faridShareThisMonthCRC),
-      hint: stats.faridSharePercent > 0 ? `${stats.faridSharePercent}% de la ganancia facturada` : undefined,
-      icon: HandCoins,
-      iconClass: 'bg-emerald-100 text-emerald-700',
+      value: formatCRC(stats.faridShareThisMonthCRC),
+      hint: stats.faridSharePercent > 0 ? `${stats.faridSharePercent}% de la ganancia` : 'del mes',
+      valueClass: 'text-accent',
     },
     {
-      label: 'Clientes Activos',
-      value: isLoading ? '—' : String(stats.activeCustomers),
-      hint: isLoading
-        ? undefined
-        : `+${stats.newCustomersThisMonth} este mes`,
+      label: 'Por cobrar',
+      value: formatCRC(stats.pendingBillingCRC),
+      hint: 'facturas sin pagar',
+      valueClass: 'text-white',
+    },
+  ];
+
+  const volumeFigures = [
+    {
+      label: 'Paquetes',
+      value: String(stats.packagesThisMonth),
+      hint: 'este mes',
+      icon: Package,
+    },
+    {
+      label: 'Libras',
+      value: `${stats.weightLbThisMonth.toLocaleString('es-CR')} lb`,
+      hint: 'este mes',
+      icon: Scale,
+    },
+    {
+      label: 'Clientes',
+      value: String(stats.activeCustomers),
+      hint: `+${stats.newCustomersThisMonth} este mes`,
       icon: Users,
-      iconClass: 'bg-violet-100 text-violet-700',
     },
   ];
 
   return (
-    <div className="pb-8">
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-        {isLoading
-          ? Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)
-          : kpiCards.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-wider">
-                    {stat.label}
-                  </p>
-                  <span
-                    className={`h-8 w-8 md:h-9 md:w-9 shrink-0 rounded-full flex items-center justify-center ${stat.iconClass}`}
-                  >
-                    <stat.icon size={16} strokeWidth={2.25} />
-                  </span>
+    <div className="pb-8 space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Resumen del mes */}
+        <section className="relative overflow-hidden rounded-3xl bg-neutral-900 text-white p-5 sm:p-7 lg:col-span-2 shadow-lg">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-28 -right-20 h-72 w-72 rounded-full bg-accent/15 blur-3xl"
+          />
+          <div className="relative">
+            <p className="text-accent text-xs font-bold uppercase tracking-[0.2em]">{monthTitle}</p>
+            <p className="mt-4 text-sm text-neutral-400">Facturado del mes</p>
+            {isLoading ? (
+              <div className="mt-2 h-11 w-48 rounded-lg bg-white/10 animate-pulse" />
+            ) : (
+              <p className="mt-1 text-4xl sm:text-5xl font-black tracking-tight tabular-nums">
+                {formatCRC(stats.revenueThisMonthCRC)}
+              </p>
+            )}
+
+            <div className="mt-6 grid grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
+              {heroFigures.map((figure) => (
+                <div key={figure.label} className="bg-neutral-900/95 p-3 sm:p-4">
+                  <p className="text-[11px] sm:text-xs font-semibold text-neutral-400">{figure.label}</p>
+                  {isLoading ? (
+                    <div className="mt-2 h-6 w-16 rounded bg-white/10 animate-pulse" />
+                  ) : (
+                    <p className={`mt-1 text-base sm:text-xl font-black tabular-nums ${figure.valueClass}`}>
+                      {figure.value}
+                    </p>
+                  )}
+                  <p className="mt-0.5 text-[11px] sm:text-xs text-neutral-500 leading-snug">{figure.hint}</p>
                 </div>
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-2">{stat.value}</h3>
-                {stat.hint && (
-                  <p className={`text-xs font-semibold mt-1 ${'hintClass' in stat ? stat.hintClass : 'text-emerald-600'}`}>
-                    {stat.hint}
+              ))}
+            </div>
+
+            {!isLoading && stats.unknownCostCountThisMonth > 0 && (
+              <p className="mt-3 text-xs text-accent">
+                {stats.unknownCostCountThisMonth} factura{stats.unknownCostCountThisMonth !== 1 ? 's' : ''} sin
+                costo de entrega: la ganancia todavía no es la final.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Volumen del mes */}
+        <section className="grid grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4">
+          {volumeFigures.map((figure) => (
+            <div
+              key={figure.label}
+              className={`${CARD} p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4`}
+            >
+              <span className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center">
+                <figure.icon size={18} strokeWidth={2} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-neutral-500">{figure.label}</p>
+                {isLoading ? (
+                  <Shimmer className="mt-1 h-6 w-14" />
+                ) : (
+                  <p className="text-lg sm:text-2xl font-black text-neutral-900 tabular-nums whitespace-nowrap">
+                    {figure.value}
                   </p>
                 )}
+                <p className="text-[11px] sm:text-xs font-semibold text-primary-dark">{figure.hint}</p>
               </div>
-            ))}
+            </div>
+          ))}
+        </section>
       </div>
 
-      {/* Gráficas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-6 md:mb-8">
-        {/* Ingresos por mes */}
-        <div className="bg-white p-5 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="font-black text-slate-800 tracking-tight">Facturación Mensual</h3>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                Últimos 6 meses — por fecha de emisión
-              </p>
-            </div>
-          </div>
-          <div className="h-[300px] w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Facturación mensual */}
+        <section className={`${CARD} p-5 sm:p-7`}>
+          <SectionTitle title="Facturación mensual" subtitle="Últimos 6 meses, por fecha de factura" />
+          <div className="mt-5 h-[220px] sm:h-[260px] w-full">
             {isLoading ? (
-              <div className="h-full w-full bg-slate-50 rounded-2xl animate-pulse" />
+              <Shimmer className="h-full w-full rounded-2xl" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.revenueByMonth}>
+                <AreaChart data={stats.revenueByMonth} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={CHART_FILL} stopOpacity={0.35} />
+                      <stop offset="100%" stopColor={CHART_FILL} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <CartesianGrid vertical={false} stroke={CHART_GRID} strokeDasharray="4 4" />
                   <XAxis
                     dataKey="month"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fontWeight: 700, fill: '#a3a3a3' }}
-                    dy={10}
+                    tick={{ fontSize: 12, fontWeight: 600, fill: CHART_TICK }}
+                    dy={8}
+                    padding={{ left: 16, right: 16 }}
                   />
                   <YAxis hide />
                   <Tooltip
-                    formatter={(value) => [formatCRC((value as number) ?? 0), 'Ingresos']}
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value) => [formatCRC((value as number) ?? 0), 'Facturado']}
+                    contentStyle={{ borderRadius: 14, border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.15)' }}
                   />
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#2563eb"
+                    stroke={CHART_STROKE}
                     strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorRev)"
+                    fill="url(#revenueFill)"
+                    dot={{ r: 3, fill: CHART_STROKE, strokeWidth: 0 }}
+                    activeDot={{ r: 5 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Top clientes */}
-        <div className="bg-white p-5 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="mb-6">
-            <h3 className="font-black text-slate-800 tracking-tight">Top Clientes</h3>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-              Por volumen de facturación pagada
-            </p>
-          </div>
-          <div className="h-[300px] w-full">
+        {/* Mejores clientes */}
+        <section className={`${CARD} p-5 sm:p-7`}>
+          <SectionTitle title="Mejores clientes" subtitle="Por lo que han pagado" />
+          <div className="mt-5">
             {isLoading ? (
-              <div className="h-full w-full bg-slate-50 rounded-2xl animate-pulse" />
-            ) : stats.topCustomers.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm font-bold">
-                Sin datos de facturación aún
+              <div className="space-y-5">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Shimmer key={i} className="h-8 w-full" />
+                ))}
               </div>
+            ) : stats.topCustomers.length === 0 ? (
+              <p className="py-10 text-center text-sm font-semibold text-neutral-400">
+                Todavía no hay facturas pagadas
+              </p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.topCustomers} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
-                  <XAxis type="number" hide />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fontWeight: 700, fill: '#404040' }}
-                    width={100}
-                  />
-                  <Tooltip
-                    cursor={{ fill: '#f8fafc' }}
-                    formatter={(value) => [formatCRC((value as number) ?? 0), 'Total']}
-                    contentStyle={{ borderRadius: '12px' }}
-                  />
-                  <Bar dataKey="total" radius={[0, 10, 10, 0]} barSize={30}>
-                    {stats.topCustomers.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill="#2563eb"
-                        fillOpacity={1 - index * 0.18}
+              <ol className="space-y-5">
+                {stats.topCustomers.map((customer, index) => (
+                  <li key={customer.name}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="min-w-0 truncate font-bold text-neutral-800">
+                        <span className="mr-2 text-neutral-400 tabular-nums">{index + 1}</span>
+                        {customer.name}
+                      </span>
+                      <span className="shrink-0 font-black text-neutral-900 tabular-nums">
+                        {formatCRC(customer.total)}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${topCustomerMax > 0 ? (customer.total / topCustomerMax) * 100 : 0}%` }}
                       />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Actividad reciente */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-50">
-          <h3 className="font-black text-slate-800 tracking-tight">Actividad Reciente</h3>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-            Últimos 5 paquetes registrados
-          </p>
+      <section className={`${CARD} overflow-hidden`}>
+        <div className="p-5 sm:p-7 pb-3 sm:pb-4">
+          <SectionTitle title="Últimos paquetes" subtitle="Los 5 registrados más recientemente" />
         </div>
-
-        {isError ? (
-          <div className="p-8 text-center text-sm text-red-500 font-bold">
-            Error al cargar los datos. Recarga la página.
+        {isLoading ? (
+          <div className="px-5 sm:px-7 pb-5 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Shimmer key={i} className="h-12 w-full" />
+            ))}
           </div>
-        ) : !isLoading && stats.recentPackages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
-              <Package size={24} className="text-slate-300" />
-            </div>
-            <p className="font-black text-slate-400 text-sm">Sin actividad reciente</p>
-            <p className="text-slate-300 text-xs font-bold uppercase tracking-widest">
-              Los paquetes registrados aparecerán aquí
-            </p>
-          </div>
+        ) : stats.recentPackages.length === 0 ? (
+          <p className="px-5 pb-8 pt-4 text-center text-sm font-semibold text-neutral-400">
+            Todavía no hay paquetes registrados
+          </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50 text-[11px] font-black text-slate-400 uppercase">
-                <tr>
-                  <th className="px-3 py-3 md:px-6 md:py-4">Cliente</th>
-                  <th className="px-3 py-3 md:px-6 md:py-4">Tracking</th>
-                  <th className="px-3 py-3 md:px-6 md:py-4">Estado</th>
-                  <th className="px-3 py-3 md:px-6 md:py-4">Total Factura</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {isLoading
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <tr key={i}>
-                        {Array.from({ length: 4 }).map((__, j) => (
-                          <td key={j} className="px-6 py-4">
-                            <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  : stats.recentPackages.map((pkg) => (
-                      <tr
-                        key={pkg.uuid}
-                        className="hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="px-3 py-3 md:px-6 md:py-4 font-bold text-slate-700 text-sm">
-                          {pkg.customer_name}
-                        </td>
-                        <td className="px-3 py-3 md:px-6 md:py-4 font-mono text-xs text-slate-400">
-                          {pkg.tracking_number}
-                        </td>
-                        <td className="px-3 py-3 md:px-6 md:py-4">
-                          <span
-                            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
-                              pkg.status === PackageStatus.ENTREGADO
-                                ? 'bg-green-100 text-emerald-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}
-                          >
-                            {STATUS_LABELS[pkg.status] ?? pkg.status}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 md:px-6 md:py-4 font-black text-slate-900 text-sm">
-                          {pkg.total_amount_crc != null
-                            ? formatCRC(pkg.total_amount_crc)
-                            : '—'}
-                        </td>
-                      </tr>
-                    ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+            {stats.recentPackages.map((pkg) => (
+              <li key={pkg.uuid} className="flex items-center justify-between gap-3 px-5 sm:px-7 py-3.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-neutral-800">{pkg.customer_name}</p>
+                  <p className="truncate font-mono text-xs text-neutral-400">{pkg.tracking_number}</p>
+                </div>
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                      STATUS_BADGE[pkg.status] ?? 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    {STATUS_LABELS[pkg.status] ?? pkg.status}
+                  </span>
+                  <span className="text-sm font-black text-neutral-900 tabular-nums">
+                    {pkg.total_amount_crc != null ? formatCRC(pkg.total_amount_crc) : 'Sin factura'}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 };
