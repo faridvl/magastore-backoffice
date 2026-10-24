@@ -9,12 +9,12 @@ const CustomersPage: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Clientes | Sistema Médico</title>
+                <title>Clientes | Magastore</title>
             </Head>
             <DashboardLayout
                 isMainPage
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Directorio de Clientes"
+                title="Clientes"
             >
                 <CustomersContainer />
             </DashboardLayout>

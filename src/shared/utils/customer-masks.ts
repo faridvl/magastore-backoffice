@@ -97,3 +97,14 @@ export const ID_TYPE_OPTIONS: { value: IdType; label: string }[] = [
   { value: 'DIMEX', label: 'DIMEX' },
   { value: 'PASAPORTE', label: 'Pasaporte' },
 ];
+
+/** Cómo se nombra el documento en las pantallas que lo muestran junto al número. */
+export const ID_DOCUMENT_LABEL: Record<IdType, string> = {
+  FISICA: 'Cédula física',
+  JURIDICA: 'Cédula jurídica',
+  DIMEX: 'DIMEX',
+  PASAPORTE: 'Pasaporte',
+};
+
+export const idDocumentLabel = (idType: string): string =>
+  ID_DOCUMENT_LABEL[idType as IdType] ?? idType;

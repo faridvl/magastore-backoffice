@@ -159,7 +159,7 @@ export const usePackages = (pageSize = 7) => {
         deliveryAddressId: string | undefined,
         deliveryMethod: DeliveryMethod,
         recipientId: string | null,
-    ) => {
+    ): Promise<boolean> => {
         try {
             const result = await createShipmentOrderWithPackages({
                 customerUuid,
@@ -172,8 +172,10 @@ export const usePackages = (pageSize = 7) => {
             setSelection(EMPTY_SELECTION);
             const uuid = (result as any)?.data?.uuid;
             router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
+            return true;
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+            return false;
         }
     };
 
@@ -195,12 +197,14 @@ export const usePackages = (pageSize = 7) => {
     // Una dirección recién agregada desde el modal se elige de una vez: el
     // operador la creó justo para esta orden.
     const handleAddressesSaved = (addresses: CustomerAddress[]) => {
-        setAddressModalTarget((prev) => {
-            if (!prev) return prev;
-            const previousIds = new Set(prev.addresses.map((a) => a.id));
-            const created = addresses.find((a) => !previousIds.has(a.id));
-            if (created) setSelectedAddressId(created.id);
-            return { ...prev, addresses };
+        const previousIds = new Set((addressModalTarget?.addresses ?? []).map((a) => a.id));
+        const created = addresses.find((a) => !previousIds.has(a.id));
+        setAddressModalTarget((prev) => (prev ? { ...prev, addresses } : prev));
+        setSelectedAddressId((prev) => {
+            if (created) return created.id;
+            // Si la elegida se borró, no puede quedar una dirección que ya no existe.
+            if (prev && addresses.some((a) => a.id === prev)) return prev;
+            return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
         });
     };
 
@@ -208,13 +212,15 @@ export const usePackages = (pageSize = 7) => {
     const handleConfirmCreateOrderWithAddress = async (isPickup: boolean) => {
         if (!addressModalTarget || !selectedDeliveryMethod) return;
         if (!isPickup && !selectedAddressId) return;
-        await createOrderAndRedirect(
+        const wasCreated = await createOrderAndRedirect(
             addressModalTarget.packageUuids,
             addressModalTarget.customerUuid,
             isPickup ? undefined : selectedAddressId,
             selectedDeliveryMethod,
             isPickup ? null : selectedRecipientId,
         );
+        // Si falla, el modal queda como estaba para reintentar.
+        if (!wasCreated) return;
         setAddressModalTarget(null);
         setSelectedAddressId('');
         setSelectedDeliveryMethod(null);

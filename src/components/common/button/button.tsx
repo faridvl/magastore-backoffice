@@ -51,7 +51,7 @@ export function Button({
             className: `${baseStyle} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300 dark:bg-slate-800 dark:text-slate-200`,
         },
         [ButtonVariant.GHOST]: {
-            className: `${baseStyle} border-2 border-primary text-primary hover:bg-primary/5 focus:ring-primary/20`,
+            className: `${baseStyle} border-2 border-teal-700 text-teal-700 hover:bg-primary/5 focus:ring-primary/20`,
         },
         [ButtonVariant.SUCCESS]: {
             className: `${baseStyle} bg-success text-white hover:bg-success-dark focus:ring-success/40`,

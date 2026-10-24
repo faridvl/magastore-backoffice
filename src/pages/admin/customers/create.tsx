@@ -8,10 +8,10 @@ import { CreateCustomerContainer } from '@/components/containers/customers/creat
 const CreateCustomerPage: React.FC = () => {
     return (
         <>
-            <Head><title>Nuevo Cliente | Magastore</title></Head>
+            <Head><title>Nuevo cliente | Magastore</title></Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Crear Nuevo Cliente"
+                title="Nuevo cliente"
             >
                 <CreateCustomerContainer />
             </DashboardLayout>

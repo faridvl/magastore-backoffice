@@ -636,7 +636,6 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
           addresses={addressOptions}
           onSaved={handleManagedAddressesSaved}
           onClose={() => setShowManageAddressesModal(false)}
-          zIndexClassName="z-[70]"
           startWithNewAddress={addressOptions.length === 0}
         />
       )}
@@ -1200,7 +1199,7 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
             Rentabilidad · Solo interno
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* La regla de cobro explica por qué el margen no es el de lista. */}
           {billingMode !== CustomerBillingMode.NORMAL && (
             <CustomerTypeBadge

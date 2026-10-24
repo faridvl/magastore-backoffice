@@ -703,15 +703,13 @@ export const ShipmentOrdersContainer: React.FC = () => {
         </div>
       )}
 
-      {/* Direcciones del cliente, anidado sobre el asistente. z-[70] porque el
-          asistente ya ocupa z-50. */}
+      {/* Direcciones del cliente, anidado sobre el asistente. */}
       {showCreateAddressesModal && createCustomer && (
         <CustomerAddressesModal
           customerId={createCustomer.customer_id}
           addresses={createAddresses}
           onSaved={handleCreateAddressesSaved}
           onClose={() => setShowCreateAddressesModal(false)}
-          zIndexClassName="z-[70]"
           startWithNewAddress={createAddresses.length === 0}
         />
       )}

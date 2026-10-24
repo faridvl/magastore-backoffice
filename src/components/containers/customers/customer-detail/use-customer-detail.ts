@@ -203,15 +203,17 @@ export const useCustomerDetail = (customerId: string) => {
 
   const clearSelection = () => setSelectedPackageUuids([]);
 
-  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
+  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId: string | undefined, deliveryMethod: DeliveryMethod): Promise<boolean> => {
     try {
       const result = await createShipmentOrderWithPackages({ customerUuid: customerId, packageUuids, deliveryAddressId, deliveryMethod });
       toast.success('Orden de envío creada correctamente');
       setSelectedPackageUuids([]);
       const uuid = (result as any)?.data?.uuid;
       router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
+      return true;
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+      return false;
     }
   };
 
@@ -285,7 +287,7 @@ export const useCustomerDetail = (customerId: string) => {
    * paquetes registrados: el motivo llega en el mensaje de error y se muestra
    * tal cual, porque es accionable para el operador.
    */
-  const removeWarehouseCode = async (warehouseRouteId: number) => {
+  const removeWarehouseCode = async (warehouseRouteId: number): Promise<boolean> => {
     setRemovingRouteId(warehouseRouteId);
     try {
       await ApiServiceClient(env.API.BASE_URL).delete(
@@ -297,19 +299,43 @@ export const useCustomerDetail = (customerId: string) => {
       // listado lo muestra.
       await queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Casillero eliminado');
+      return true;
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo eliminar el casillero.');
+      return false;
     } finally {
       setRemovingRouteId(null);
     }
   };
 
-  const handleConfirmCreateOrderWithAddress = async () => {
-    if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
-    await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId, selectedDeliveryMethod);
+  // En retiro en oficina no hay entrega: la orden se crea sin dirección.
+  const handleConfirmCreateOrderWithAddress = async (isPickup: boolean) => {
+    if (!addressModalTarget || !selectedDeliveryMethod) return;
+    if (!isPickup && !selectedAddressId) return;
+    const wasCreated = await createOrderAndRedirect(
+      addressModalTarget.packageUuids,
+      isPickup ? undefined : selectedAddressId,
+      selectedDeliveryMethod,
+    );
+    // Si falla, el modal queda como estaba para reintentar.
+    if (!wasCreated) return;
     setAddressModalTarget(null);
     setSelectedAddressId('');
     setSelectedDeliveryMethod(null);
+  };
+
+  // Lista ya actualizada tras agregar una dirección desde el modal de la orden:
+  // la nueva queda elegida.
+  const handleOrderAddressesSaved = (addresses: CustomerAddress[]) => {
+    const previousIds = new Set((addressModalTarget?.addresses ?? []).map((a) => a.id));
+    const created = addresses.find((a) => !previousIds.has(a.id));
+    setAddressModalTarget((prev) => (prev ? { ...prev, addresses } : prev));
+    setSelectedAddressId((prev) => {
+      if (created) return created.id;
+      // Si la elegida se borró, no puede quedar una dirección que ya no existe.
+      if (prev && addresses.some((a) => a.id === prev)) return prev;
+      return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+    });
   };
 
   return {
@@ -340,6 +366,7 @@ export const useCustomerDetail = (customerId: string) => {
     selectedDeliveryMethod,
     setSelectedDeliveryMethod,
     handleConfirmCreateOrderWithAddress,
+    handleOrderAddressesSaved,
     availableCourierRates,
     couriersWithoutWarehouse,
     isAssignCodeModalOpen,

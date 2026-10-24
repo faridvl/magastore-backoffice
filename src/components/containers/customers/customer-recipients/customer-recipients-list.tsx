@@ -114,11 +114,11 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-3 pl-4">
+            <div className="flex items-center gap-1 pl-1">
               <button
                 type="button"
                 onClick={() => setDraft({ id: r.id, full_name: r.full_name, phone: r.phone ? applyPhoneMask(r.phone) : '', id_card: r.id_card ?? '' })}
-                className="min-h-[32px] text-xs font-semibold text-slate-500 hover:text-slate-900"
+                className="min-h-[44px] px-3 text-sm font-semibold text-slate-500 hover:text-slate-900"
               >
                 Editar
               </button>
@@ -128,11 +128,11 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
                     type="button"
                     onClick={() => handleDelete(r.id)}
                     disabled={isDeleting}
-                    className="min-h-[32px] text-xs font-bold text-red-600"
+                    className="min-h-[44px] px-3 text-sm font-bold text-red-600"
                   >
                     {isDeleting ? 'Eliminando…' : 'Sí, eliminar'}
                   </button>
-                  <button type="button" onClick={() => setConfirmDeleteId(null)} className="min-h-[32px] text-xs font-semibold text-slate-500">
+                  <button type="button" onClick={() => setConfirmDeleteId(null)} className="min-h-[44px] px-3 text-sm font-semibold text-slate-500">
                     Cancelar
                   </button>
                 </>
@@ -140,7 +140,7 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteId(r.id)}
-                  className="min-h-[32px] text-xs font-semibold text-slate-500 hover:text-red-600"
+                  className="min-h-[44px] px-3 text-sm font-semibold text-slate-500 hover:text-red-600"
                 >
                   Eliminar
                 </button>
@@ -151,7 +151,7 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
       })}
 
       {!isSelectable && recipients.length === 0 && !draft && (
-        <p className="text-sm text-slate-500 py-2">Solo recibe el cliente. Agrega a un familiar u otra persona si a veces recibe por él.</p>
+        <p className="text-sm text-slate-500 py-2">Solo recibe el cliente.</p>
       )}
 
       {draft ? (
@@ -203,7 +203,7 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
           onClick={() => setDraft({ ...EMPTY_DRAFT })}
           className="w-full flex items-center justify-center gap-2 min-h-[44px] border-2 border-dashed border-slate-200 rounded-2xl text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700"
         >
-          <Plus size={14} /> Agregar persona que recibe
+          <Plus size={14} /> Agregar persona
         </button>
       )}
     </div>

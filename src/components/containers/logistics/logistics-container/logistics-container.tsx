@@ -584,7 +584,6 @@ export const LogisticsContainer: React.FC = () => {
                     addresses={addressModalTarget.addresses}
                     onSaved={handleAddressesSaved}
                     onClose={() => setShowManageAddresses(false)}
-                    zIndexClassName="z-[70]"
                     startWithNewAddress={addressModalTarget.addresses.length === 0}
                 />
             )}
