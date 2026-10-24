@@ -41,9 +41,9 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
     { key: 'metodo_entrega', label: 'Cómo se entrega — ej. Correos de Costa Rica' },
-    { key: 'monto_envio', label: 'Cobro del envío sin la entrega — ej. ₡8.730' },
+    { key: 'monto_envio', label: 'Cobro del envío internacional a precio de lista, antes del descuento — ej. ₡8.730' },
     { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6.900 (o "Sin cargo" si es retiro)' },
-    { key: 'descuento', label: 'Línea de descuento si el cliente tiene tarifa especial — ej. Descuento cliente (10%): -₡900. Vacío si no aplica' },
+    { key: 'descuento', label: 'Renglón de descuento si el cliente tiene tarifa especial, ya con su salto de línea — ej. Descuento cliente (10%): -₡900. Vacío si no aplica: va pegado antes del renglón de entrega' },
     { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24.500' },
   ],
   // Va al PROVEEDOR, no al cliente: es el texto que se copia para pedirle el
@@ -113,10 +113,9 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
   ],
-  // Postventa. Sin id_orden: el cliente no conoce el número de orden. El enlace
-  // de reseñas va escrito en el texto, no como variable.
   POST_DELIVERY_FOLLOW_UP: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
   ],
   REVIEW_REQUEST: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },

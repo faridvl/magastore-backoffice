@@ -55,7 +55,11 @@ export const usePostDelivery = (detail: ConsolidationDetail) => {
     }
     setIsSendingFollowUp(true);
     try {
-      const message = buildPostDeliveryFollowUpMessage({ firstName, templateBody: followUpTemplateBody });
+      const message = buildPostDeliveryFollowUpMessage({
+        firstName,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        templateBody: followUpTemplateBody,
+      });
       await stampAndNotify('mark-follow-up-sent', message);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'No se pudo preparar el seguimiento.');

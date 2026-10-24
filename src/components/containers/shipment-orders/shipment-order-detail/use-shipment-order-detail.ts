@@ -926,7 +926,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         weightLb: Number(detail.total_weight_lb),
         deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
-        shippingCrc: breakdown.flete,
+        // Con regla especial va el precio de lista y debajo el descuento, igual que el PDF.
+        shippingCrc: breakdown.isNormal ? breakdown.flete : breakdown.fleteLista,
         deliveryFeeCrc,
         discountCrc: breakdown.descuento,
         discountLabel: breakdown.ruleLabel,

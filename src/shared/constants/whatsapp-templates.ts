@@ -174,8 +174,8 @@ Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 *Detalle de sus paquetes:*
 {{desglose_paquetes}}
 
-Subtotal envío internacional: {{monto_envio}}
-{{metodo_entrega}}: {{monto_entrega}}
+Envío internacional: {{monto_envio}}
+{{descuento}}{{metodo_entrega}}: {{monto_entrega}}
 *Total a pagar: {{monto}}*
 
 Peso total: {{peso_total}} lb
@@ -287,10 +287,10 @@ export function buildPreBillingReadyMessage(params: {
     monto_entrega: params.deliveryFeeCrc != null
       ? (Number(params.deliveryFeeCrc) > 0 ? formatCrc(Number(params.deliveryFeeCrc)) : 'Sin cargo')
       : '—',
-    // Línea de ajuste completa (etiqueta + monto) o vacía si no hubo rebaja, para
-    // que la plantilla la incluya sin dejar un renglón suelto en clientes NORMAL.
+    // Renglón completo con su salto de línea, o vacío si no hubo rebaja: así la
+    // plantilla lo pega antes de la entrega sin dejar un renglón en blanco.
     descuento: params.discountLabel && params.discountCrc
-      ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}`
+      ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}\n`
       : '',
     monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
   });
@@ -403,7 +403,7 @@ export function buildShipmentDispatchedMessage(params: {
   });
 }
 
-export const WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION = `📍 Tenemos registrada la siguiente dirección de entrega:
+export const WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION = `📍 Tenemos registrada esta dirección:
 
 Nombre: {{nombre_recibe}}
 Cédula: {{cedula}}
@@ -413,11 +413,9 @@ Cantón: {{canton}}
 Distrito: {{distrito}}
 Dirección: {{direccion}}
 
-¿Deseas que utilicemos estos mismos datos para este envío? ✅
+¿Utilizamos esta dirección para tu envío? ✅
 
-Si deseas el envío a otra dirección, indícanos los datos.
-
-*MAGASTORE 📦✈️*`;
+Si necesitas cambiarla, indícanos la nueva dirección.`;
 
 /**
  * Confirmación de la dirección registrada, para pedirle al cliente el visto
@@ -456,21 +454,17 @@ export function buildAddressConfirmationMessage(params: {
   });
 }
 
-export const WHATSAPP_TEMPLATE_ADDRESS_REQUEST = `Hola, {{nombre}}! 👋🏻
+export const WHATSAPP_TEMPLATE_ADDRESS_REQUEST = `📍 Para preparar tu envío, necesitamos los siguientes datos de entrega:
 
-Para coordinar la entrega de tu envío necesitamos los siguientes datos:
-
-Nombre de quien recibe:
+Nombre completo:
 Cédula:
-Teléfono:
+Teléfono de quien recibe:
 Provincia:
 Cantón:
 Distrito:
 Dirección exacta:
 
-En cuanto los recibamos preparamos tu orden y te enviamos el estimado. ✅
-
-*MAGASTORE 📦✈️*`;
+Por favor, verifica que los datos sean correctos antes de enviarlos. ✅`;
 
 /**
  * Solicitud de los datos de entrega, para el cliente que todavía no tiene
@@ -563,7 +557,7 @@ export function buildPaymentConfirmedMessage(params: {
 
 export const WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP = `Hola, {{nombre}}! 👋🏻
 
-Queríamos confirmar que tu pedido haya llegado correctamente. 📦
+Queríamos confirmar que tu pedido #{{id_orden}} haya llegado correctamente. 📦
 
 ¿Todo llegó bien?
 
@@ -574,8 +568,6 @@ Si tienes alguna duda o necesitas ayuda con tu pedido, estamos a tu disposición
 export const WHATSAPP_TEMPLATE_REVIEW_REQUEST = `💯 ¡Nos alegra saber que todo llegó bien, {{nombre}}!
 
 Tu experiencia es muy importante para nosotros. Si quedaste satisfecho con el servicio de MAGASTORE, ¿nos ayudarías dejando una reseña o compartiendo brevemente tu experiencia? ⭐
-
-👉 (link de reseñas)
 
 Tu opinión nos ayuda a seguir mejorando y también permite que más personas conozcan nuestro servicio.
 
@@ -593,8 +585,15 @@ Y si necesitas ayuda para realizar una compra, también contamos con Compras Asi
 
 *MAGASTORE 📦✈️*`;
 
-export function buildPostDeliveryFollowUpMessage(params: { firstName: string; templateBody?: string }): string {
-  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP, { nombre: params.firstName });
+export function buildPostDeliveryFollowUpMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+  });
 }
 
 export function buildReviewRequestMessage(params: { firstName: string; templateBody?: string }): string {
