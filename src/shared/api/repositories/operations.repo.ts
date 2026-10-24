@@ -1,290 +1,244 @@
 import sql from '@/lib/db';
-import { monthLabelEs } from '@/shared/utils/timezone';
+import { ShipmentOrderStep } from '@/types/logistics/logistics.types';
 import {
+  CollectionsGroup,
+  OperationsCollections,
   OperationsStats,
-  OperationsInbox,
-  PendingReceivable,
-  MonthlyRevenuePoint,
+  OperationsTask,
+  OperationsTaskKey,
+  PendingCollection,
 } from '@/types/dashboard/operations.types';
+import { COLLECTIONS_PREVIEW_LIMIT } from '@/shared/constants/operations';
+import {
+  FOLLOW_UP_DELAY_DAYS,
+  FOLLOW_UP_WINDOW_DAYS,
+} from '@/shared/constants/post-delivery';
 
-/** Cuántos cobros pendientes se traen a la tabla. El resto se resume en un enlace. */
-const PENDING_RECEIVABLES_LIMIT = 10;
+/** Orden en que se trabaja el día; también el orden de las filas en pantalla. */
+const TASK_ORDER: OperationsTaskKey[] = [
+  OperationsTaskKey.NOTIFY_PACKAGES,
+  OperationsTaskKey.BUILD_ORDERS,
+  OperationsTaskKey.GENERATE_ESTIMATES,
+  OperationsTaskKey.CONFIRM_AND_COLLECT,
+  OperationsTaskKey.DISPATCH,
+  OperationsTaskKey.FINALIZE,
+  OperationsTaskKey.FOLLOW_UP,
+];
 
-/** Meses de historia en la serie facturado vs. cobrado (incluye el mes actual). */
-const REVENUE_MONTHS = 6;
+/**
+ * Paso 2: el conteo es el de todas las órdenes del paso (igual que el listado), pero
+ * las ya pagadas solo esperan el pase a despacho, así que no cuentan para "la más vieja".
+ * Los tres grupos (sin factura / factura sin pagar / pagada) se excluyen entre sí.
+ */
+const getConfirmAndCollectTask = async (): Promise<OperationsTask> => {
+  const [row] = await sql`
+    WITH today AS (
+      SELECT (NOW() AT TIME ZONE 'America/Costa_Rica')::date AS d
+    )
+    SELECT COUNT(*)::int AS total,
+           MAX(t.d - (COALESCE(b.created_at, pb.created_at)
+                      AT TIME ZONE 'America/Costa_Rica')::date)
+             FILTER (WHERE b.is_paid IS NOT TRUE)::int AS oldest_days,
+           COUNT(*) FILTER (WHERE b.uuid IS NULL)::int AS to_confirm,
+           COUNT(*) FILTER (WHERE b.uuid IS NOT NULL AND b.is_paid IS NOT TRUE)::int AS to_collect,
+           COUNT(*) FILTER (WHERE b.is_paid IS TRUE)::int AS paid
+    FROM consolidations con
+    LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
+    LEFT JOIN billing b ON b.consolidation_id = con.id
+    CROSS JOIN today t
+    WHERE con.current_step = ${ShipmentOrderStep.COBRO}
+  `;
+  return {
+    key: OperationsTaskKey.CONFIRM_AND_COLLECT,
+    count: Number(row?.total ?? 0),
+    oldestDays: row?.oldest_days == null ? null : Number(row.oldest_days),
+    breakdown: {
+      toConfirm: Number(row?.to_confirm ?? 0),
+      toCollect: Number(row?.to_collect ?? 0),
+      paid: Number(row?.paid ?? 0),
+    },
+  };
+};
 
+/**
+ * Las condiciones de cada tarea son las mismas que aplican los listados a los que
+ * lleva su botón (Logística por defecto: sin orden y no entregados; Órdenes con
+ * `step`, `paid`, `notified`). Si cambia un criterio allá, hay que cambiarlo acá.
+ *
+ * Los días se cuentan como días de calendario de Costa Rica: restar fechas ya
+ * convertidas, no intervalos UTC, para que algo registrado a las 8pm no sume un día.
+ *
+ * `dispatched_at` se fija al pasar la orden al paso 3 y no se vuelve a tocar; sirve
+ * de antigüedad para Despachar y Finalizar. El pago o el estimado confirmado no
+ * sirven: pueden ocurrir antes o dentro del paso.
+ */
+const getTasks = async (): Promise<OperationsTask[]> => {
+  const [rows, confirmAndCollect] = await Promise.all([
+    sql`
+    WITH today AS (
+      SELECT (NOW() AT TIME ZONE 'America/Costa_Rica')::date AS d
+    )
+    SELECT 'NOTIFY_PACKAGES' AS task_key,
+           COUNT(*)::int AS total,
+           MAX(t.d - (p.created_at AT TIME ZONE 'America/Costa_Rica')::date)::int AS oldest_days,
+           0 AS missing_count
+    FROM packages p, today t
+    WHERE p.consolidation_id IS NULL
+      AND p.status <> 'ENTREGADO'
+      AND p.notified_at IS NULL
+
+    UNION ALL
+    SELECT 'BUILD_ORDERS',
+           COUNT(*)::int,
+           MAX(t.d - (p.created_at AT TIME ZONE 'America/Costa_Rica')::date)::int,
+           0
+    FROM packages p, today t
+    WHERE p.consolidation_id IS NULL
+      AND p.status <> 'ENTREGADO'
+
+    UNION ALL
+    SELECT 'GENERATE_ESTIMATES',
+           COUNT(*)::int,
+           MAX(t.d - (con.created_at AT TIME ZONE 'America/Costa_Rica')::date)::int,
+           0
+    FROM consolidations con, today t
+    WHERE con.current_step = ${ShipmentOrderStep.CONFIRMACION}
+
+    UNION ALL
+    SELECT 'DISPATCH',
+           COUNT(*)::int,
+           MAX(t.d - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date)::int,
+           COUNT(*) FILTER (
+             WHERE con.tracking_code IS NULL AND COALESCE(dm.is_pickup, false) = false
+           )::int
+    FROM consolidations con
+    LEFT JOIN delivery_methods dm ON dm.code = con.delivery_method
+    CROSS JOIN today t
+    WHERE con.current_step = ${ShipmentOrderStep.DESPACHO}
+
+    UNION ALL
+    SELECT 'FINALIZE',
+           COUNT(*)::int,
+           MAX(t.d - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date)::int,
+           0
+    FROM consolidations con, today t
+    WHERE con.current_step = ${ShipmentOrderStep.NOTIFICACION}
+
+    UNION ALL
+    SELECT 'FOLLOW_UP',
+           COUNT(*)::int,
+           MAX(t.d - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date)::int,
+           0
+    FROM consolidations con, today t
+    WHERE con.current_step = ${ShipmentOrderStep.FINALIZADA}
+      AND con.follow_up_sent_at IS NULL
+      AND con.dispatched_at <= NOW() - make_interval(days => ${FOLLOW_UP_DELAY_DAYS})
+      AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})
+  `,
+    getConfirmAndCollectTask(),
+  ]);
+
+  const byKey = new Map(
+    (rows as Record<string, unknown>[]).map((row) => [row.task_key as string, row]),
+  );
+
+  return TASK_ORDER.map((key) => {
+    if (key === OperationsTaskKey.CONFIRM_AND_COLLECT) return confirmAndCollect;
+    const row = byKey.get(key);
+    const missingCount = Number(row?.missing_count ?? 0);
+    return {
+      key,
+      count: Number(row?.total ?? 0),
+      oldestDays: row?.oldest_days == null ? null : Number(row.oldest_days),
+      ...(missingCount > 0 ? { missingCount } : {}),
+    };
+  });
+};
+
+const toCollectionsGroup = (rows: Record<string, unknown>[]): CollectionsGroup => ({
+  items: rows.map(
+    (row): PendingCollection => ({
+      consolidationUuid: row.consolidation_uuid as string,
+      currentStep: Number(row.current_step) as ShipmentOrderStep,
+      billingUuid: row.billing_uuid as string,
+      customerName: (row.customer_name as string | null) ?? 'Sin cliente',
+      customerCode: (row.customer_code as string | null) ?? null,
+      amountCRC: Number(row.amount_crc ?? 0),
+      ageDays: Math.max(0, Number(row.age_days ?? 0)),
+    }),
+  ),
+  total: Number(rows[0]?.total ?? 0),
+  totalCRC: Number(rows[0]?.total_crc ?? 0),
+});
+
+/**
+ * Cobros = facturas sin pagar. `notified_at` vive en `pre_billing`, así que el
+ * aviso de una factura se lee desde el estimado de su misma orden; se exige que
+ * exista igual que lo hace el filtro "Estimado al cliente" del listado de Órdenes.
+ */
+const getCollections = async (): Promise<OperationsCollections> => {
+  const [toNotifyRows, awaitingPaymentRows] = await Promise.all([
+    // Por avisar: en cualquier paso con factura, finalizadas incluidas: la plata sigue sin entrar.
+    sql`
+      SELECT
+        con.uuid::text                     AS consolidation_uuid,
+        con.current_step                   AS current_step,
+        b.uuid::text                       AS billing_uuid,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.customer_code,
+        b.total_amount_crc::numeric        AS amount_crc,
+        ((NOW() AT TIME ZONE 'America/Costa_Rica')::date
+          - (b.created_at AT TIME ZONE 'America/Costa_Rica')::date)::int AS age_days,
+        COUNT(*) OVER ()::int              AS total,
+        SUM(b.total_amount_crc) OVER ()::numeric AS total_crc
+      FROM billing b
+      JOIN consolidations con ON con.id = b.consolidation_id
+      LEFT JOIN customers c ON c.id = con.customer_id
+      WHERE b.is_paid = false
+        AND EXISTS (SELECT 1 FROM pre_billing pb WHERE pb.consolidation_id = con.id)
+        AND NOT EXISTS (
+          SELECT 1 FROM pre_billing pb
+          WHERE pb.consolidation_id = con.id AND pb.notified_at IS NOT NULL
+        )
+      ORDER BY b.created_at ASC, b.id
+      LIMIT ${COLLECTIONS_PREVIEW_LIMIT}
+    `,
+    // Esperando pago: ya avisadas. En cualquier paso, incluso finalizadas.
+    sql`
+      SELECT
+        con.uuid::text                     AS consolidation_uuid,
+        con.current_step                   AS current_step,
+        b.uuid::text                       AS billing_uuid,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.customer_code,
+        b.total_amount_crc::numeric        AS amount_crc,
+        ((NOW() AT TIME ZONE 'America/Costa_Rica')::date
+          - (b.created_at AT TIME ZONE 'America/Costa_Rica')::date)::int AS age_days,
+        COUNT(*) OVER ()::int              AS total,
+        SUM(b.total_amount_crc) OVER ()::numeric AS total_crc
+      FROM billing b
+      JOIN consolidations con ON con.id = b.consolidation_id
+      LEFT JOIN customers c ON c.id = con.customer_id
+      WHERE b.is_paid = false
+        AND EXISTS (
+          SELECT 1 FROM pre_billing pb
+          WHERE pb.consolidation_id = con.id AND pb.notified_at IS NOT NULL
+        )
+      ORDER BY b.created_at ASC, b.id
+      LIMIT ${COLLECTIONS_PREVIEW_LIMIT}
+    `,
+  ]);
+
+  return {
+    toNotify: toCollectionsGroup(toNotifyRows as Record<string, unknown>[]),
+    awaitingPayment: toCollectionsGroup(awaitingPaymentRows as Record<string, unknown>[]),
+  };
+};
 
 export const OperationsRepository = {
-  /**
-   * Todo el panel Operativo en una sola ida a la base. Son consultas de lectura
-   * independientes entre sí, así que van en paralelo.
-   */
+  /** Las dos secciones son lecturas independientes, así que van en paralelo. */
   getOperationsStats: async (): Promise<OperationsStats> => {
-    const [
-      inboxResult,
-      receivablesResult,
-      receivablesCountResult,
-      awaitingNotificationResult,
-      awaitingNotificationCountResult,
-      monthlyBillingResult,
-      packageCountsResult,
-      revenueResult,
-    ] = await Promise.all([
-      // Bandeja de pendientes. Se resuelve con subconsultas escalares en vez de
-      // JOINs para que cada contador sea independiente: un cero en uno no puede
-      // borrar filas de otro.
-      sql`
-        SELECT
-          (SELECT COUNT(*) FROM packages
-            WHERE consolidation_id IS NULL)::int
-            AS packages_without_order,
-          (SELECT COUNT(DISTINCT customer_id) FROM packages
-            WHERE consolidation_id IS NULL)::int
-            AS customers_with_packages_without_order,
-          (SELECT COUNT(*) FROM packages
-            WHERE notified_at IS NULL AND consolidation_id IS NULL)::int
-            AS packages_not_notified,
-          (SELECT COUNT(DISTINCT customer_id) FROM packages
-            WHERE notified_at IS NULL AND consolidation_id IS NULL)::int
-            AS customers_with_packages_not_notified,
-          (SELECT COUNT(*) FROM pre_billing pb
-            LEFT JOIN billing b ON b.consolidation_id = pb.consolidation_id
-            WHERE pb.notified_at IS NULL
-              AND (b.uuid IS NULL OR b.is_paid = false))::int
-            AS orders_not_notified,
-          (SELECT COUNT(*) FROM billing WHERE is_paid = false)::int
-            AS orders_pending_payment,
-          (SELECT COALESCE(SUM(total_amount_crc), 0) FROM billing WHERE is_paid = false)::numeric
-            AS pending_payment_crc
-      `,
-
-      // Cobros YA notificados y sin pagar — la bandeja de seguimiento.
-      // Une facturas emitidas impagas con estimados enviados que todavía no
-      // llegaron a factura; los estimados que ya tienen factura se excluyen para
-      // no contar la misma orden dos veces.
-      // `notified_at` vive solo en pre_billing, así que el aviso de una factura se
-      // lee desde la prefactura de su misma orden.
-      sql`
-        (
-          SELECT
-            con.uuid::text                     AS consolidation_uuid,
-            b.uuid::text                       AS billing_uuid,
-            c.first_name || ' ' || c.last_name AS customer_name,
-            c.customer_code,
-            'FACTURA'                          AS kind,
-            b.total_amount_crc::numeric        AS amount_crc,
-            b.created_at                       AS issued_at
-          FROM billing b
-          JOIN consolidations con ON con.id = b.consolidation_id
-          JOIN customers c ON c.id = con.customer_id
-          JOIN pre_billing pb ON pb.consolidation_id = b.consolidation_id
-          WHERE b.is_paid = false
-            AND pb.notified_at IS NOT NULL
-        )
-        UNION ALL
-        (
-          SELECT
-            con.uuid::text                     AS consolidation_uuid,
-            NULL::text                         AS billing_uuid,
-            c.first_name || ' ' || c.last_name AS customer_name,
-            c.customer_code,
-            'ESTIMADO'                         AS kind,
-            pb.estimated_amount_crc::numeric   AS amount_crc,
-            pb.created_at                      AS issued_at
-          FROM pre_billing pb
-          JOIN consolidations con ON con.id = pb.consolidation_id
-          JOIN customers c ON c.id = con.customer_id
-          LEFT JOIN billing b ON b.consolidation_id = pb.consolidation_id
-          WHERE b.uuid IS NULL
-            AND pb.notified_at IS NOT NULL
-        )
-        ORDER BY issued_at ASC
-        LIMIT ${PENDING_RECEIVABLES_LIMIT}
-      `,
-
-      // Total de cobros notificados pendientes: la tabla muestra solo los más viejos.
-      sql`
-        SELECT (
-          (SELECT COUNT(*) FROM billing b
-            JOIN pre_billing pb ON pb.consolidation_id = b.consolidation_id
-            WHERE b.is_paid = false AND pb.notified_at IS NOT NULL)
-          +
-          (SELECT COUNT(*) FROM pre_billing pb
-            LEFT JOIN billing b ON b.consolidation_id = pb.consolidation_id
-            WHERE b.uuid IS NULL AND pb.notified_at IS NOT NULL)
-        )::int AS total
-      `,
-
-      // Cobros SIN notificar — la bandeja de aviso. Misma forma que la anterior
-      // pero con `notified_at IS NULL`: una fila sale de acá en cuanto se envía
-      // el WhatsApp, y entra a la bandeja de seguimiento.
-      sql`
-        (
-          SELECT
-            con.uuid::text                     AS consolidation_uuid,
-            b.uuid::text                       AS billing_uuid,
-            c.first_name || ' ' || c.last_name AS customer_name,
-            c.customer_code,
-            'FACTURA'                          AS kind,
-            b.total_amount_crc::numeric        AS amount_crc,
-            b.created_at                       AS issued_at
-          FROM billing b
-          JOIN consolidations con ON con.id = b.consolidation_id
-          JOIN customers c ON c.id = con.customer_id
-          LEFT JOIN pre_billing pb ON pb.consolidation_id = b.consolidation_id
-          WHERE b.is_paid = false
-            AND (pb.uuid IS NULL OR pb.notified_at IS NULL)
-        )
-        UNION ALL
-        (
-          SELECT
-            con.uuid::text                     AS consolidation_uuid,
-            NULL::text                         AS billing_uuid,
-            c.first_name || ' ' || c.last_name AS customer_name,
-            c.customer_code,
-            'ESTIMADO'                         AS kind,
-            pb.estimated_amount_crc::numeric   AS amount_crc,
-            pb.created_at                      AS issued_at
-          FROM pre_billing pb
-          JOIN consolidations con ON con.id = pb.consolidation_id
-          JOIN customers c ON c.id = con.customer_id
-          LEFT JOIN billing b ON b.consolidation_id = pb.consolidation_id
-          WHERE b.uuid IS NULL
-            AND pb.notified_at IS NULL
-        )
-        ORDER BY issued_at ASC
-        LIMIT ${PENDING_RECEIVABLES_LIMIT}
-      `,
-
-      // Total de cobros sin notificar.
-      sql`
-        SELECT (
-          (SELECT COUNT(*) FROM billing b
-            LEFT JOIN pre_billing pb ON pb.consolidation_id = b.consolidation_id
-            WHERE b.is_paid = false AND (pb.uuid IS NULL OR pb.notified_at IS NULL))
-          +
-          (SELECT COUNT(*) FROM pre_billing pb
-            LEFT JOIN billing b ON b.consolidation_id = pb.consolidation_id
-            WHERE b.uuid IS NULL AND pb.notified_at IS NULL)
-        )::int AS total
-      `,
-
-      // KPIs de facturación del mes calendario en curso. `profit_crc` ya es el
-      // snapshot calculado al facturar — no se recalcula acá.
-      sql`
-        SELECT
-          COALESCE(SUM(total_amount_crc), 0)::numeric AS invoiced_crc,
-          COALESCE(SUM(CASE WHEN is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS paid_crc,
-          COALESCE(SUM(profit_crc), 0)::numeric AS profit_crc,
-          COUNT(CASE WHEN has_unknown_cost THEN 1 END)::int AS unknown_cost_count
-        FROM billing
-        WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
-            = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
-      `,
-
-      // Paquetes del mes actual y del anterior, para el comparativo.
-      sql`
-        SELECT
-          COUNT(*) FILTER (
-            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
-                  = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
-          )::int AS current_month,
-          COUNT(*) FILTER (
-            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
-                  = date_trunc('month', (NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '1 month')
-          )::int AS previous_month
-        FROM packages
-        WHERE (created_at AT TIME ZONE 'America/Costa_Rica')
-              >= date_trunc('month', (NOW() AT TIME ZONE 'America/Costa_Rica') - INTERVAL '1 month')
-      `,
-
-      // Serie facturado vs. cobrado. Se agrupa por fecha de emisión para que las
-      // dos series hablen del mismo universo de facturas: "de lo facturado en
-      // este mes, cuánto se cobró". Agrupar lo cobrado por `paid_at` mezclaría
-      // meses y haría que las barras no se puedan comparar.
-      sql`
-        SELECT
-          TO_CHAR(date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica'), 'YYYY-MM') AS month,
-          COALESCE(SUM(total_amount_crc), 0)::numeric AS invoiced,
-          COALESCE(SUM(CASE WHEN is_paid THEN total_amount_crc ELSE 0 END), 0)::numeric AS paid
-        FROM billing
-        WHERE (created_at AT TIME ZONE 'America/Costa_Rica') >= date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
-                                 - (INTERVAL '1 month' * ${REVENUE_MONTHS - 1})
-        GROUP BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
-        ORDER BY date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica') ASC
-      `,
-    ]);
-
-    const inboxRow = inboxResult[0];
-    const inbox: OperationsInbox = {
-      packagesWithoutOrder: inboxRow?.packages_without_order ?? 0,
-      customersWithPackagesWithoutOrder:
-        inboxRow?.customers_with_packages_without_order ?? 0,
-      packagesNotNotified: inboxRow?.packages_not_notified ?? 0,
-      customersWithPackagesNotNotified:
-        inboxRow?.customers_with_packages_not_notified ?? 0,
-      ordersNotNotified: inboxRow?.orders_not_notified ?? 0,
-      ordersPendingPayment: inboxRow?.orders_pending_payment ?? 0,
-      pendingPaymentCRC: Number(inboxRow?.pending_payment_crc ?? 0),
-    };
-
-    // La antigüedad se calcula en JS y no en SQL para que use el mismo reloj que
-    // el resto de la respuesta y no dependa del huso de la base.
-    const now = Date.now();
-    const toReceivable = (
-      row: Record<string, unknown>,
-      isNotified: boolean,
-    ): PendingReceivable => {
-      const issuedAt = new Date(row.issued_at as string);
-      const ageDays = Math.max(
-        0,
-        Math.floor((now - issuedAt.getTime()) / (1000 * 60 * 60 * 24)),
-      );
-      return {
-        consolidationUuid: row.consolidation_uuid as string,
-        billingUuid: (row.billing_uuid as string | null) ?? null,
-        customerName: (row.customer_name as string) ?? 'Sin cliente',
-        customerCode: (row.customer_code as string | null) ?? null,
-        kind: row.kind === 'FACTURA' ? 'FACTURA' : 'ESTIMADO',
-        amountCRC: Number(row.amount_crc ?? 0),
-        issuedAt: issuedAt.toISOString(),
-        ageDays,
-        isNotified,
-      };
-    };
-
-    const pendingReceivables = (receivablesResult as Record<string, unknown>[])
-      .map((row) => toReceivable(row, true));
-
-    const awaitingNotification = (awaitingNotificationResult as Record<string, unknown>[])
-      .map((row) => toReceivable(row, false));
-
-    const monthlyRow = monthlyBillingResult[0];
-    const packageRow = packageCountsResult[0];
-
-    const revenueByMonth: MonthlyRevenuePoint[] = (
-      revenueResult as Record<string, unknown>[]
-    ).map((row) => ({
-      month: monthLabelEs(row.month as string),
-      invoiced: Number(row.invoiced ?? 0),
-      paid: Number(row.paid ?? 0),
-    }));
-
-    return {
-      inbox,
-      pendingReceivables,
-      pendingReceivablesTotal: receivablesCountResult[0]?.total ?? 0,
-      awaitingNotification,
-      awaitingNotificationTotal: awaitingNotificationCountResult[0]?.total ?? 0,
-      monthly: {
-        invoicedCRC: Number(monthlyRow?.invoiced_crc ?? 0),
-        paidCRC: Number(monthlyRow?.paid_crc ?? 0),
-        profitCRC: Number(monthlyRow?.profit_crc ?? 0),
-        unknownCostCount: monthlyRow?.unknown_cost_count ?? 0,
-        packageCount: packageRow?.current_month ?? 0,
-        packageCountPreviousMonth: packageRow?.previous_month ?? 0,
-      },
-      revenueByMonth,
-    };
+    const [tasks, collections] = await Promise.all([getTasks(), getCollections()]);
+    return { tasks, collections };
   },
 };

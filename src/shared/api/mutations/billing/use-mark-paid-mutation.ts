@@ -4,6 +4,7 @@ import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { MarkPaidInput, BillingListItem } from '@/types/logistics/logistics.types';
 import { BILLING_LIST_KEY } from '../../querys/billing/use-billing-list-query';
+import { OPERATIONS_STATS_KEY } from '../../querys/dashboard/use-operations-query';
 
 export function useMarkPaidMutation() {
   const queryClient = useQueryClient();
@@ -18,6 +19,7 @@ export function useMarkPaidMutation() {
       ApiServiceClient(env.API.BASE_URL).patch(`/billing?uuid=${billingUuid}`, { paymentMethod }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BILLING_LIST_KEY] });
+      queryClient.invalidateQueries({ queryKey: [OPERATIONS_STATS_KEY] });
     },
   });
 

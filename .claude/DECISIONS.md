@@ -45,3 +45,42 @@ dejaría el repo con dos sistemas a la vez; si se adopta i18n, se hace como tare
 
 `.claude/settings.json` permitía `git push *` sin preguntar. Se quitó, y quedan en `ask` push y
 los comandos de migración (`migrate.mjs`, `dbmigrate`), en línea con las reglas globales.
+
+## Operativo: "Tu día" con nombres de tarea, no de paso (2026-10-24)
+
+Las filas dicen lo que hay que hacer, en el orden del flujo: Avisar paquetes que llegaron, Armar
+órdenes, Generar estimados (paso 1), Confirmar y cobrar (2), Despachar (3), Finalizar entregas (4)
+y Hacer seguimiento. Cada número sale de las mismas condiciones SQL que la pantalla a la que lleva
+la fila. Los chips del listado de Órdenes conservan los nombres de paso (Confirmación, Cobro,
+Despacho, Cierre): cambiarlos tocaría otra pantalla que el operador ya conoce.
+
+## "Confirmar y cobrar": desglose y antigüedad solo de lo no pagado (2026-10-24)
+
+El conteo sigue igual al listado `?step=COBRO&paid=ALL`, pero el subtítulo separa por confirmar,
+por cobrar y pagadas (que aún falta pasar a despacho). Por pedido del usuario, "La más vieja sin
+pagar" y el rojo solo miran las no pagadas; las pagadas que se quedan en el paso 2 no se marcan.
+
+## Antigüedad de Despachar y Finalizar desde `dispatched_at` (2026-10-24)
+
+`dispatched_at` se fija al pasar del paso 2 al 3 (`updateStatus`, CERRADO→DESPACHADO) y es la única
+fecha confiable de entrada al paso 3; `updated_at` cambia con cualquier edición y se quitó como
+respaldo. Para el paso 4 no existe fecha de entrada: se cuenta desde el despacho.
+
+## Filtro de pago "Con factura sin pagar" (2026-10-24)
+
+`FACTURADA_SIN_PAGAR` exige factura emitida y sin pagar; "Sin pagar (con estimados)" sigue
+incluyendo órdenes sin factura. Cobros del Operativo usa el primero para que "Ver todas" muestre
+exactamente las mismas facturas.
+
+## Cobros: "Enviar estimado" solo en el paso Cobro (2026-10-24)
+
+El botón de la tarjeta usa el mismo verbo que la fila "Estimado enviado al cliente" del detalle,
+que solo existe en el paso 2; las pestañas "Por avisar"/"Ya avisados" se quedan. "Por avisar"
+incluye facturas sin pagar con estimado sin enviar en cualquier paso (2 a 5) para que una
+factura no desaparezca al finalizar la orden; en los pasos 3 a 5 la tarjeta abre la factura.
+Provisional: falta que el usuario diga si "Avisar y recordar pago" del paso 3 cuenta como aviso.
+
+## Participaciones de Farid en mes equivocado: no se corrigen (2026-10-24)
+
+Las participaciones de ganancia ya registradas en un mes que no corresponde se dejan como están,
+por decisión del usuario. No se escriben migraciones ni scripts para moverlas.

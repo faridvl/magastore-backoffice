@@ -5,6 +5,7 @@ import { env } from '../../config';
 import { UnassignPackageInput } from '@/types/logistics/logistics.types';
 import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
 import { SHIPMENT_ORDER_DETAIL_KEY } from '../../querys/shipment-orders/use-shipment-order-detail-query';
+import { OPERATIONS_STATS_KEY } from '../../querys/dashboard/use-operations-query';
 
 export function useUnassignPackageMutation() {
   const queryClient = useQueryClient();
@@ -23,6 +24,7 @@ export function useUnassignPackageMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY] });
+      queryClient.invalidateQueries({ queryKey: [OPERATIONS_STATS_KEY] });
     },
   });
 

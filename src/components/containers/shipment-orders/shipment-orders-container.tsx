@@ -77,7 +77,8 @@ const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
 
 const PAID_FILTERS: { value: ShipmentOrderPaidFilter; label: string }[] = [
   { value: ShipmentOrderPaidFilter.PAGADA, label: 'Pagadas' },
-  { value: ShipmentOrderPaidFilter.SIN_PAGAR, label: 'Sin pagar' },
+  { value: ShipmentOrderPaidFilter.SIN_PAGAR, label: 'Sin pagar (con estimados)' },
+  { value: ShipmentOrderPaidFilter.FACTURADA_SIN_PAGAR, label: 'Con factura sin pagar' },
 ];
 
 const NOTIFIED_FILTERS: { value: ShipmentOrderNotifiedFilter; label: string }[] = [
@@ -278,6 +279,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     if (stepLabels.length > 0) parts.push(stepLabels.join(' o '));
     if (paidFilter === ShipmentOrderPaidFilter.PAGADA) parts.push('pagadas');
     if (paidFilter === ShipmentOrderPaidFilter.SIN_PAGAR) parts.push('sin pagar');
+    if (paidFilter === ShipmentOrderPaidFilter.FACTURADA_SIN_PAGAR) parts.push('con factura sin pagar');
     if (notifiedFilter === ShipmentOrderNotifiedFilter.NOTIFICADA) parts.push('con estimado enviado');
     if (notifiedFilter === ShipmentOrderNotifiedFilter.SIN_NOTIFICAR) parts.push('con estimado sin enviar');
     return parts.length > 0

@@ -19,9 +19,12 @@ export function useOperationsQuery() {
       // Es una bandeja de trabajo: se vacía a medida que el operador actúa, así
       // que se refresca más seguido que el panel clásico de métricas.
       staleTime: 1000 * 60,
+      // Al volver desde otra pantalla los números deben ser los de ahora, no los de hace un minuto.
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
       queryFn: fetchOperationsStats,
       ...options,
-    } as any);
+    });
   };
 
   async function invalidate() {

@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next';
 import { OperationsService } from '@/shared/api/services/operations.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 
@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const context = { req, res } as any;
+  const context = { req, res } as unknown as GetServerSidePropsContext;
   let token = CookiesManager.getAccessToken(context);
   if (!token && req.headers.authorization) {
     const parts = req.headers.authorization.split(' ');
@@ -24,8 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const stats = await OperationsService.getOperationsStats();
     return res.status(200).json({ data: stats });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Operations Stats Handler]:', error);
-    return res.status(500).json({ message: error.message || 'Error interno' });
+    const message = error instanceof Error && error.message ? error.message : 'Error interno';
+    return res.status(500).json({ message });
   }
 }

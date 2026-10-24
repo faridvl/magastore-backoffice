@@ -31,10 +31,29 @@ export enum ShipmentOrderStepFilter {
   SEGUIMIENTO_PENDIENTE = 'SEGUIMIENTO_PENDIENTE',
 }
 
+// Pasos que la URL puede pedir; `ALL` no es un paso y se excluye a propósito.
+const STEP_FILTER_URL_KEYS = [
+  'CONFIRMACION',
+  'COBRO',
+  'DESPACHO',
+  'NOTIFICACION',
+  'FINALIZADA',
+  'SEGUIMIENTO_PENDIENTE',
+] as const;
+type StepFilterUrlKey = (typeof STEP_FILTER_URL_KEYS)[number];
+
+const PAID_FILTER_URL_KEYS = ['ALL', 'PAGADA', 'SIN_PAGAR', 'FACTURADA_SIN_PAGAR'] as const;
+const NOTIFIED_FILTER_URL_KEYS = ['ALL', 'NOTIFICADA', 'SIN_NOTIFICAR'] as const;
+
+const isStepFilterUrlKey = (name: string): name is StepFilterUrlKey =>
+  (STEP_FILTER_URL_KEYS as readonly string[]).includes(name);
+
 export enum ShipmentOrderPaidFilter {
   ALL = 'ALL',
   PAGADA = 'PAGADA',
   SIN_PAGAR = 'SIN_PAGAR',
+  // Solo con factura emitida y sin pagar; no incluye estimados sin confirmar.
+  FACTURADA_SIN_PAGAR = 'FACTURADA_SIN_PAGAR',
 }
 
 export enum ShipmentOrderNotifiedFilter {
@@ -130,19 +149,26 @@ export const useShipmentOrders = () => {
       touched = true;
     }
 
-    if (stepParam && stepParam in ShipmentOrderStepFilter) {
-      const step = ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter];
-      setStepFilters([step]);
+    // Uno o varios pasos separados por coma (?step=COBRO,DESPACHO).
+    const stepsFromUrl = (stepParam ?? '')
+      .split(',')
+      .map((name) => name.trim())
+      .filter(isStepFilterUrlKey)
+      .map((name) => ShipmentOrderStepFilter[name]);
+    if (stepsFromUrl.length > 0) {
+      setStepFilters(stepsFromUrl);
       // Mismo criterio que al elegirlo a mano: con "Sin pagar" casi no aparecería nada.
-      if (step === ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE && !paidParam) setPaidFilter(ShipmentOrderPaidFilter.ALL);
+      if (stepsFromUrl.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE) && !paidParam) setPaidFilter(ShipmentOrderPaidFilter.ALL);
       touched = true;
     }
-    if (paidParam && paidParam in ShipmentOrderPaidFilter) {
-      setPaidFilter(ShipmentOrderPaidFilter[paidParam as keyof typeof ShipmentOrderPaidFilter]);
+    if (paidParam && (PAID_FILTER_URL_KEYS as readonly string[]).includes(paidParam)) {
+      setPaidFilter(ShipmentOrderPaidFilter[paidParam as (typeof PAID_FILTER_URL_KEYS)[number]]);
       touched = true;
     }
-    if (notifiedParam && notifiedParam in ShipmentOrderNotifiedFilter) {
-      setNotifiedFilter(ShipmentOrderNotifiedFilter[notifiedParam as keyof typeof ShipmentOrderNotifiedFilter]);
+    if (notifiedParam && (NOTIFIED_FILTER_URL_KEYS as readonly string[]).includes(notifiedParam)) {
+      setNotifiedFilter(
+        ShipmentOrderNotifiedFilter[notifiedParam as (typeof NOTIFIED_FILTER_URL_KEYS)[number]],
+      );
       touched = true;
     }
 

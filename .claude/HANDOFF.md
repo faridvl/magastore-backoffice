@@ -17,7 +17,14 @@
 - Migraciones 028–036 aplicadas en dev; producción sigue en 027. El merge a `main` ya no migra: solo muestra el plan, y aplicar es manual desde Actions con confirmación (README, "Migraciones SQL").
 - Dos rondas de pruebas contra el API de dev y dos de revisión: sin defectos abiertos.
 - Anotaciones de la agenda hechas: sin la tarjeta "Sin costo cargado" en el Operativo; libras, ganancia y "Para Farid" del mes en el Dashboard.
-- Dashboard "Operativo" revisado: números inflados por paquetes entregados, enlaces que no coinciden con la tarjeta, nada del flujo de órdenes, tablas con scroll lateral en iPad y celular, botones chicos, sin "Reintentar". Propuesta: lista "Tu día" en el orden del flujo + panel de cobros. **Esperando decisión** (todo junto o primero números y enlaces).
+- Operativo rediseñado (`/admin/operations`): "Tu día" en el orden del flujo y "Cobros" (Por avisar / Ya avisados). Los 9 números coinciden con la pantalla a la que lleva cada botón (dev, 2026-10-24). Revisado por qa, revisor de UX y cuestionador; decisiones en `DECISIONS.md`.
+- Preguntas abiertas del Operativo:
+  - ¿"Avisar y recordar pago" del paso 3 cuenta como aviso de cobro? Hoy "Por avisar" solo mira el estimado enviado, así que una orden despachada sin pagar y sin estimado enviado queda en "Por avisar" (con "Ver factura") hasta que se pague.
+  - ¿El correo automático al confirmar la factura cuenta como aviso?
+  - Las órdenes pagadas que siguen en el paso 2 sin pasar a despacho no se marcan en rojo (pedido del usuario); en dev hay 4 desde julio. Reconfirmar.
+  - "Avisar paquetes que llegaron" y "Armar órdenes" cuentan también paquetes en PANAMA y EN_TRAMITE.
+- Antes de producción, en la consola de Neon (solo lectura), revisar facturas sin pagar sin estimado (`billing` sin `pre_billing`): no salen en ninguna pestaña de Cobros. En dev no hay.
+- El API `/api/dashboard/operations` solo revisa que haya token, no el rol (riesgo 5 de la ficha).
 
 ## Pase a producción (pendiente, lo hace el usuario)
 - **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).

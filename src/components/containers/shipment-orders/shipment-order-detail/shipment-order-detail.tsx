@@ -81,6 +81,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     detail,
     isLoadingDetail,
     handleBack,
+    backLabel,
 
     isUpdating,
     handleAdvanceToClosing, isAdvancingToClosing,
@@ -210,7 +211,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         <div className="flex flex-col min-w-0 w-full md:w-auto">
           {/* En móvil la flecha del header ya vuelve atrás. */}
           <button onClick={handleBack} className="hidden sm:flex items-center gap-1.5 min-h-[32px] text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold mb-2">
-            <ChevronLeft size={16} /> Órdenes de envío
+            <ChevronLeft size={16} /> {backLabel}
           </button>
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             <Typography variant={TypographyVariant.HEADER} className="tracking-tighter break-words">

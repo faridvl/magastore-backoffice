@@ -46,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: customers });
       }
 
-      const p = parseInt(page as string) || 1;
-      const l = parseInt(limit as string) || 10;
+      const p = Math.max(parseInt(page as string) || 1, 1);
+      const l = Math.max(parseInt(limit as string) || 10, 1);
       const result = await ConsolidationsService.listConsolidations(
         p,
         l,

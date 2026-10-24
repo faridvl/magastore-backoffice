@@ -43,20 +43,21 @@ export const ChecklistRow: React.FC<{
   isDone?: boolean | null;
   children?: React.ReactNode;
   action?: React.ReactNode;
-}> = ({ title, isDone = false, children, action }) => (
-  <li className="flex flex-col sm:flex-row sm:items-center gap-3 py-4 first:pt-0 last:pb-0">
-    <div className="flex items-start gap-3 flex-1 min-w-0">
-      {isDone === null
-        ? <span className="w-5 flex-shrink-0" />
-        : isDone
-          ? <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-          : <Circle size={20} className="text-slate-300 flex-shrink-0 mt-0.5" />}
-      <div className="min-w-0">
-        <p className="text-sm font-bold text-slate-800">{title}</p>
+  id?: string;
+}> = ({ title, isDone = false, children, action, id }) => (
+  <li id={id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+    {isDone === null
+      ? <span className="w-5 flex-shrink-0" />
+      : isDone
+        ? <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+        : <Circle size={20} className="text-slate-300 flex-shrink-0 mt-0.5" />}
+    <div className="flex-1 min-w-0 flex flex-wrap items-center gap-3">
+      <div className="flex-1 min-w-[12rem]">
+        <p className="text-sm font-bold text-slate-800 break-words">{title}</p>
         {children && <div className="text-sm text-slate-500 mt-0.5 break-words">{children}</div>}
       </div>
+      {action && <div className="flex flex-wrap gap-2">{action}</div>}
     </div>
-    {action && <div className="flex flex-wrap gap-2 pl-8 sm:pl-0 sm:flex-shrink-0">{action}</div>}
   </li>
 );
 

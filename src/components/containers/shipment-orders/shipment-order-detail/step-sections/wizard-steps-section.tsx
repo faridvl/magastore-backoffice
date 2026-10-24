@@ -9,6 +9,7 @@ import { PackageTable } from './package-table';
 import { OrderSummaryCard } from './order-summary-card';
 import { FinalizedSummary } from './finalized-summary';
 import { StepAction, StepActionVariant, ChecklistRow, StepCard, StepFooter } from './step-ui';
+import { ESTIMATE_ROW_ANCHOR } from '@/shared/constants/operations';
 
 // Finalizada (5) no se dibuja en la línea: ahí la pantalla pasa a postventa.
 const STEP_ITEMS: { step: ShipmentOrderStep; label: string }[] = [
@@ -232,6 +233,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
   const renderCobro = () => {
     const notifyRow = (
       <ChecklistRow
+        id={ESTIMATE_ROW_ANCHOR}
         title="Estimado enviado al cliente"
         isDone={!!detail.pre_billing_notified_at}
         action={

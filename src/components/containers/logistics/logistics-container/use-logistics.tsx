@@ -6,6 +6,7 @@ import { env } from '@/shared/api/config';
 import { useNotifyMultipleCustomers } from '@/hooks/use-notify-multiple-customers';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { OPERATIONS_ORIGIN_PARAM, OPERATIONS_ORIGIN_VALUE } from '@/shared/constants/operations';
 import { toast } from 'sonner';
 import { LogisticsPackage, DeliveryMethod } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
@@ -219,7 +220,10 @@ export const usePackages = (pageSize = 7) => {
         setSelectedDeliveryMethod(null);
     };
 
+    const isFromOperations = router.query[OPERATIONS_ORIGIN_PARAM] === OPERATIONS_ORIGIN_VALUE;
+
     return {
+        isFromOperations,
         packages,
         isLoading,
         meta: {

@@ -4,6 +4,7 @@ import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { CreateConsolidationWithPackagesInput } from '@/types/logistics/logistics.types';
 import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
+import { OPERATIONS_STATS_KEY } from '../../querys/dashboard/use-operations-query';
 
 export function useCreateShipmentOrderWithPackagesMutation() {
   const queryClient = useQueryClient();
@@ -19,6 +20,7 @@ export function useCreateShipmentOrderWithPackagesMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: ['logistics'] });
+      queryClient.invalidateQueries({ queryKey: [OPERATIONS_STATS_KEY] });
     },
   });
 

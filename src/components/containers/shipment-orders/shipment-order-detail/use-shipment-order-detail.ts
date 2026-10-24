@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { routesPrivate } from '@/shared/navigation/routes';
+import {
+  ESTIMATE_ROW_ANCHOR,
+  OPERATIONS_ORIGIN_PARAM,
+  OPERATIONS_ORIGIN_VALUE,
+} from '@/shared/constants/operations';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useShipmentOrderDetailQuery } from '@/shared/api/querys/shipment-orders/use-shipment-order-detail-query';
@@ -154,7 +160,22 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const { assignPackagesToOrder, isPending: isAssigning } = useAssignPackagesToOrderMutation();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
-  const handleBack = () => router.push('/admin/shipment-orders');
+  const isFromOperations = router.query[OPERATIONS_ORIGIN_PARAM] === OPERATIONS_ORIGIN_VALUE;
+  const backLabel = isFromOperations ? 'Operativo' : 'Órdenes de envío';
+  const handleBack = () =>
+    router.push(isFromOperations ? routesPrivate.admin.operations : routesPrivate.admin.shipmentOrders.index);
+
+  // Desde "Enviar estimado" del Operativo se llega con #estimado: se baja a esa fila una sola vez,
+  // cuando ya hay datos y la fila existe (solo aparece en el paso de cobro).
+  const hasScrolledToEstimate = useRef(false);
+  useEffect(() => {
+    if (!detail || hasScrolledToEstimate.current) return;
+    if (window.location.hash !== `#${ESTIMATE_ROW_ANCHOR}`) return;
+    const row = document.getElementById(ESTIMATE_ROW_ANCHOR);
+    if (!row) return;
+    hasScrolledToEstimate.current = true;
+    row.scrollIntoView({ block: 'center' });
+  }, [detail]);
 
   const requestUnassignPackage = (packageUuid: string) => {
     setPackageToUnassign(packageUuid);
@@ -978,6 +999,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     detail,
     isLoadingDetail,
     handleBack,
+    backLabel,
 
     isUpdating,
     handleAdvanceToClosing, isAdvancingToClosing,

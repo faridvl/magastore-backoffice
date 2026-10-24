@@ -157,6 +157,8 @@ export const ConsolidationsRepository = {
     // despacha sin haber cobrado, caso confirmado por el dueño).
     const isPagada = paidFilter === 'PAGADA';
     const isSinPagar = paidFilter === 'SIN_PAGAR';
+    // Solo órdenes con factura emitida: deja fuera estimados sin confirmar.
+    const isFacturadaSinPagar = paidFilter === 'FACTURADA_SIN_PAGAR';
     // Eje 3: notificación de la prefactura.
     const isNotificada = notifiedFilter === 'NOTIFICADA';
     const isSinNotificar = notifiedFilter === 'SIN_NOTIFICAR';
@@ -205,6 +207,7 @@ export const ConsolidationsRepository = {
             AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})))
           AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
+          AND (NOT ${isFacturadaSinPagar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
           AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
@@ -231,6 +234,7 @@ export const ConsolidationsRepository = {
             AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})))
           AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
+          AND (NOT ${isFacturadaSinPagar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
           AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
           AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
@@ -806,6 +810,7 @@ export const ConsolidationsRepository = {
       FROM packages p
       JOIN customers c ON c.id = p.customer_id
       WHERE p.consolidation_id IS NULL
+        AND p.status <> 'ENTREGADO'
       GROUP BY c.id, c.first_name, c.last_name, c.phone
       ORDER BY c.first_name ASC, c.last_name ASC
     `;
@@ -827,6 +832,7 @@ export const ConsolidationsRepository = {
       FROM packages p
       WHERE p.customer_id = ${customerUuid}
         AND p.consolidation_id IS NULL
+        AND p.status <> 'ENTREGADO'
       ORDER BY p.created_at DESC
     `;
     return rows as AvailablePackage[];

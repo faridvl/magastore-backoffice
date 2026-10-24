@@ -37,7 +37,7 @@ export const LogisticsContainer: React.FC = () => {
     const PAGE_SIZE = 7;
 
     const {
-        packages, isLoading, meta,
+        isFromOperations, packages, isLoading, meta,
         handlePageChange, handleSearch,
         viewMode, setViewMode,
         consolidationFilter, setConsolidationFilter,
@@ -350,6 +350,14 @@ export const LogisticsContainer: React.FC = () => {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {isFromOperations && (
+                <p className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-600">
+                    {showSelection
+                        ? 'Para armar una orden, marca los paquetes de un cliente y toca «Crear orden de envío».'
+                        : 'Para armar una orden, ve a «Activos» y elige «Sin orden»: ahí marcas los paquetes de un cliente.'}
+                </p>
             )}
 
             {/* CARDS (mobile) */}
