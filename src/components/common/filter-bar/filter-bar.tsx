@@ -11,6 +11,8 @@ export interface FilterBarField {
   key: string;
   label: string;
   options: FilterBarOption[];
+  /** Si se define, el chip del filtro activo dice "prefijo: opción" en vez de solo la opción. */
+  chipPrefix?: string;
   /** Texto cuando no hay nada marcado (p. ej. "Todos los pasos"). */
   emptyLabel: string;
   /** Una sola opción a la vez: tocar la marcada la desmarca. */
@@ -101,7 +103,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const chips = fields.flatMap((field) =>
     selectedValues(field).map((value) => ({
       key: `${field.key}-${value}`,
-      label: field.options.find((o) => o.value === value)?.label ?? value,
+      label: [field.chipPrefix, field.options.find((o) => o.value === value)?.label ?? value]
+        .filter(Boolean)
+        .join(': '),
       onRemove: () => toggleOption(field, value),
     })),
   ).concat(extraChips);

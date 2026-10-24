@@ -1,4 +1,5 @@
 import sql from '@/lib/db';
+import { StaleOrderError } from '@/shared/api/stale-order-error';
 import {
   ConsolidationListItem,
   ConsolidationDetail,
@@ -14,6 +15,10 @@ import {
   FOLLOW_UP_PENDING_STEP_FILTER,
   FOLLOW_UP_WINDOW_DAYS,
 } from '@/shared/constants/post-delivery';
+
+/** Una orden solo se arma con paquetes que siguen en Panamá y no tienen orden. */
+const NOT_ASSIGNABLE_PACKAGES_MESSAGE =
+  'Solo se pueden agregar a una orden los paquetes que están en Panamá y sin orden.';
 
 export const ConsolidationsRepository = {
   getOpenConsolidationForCustomer: async (
@@ -64,6 +69,15 @@ export const ConsolidationsRepository = {
       `;
       if (parseInt(mismatch.mismatched, 10) > 0) {
         throw new Error('Todos los paquetes seleccionados deben pertenecer al mismo cliente.');
+      }
+
+      const [notAvailable] = await sql`
+        SELECT COUNT(*) AS unavailable
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND (status <> 'PANAMA' OR consolidation_id IS NOT NULL)
+      `;
+      if (parseInt(notAvailable.unavailable, 10) > 0) {
+        throw new Error(NOT_ASSIGNABLE_PACKAGES_MESSAGE);
       }
 
       // Con una sola dirección registrada se asigna automáticamente. Con 2+ direcciones,
@@ -159,7 +173,9 @@ export const ConsolidationsRepository = {
     const isSinPagar = paidFilter === 'SIN_PAGAR';
     // Solo órdenes con factura emitida: deja fuera estimados sin confirmar.
     const isFacturadaSinPagar = paidFilter === 'FACTURADA_SIN_PAGAR';
-    // Eje 3: notificación de la prefactura.
+    // Eje 3: aviso de cobro. Cuenta el estimado enviado (pre_billing.notified_at) o el aviso del
+    // paso 3 (customer_notified_shipment_at: a una orden sin pagar lleva el monto pendiente).
+    // El mismo criterio usa "Cobros" del Operativo (operations.repo.ts); cambiar uno es cambiar los dos.
     const isNotificada = notifiedFilter === 'NOTIFICADA';
     const isSinNotificar = notifiedFilter === 'SIN_NOTIFICAR';
     const fromDate = dateFrom || null;
@@ -208,8 +224,8 @@ export const ConsolidationsRepository = {
           AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
           AND (NOT ${isFacturadaSinPagar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
-          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
-          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND (pb.notified_at IS NOT NULL OR con.customer_notified_shipment_at IS NOT NULL)))
+          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL AND con.customer_notified_shipment_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         GROUP BY con.uuid, con.customer_id, con.status, con.current_step, con.total_weight_lb, con.created_at, con.updated_at,
@@ -235,8 +251,8 @@ export const ConsolidationsRepository = {
           AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
           AND (NOT ${isSinPagar} OR (b.uuid IS NULL OR b.is_paid = false))
           AND (NOT ${isFacturadaSinPagar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
-          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
-          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND (pb.notified_at IS NOT NULL OR con.customer_notified_shipment_at IS NOT NULL)))
+          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL AND con.customer_notified_shipment_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
@@ -468,10 +484,19 @@ export const ConsolidationsRepository = {
       throw new Error('Solo se puede registrar la guía en una orden ya despachada.');
     }
 
+    // Con la guía cargada el bulto ya salió: los paquetes dejan Panamá. Borrar la guía no los devuelve.
+    // Una sola sentencia: sobre HTTP de Neon dos sentencias sueltas no son una transacción.
     await sql`
-      UPDATE consolidations
-      SET tracking_code = ${trackingCode || null}, updated_at = NOW()
-      WHERE id = ${row.id}
+      WITH updated AS (
+        UPDATE consolidations
+        SET tracking_code = ${trackingCode || null}, updated_at = NOW()
+        WHERE id = ${row.id}
+        RETURNING id, tracking_code
+      )
+      UPDATE packages p
+      SET status = 'EN_TRAMITE'
+      FROM updated u
+      WHERE p.consolidation_id = u.id AND u.tracking_code IS NOT NULL AND p.status = 'PANAMA'
     `;
   },
 
@@ -563,9 +588,18 @@ export const ConsolidationsRepository = {
     if (!current.tracking_code && !current.is_pickup) {
       throw new Error('Solo se puede pasar al cierre con la guía del proveedor cargada.');
     }
+    // Pasar al cierre es el despacho: los paquetes salen de Panamá (cubre también el retiro en
+    // oficina, que no tiene guía). Una sola sentencia para que no quede el paso sin los paquetes.
     await sql`
-      UPDATE consolidations SET current_step = ${ShipmentOrderStep.NOTIFICACION}, updated_at = NOW()
-      WHERE id = ${current.id}
+      WITH advanced AS (
+        UPDATE consolidations SET current_step = ${ShipmentOrderStep.NOTIFICACION}, updated_at = NOW()
+        WHERE id = ${current.id}
+        RETURNING id
+      )
+      UPDATE packages p
+      SET status = 'EN_TRAMITE'
+      FROM advanced a
+      WHERE p.consolidation_id = a.id AND p.status = 'PANAMA'
     `;
   },
 
@@ -681,7 +715,9 @@ export const ConsolidationsRepository = {
       if (row.status !== 'ABIERTO') throw new Error('Solo se pueden eliminar órdenes de envío en estado ABIERTO.');
 
       await sql`
-        UPDATE packages SET consolidation_id = NULL
+        UPDATE packages
+        SET consolidation_id = NULL,
+            status = CASE WHEN status = 'EN_TRAMITE' THEN 'PANAMA' ELSE status END
         WHERE consolidation_id = (SELECT id FROM consolidations WHERE uuid = ${uuid})
       `;
 
@@ -706,6 +742,8 @@ export const ConsolidationsRepository = {
     // setTrackingCode. Parámetro nuevo al final para no romper a los llamadores
     // existentes, que siguen invocando con dos argumentos.
     trackingCode?: string | null,
+    // Estado que se espera encontrar: la transición solo se aplica si la orden sigue así.
+    expectedStatus?: ConsolidationStatus,
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
     await sql`BEGIN`;
     try {
@@ -713,6 +751,8 @@ export const ConsolidationsRepository = {
         SELECT id, status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
       `;
       if (!current) throw new Error('Orden de envío no encontrada.');
+      // Antes de descartar estimado o factura al reabrir: si la orden ya cambió, no se toca nada.
+      if (expectedStatus && current.status !== expectedStatus) throw new StaleOrderError();
 
       // Reabrir (CERRADO → ABIERTO): el estimado/factura quedó ligado al peso/paquetes
       // de ese momento. Si la factura existe pero no ha sido pagada, se descarta junto
@@ -749,7 +789,12 @@ export const ConsolidationsRepository = {
       // backfill de la migración 030). El paso 1→2 (CERRADO, generar estimado)
       // no pasa por esta función: lo mueve generatePreBilling junto con el
       // auto-cierre de la orden, en su propia transacción.
+      const cleanTrackingCode = trackingCode?.trim() || null;
+      // Orden y paquetes en una sola sentencia: sobre HTTP de Neon dos sentencias sueltas no son
+      // transacción. Con guía el bulto salió (PANAMA a EN_TRAMITE); si la orden vuelve a ABIERTO o
+      // CERRADO sus paquetes vuelven a Panamá; al entregar, todo pasa a ENTREGADO.
       const [row] = await sql`
+        WITH updated AS (
         UPDATE consolidations
         SET status = ${status},
             current_step = CASE ${status}
@@ -761,7 +806,7 @@ export const ConsolidationsRepository = {
             END,
             tracking_code = CASE
               WHEN ${isReopening}::boolean THEN NULL
-              WHEN ${status} = 'DESPACHADO' THEN ${trackingCode ?? null}
+              WHEN ${status} = 'DESPACHADO' THEN ${cleanTrackingCode}
               ELSE tracking_code
             END,
             dispatched_at = CASE
@@ -770,19 +815,27 @@ export const ConsolidationsRepository = {
               ELSE dispatched_at
             END,
             updated_at = NOW()
-        WHERE uuid = ${uuid}
+        WHERE uuid = ${uuid} AND (${expectedStatus ?? null}::text IS NULL OR status = ${expectedStatus ?? null})
         RETURNING uuid, id, status, current_step
+        ), moved AS (
+          UPDATE packages p
+          SET status = CASE u.status
+                WHEN 'DESPACHADO' THEN 'EN_TRAMITE'
+                WHEN 'ENTREGADO' THEN 'ENTREGADO'
+                ELSE 'PANAMA'
+              END
+          FROM updated u
+          WHERE p.consolidation_id = u.id
+            AND (
+              (u.status = 'DESPACHADO' AND ${cleanTrackingCode !== null}::boolean AND p.status = 'PANAMA')
+              OR (u.status IN ('ABIERTO', 'CERRADO') AND p.status = 'EN_TRAMITE')
+              OR (u.status = 'ENTREGADO' AND p.status <> 'ENTREGADO')
+            )
+        )
+        SELECT uuid, id, status, current_step FROM updated
       `;
-      if (!row) throw new Error('Orden de envío no encontrada.');
-
-      // Al marcar ENTREGADO, mover todos los paquetes a ENTREGADO también
-      if (status === ConsolidationStatus.ENTREGADO) {
-        await sql`
-          UPDATE packages SET status = 'ENTREGADO'
-          WHERE consolidation_id = ${row.id}
-            AND status != 'ENTREGADO'
-        `;
-      }
+      // La orden existe (se leyó arriba): sin fila es que otra pantalla la cambió entre medio.
+      if (!row) throw new StaleOrderError();
 
       await sql`COMMIT`;
       return { uuid: row.uuid, status: row.status };
@@ -810,7 +863,7 @@ export const ConsolidationsRepository = {
       FROM packages p
       JOIN customers c ON c.id = p.customer_id
       WHERE p.consolidation_id IS NULL
-        AND p.status <> 'ENTREGADO'
+        AND p.status = 'PANAMA'
       GROUP BY c.id, c.first_name, c.last_name, c.phone
       ORDER BY c.first_name ASC, c.last_name ASC
     `;
@@ -832,10 +885,16 @@ export const ConsolidationsRepository = {
       FROM packages p
       WHERE p.customer_id = ${customerUuid}
         AND p.consolidation_id IS NULL
-        AND p.status <> 'ENTREGADO'
+        AND p.status = 'PANAMA'
       ORDER BY p.created_at DESC
     `;
     return rows as AvailablePackage[];
+  },
+
+  /** Estado actual de la orden en la base; null si no existe. */
+  getStatusByUuid: async (uuid: string): Promise<ConsolidationStatus | null> => {
+    const [row] = await sql`SELECT status FROM consolidations WHERE uuid = ${uuid} LIMIT 1`;
+    return (row?.status as ConsolidationStatus | undefined) ?? null;
   },
 
   getConsolidationByPackageUuid: async (
@@ -857,8 +916,11 @@ export const ConsolidationsRepository = {
   unassignPackage: async (packageUuid: string, consolidationId: number): Promise<void> => {
     await sql`BEGIN`;
     try {
+      // Sin orden no hay envío en trámite: si ya había salido de Panamá, vuelve.
       await sql`
-        UPDATE packages SET consolidation_id = NULL
+        UPDATE packages
+        SET consolidation_id = NULL,
+            status = CASE WHEN status = 'EN_TRAMITE' THEN 'PANAMA' ELSE status END
         WHERE uuid = ${packageUuid}
       `;
 
@@ -917,6 +979,15 @@ export const ConsolidationsRepository = {
       `;
       if (parseInt(mismatch.mismatched, 10) > 0) {
         throw new Error('Todos los paquetes deben pertenecer al mismo cliente y no estar ya asignados a otra orden.');
+      }
+
+      const [notAvailable] = await sql`
+        SELECT COUNT(*) AS unavailable
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND status <> 'PANAMA'
+      `;
+      if (parseInt(notAvailable.unavailable, 10) > 0) {
+        throw new Error(NOT_ASSIGNABLE_PACKAGES_MESSAGE);
       }
 
       await sql`

@@ -7,6 +7,9 @@ export const COLLECTIONS_PREVIEW_LIMIT = 6;
 /** Días desde los que una factura sin pagar se marca en rojo. */
 export const COLLECTION_OVERDUE_DAYS = 15;
 
+/** Días (hora de Costa Rica) desde el pago a partir de los que una orden pagada sin despachar se marca en rojo. */
+export const PAID_AWAITING_DISPATCH_STALE_DAYS = 2;
+
 /** Días desde los que la tarea más vieja de cada fila se marca en rojo. */
 export const TASK_STALE_AFTER_DAYS: Record<OperationsTaskKey, number> = {
   [OperationsTaskKey.NOTIFY_PACKAGES]: 2,

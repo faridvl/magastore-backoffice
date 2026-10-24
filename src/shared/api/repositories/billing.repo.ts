@@ -254,14 +254,6 @@ export const BillingRepository = {
 
       if (!billing) throw new Error('Factura no encontrada o ya marcada como pagada.');
 
-      // Mover paquetes de la orden de envío a EN_TRAMITE
-      await sql`
-        UPDATE packages
-        SET status = 'EN_TRAMITE'
-        WHERE consolidation_id = ${billing.consolidation_id}
-          AND status = 'PANAMA'
-      `;
-
       // Cerrar la orden de envío
       await sql`
         UPDATE consolidations

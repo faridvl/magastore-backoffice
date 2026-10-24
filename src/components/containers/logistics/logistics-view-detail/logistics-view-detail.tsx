@@ -20,7 +20,7 @@ export const PackageDetailContainer: React.FC = () => {
     const { id } = router.query;
     const uuid = router.isReady ? (id as string) : undefined;
     const {
-        data, bitacora, calculos, tieneFactura, isLoading, isError, error, refetch,
+        data, bitacora, calculos, tieneFactura, statusOptions, isLoading, isError, error, refetch,
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
@@ -146,8 +146,8 @@ export const PackageDetailContainer: React.FC = () => {
                                 className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-black text-xs text-amber-700 uppercase tracking-widest transition-all outline-none"
                             >
                                 <option value="">— Seleccionar —</option>
-                                {Object.values(PackageStatus).map((s) => (
-                                    <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                                {statusOptions.map((s) => (
+                                    <option key={s} value={s}>{STATUS_LABELS[s as PackageStatus] ?? s}</option>
                                 ))}
                             </select>
                         </div>

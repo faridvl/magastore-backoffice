@@ -1,4 +1,5 @@
 import { ConsolidationsRepository } from '../repositories/consolidations.repo';
+import { StaleOrderError } from '@/shared/api/stale-order-error';
 import { DeliveryRatesRepository } from '../repositories/delivery-rates.repo';
 import { DeliveryMethodsRepository } from '../repositories/delivery-methods.repo';
 import { getSettings } from '../repositories/settings.repo';
@@ -104,22 +105,29 @@ export const ConsolidationsService = {
   updateConsolidationStatus: async (
     uuid: string,
     newStatus: ConsolidationStatus,
+    // Lo que la pantalla cree que es el estado; solo sirve para detectar una pantalla vieja.
     currentStatus: ConsolidationStatus,
     // Guía del transportista al despachar. Opcional por decisión de negocio: se
     // puede despachar sin ella y registrarla después con setTrackingCode.
     trackingCode?: string | null,
   ) => {
+    if (!isUuid(uuid)) throw new Error('El identificador de la orden de envío es inválido.');
+    // El estado sale de la base, no del cuerpo de la petición: una pestaña vieja no decide la transición.
+    const actualStatus = await ConsolidationsRepository.getStatusByUuid(uuid);
+    if (!actualStatus) throw new Error('Orden de envío no encontrada.');
+    if (actualStatus !== currentStatus) throw new StaleOrderError();
+
     // Reabrir es la única transición inversa permitida
-    const isReopen = currentStatus === ConsolidationStatus.CERRADO && newStatus === ConsolidationStatus.ABIERTO;
+    const isReopen = actualStatus === ConsolidationStatus.CERRADO && newStatus === ConsolidationStatus.ABIERTO;
     if (!isReopen) {
-      const allowed = STATUS_TRANSITIONS[currentStatus];
+      const allowed = STATUS_TRANSITIONS[actualStatus];
       if (allowed !== newStatus) {
         throw new Error(
           'Acción inválida para el estado actual de la orden. Actualiza la pantalla e intenta de nuevo.',
         );
       }
     }
-    return ConsolidationsRepository.updateConsolidationStatus(uuid, newStatus, trackingCode);
+    return ConsolidationsRepository.updateConsolidationStatus(uuid, newStatus, trackingCode, actualStatus);
   },
 
   /** Registra o corrige la guía del transportista tras el despacho. */

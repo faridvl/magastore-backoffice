@@ -268,6 +268,13 @@
           "checksum": "8657d7cc7ce65573",
           "appliedAt": "2026-10-24T03:38:06.235Z",
           "appliedBy": "Farid"
+        },
+        {
+          "name": "037-hide-warehouse-location-from-customer.sql",
+          "version": "037",
+          "checksum": "835ba9492728652c",
+          "appliedAt": "2026-10-24T19:48:16.859Z",
+          "appliedBy": "Claude"
         }
       ]
     },

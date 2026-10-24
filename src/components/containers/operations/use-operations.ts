@@ -53,6 +53,8 @@ export interface OperationsTaskRow extends OperationsTask, OperationsTaskConfig 
   isStale: boolean;
   /** "La más vieja: hace 3 días"; null cuando no hay nada pendiente. */
   oldestLabel: string | null;
+  /** Solo en "Confirmar y cobrar": ya pagaron y falta despachar desde hace días; null si no aplica. */
+  paidStaleLabel: string | null;
   countLabel: string;
 }
 
@@ -82,6 +84,15 @@ const formatUpdatedAt = (updatedAt: number, now: number): string => {
   return `Actualizado hace ${Math.floor(minutes / MINUTES_PER_HOUR)} h`;
 };
 
+const formatPaidStaleLabel = (task: OperationsTask): string | null => {
+  const days = task.breakdown?.oldestPaidDays;
+  const staleCount = task.breakdown?.paidStaleCount ?? 0;
+  if (days == null || staleCount === 0) return null;
+  return staleCount === 1
+    ? `Ya pagó ${formatDaysAgo(days)} y falta despachar`
+    : `${staleCount} órdenes pagadas esperan despacho (la más antigua, ${formatDaysAgo(days)})`;
+};
+
 const toTaskRow = (task: OperationsTask): OperationsTaskRow => {
   const config = OPERATIONS_TASK_CONFIG[task.key];
   return {
@@ -92,6 +103,7 @@ const toTaskRow = (task: OperationsTask): OperationsTaskRow => {
       task.oldestDays == null
         ? null
         : `${config.oldestPrefix ?? 'La más vieja'}: ${formatDaysAgo(task.oldestDays)}`,
+    paidStaleLabel: formatPaidStaleLabel(task),
     countLabel: task.breakdown
       ? formatConfirmAndCollectBreakdown(task.breakdown)
       : `${task.count} ${task.count === 1 ? config.unitSingular : config.unitPlural}`,

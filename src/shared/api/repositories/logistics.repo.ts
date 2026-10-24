@@ -107,6 +107,10 @@ const upsertProfitShare = async (params: {
   }
 };
 
+/** Un paquete en trámite ya salió con una orden: sin orden no hay envío que ir a buscar. */
+const ORPHAN_IN_TRANSIT_MESSAGE =
+  'No se puede pasar a En trámite un paquete sin orden: primero agrégalo a una orden de envío.';
+
 /**
  * Repository para el sistema de logística de couriers.
  * Maneja transacciones manuales compatibles con Neon HTTP Client.
@@ -486,10 +490,18 @@ export const LogisticsRepository = {
     packageUuids: string[],
     status: PackageStatus,
   ): Promise<number> => {
+    if (status === PackageStatus.EN_TRAMITE) {
+      const [orphans] = await sql`
+        SELECT COUNT(*)::int AS total FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND consolidation_id IS NULL
+      `;
+      if (Number(orphans.total) > 0) throw new Error(ORPHAN_IN_TRANSIT_MESSAGE);
+    }
     const rows = await sql`
       UPDATE packages
-      SET status = ${status}, updated_at = NOW()
+      SET status = ${status}
       WHERE uuid = ANY(${packageUuids})
+        AND (${status} <> 'EN_TRAMITE' OR consolidation_id IS NOT NULL)
       RETURNING id
     `;
     return rows.length;
@@ -508,6 +520,7 @@ export const LogisticsRepository = {
         p.internal_notes,
         p.evidence_url,
         p.tc_banco,
+        con.uuid AS consolidation_uuid,
         c.first_name,
         c.last_name,
         c.customer_code,
@@ -599,6 +612,7 @@ export const LogisticsRepository = {
     const exact = await sql`
       SELECT
         p.tracking_number, p.status, p.weight_lb, p.arrival_date, p.consolidation_id, con.status AS consolidation_status,
+        con.tracking_code AS consolidation_tracking_code, con.current_step AS consolidation_step,
         c.first_name, c.last_name,
         COALESCE(
           (SELECT json_agg(json_build_object('status', ev.status, 'created_at', ev.created_at) ORDER BY ev.created_at ASC)
@@ -617,6 +631,7 @@ export const LogisticsRepository = {
     const loose = await sql`
       SELECT
         p.tracking_number, p.status, p.weight_lb, p.arrival_date, p.consolidation_id, con.status AS consolidation_status,
+        con.tracking_code AS consolidation_tracking_code, con.current_step AS consolidation_step,
         c.first_name, c.last_name,
         COALESCE(
           (SELECT json_agg(json_build_object('status', ev.status, 'created_at', ev.created_at) ORDER BY ev.created_at ASC)
@@ -654,6 +669,9 @@ export const LogisticsRepository = {
     const toDate = dateTo || null;
     const wantsSinOrden = consolidationFilter === 'SIN_ORDEN';
     const wantsConOrden = consolidationFilter === 'CON_ORDEN';
+    // "Activos sin orden" es la bandeja de trabajo (la misma que cuentan "Avisar" y "Armar
+    // órdenes" del Operativo): solo paquetes en Panamá, sin orden. Un paquete en trámite ya salió.
+    const isPendingWithoutOrder = isActivos && wantsSinOrden;
     const customerFilter = customerUuid || null;
 
     const [packages, countResult] = await Promise.all([
@@ -667,6 +685,7 @@ export const LogisticsRepository = {
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
         AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
+        AND (NOT ${isPendingWithoutOrder} OR p.status = 'PANAMA')
         AND (${fromDate}::date IS NULL OR (p.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR (p.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         AND (NOT ${wantsSinOrden} OR p.consolidation_id IS NULL)
@@ -683,6 +702,7 @@ export const LogisticsRepository = {
         (${searchTerm}::text IS NULL OR p.tracking_number ILIKE ${searchTerm} OR c.first_name ILIKE ${searchTerm} OR c.customer_code ILIKE ${searchTerm})
         AND (${statusTerm}::text IS NULL OR p.status = ${statusTerm})
         AND (NOT ${isActivos} OR p.status != 'ENTREGADO')
+        AND (NOT ${isPendingWithoutOrder} OR p.status = 'PANAMA')
         AND (${fromDate}::date IS NULL OR (p.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
         AND (${toDate}::date IS NULL OR (p.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         AND (NOT ${wantsSinOrden} OR p.consolidation_id IS NULL)
@@ -709,6 +729,15 @@ export const LogisticsRepository = {
 
       const [cons] = await sql`SELECT id FROM consolidations WHERE uuid = ${consolidationUuid}`;
       if (!cons) throw new Error('Orden de envío no encontrada.');
+
+      const [notAvailable] = await sql`
+        SELECT COUNT(*) AS unavailable
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND (status <> 'PANAMA' OR consolidation_id IS NOT NULL)
+      `;
+      if (parseInt(notAvailable.unavailable, 10) > 0) {
+        throw new Error('Solo se pueden agregar a una orden los paquetes que están en Panamá y sin orden.');
+      }
 
       await sql`
         UPDATE packages 
@@ -790,12 +819,18 @@ export const LogisticsRepository = {
     evidenceUrl?: string,
     location?: string,
   ): Promise<Partial<Package>> => {
+    if (status === PackageStatus.EN_TRAMITE) {
+      const [pkg] = await sql`SELECT consolidation_id FROM packages WHERE uuid = ${packageUuid}`;
+      if (pkg && pkg.consolidation_id == null) throw new Error(ORPHAN_IN_TRANSIT_MESSAGE);
+    }
+
     const rows = await sql`
       UPDATE packages
       SET status = ${status},
           internal_notes = ${note || null},
           evidence_url = ${evidenceUrl || null}
       WHERE uuid = ${packageUuid}
+        AND (${status} <> 'EN_TRAMITE' OR consolidation_id IS NOT NULL)
       RETURNING id, uuid, status, internal_notes, evidence_url;
     `;
 

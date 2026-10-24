@@ -1,5 +1,5 @@
 import sql from '@/lib/db';
-import { ShipmentOrderStep } from '@/types/logistics/logistics.types';
+import { PackageStatus, ShipmentOrderStep } from '@/types/logistics/logistics.types';
 import {
   CollectionsGroup,
   OperationsCollections,
@@ -8,7 +8,10 @@ import {
   OperationsTaskKey,
   PendingCollection,
 } from '@/types/dashboard/operations.types';
-import { COLLECTIONS_PREVIEW_LIMIT } from '@/shared/constants/operations';
+import {
+  COLLECTIONS_PREVIEW_LIMIT,
+  PAID_AWAITING_DISPATCH_STALE_DAYS,
+} from '@/shared/constants/operations';
 import {
   FOLLOW_UP_DELAY_DAYS,
   FOLLOW_UP_WINDOW_DAYS,
@@ -27,7 +30,8 @@ const TASK_ORDER: OperationsTaskKey[] = [
 
 /**
  * Paso 2: el conteo es el de todas las órdenes del paso (igual que el listado), pero
- * las ya pagadas solo esperan el pase a despacho, así que no cuentan para "la más vieja".
+ * las ya pagadas solo esperan el pase a despacho, así que no cuentan para "la más vieja
+ * sin pagar"; su antigüedad se mide aparte, desde `paid_at` (`oldest_paid_days`).
  * Los tres grupos (sin factura / factura sin pagar / pagada) se excluyen entre sí.
  */
 const getConfirmAndCollectTask = async (): Promise<OperationsTask> => {
@@ -41,7 +45,13 @@ const getConfirmAndCollectTask = async (): Promise<OperationsTask> => {
              FILTER (WHERE b.is_paid IS NOT TRUE)::int AS oldest_days,
            COUNT(*) FILTER (WHERE b.uuid IS NULL)::int AS to_confirm,
            COUNT(*) FILTER (WHERE b.uuid IS NOT NULL AND b.is_paid IS NOT TRUE)::int AS to_collect,
-           COUNT(*) FILTER (WHERE b.is_paid IS TRUE)::int AS paid
+           COUNT(*) FILTER (WHERE b.is_paid IS TRUE)::int AS paid,
+           MAX(t.d - (b.paid_at AT TIME ZONE 'America/Costa_Rica')::date)
+             FILTER (WHERE b.is_paid IS TRUE AND b.paid_at IS NOT NULL)::int AS oldest_paid_days,
+           COUNT(*) FILTER (
+             WHERE b.is_paid IS TRUE AND b.paid_at IS NOT NULL
+               AND t.d - (b.paid_at AT TIME ZONE 'America/Costa_Rica')::date >= ${PAID_AWAITING_DISPATCH_STALE_DAYS}
+           )::int AS paid_stale
     FROM consolidations con
     LEFT JOIN pre_billing pb ON pb.consolidation_id = con.id
     LEFT JOIN billing b ON b.consolidation_id = con.id
@@ -56,13 +66,15 @@ const getConfirmAndCollectTask = async (): Promise<OperationsTask> => {
       toConfirm: Number(row?.to_confirm ?? 0),
       toCollect: Number(row?.to_collect ?? 0),
       paid: Number(row?.paid ?? 0),
+      oldestPaidDays: row?.oldest_paid_days == null ? null : Number(row.oldest_paid_days),
+      paidStaleCount: Number(row?.paid_stale ?? 0),
     },
   };
 };
 
 /**
  * Las condiciones de cada tarea son las mismas que aplican los listados a los que
- * lleva su botón (Logística por defecto: sin orden y no entregados; Órdenes con
+ * lleva su botón (Logística por defecto: sin orden y en Panamá; Órdenes con
  * `step`, `paid`, `notified`). Si cambia un criterio allá, hay que cambiarlo acá.
  *
  * Los días se cuentan como días de calendario de Costa Rica: restar fechas ya
@@ -84,7 +96,7 @@ const getTasks = async (): Promise<OperationsTask[]> => {
            0 AS missing_count
     FROM packages p, today t
     WHERE p.consolidation_id IS NULL
-      AND p.status <> 'ENTREGADO'
+      AND p.status = ${PackageStatus.PANAMA}
       AND p.notified_at IS NULL
 
     UNION ALL
@@ -94,7 +106,7 @@ const getTasks = async (): Promise<OperationsTask[]> => {
            0
     FROM packages p, today t
     WHERE p.consolidation_id IS NULL
-      AND p.status <> 'ENTREGADO'
+      AND p.status = ${PackageStatus.PANAMA}
 
     UNION ALL
     SELECT 'GENERATE_ESTIMATES',
@@ -172,9 +184,11 @@ const toCollectionsGroup = (rows: Record<string, unknown>[]): CollectionsGroup =
 });
 
 /**
- * Cobros = facturas sin pagar. `notified_at` vive en `pre_billing`, así que el
- * aviso de una factura se lee desde el estimado de su misma orden; se exige que
- * exista igual que lo hace el filtro "Estimado al cliente" del listado de Órdenes.
+ * Cobros = facturas sin pagar. Una factura está "avisada" si se le mandó el estimado por
+ * WhatsApp (`pre_billing.notified_at`) o el aviso del paso 3, que en una orden sin pagar lleva
+ * el monto pendiente (`consolidations.customer_notified_shipment_at`). El correo automático
+ * al confirmar la factura no cuenta. Se exige el estimado igual que lo hace el filtro del
+ * listado de Órdenes; ese filtro usa este mismo criterio.
  */
 const getCollections = async (): Promise<OperationsCollections> => {
   const [toNotifyRows, awaitingPaymentRows] = await Promise.all([
@@ -196,6 +210,7 @@ const getCollections = async (): Promise<OperationsCollections> => {
       LEFT JOIN customers c ON c.id = con.customer_id
       WHERE b.is_paid = false
         AND EXISTS (SELECT 1 FROM pre_billing pb WHERE pb.consolidation_id = con.id)
+        AND con.customer_notified_shipment_at IS NULL
         AND NOT EXISTS (
           SELECT 1 FROM pre_billing pb
           WHERE pb.consolidation_id = con.id AND pb.notified_at IS NOT NULL
@@ -222,7 +237,8 @@ const getCollections = async (): Promise<OperationsCollections> => {
       WHERE b.is_paid = false
         AND EXISTS (
           SELECT 1 FROM pre_billing pb
-          WHERE pb.consolidation_id = con.id AND pb.notified_at IS NOT NULL
+          WHERE pb.consolidation_id = con.id
+            AND (pb.notified_at IS NOT NULL OR con.customer_notified_shipment_at IS NOT NULL)
         )
       ORDER BY b.created_at ASC, b.id
       LIMIT ${COLLECTIONS_PREVIEW_LIMIT}

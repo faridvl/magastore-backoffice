@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ConsolidationsService } from '@/shared/api/services/consolidations.service';
+import { StaleOrderError } from '@/shared/api/stale-order-error';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
 import { isUuid } from '@/shared/utils/is-uuid';
@@ -198,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         consolidationUuid,
         newStatus as ConsolidationStatus,
         currentStatus as ConsolidationStatus,
-        trackingCode ?? null,
+        typeof trackingCode === 'string' ? trackingCode.trim() || null : null,
       );
       return res.status(200).json({ data: updated });
     }
@@ -222,7 +223,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
     // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
-    const status = message.includes('no encontrad') ? 404
+    const status = error instanceof StaleOrderError ? 409
+      : message.includes('no encontrad') ? 404
       : message.includes('inválid') || message.includes('requerid') ? 400
       : /^(solo|no) se puede/i.test(message) ? 409
       : 500;

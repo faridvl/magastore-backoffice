@@ -37,6 +37,12 @@ export const OperationsTaskRowView: React.FC<OperationsTaskRowViewProps> = ({ ta
             {task.oldestLabel}
           </span>
         )}
+        {task.paidStaleLabel && (
+          <span className="mt-0.5 flex items-center gap-1 text-xs font-bold text-danger-dark">
+            <AlertTriangle size={13} className="shrink-0" aria-hidden />
+            {task.paidStaleLabel}
+          </span>
+        )}
       </span>
 
       <span className="h-9 w-9 shrink-0 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center">

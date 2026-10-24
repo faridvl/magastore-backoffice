@@ -15,15 +15,11 @@
 - Logo oficial: `D:\Documentos\Docs_Clientes\Magastore\` (versiones transparentes en `public/logo/`).
 
 ## En qué estamos
-- Migraciones 028–036 aplicadas en dev; producción sigue en 027. El merge a `main` ya no migra: solo muestra el plan, y aplicar es manual desde Actions con confirmación (README, "Migraciones SQL").
+- Migraciones 028–037 aplicadas en dev; producción sigue en 027. El merge a `main` ya no migra: solo muestra el plan, y aplicar es manual desde Actions con confirmación (README, "Migraciones SQL").
 - Dos rondas de pruebas contra el API de dev y dos de revisión: sin defectos abiertos.
 - Anotaciones de la agenda hechas: sin la tarjeta "Sin costo cargado" en el Operativo; libras, ganancia y "Para Farid" del mes en el Dashboard.
 - Operativo rediseñado (`/admin/operations`): "Tu día" en el orden del flujo y "Cobros" (Por avisar / Ya avisados). Los 9 números coinciden con la pantalla a la que lleva cada botón (dev, 2026-10-24). Revisado por qa, revisor de UX y cuestionador; decisiones en `DECISIONS.md`.
-- Preguntas abiertas del Operativo:
-  - ¿"Avisar y recordar pago" del paso 3 cuenta como aviso de cobro? Hoy "Por avisar" solo mira el estimado enviado, así que una orden despachada sin pagar y sin estimado enviado queda en "Por avisar" (con "Ver factura") hasta que se pague.
-  - ¿El correo automático al confirmar la factura cuenta como aviso?
-  - Las órdenes pagadas que siguen en el paso 2 sin pasar a despacho no se marcan en rojo (pedido del usuario); en dev hay 4 desde julio. Reconfirmar.
-  - "Avisar paquetes que llegaron" y "Armar órdenes" cuentan también paquetes en PANAMA y EN_TRAMITE.
+- Operativo, reglas confirmadas (2026-10-24): el aviso del paso 3 a una orden sin pagar cuenta como aviso de cobro (el correo automático no); una orden pagada en el paso 2 se marca en rojo a los 2 días desde el pago; "Avisar" y "Armar órdenes" cuentan solo paquetes en Panamá sin orden; los paquetes pasan a EN_TRAMITE al despachar, no al pagar (datos viejos: el rastreo público se guía por la orden). Detalle en `DECISIONS.md`.
 - Antes de producción, en la consola de Neon (solo lectura), revisar facturas sin pagar sin estimado (`billing` sin `pre_billing`): no salen en ninguna pestaña de Cobros. En dev no hay.
 - El API `/api/dashboard/operations` solo revisa que haya token, no el rol (riesgo 5 de la ficha).
 
@@ -36,7 +32,12 @@
 - **Ya visible en producción:** el rastreo público dice "Recibido en Panamá" / "Bodega Panamá" y devuelve notas internas del operador, y la plantilla de paquetes disponibles dice "bodega en Panamá". Lo corrige el próximo pase (código + migración 037).
 - **Correos:** hoy probablemente no llegan a los clientes: con el remitente por defecto `onboarding@resend.dev` Resend solo entrega al dueño de la cuenta. Confirmar en Vercel (`EMAIL_FROM`) o en el panel de Resend. El remitente será `notifications@magastorecr.com` cuando se verifique `magastorecr.com` (pasos en `.claude/docs/email-setup.md`). Pregunta abierta: ¿quieres los dos correos (factura y entrega), solo uno o ninguno?
 - **Antes del pase, en producción (solo lectura):** `SELECT code FROM whatsapp_templates WHERE body ~* 'panam|pty'`, `SELECT name, origin FROM courier_rates` y `SELECT origin, address_line, city, state FROM warehouse_routes`: nada que diga Panamá o PTY. Mitigación inmediata sin deploy: editar hoy en Ajustes de producción la plantilla "Paquetes disponibles" para quitar "en Panamá" (la 037 es idempotente y después no hace nada).
-- **Migración 037** (plantilla sin Panamá): lista y probada en PGlite, sin aplicar en dev: espera tu OK.
+- **Antes del pase, en producción (solo lectura), por las reglas del Operativo:**
+  1. `SELECT status, count(*) FROM packages WHERE consolidation_id IS NULL GROUP BY status`. Lo normal es solo `PANAMA` (y `ENTREGADO`). `EN_TRAMITE` sin orden ya no se puede crear; los que existan, y los estados viejos (`MIAMI`, `TRANSITO`, `BODEGA_CR`, `DESPACHADO`…), se corrigen uno a uno en Logística > detalle del paquete > Cambiar estado: el selector muestra el estado actual aunque sea viejo y permite pasarlo a "En Bodega Panamá" (o decidir con el usuario si de verdad salió). Mientras existan, un paquete sin orden fuera de `PANAMA` no sale en Paquetes, el Operativo ni el aviso.
+  2. `SELECT count(*) FROM billing WHERE is_paid AND paid_at IS NULL` (pagadas sin fecha de pago). Si da más de 0: no pueden marcarse en rojo en "Confirmar y cobrar"; completar `paid_at` a mano con la fecha real, con el usuario.
+- **Limitaciones conocidas (cobros):** si se cambia el costo real de entrega (paso 4) después del aviso de cobro, la factura sigue "Ya avisada" con otro monto. El estimado solo se envía en el paso 2: una orden sin pagar y sin aviso en los pasos 3 a 5 sale de "Por avisar" con el aviso del paso 3 ("Avisar y recordar pago", vale también para retiro en oficina) o al pagarse. En los pasos 4 y 5 no hay ninguna acción de aviso de cobro: limitación provisional, no se inventó un mensaje nuevo al cliente.
+- **Estado público del paquete (rastreo), sin migrar datos:** ENTREGADO es entregado. EN_TRAMITE o DESPACHADO: sin orden, en camino; con orden, en camino solo si la orden está despachada o entregada, si no "preparando". PANAMA: sin orden, recibido; con orden, "preparando", salvo orden despachada con guía o en el paso 4 o más (en camino). Cualquier otro estado: con orden "preparando", sin orden recibido. Los eventos EN_TRAMITE/DESPACHADO se ocultan si el estado público queda en recibido o preparando.
+- **Migración 037** (plantilla sin Panamá): aplicada en dev (2026-10-24; la plantilla de dev ya no decía Panamá, no cambió nada); falta producción.
 - **Pregunta abierta (Panamá):** el repo es público y el README, CLAUDE.md, el glosario, los seeds y el historial dicen que los paquetes pasan por Panamá. ¿Lo hacemos privado? (Lo decides tú; borrar el texto no basta por el historial.)
 - **Pregunta abierta (seguridad):** varias APIs solo comprueban que exista un token y no lo validan (`/api/logistics`, `customers/[id]/packages`, `dashboard/operations`): con cualquier `Authorization: Bearer x` devuelven paquetes con datos del cliente y el estado "PANAMA". Propuesta: una fase propia que valide el JWT en todos los handlers.
 - **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).

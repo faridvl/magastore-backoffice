@@ -264,6 +264,8 @@ export type PackageDetail = {
   internal_notes: string | null;
   evidence_url: string | null;
   events: PackageEvent[];
+  /** Orden a la que pertenece; null si el paquete sigue suelto. */
+  consolidation_uuid: string | null;
   first_name: string | null;
   last_name: string | null;
   customer_code: string | null;

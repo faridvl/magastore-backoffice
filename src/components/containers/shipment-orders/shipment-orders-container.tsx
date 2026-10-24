@@ -73,9 +73,12 @@ const PAID_FILTERS: { value: ShipmentOrderPaidFilter; label: string }[] = [
   { value: ShipmentOrderPaidFilter.FACTURADA_SIN_PAGAR, label: 'Con factura sin pagar' },
 ];
 
+// Avisada = se le mandó el estimado o el aviso del paso 3; es el mismo criterio de "Cobros" del Operativo.
+const NOTIFIED_FILTER_LABEL = 'Aviso de cobro';
+
 const NOTIFIED_FILTERS: { value: ShipmentOrderNotifiedFilter; label: string }[] = [
-  { value: ShipmentOrderNotifiedFilter.NOTIFICADA, label: 'Estimado enviado' },
-  { value: ShipmentOrderNotifiedFilter.SIN_NOTIFICAR, label: 'Estimado sin enviar' },
+  { value: ShipmentOrderNotifiedFilter.NOTIFICADA, label: 'Avisada' },
+  { value: ShipmentOrderNotifiedFilter.SIN_NOTIFICAR, label: 'Sin avisar' },
 ];
 
 export const ShipmentOrdersContainer: React.FC = () => {
@@ -156,7 +159,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
     },
     {
       key: 'notified',
-      label: 'Estimado al cliente',
+      label: NOTIFIED_FILTER_LABEL,
+      chipPrefix: NOTIFIED_FILTER_LABEL,
       emptyLabel: 'Todas',
       options: NOTIFIED_FILTERS,
       value: notifiedFilter === ShipmentOrderNotifiedFilter.ALL ? null : notifiedFilter,

@@ -170,12 +170,24 @@ export const usePackageDetailContainer = (uuid?: string) => {
   };
 
   const tieneFactura = data.totalFacturado !== null;
+  // En trámite solo tiene sentido con una orden: sin ella el servidor lo rechaza.
+  const hasOrder = !!apiData?.consolidation_uuid;
+  const knownStatuses: string[] = Object.values(PackageStatus);
+  const isKnownStatus = knownStatuses.includes(data.estadoPaquete);
+  // Un estado viejo (fuera del enum) se muestra igual para que se vea qué tiene y se pueda corregir.
+  const statusOptions: string[] = [
+    ...(!isKnownStatus && data.estadoPaquete !== '---' ? [data.estadoPaquete] : []),
+    ...knownStatuses.filter(
+      (s) => s !== PackageStatus.EN_TRAMITE || hasOrder || data.estadoPaquete === PackageStatus.EN_TRAMITE,
+    ),
+  ];
 
   return {
     data,
     bitacora,
     calculos,
     tieneFactura,
+    statusOptions,
     isLoading: !uuid || isLoadingPackage,
     isError,
     error,

@@ -2,6 +2,7 @@ import { LogisticsRepository } from '../repositories/logistics.repo';
 import {
   PackageStatus,
   ConsolidationStatus,
+  ShipmentOrderStep,
   PackageInput,
   Package,
   Consolidation,
@@ -20,9 +21,18 @@ import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
 
+// DESPACHADO existe en el check de la tabla pero no en el enum: se trata igual que EN_TRAMITE.
+const PACKAGE_STATUS_DISPATCHED = 'DESPACHADO';
+const IN_TRANSIT_PACKAGE_STATUSES: ReadonlySet<string> = new Set([
+  PackageStatus.EN_TRAMITE,
+  PACKAGE_STATUS_DISPATCHED,
+]);
+
+// Solo para los eventos de la bitácora; el estado del paquete se decide en toPublicTracking.
 const PUBLIC_TRACKING_STATUS: Record<string, PublicTrackingStatus> = {
   [PackageStatus.PANAMA]: PublicTrackingStatus.RECEIVED,
   [PackageStatus.EN_TRAMITE]: PublicTrackingStatus.EN_TRAMITE,
+  [PACKAGE_STATUS_DISPATCHED]: PublicTrackingStatus.EN_TRAMITE,
   [PackageStatus.ENTREGADO]: PublicTrackingStatus.ENTREGADO,
 };
 
@@ -40,23 +50,48 @@ function toPublicTracking(row: {
   last_name: string | null;
   consolidation_id: number | string | null;
   consolidation_status: string | null;
+  consolidation_tracking_code: string | null;
+  consolidation_step: number | string | null;
   events: Array<{ status: string; created_at: string }> | null;
 }): PublicTrackingResult {
-  const events: PublicTrackingEvent[] = [];
-  for (const event of row.events ?? []) {
-    const status = PUBLIC_TRACKING_STATUS[event.status];
-    if (status) events.push({ status, created_at: event.created_at });
-  }
-
-  // Un paquete sin despachar que ya pertenece a una orden: el cliente pidió el envío, y si
-  // la orden ya salió va en camino.
-  const mappedStatus = PUBLIC_TRACKING_STATUS[row.status] ?? PublicTrackingStatus.RECEIVED;
+  // Regla del estado público (sin migrar datos viejos; la orden manda sobre el paquete):
+  // - ENTREGADO: entregado.
+  // - EN_TRAMITE o DESPACHADO: sin orden, en camino; con orden, en camino solo si la orden ya salió
+  //   (despachada o entregada), si no "preparando" (antes los paquetes pasaban a EN_TRAMITE al pagar).
+  // - PANAMA: sin orden, recibido; con orden, "preparando", salvo que la orden esté despachada y
+  //   tenga guía o ya esté en el paso 4 o más (datos viejos: la orden salió sin mover el paquete).
+  // - Cualquier otro estado: con orden "preparando", sin orden recibido.
+  const hasOrder = row.consolidation_id != null;
   const orderDispatched =
     row.consolidation_status === ConsolidationStatus.DESPACHADO ||
     row.consolidation_status === ConsolidationStatus.ENTREGADO;
-  let publicStatus = mappedStatus;
-  if (mappedStatus === PublicTrackingStatus.RECEIVED && row.consolidation_id != null) {
-    publicStatus = orderDispatched ? PublicTrackingStatus.EN_TRAMITE : PublicTrackingStatus.PREPARING;
+  const orderLeft =
+    orderDispatched &&
+    (!!row.consolidation_tracking_code || Number(row.consolidation_step) >= ShipmentOrderStep.NOTIFICACION);
+
+  let publicStatus: PublicTrackingStatus;
+  if (row.status === PackageStatus.ENTREGADO) {
+    publicStatus = PublicTrackingStatus.ENTREGADO;
+  } else if (IN_TRANSIT_PACKAGE_STATUSES.has(row.status)) {
+    publicStatus = !hasOrder || orderDispatched ? PublicTrackingStatus.EN_TRAMITE : PublicTrackingStatus.PREPARING;
+  } else if (!hasOrder) {
+    publicStatus = PublicTrackingStatus.RECEIVED;
+  } else {
+    publicStatus =
+      row.status === PackageStatus.PANAMA && orderLeft
+        ? PublicTrackingStatus.EN_TRAMITE
+        : PublicTrackingStatus.PREPARING;
+  }
+
+  // Si el paquete no va en camino (volvió a Panamá o su orden no salió), el historial público no
+  // muestra un "en camino" que ya no es cierto.
+  const hidesInTransitEvents =
+    publicStatus === PublicTrackingStatus.RECEIVED || publicStatus === PublicTrackingStatus.PREPARING;
+  const events: PublicTrackingEvent[] = [];
+  for (const event of row.events ?? []) {
+    if (hidesInTransitEvents && IN_TRANSIT_PACKAGE_STATUSES.has(event.status)) continue;
+    const status = PUBLIC_TRACKING_STATUS[event.status];
+    if (status) events.push({ status, created_at: event.created_at });
   }
 
   const lastInitial = row.last_name?.trim().charAt(0).toUpperCase();

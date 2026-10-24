@@ -192,3 +192,42 @@ prueba primero el número exacto y después sin mayúsculas ni espacios; si la s
 paquetes, responde "no encontrado" para no mostrar el nombre de otra persona. En la bienvenida del
 casillero `{{ruta_label}}` es la ruta ("Estados Unidos · Aéreo") y no el nombre del courier, que
 puede delatar el país.
+
+## Cobros: qué cuenta como aviso (2026-10-24)
+
+Una factura sin pagar pasa a "Ya avisados" si se le mandó el estimado (`pre_billing.notified_at`)
+o el aviso del paso 3 (`consolidations.customer_notified_shipment_at`; en una orden sin pagar la
+plantilla lleva el monto pendiente y pide el comprobante). El correo automático al confirmar la
+factura no cuenta: depende de que el cliente tenga correo y Resend esté configurado, y falla en
+silencio. No hizo falta migración: la fecha del aviso del paso 3 ya se guarda. El Operativo
+(`operations.repo.ts`) y el filtro `notified` del listado de Órdenes (`consolidations.repo.ts`)
+usan el mismo criterio; cambiar uno es cambiar el otro.
+
+## Orden pagada que sigue en el paso 2: rojo desde 2 días (2026-10-24)
+
+Se cuentan días de calendario de Costa Rica desde `billing.paid_at`
+(`PAID_AWAITING_DISPATCH_STALE_DAYS`). Es una línea aparte en "Confirmar y cobrar": la antigüedad
+de lo no pagado sigue su propio umbral.
+
+## Panamá en el backoffice y paquetes en trámite al despachar (2026-10-24)
+
+En el backoffice "En Panamá" es correcto. "Avisar" y "Armar órdenes" del Operativo, el modal de
+aviso, los paquetes asignables y la vista de Paquetes (Logística, activos sin orden) cuentan solo
+paquetes `PANAMA` sin orden. Los paquetes pasan a `EN_TRAMITE` al despachar (cargar la guía, o
+pasar del paso 3 al 4, que cubre el retiro en oficina), no al marcar la factura como pagada.
+Datos viejos: no se migran; el rastreo público deriva el estado con la regla de la orden (abajo).
+
+## `packages.updated_at` no existe y no se crea (2026-10-24)
+
+`bulkUpdateStatus` escribía una columna que ninguna migración crea; fallaba al cambiar el estado
+de varios paquetes. Se quitó la escritura: nada lee esa fecha y el cambio de estado queda en
+`package_events` por el trigger de la tabla.
+
+## Paquetes sin orden no pueden estar en trámite; la orden manda sobre la pantalla (2026-10-24)
+
+El servidor rechaza armar o agregar a una orden paquetes que no estén en Panamá y sin orden, y
+rechaza pasar a "En trámite" un paquete sin orden (detalle del paquete y `bulk-status`; la
+pantalla ya no lo ofrece). Quitar un paquete de su orden o borrar la orden lo devuelve a Panamá.
+Cambiar el estado de una orden ya no confía en el `currentStatus` del cuerpo: se lee de la base y
+si difiere responde 409 "La orden cambió. Recarga la página.". Si la orden vuelve a ABIERTO o
+CERRADO, sus paquetes en trámite vuelven a Panamá en la misma sentencia. Rastreo público (regla exacta): ENTREGADO es entregado; EN_TRAMITE o DESPACHADO sin orden va en camino y con orden solo si la orden está despachada o entregada, si no "preparando"; PANAMA sin orden es recibido y con orden "preparando", salvo orden despachada con guía o en el paso 4 o más (en camino); cualquier otro estado con orden "preparando" y sin orden recibido. Los eventos EN_TRAMITE/DESPACHADO se ocultan si el estado público es recibido o preparando. El cambio de estado de la orden exige el estado esperado en el `WHERE` del UPDATE; si no devuelve fila, 409.

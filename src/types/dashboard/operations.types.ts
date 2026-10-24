@@ -26,6 +26,10 @@ export interface ConfirmAndCollectBreakdown {
   toCollect: number;
   /** Con factura pagada: solo falta pasarlas a despacho. */
   paid: number;
+  /** Días de calendario (hora de Costa Rica) desde el pago más viejo entre las pagadas; null si no hay. */
+  oldestPaidDays: number | null;
+  /** Cuántas de las pagadas llevan el umbral de días o más sin despachar. */
+  paidStaleCount: number;
 }
 
 export interface OperationsTask {

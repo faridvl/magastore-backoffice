@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { LogisticsService, MissingWarehouseCodeError } from '@/shared/api/services/logistics.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { getActor } from '@/shared/api/get-actor';
+import { isUuid } from '@/shared/utils/is-uuid';
+import { PackageStatus } from '@/types/logistics/logistics.types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const context = { req, res } as any;
@@ -90,9 +92,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return res.status(200).json(confirmed);
 
                 case 'bulk-status':
+                    if (!(await getActor({ req, res }))) {
+                        return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
+                    }
                     const { packageUuids: bulkUuids, status: bulkStatus } = req.body;
                     if (!bulkUuids?.length || !bulkStatus) {
                         return res.status(400).json({ message: 'packageUuids y status son requeridos.' });
+                    }
+                    if (!(Object.values(PackageStatus) as string[]).includes(bulkStatus)) {
+                        return res.status(400).json({ message: 'El estado indicado es inválido.' });
+                    }
+                    if (!Array.isArray(bulkUuids) || !bulkUuids.every((value) => typeof value === 'string' && isUuid(value))) {
+                        return res.status(400).json({ message: 'Algún identificador de paquete es inválido.' });
                     }
                     const updated = await LogisticsService.bulkUpdateStatus(bulkUuids, bulkStatus);
                     return res.status(200).json({ updated });
@@ -114,6 +125,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (req.method === 'PATCH') {
             const { uuid } = req.query;
             if (!uuid) return res.status(400).json({ message: 'UUID requerido para actualización' });
+
+            // Ambas acciones modifican el paquete: se exige un token válido, no solo que exista.
+            if (!(await getActor({ req, res }))) {
+                return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
+            }
 
             const { action: bodyAction, status, note, evidenceUrl, weight_lb, location } = req.body;
 
@@ -142,6 +158,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             });
         }
         console.error('[Logistics Controller Error]:', error);
-        return res.status(500).json({ message: error.message || 'Error interno' });
+        // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
+        const isBusinessRule = /^(solo|no) se puede/i.test(error?.message ?? '');
+        return res.status(isBusinessRule ? 409 : 500).json({ message: error.message || 'Error interno' });
     }
 }

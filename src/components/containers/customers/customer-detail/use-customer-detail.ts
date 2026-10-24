@@ -61,7 +61,8 @@ export const useCustomerDetail = (customerId: string) => {
 
   const allPackages = packagesRes?.data ?? [];
   const activePackages = allPackages.filter((p) => p.status !== 'ENTREGADO');
-  const unassignedPackages = activePackages.filter((p) => !p.consolidation_uuid);
+  // Misma bandeja que Logística, el Operativo y el modal de aviso: solo lo que sigue en Panamá.
+  const unassignedPackages = allPackages.filter((p) => p.status === 'PANAMA' && !p.consolidation_uuid);
   const assignedPackages = activePackages.filter((p) => !!p.consolidation_uuid);
   // Historial = registro completo del cliente, sin filtrar por estado. Antes
   // exigía status === 'ENTREGADO' y quedaba vacío: en el flujo v2 la orden se
