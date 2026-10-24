@@ -18,10 +18,12 @@ const STATUS_LABELS: Record<string, string> = {
 
 function StatCardSkeleton() {
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm animate-pulse">
-      <div className="h-12 w-12 bg-slate-100 rounded-2xl mb-4" />
-      <div className="h-3 w-24 bg-slate-100 rounded mb-3" />
-      <div className="h-7 w-20 bg-slate-100 rounded" />
+    <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm animate-pulse">
+      <div className="flex items-start justify-between">
+        <div className="h-3 w-24 bg-slate-100 rounded" />
+        <div className="h-8 w-8 md:h-9 md:w-9 bg-slate-100 rounded-full" />
+      </div>
+      <div className="h-7 w-20 bg-slate-100 rounded mt-3" />
     </div>
   );
 }
@@ -35,32 +37,28 @@ export const DashboardContainer: React.FC = () => {
       value: isLoading ? '—' : String(stats.packagesThisMonth),
       hint: undefined as string | undefined,
       icon: Package,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      iconClass: 'bg-amber-100 text-amber-700',
     },
     {
       label: 'Libras este mes',
       value: isLoading ? '—' : `${stats.weightLbThisMonth.toLocaleString('es-CR')} lb`,
       hint: undefined as string | undefined,
       icon: Scale,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      iconClass: 'bg-amber-100 text-amber-700',
     },
     {
       label: 'Por Cobrar',
       value: isLoading ? '—' : formatCRC(stats.pendingBillingCRC),
       hint: undefined as string | undefined,
       icon: Clock,
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
+      iconClass: 'bg-orange-100 text-orange-700',
     },
     {
       label: 'Facturado del mes',
       value: isLoading ? '—' : formatCRC(stats.revenueThisMonthCRC),
       hint: undefined as string | undefined,
       icon: TrendingUp,
-      color: 'text-emerald-600',
-      bg: 'bg-green-50',
+      iconClass: 'bg-emerald-100 text-emerald-700',
     },
     {
       label: 'Ganancia del mes',
@@ -71,16 +69,14 @@ export const DashboardContainer: React.FC = () => {
           : undefined,
       hintClass: 'text-orange-600',
       icon: PiggyBank,
-      color: 'text-emerald-600',
-      bg: 'bg-green-50',
+      iconClass: 'bg-emerald-100 text-emerald-700',
     },
     {
       label: 'Para Farid',
       value: isLoading ? '—' : formatCRC(stats.faridShareThisMonthCRC),
       hint: stats.faridSharePercent > 0 ? `${stats.faridSharePercent}% de la ganancia facturada` : undefined,
       icon: HandCoins,
-      color: 'text-emerald-600',
-      bg: 'bg-green-50',
+      iconClass: 'bg-emerald-100 text-emerald-700',
     },
     {
       label: 'Clientes Activos',
@@ -89,8 +85,7 @@ export const DashboardContainer: React.FC = () => {
         ? undefined
         : `+${stats.newCustomersThisMonth} este mes`,
       icon: Users,
-      color: 'text-amber-600',
-      bg: 'bg-purple-50',
+      iconClass: 'bg-violet-100 text-violet-700',
     },
   ];
 
@@ -103,19 +98,21 @@ export const DashboardContainer: React.FC = () => {
           : kpiCards.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm"
               >
-                <div
-                  className={`h-10 w-10 md:h-12 md:w-12 ${stat.bg} ${stat.color} rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4`}
-                >
-                  <stat.icon size={20} />
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-wider">
+                    {stat.label}
+                  </p>
+                  <span
+                    className={`h-8 w-8 md:h-9 md:w-9 shrink-0 rounded-full flex items-center justify-center ${stat.iconClass}`}
+                  >
+                    <stat.icon size={16} strokeWidth={2.25} />
+                  </span>
                 </div>
-                <p className="text-slate-500 text-[10px] md:text-sm font-bold uppercase tracking-wider">
-                  {stat.label}
-                </p>
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-1">{stat.value}</h3>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-2">{stat.value}</h3>
                 {stat.hint && (
-                  <p className={`text-[10px] md:text-xs font-semibold mt-1 ${'hintClass' in stat ? stat.hintClass : 'text-emerald-600'}`}>
+                  <p className={`text-xs font-semibold mt-1 ${'hintClass' in stat ? stat.hintClass : 'text-emerald-600'}`}>
                     {stat.hint}
                   </p>
                 )}
