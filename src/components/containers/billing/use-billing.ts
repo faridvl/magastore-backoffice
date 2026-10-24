@@ -40,7 +40,7 @@ export const useBilling = () => {
   const { data: listData, isLoading: isLoadingList } = billingListQuery.useQuery();
 
   const detailQuery = useBillingDetailQuery(selectedBillingUuid ?? '');
-  const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
+  const { data: detailResponse, isLoading: isLoadingDetail, isFetching: isFetchingDetail } = detailQuery.useQuery();
 
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
@@ -88,6 +88,8 @@ export const useBilling = () => {
     isLoadingList,
     billingDetail: detailResponse?.data ?? null,
     isLoadingDetail,
+    isFetchingDetail,
+    retryDetail: detailQuery.invalidate,
     handleMarkAsPaid,
     isMarkingPaid,
     handleDownloadPdf,

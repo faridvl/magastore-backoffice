@@ -1,3 +1,4 @@
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import {
   Search,
@@ -13,11 +14,20 @@ import {
   CheckSquare,
   Square,
 } from 'lucide-react';
-import { DateRangeFilter } from '@/components/common/date-range-filter/date-range-filter';
+import { DateRangeFilter, formatPeriodLabel } from '@/components/common/date-range-filter/date-range-filter';
 import { FilterBar, FilterBarField } from '@/components/common/filter-bar/filter-bar';
 import { formatCrc } from '@/shared/utils/format-crc';
 import { formatBusinessDate } from '@/shared/utils/timezone';
 import { packageStatusLabel, packageTypeLabel } from '@/shared/constants/package-labels';
+import { Badge } from '@/components/common/badge/badge';
+import {
+  ORDER_STEP_LABEL,
+  ORDER_STEP_TONE,
+  PAYMENT_STATUS_LABEL,
+  PAYMENT_STATUS_TONE,
+  getPaymentStatus,
+} from '@/shared/constants/status-labels';
+import { EmptyState } from '@/components/common/empty-state/empty-state';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import {
   useShipmentOrders,
@@ -30,38 +40,20 @@ import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-deliv
 import { CustomerAddressesModal } from '@/components/containers/customers/customer-detail/customer-addresses-modal';
 import { CustomerRecipientsList } from '@/components/containers/customers/customer-recipients/customer-recipients-list';
 
-const PAYMENT_LABELS: Record<ConsolidationPaymentStatus, string> = {
-  SIN_ESTIMADO: 'Sin estimado',
-  ESTIMADO_PENDIENTE: 'Estimado pendiente',
-  PENDIENTE_PAGO: 'Pendiente de pago',
-  PAGADO: 'Pagado',
-};
+// Un estimado que aún no se avisó al cliente cuenta como "Sin estimado" (regla única en getPaymentStatus).
+const getRowPaymentStatus = (row: ConsolidationListItem): ConsolidationPaymentStatus =>
+  getPaymentStatus({
+    isBilled:
+      row.payment_status === ConsolidationPaymentStatus.PAGADO ||
+      row.payment_status === ConsolidationPaymentStatus.PENDIENTE_PAGO,
+    isPaid: row.payment_status === ConsolidationPaymentStatus.PAGADO,
+    hasPreBilling: row.payment_status !== ConsolidationPaymentStatus.SIN_ESTIMADO,
+    preBillingNotifiedAt: row.pre_billing_notified_at,
+  });
 
-const PAYMENT_COLORS: Record<ConsolidationPaymentStatus, string> = {
-  SIN_ESTIMADO: 'bg-slate-50 text-slate-400 border-slate-200',
-  ESTIMADO_PENDIENTE: 'bg-blue-50 text-blue-600 border-blue-100',
-  PENDIENTE_PAGO: 'bg-amber-50 text-amber-600 border-amber-100',
-  PAGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-};
-
-// Paso del wizard, para el badge de "Paso" en la tabla — distinto del badge de
-// Estado logístico (ConsolidationStatus): current_step manda sobre status para
-// decidir en qué pantalla del detalle está la orden. Sin número, igual que en
-// el filtro y el stepper del detalle — un solo vocabulario en los tres.
-const STEP_LABELS: Record<ShipmentOrderStep, string> = {
-  [ShipmentOrderStep.CONFIRMACION]: 'Confirmación',
-  [ShipmentOrderStep.COBRO]: 'Cobro',
-  [ShipmentOrderStep.DESPACHO]: 'Despacho',
-  [ShipmentOrderStep.NOTIFICACION]: 'Cierre',
-  [ShipmentOrderStep.FINALIZADA]: 'Finalizada',
-};
-
-const STEP_COLORS: Record<ShipmentOrderStep, string> = {
-  [ShipmentOrderStep.CONFIRMACION]: 'bg-amber-50 text-amber-600 border-amber-100',
-  [ShipmentOrderStep.COBRO]: 'bg-blue-50 text-blue-600 border-blue-100',
-  [ShipmentOrderStep.DESPACHO]: 'bg-violet-50 text-violet-600 border-violet-100',
-  [ShipmentOrderStep.NOTIFICACION]: 'bg-rose-50 text-rose-600 border-rose-100',
-  [ShipmentOrderStep.FINALIZADA]: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+const getAmountKindLabel = (row: ConsolidationListItem): string => {
+  if (row.is_billing_amount) return 'Factura';
+  return row.pre_billing_notified_at ? 'Estimado' : 'Estimado sin enviar';
 };
 
 const formatCRC = formatCrc;
@@ -130,6 +122,21 @@ export const ShipmentOrdersContainer: React.FC = () => {
   const activeDeliveryMethods = (deliveryMethodsData?.data ?? []).filter((m) => m.is_active);
   const isCreatePickup = !!activeDeliveryMethods.find((m) => m.code === createDeliveryMethod)?.is_pickup;
 
+  const hasActiveFilters =
+    stepFilters.length > 0 ||
+    paidFilter !== ShipmentOrderPaidFilter.ALL ||
+    notifiedFilter !== ShipmentOrderNotifiedFilter.ALL ||
+    !!dateFrom ||
+    !!dateTo ||
+    search.trim() !== '';
+  const clearAllFilters = () => {
+    handleStepFiltersChange([]);
+    handlePaidFilterChange(ShipmentOrderPaidFilter.ALL);
+    handleNotifiedFilterChange(ShipmentOrderNotifiedFilter.ALL);
+    setSearch('');
+    clearDates();
+  };
+
   const filterFields: FilterBarField[] = [
     {
       key: 'step',
@@ -161,6 +168,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     {
       header: '#ID',
       accessor: '_id',
+      className: 'hidden 2xl:table-cell',
       render: (row) => (
         <span className="font-mono text-[11px] font-black text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg tracking-widest">
           #{row.uuid.slice(-5).toUpperCase()}
@@ -170,13 +178,14 @@ export const ShipmentOrdersContainer: React.FC = () => {
     {
       header: 'Cliente',
       accessor: 'customer_name',
+      minWidth: 220,
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
           {/* En pantallas angostas (iPad) las columnas Peso/Paquetes/Fecha se ocultan — se resumen aquí */}
-          <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
-            {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paq. · {formatBusinessDate(row.created_at)}
+          <span className="text-[10px] text-slate-400 mt-1 2xl:hidden">
+            {formatWeight(row.total_weight_lb)} · {formatCount(row.package_count, 'paquete', 'paquetes')} · {formatBusinessDate(row.created_at)}
           </span>
         </div>
       ),
@@ -187,10 +196,9 @@ export const ShipmentOrdersContainer: React.FC = () => {
       // máquina de estados interna.
       header: 'Paso',
       accessor: 'current_step',
+      noWrap: true,
       render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
-          {STEP_LABELS[row.current_step]}
-        </span>
+        <Badge tone={ORDER_STEP_TONE[row.current_step]}>{ORDER_STEP_LABEL[row.current_step]}</Badge>
       ),
     },
     {
@@ -200,8 +208,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
       render: (row) => (
         row.display_amount_crc != null ? (
           <div className="flex flex-col items-center">
-            <span className="font-black text-slate-700 text-sm">{formatCRC(row.display_amount_crc)}</span>
-            <span className="text-[9px] text-slate-400 uppercase font-bold">{row.is_billing_amount ? 'Factura' : 'Estimado'}</span>
+            <span className="font-black text-slate-700 text-sm whitespace-nowrap">{formatCRC(row.display_amount_crc)}</span>
+            <span className="text-xs text-slate-500 font-semibold text-center">{getAmountKindLabel(row)}</span>
           </div>
         ) : (
           <span className="text-slate-300 text-xs">—</span>
@@ -211,20 +219,22 @@ export const ShipmentOrdersContainer: React.FC = () => {
     {
       header: 'Pago',
       accessor: 'payment_status',
+      noWrap: true,
       render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${PAYMENT_COLORS[row.payment_status]}`}>
-          {PAYMENT_LABELS[row.payment_status]}
-        </span>
+        <Badge tone={PAYMENT_STATUS_TONE[getRowPaymentStatus(row)]}>
+          {PAYMENT_STATUS_LABEL[getRowPaymentStatus(row)]}
+        </Badge>
       ),
     },
     {
       header: 'Peso',
       accessor: 'total_weight_lb',
       align: 'center',
-      className: 'hidden xl:table-cell',
+      className: 'hidden 2xl:table-cell',
+      noWrap: true,
       render: (row) => (
         <span className="font-black text-slate-700 text-sm">
-          {Number(row.total_weight_lb).toFixed(2)} <span className="text-[10px] text-slate-400">lb</span>
+          {formatWeight(row.total_weight_lb)}
         </span>
       ),
     },
@@ -232,7 +242,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Paquetes',
       accessor: 'package_count',
       align: 'center',
-      className: 'hidden xl:table-cell',
+      className: 'hidden 2xl:table-cell',
+      noWrap: true,
       render: (row) => (
         <span className="bg-slate-100 text-slate-600 font-black text-xs px-3 py-1 rounded-full">
           {row.package_count}
@@ -242,7 +253,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
     {
       header: 'Fecha',
       accessor: 'created_at',
-      className: 'hidden xl:table-cell',
+      className: 'hidden 2xl:table-cell',
+      noWrap: true,
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
           {formatBusinessDate(row.created_at)}
@@ -253,6 +265,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: '',
       accessor: '_chevron',
       align: 'right',
+      className: 'w-px',
+      noWrap: true,
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
           {row.status === ConsolidationStatus.ABIERTO && (
@@ -269,23 +283,6 @@ export const ShipmentOrdersContainer: React.FC = () => {
       ),
     },
   ];
-
-  // Nombra la combinación de filtros activa en vez de un "sin resultados"
-  // genérico — con 3 ejes combinables es fácil quedar en una combinación que
-  // no devuelve nada sin entender cuál fue.
-  const emptyStateHint = (() => {
-    const parts: string[] = [];
-    const stepLabels = STEP_FILTERS.filter((f) => stepFilters.includes(f.value)).map((f) => f.label);
-    if (stepLabels.length > 0) parts.push(stepLabels.join(' o '));
-    if (paidFilter === ShipmentOrderPaidFilter.PAGADA) parts.push('pagadas');
-    if (paidFilter === ShipmentOrderPaidFilter.SIN_PAGAR) parts.push('sin pagar');
-    if (paidFilter === ShipmentOrderPaidFilter.FACTURADA_SIN_PAGAR) parts.push('con factura sin pagar');
-    if (notifiedFilter === ShipmentOrderNotifiedFilter.NOTIFICADA) parts.push('con estimado enviado');
-    if (notifiedFilter === ShipmentOrderNotifiedFilter.SIN_NOTIFICAR) parts.push('con estimado sin enviar');
-    return parts.length > 0
-      ? `No hay órdenes en ${parts.join(', ')}`
-      : 'No hay órdenes de envío que coincidan con la búsqueda';
-  })();
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
@@ -319,6 +316,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
             <div className="flex flex-col gap-2.5">
               <span className="text-sm font-bold text-slate-900">Fecha de creación</span>
               <DateRangeFilter
+                inline
                 from={dateFrom} to={dateTo}
                 onFromChange={setDateFrom} onToChange={setDateTo}
                 onClear={clearDates}
@@ -326,6 +324,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
             </div>
           }
           extraActiveCount={dateFrom || dateTo ? 1 : 0}
+          extraChips={dateFrom || dateTo ? [{ key: 'period', label: `Creadas ${formatPeriodLabel(dateFrom, dateTo)}`, onRemove: clearDates }] : []}
           onClearExtra={clearDates}
           resultCount={isLoadingList ? undefined : listMeta.total}
         />
@@ -338,14 +337,12 @@ export const ShipmentOrdersContainer: React.FC = () => {
             <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
           ))
         ) : shipmentOrders.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
-            <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
-              <Boxes size={24} className="text-slate-300" />
-            </div>
-            <p className="font-bold text-slate-600 text-sm">Sin órdenes de envío</p>
-            <p className="text-slate-500 text-sm text-center px-8">
-              {emptyStateHint}
-            </p>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm">
+            <EmptyState
+              title={hasActiveFilters ? 'No hay órdenes con esos filtros' : 'Aún no hay órdenes'}
+              actionLabel={hasActiveFilters ? 'Limpiar filtros' : undefined}
+              onAction={hasActiveFilters ? clearAllFilters : undefined}
+            />
           </div>
         ) : shipmentOrders.map((row) => (
           <button
@@ -362,24 +359,22 @@ export const ShipmentOrdersContainer: React.FC = () => {
               <p className="font-bold text-slate-800 text-sm truncate">{row.customer_name}</p>
               <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5">{row.customer_code}</p>
               <p className="text-xs text-slate-400 mt-1">
-                {Number(row.total_weight_lb).toFixed(2)} lb · {row.package_count} paquete(s)
+                {formatWeight(row.total_weight_lb)} · {formatCount(row.package_count, 'paquete', 'paquetes')}
               </p>
               {row.display_amount_crc != null && (
                 <p className="text-xs font-bold text-slate-600 mt-1">
                   {formatCRC(row.display_amount_crc)}
-                  <span className="text-[9px] text-slate-400 uppercase font-bold ml-1">
-                    {row.is_billing_amount ? 'Factura' : 'Estimado'}
+                  <span className="text-xs text-slate-500 font-semibold block">
+                    {getAmountKindLabel(row)}
                   </span>
                 </p>
               )}
             </div>
             <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${STEP_COLORS[row.current_step]}`}>
-                {STEP_LABELS[row.current_step]}
-              </span>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${PAYMENT_COLORS[row.payment_status]}`}>
-                {PAYMENT_LABELS[row.payment_status]}
-              </span>
+              <Badge tone={ORDER_STEP_TONE[row.current_step]}>{ORDER_STEP_LABEL[row.current_step]}</Badge>
+              <Badge tone={PAYMENT_STATUS_TONE[getRowPaymentStatus(row)]}>
+                {PAYMENT_STATUS_LABEL[getRowPaymentStatus(row)]}
+              </Badge>
               <span className="text-[10px] text-slate-400">{formatBusinessDate(row.created_at)}</span>
             </div>
           </button>
@@ -417,6 +412,11 @@ export const ShipmentOrdersContainer: React.FC = () => {
           onPageChange={setPage}
           onRowClick={handleSelectRow}
           itemsPerPage={10}
+          itemSingular="orden"
+          itemPlural="órdenes"
+          emptyTitle={hasActiveFilters ? 'No hay órdenes con esos filtros' : 'Aún no hay órdenes'}
+          emptyActionLabel={hasActiveFilters ? 'Limpiar filtros' : undefined}
+          onEmptyAction={hasActiveFilters ? clearAllFilters : undefined}
         />
       </div>
 
@@ -511,7 +511,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
                         <div className="min-w-0">
                           <p className="font-bold text-sm text-slate-800 truncate">{c.first_name} {c.last_name}</p>
                           <p className="text-[11px] text-slate-400">
-                            {c.package_count} paquete{c.package_count > 1 ? 's' : ''} disponible{c.package_count > 1 ? 's' : ''} · {Number(c.total_weight_lb).toFixed(2)} lb
+                            {formatCount(c.package_count, 'paquete disponible', 'paquetes disponibles')} · {formatWeight(c.total_weight_lb)}
                           </p>
                         </div>
                         <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
@@ -576,7 +576,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
                               {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                             </p>
                             <p className="text-[10px] text-slate-400 truncate">
-                              {Number(pkg.weight_lb).toFixed(2)} lb · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
+                              {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
                             </p>
                           </div>
                         </button>

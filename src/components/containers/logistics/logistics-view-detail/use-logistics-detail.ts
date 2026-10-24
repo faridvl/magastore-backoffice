@@ -1,3 +1,4 @@
+import { formatBusinessDateTime } from '@/shared/utils/timezone';
 import { usePackageDetailQuery } from '@/shared/api/querys/logistics/find-one-package-query';
 import { useUpdatePackageWeightMutation } from '@/shared/api/mutations/logistics/use-update-package-weight-mutation';
 import { useUpdatePackageStatusMutation } from '@/shared/api/mutations/logistics/use-update-package-status-mutation';
@@ -101,10 +102,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
     if (!apiData?.events) return [];
     return apiData.events.map((e: any) => ({
       id: e.id,
-      fecha: new Date(e.created_at).toLocaleString('es-CR', { timeZone: 'America/Costa_Rica',
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      }),
+      fecha: formatBusinessDateTime(e.created_at),
       estado:   e.status,
       nota:     e.description,
       location: e.location || 'No especificada',

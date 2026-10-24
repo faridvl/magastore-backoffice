@@ -137,3 +137,39 @@ resto contra `localtest.me`. Los `.sql` se leen con LF (el checkout de Windows l
 la 036 compara contenido); `.env.docker.local` vive en la raíz del checkout principal porque la
 base es una sola; los teléfonos del seed son `+506 0000-00NN` para que ningún WhatsApp llegue a
 alguien real.
+
+## Cortes de layout por el ancho real del contenido: `xl` = 1200 y `2xl` = 1400 (2026-10-24)
+
+En iPad horizontal (1024) con el menú abierto (231 px) al contenido le quedan ~770 px, pero `lg`
+(924) le daba el diseño de escritorio. Los layouts de contenido pasaron de `lg:` a `xl:`, y `xl`
+bajó de 1366 (ningún iPad ni el escritorio de 1280 lo alcanzaba) a 1200: un escritorio de 1280
+(~1050 px de contenido) recibe el de escritorio y los iPad hasta 1180 (~950) el de tablet. El menú y
+el header siguen en `lg`. Las tablas más anchas (Órdenes, Facturación) muestran sus columnas
+secundarias desde `2xl` = 1400. Se descartaron las container queries: muchos modales son
+`fixed inset-0` sin portal dentro del contenido y la contención de `container-type` en Safari no
+se puede verificar aquí.
+
+## Componentes comunes de UX: Badge, Modal, EmptyState, mapas de estado y formato (2026-10-24)
+
+Un solo `Badge` (`whitespace-nowrap`, sin mayúsculas, 12 px) con etiquetas de
+`src/shared/constants/status-labels.ts`: estado de pago con cuatro nombres ("Sin estimado",
+"Estimado enviado", "Por cobrar", "Pagada"), paso de la orden (el cierre en gris, el rojo queda
+para atrasos) y estado del paquete. `Modal` con portal a `body`, `z-[60]`, pie fijo y bloqueo del
+scroll del contenedor `[data-scroll-root]` (la app no desplaza `body`). `Button` y objetivos
+táctiles a 44 px. Peso con `formatWeight` ("25,5 lb", "7,35 lb": coma y hasta dos decimales, para que el peso cobrado coincida con el PDF) y fechas con
+`formatBusinessDate` (dd/mm/aaaa). React Query Devtools solo con `NEXT_PUBLIC_RQ_DEVTOOLS=1`.
+Los mapas se conectan pantalla por pantalla (Órdenes y Facturación en la fase 1; el estado del
+paquete en clientes, paquetes e Inicio en sus fases).
+
+## Estimado creado pero sin avisar: "Sin estimado" (2026-10-24)
+
+El SQL llama ESTIMADO_PENDIENTE a toda orden con prefactura y sin factura, avisada o no. Con los
+cuatro nombres fijados, "Estimado enviado" solo se muestra si `pre_billing.notified_at` tiene
+valor; si no, el badge dice "Sin estimado" y el monto "Estimado sin enviar". Decir "enviado" de
+un estimado que nadie mandó haría que la operadora no avise el cobro. La regla vive en
+`getPaymentStatus` (`status-labels.ts`).
+
+## Sin hamburguesa en pantallas con Volver, bajo `lg` (2026-10-24)
+
+En celular el título quedaba en 142 px. Desde una ficha o un formulario se vuelve al listado, que
+sí tiene el menú.

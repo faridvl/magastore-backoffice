@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -162,7 +163,7 @@ export const useCustomerDetail = (customerId: string) => {
   const metrics = useMemo(() => {
     if (!rawMetrics) return null;
     const fmtDate = (d: string | null) =>
-      d ? new Date(d).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' }) : '—';
+      d ? formatBusinessDate(d) : '—';
     return {
       packageCount: Number(rawMetrics.package_count),
       totalLbs: Number(rawMetrics.total_weight_lb),

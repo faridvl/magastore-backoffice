@@ -3,7 +3,7 @@ const screenBreakpoints = {
     sm: 644,
     md: 768,
     lg: 924,
-    xl: 1366,
+    xl: 1200,
 };
 
 export { screenBreakpoints };

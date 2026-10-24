@@ -102,8 +102,8 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
 
             {/* En pantallas anchas el mensaje y las variables van lado a lado; en
                 iPad vertical y móvil se apilan, con las variables debajo. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+                <div className="xl:col-span-2 space-y-4">
                     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex flex-col gap-1.5">
@@ -172,7 +172,7 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
                 </div>
 
                 {/* Variables */}
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-3 lg:sticky lg:top-4">
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-3 xl:sticky xl:top-4">
                     <div>
                         <p className="text-[11px] font-bold text-slate-700">Variables disponibles</p>
                         <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">

@@ -1,3 +1,5 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Phone, MapPin, Mail, Calendar, Tag, IdCard, CreditCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy, Check as CheckIcon, CheckCircle, Package, Clock, Loader2, MessageCircle, CheckSquare, Square, Boxes, ChevronRight, Trash2, X } from 'lucide-react';
@@ -221,9 +223,9 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
 
     if (isLoading || !customer) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6 lg:gap-8 animate-pulse">
+            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 xl:gap-8 animate-pulse">
                 <div className="md:col-span-1 bg-white rounded-[32px] border border-slate-100 h-80" />
-                <div className="md:col-span-2 lg:col-span-3 space-y-6">
+                <div className="md:col-span-2 xl:col-span-3 space-y-6">
                     <div className="bg-white rounded-[24px] border border-slate-100 h-24" />
                     <div className="bg-white rounded-[32px] border border-slate-100 h-48" />
                     <div className="bg-white rounded-[32px] border border-slate-100 h-48" />
@@ -233,7 +235,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
     }
 
     const metricPackageCount = metrics != null ? String(metrics.packageCount) : '—';
-    const metricTotalLbs = metrics != null ? `${Number(metrics.totalLbs).toFixed(2)} lb` : '—';
+    const metricTotalLbs = metrics != null ? formatWeight(metrics.totalLbs) : '—';
     const metricTotalSpent = metrics != null ? formatCrc(metrics.totalSpent) : '—';
     const metricFirstPackageDate = metrics != null ? metrics.firstPackageDate : '—';
     const metricLastPackageDate = metrics != null ? metrics.lastPackageDate : '—';
@@ -242,23 +244,23 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
         <div className="flex flex-col gap-6">
             {/* iPad vertical (768–1023px) entra en md: con 3 columnas el perfil deja de
                 ocupar el ancho completo y el contenido sube sobre el pliegue. */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 xl:gap-8">
                 {/* LADO IZQUIERDO: Perfil Fijo */}
                 <aside className="md:col-span-1 space-y-6">
                     <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden md:sticky md:top-6">
                         {/* Fila compacta en mobile; columna centrada desde md, donde el aside
                             ya es una columna angosta. Antes el bloque centrado consumía
                             ~400px de alto antes del contenido útil. */}
-                        <div className="p-5 md:p-6 lg:p-8 flex items-center gap-4 text-left md:flex-col md:text-center">
-                            <div className="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 bg-slate-50 text-primary rounded-[1.25rem] lg:rounded-[1.5rem] flex items-center justify-center md:mb-4 lg:mb-6 text-lg lg:text-2xl font-black border-2 border-primary/5 uppercase flex-shrink-0">
+                        <div className="p-5 md:p-6 xl:p-8 flex items-center gap-4 text-left md:flex-col md:text-center">
+                            <div className="h-14 w-14 md:h-16 md:w-16 xl:h-20 xl:w-20 bg-slate-50 text-primary rounded-[1.25rem] xl:rounded-[1.5rem] flex items-center justify-center md:mb-4 xl:mb-6 text-lg xl:text-2xl font-black border-2 border-primary/5 uppercase flex-shrink-0">
                                 {initials}
                             </div>
 
                             <div className="min-w-0 md:flex md:flex-col md:items-center">
-                                <div className="space-y-0.5 lg:space-y-1 mb-1.5 md:mb-4">
+                                <div className="space-y-0.5 xl:space-y-1 mb-1.5 md:mb-4">
                                     {/* break-words, no truncate: un nombre largo debe leerse
                                         completo en la columna angosta de iPad. */}
-                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-base lg:text-lg leading-tight break-words">
+                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-base xl:text-lg leading-tight break-words">
                                         {customer.first_name} {customer.last_name}
                                     </Typography>
                                     <Typography variant={TypographyVariant.CAPTION} className="text-primary font-bold tracking-widest uppercase block font-mono break-all">
@@ -293,7 +295,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold md:text-center">
                                             {customer.win_back_pending
                                                 ? 'Pendiente de invitar a volver'
-                                                : `Invitado el ${new Date(customer.win_back_sent_at ?? '').toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}`}
+                                                : `Invitado el ${formatBusinessDate(customer.win_back_sent_at ?? '')}`}
                                         </Typography>
                                         <button
                                             onClick={handleInviteToComeBack}
@@ -312,7 +314,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             </div>
                         </div>
 
-                        <div className="px-5 md:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 border-t border-slate-50 pt-6">
+                        <div className="px-5 md:px-6 xl:px-8 pb-6 xl:pb-8 space-y-4 border-t border-slate-50 pt-6">
                             <div className="flex flex-col gap-1">
                                 <Typography variant={TypographyVariant.OVERLINE} className="text-slate-400 font-bold tracking-tighter">Identificación</Typography>
                                 <Typography variant={TypographyVariant.BODY_SEMIBOLD} className="flex items-center gap-2 min-w-0">
@@ -354,7 +356,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                 </aside>
 
                 {/* CONTENIDO CENTRAL */}
-                <main className="md:col-span-2 lg:col-span-3 space-y-6 min-w-0">
+                <main className="md:col-span-2 xl:col-span-3 space-y-6 min-w-0">
 
                     {isEditMode && editForm ? (
                         /* MODO EDICIÓN */
@@ -399,7 +401,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                             {activeTab === 'info' ? (
                                 <div className="space-y-6 animate-in fade-in duration-500">
                                     {/* Casilleros — lo primero: es el dato que más se copia/comparte */}
-                                    <div className="bg-white p-5 lg:p-8 rounded-[24px] lg:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+                                    <div className="bg-white p-5 xl:p-8 rounded-[24px] xl:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
                                         <div className="flex items-center justify-between gap-3 flex-wrap">
                                             <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Casilleros</Typography>
                                             {/* Siempre visible: antes desaparecía sin explicación cuando
@@ -473,23 +475,23 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         3 columnas desde sm: en iPad la columna central ya es
                                         angosta y apilarlas empujaba el resto fuera de pantalla.
                                         Los iconos se ocultan bajo lg para dejarle el ancho al dato. */}
-                                    <div className="grid grid-cols-3 gap-2.5 lg:gap-4">
-                                        <div className="bg-white p-4 lg:p-6 rounded-[20px] lg:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 lg:gap-4 min-w-0">
-                                            <div className="hidden lg:block p-3 bg-amber-50 text-amber-600 rounded-2xl flex-shrink-0"><Box size={24} /></div>
+                                    <div className="grid grid-cols-3 gap-2.5 xl:gap-4">
+                                        <div className="bg-white p-4 xl:p-6 rounded-[20px] xl:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 xl:gap-4 min-w-0">
+                                            <div className="hidden xl:block p-3 bg-amber-50 text-amber-600 rounded-2xl flex-shrink-0"><Box size={24} /></div>
                                             <div className="min-w-0">
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase truncate">Paquetes</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black truncate">{metricPackageCount}</Typography>
                                             </div>
                                         </div>
-                                        <div className="bg-white p-4 lg:p-6 rounded-[20px] lg:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 lg:gap-4 min-w-0">
-                                            <div className="hidden lg:block p-3 bg-emerald-50 text-emerald-600 rounded-2xl flex-shrink-0"><TrendingUp size={24} /></div>
+                                        <div className="bg-white p-4 xl:p-6 rounded-[20px] xl:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 xl:gap-4 min-w-0">
+                                            <div className="hidden xl:block p-3 bg-emerald-50 text-emerald-600 rounded-2xl flex-shrink-0"><TrendingUp size={24} /></div>
                                             <div className="min-w-0">
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase truncate">Libras</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black truncate">{metricTotalLbs}</Typography>
                                             </div>
                                         </div>
-                                        <div className="bg-white p-4 lg:p-6 rounded-[20px] lg:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 lg:gap-4 min-w-0">
-                                            <div className="hidden lg:block p-3 bg-primary/5 text-primary rounded-2xl flex-shrink-0"><DollarSign size={24} /></div>
+                                        <div className="bg-white p-4 xl:p-6 rounded-[20px] xl:rounded-[24px] border border-slate-100 shadow-sm flex items-center gap-3 xl:gap-4 min-w-0">
+                                            <div className="hidden xl:block p-3 bg-primary/5 text-primary rounded-2xl flex-shrink-0"><DollarSign size={24} /></div>
                                             <div className="min-w-0">
                                                 <Typography variant={TypographyVariant.CAPTION} className="text-slate-400 font-bold uppercase truncate">Facturado</Typography>
                                                 <Typography variant={TypographyVariant.SUBTITLE} className="!mb-0 font-black truncate">{metricTotalSpent}</Typography>
@@ -497,12 +499,12 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         </div>
                                     </div>
 
-                                    {/* Dos columnas solo desde lg: en iPad esta zona vive dentro
+                                    {/* Dos columnas solo desde xl: en iPad esta zona vive dentro
                                         de la columna central y partirla en dos deja las
                                         direcciones ilegibles. */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 xl:gap-6">
                                         {/* Direcciones */}
-                                        <div className="bg-white p-5 lg:p-8 rounded-[24px] lg:rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                                        <div className="bg-white p-5 xl:p-8 rounded-[24px] xl:rounded-[32px] border border-slate-100 shadow-sm space-y-6">
                                             <div className="flex justify-between items-center gap-3">
                                                 <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Direcciones</Typography>
                                                 {/* Abre el modal dedicado en vez del formulario completo
@@ -534,7 +536,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             </div>
                                         </div>
 
-                                        <div className="bg-white p-5 lg:p-8 rounded-[24px] lg:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+                                        <div className="bg-white p-5 xl:p-8 rounded-[24px] xl:rounded-[32px] border border-slate-100 shadow-sm space-y-4">
                                             <div>
                                                 <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg">Personas que reciben</Typography>
                                                 <p className="text-sm text-slate-500 mt-1">Quienes pueden recibir por el cliente. En cada orden se elige quién recibe.</p>
@@ -543,12 +545,12 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                         </div>
 
                                         {/* Perfil Operativo — solo datos reales, se edita desde "Editar cliente" */}
-                                        <div className="bg-white p-5 lg:p-8 rounded-[24px] lg:rounded-[32px] border border-slate-100 shadow-sm flex flex-col">
+                                        <div className="bg-white p-5 xl:p-8 rounded-[24px] xl:rounded-[32px] border border-slate-100 shadow-sm flex flex-col">
                                             <Typography variant={TypographyVariant.BODY_BOLD} className="text-lg mb-6">Perfil Operativo</Typography>
                                             <div className="grid grid-cols-1 gap-3 flex-1">
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><Calendar size={18} /><Typography variant={TypographyVariant.BODY}>Registro</Typography></div>
-                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{new Date(customer.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</Typography>
+                                                    <Typography variant={TypographyVariant.BODY_BOLD}>{formatBusinessDate(customer.created_at)}</Typography>
                                                 </div>
                                                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                                                     <div className="flex items-center gap-3 text-slate-500"><Box size={18} /><Typography variant={TypographyVariant.BODY}>Primer Paquete</Typography></div>
@@ -570,7 +572,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                     ) : (
                                         <>
                                             {/* Paquetes Sin Orden — seleccionables para crear orden de envío */}
-                                            <div className="bg-white p-5 lg:p-6 rounded-[24px] lg:rounded-[2rem] border border-slate-100 shadow-sm">
+                                            <div className="bg-white p-5 xl:p-6 rounded-[24px] xl:rounded-[2rem] border border-slate-100 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <div className="p-1.5 bg-amber-50 rounded-lg"><Package size={14} className="text-amber-600" /></div>
                                                     <Typography variant={TypographyVariant.BODY_BOLD}>Paquetes Sin Orden</Typography>
@@ -606,7 +608,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                                         }
                                                                         <div className="min-w-0">
                                                                             <p className="text-xs font-mono font-black text-slate-800 truncate">{pkg.tracking_number}</p>
-                                                                            <p className="text-[10px] text-slate-400 truncate">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
+                                                                            <p className="text-[10px] text-slate-400 truncate">{pkg.courier_rate_name ?? '—'} · {formatWeight(pkg.weight_lb)}</p>
                                                                         </div>
                                                                     </div>
                                                                     {/* Mismos colores por estado que el listado de Logística */}
@@ -623,7 +625,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                 {selectedPackageUuids.length > 0 && (
                                                     <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
                                                         <span className="text-[11px] font-bold text-slate-500">
-                                                            {selectedPackageUuids.length} paquete{selectedPackageUuids.length > 1 ? 's' : ''} seleccionado{selectedPackageUuids.length > 1 ? 's' : ''}
+                                                            {formatCount(selectedPackageUuids.length, 'paquete seleccionado', 'paquetes seleccionados')}
                                                         </span>
                                                         <div className="flex items-center gap-2">
                                                             <button
@@ -645,7 +647,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             </div>
 
                                             {/* Paquetes en órdenes activas — solo lectura, badge a la orden */}
-                                            <div className="bg-white p-5 lg:p-6 rounded-[24px] lg:rounded-[2rem] border border-slate-100 shadow-sm">
+                                            <div className="bg-white p-5 xl:p-6 rounded-[24px] xl:rounded-[2rem] border border-slate-100 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <div className="p-1.5 bg-blue-50 rounded-lg"><Boxes size={14} className="text-blue-600" /></div>
                                                     <Typography variant={TypographyVariant.BODY_BOLD}>En Órdenes Activas</Typography>
@@ -661,7 +663,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                                     <Package size={14} className="text-slate-400 flex-shrink-0" />
                                                                     <div className="min-w-0">
                                                                         <p className="text-xs font-mono font-black text-slate-800 truncate">{pkg.tracking_number}</p>
-                                                                        <p className="text-[10px] text-slate-400 truncate">{pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb</p>
+                                                                        <p className="text-[10px] text-slate-400 truncate">{pkg.courier_rate_name ?? '—'} · {formatWeight(pkg.weight_lb)}</p>
                                                                     </div>
                                                                 </div>
                                                                 <button
@@ -678,7 +680,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                             </div>
 
                                             {/* Historial */}
-                                            <div className="bg-white p-5 lg:p-6 rounded-[24px] lg:rounded-[2rem] border border-slate-100 shadow-sm">
+                                            <div className="bg-white p-5 xl:p-6 rounded-[24px] xl:rounded-[2rem] border border-slate-100 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <div className="p-1.5 bg-slate-50 rounded-lg"><Clock size={14} className="text-slate-500" /></div>
                                                     <Typography variant={TypographyVariant.BODY_BOLD}>Historial de Paquetes</Typography>
@@ -707,7 +709,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                                     <div className="min-w-0">
                                                                         <p className="text-xs font-mono font-black text-slate-800 truncate">{pkg.tracking_number}</p>
                                                                         <p className="text-[10px] text-slate-400 truncate">
-                                                                            {pkg.courier_rate_name ?? '—'} · {Number(pkg.weight_lb).toFixed(1)} lb
+                                                                            {pkg.courier_rate_name ?? '—'} · {formatWeight(pkg.weight_lb)}
                                                                             {pkg.consolidation_uuid ? ' · en orden' : ''}
                                                                         </p>
                                                                     </div>

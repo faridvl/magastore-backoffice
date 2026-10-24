@@ -7,12 +7,13 @@ interface Props {
   value: PaymentMethod | null;
   onChange: (method: PaymentMethod) => void;
   disabled?: boolean;
+  label?: string;
 }
 
-export const PaymentMethodPicker: React.FC<Props> = ({ value, onChange, disabled }) => (
+export const PaymentMethodPicker: React.FC<Props> = ({ value, onChange, disabled, label = 'Método de pago' }) => (
   <div>
-    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Método de pago</p>
-    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Método de pago">
+    <p className="text-xs font-semibold text-slate-600 mb-2">{label}</p>
+    <div className="flex flex-wrap gap-1.5 sm:grid sm:grid-cols-5" role="radiogroup" aria-label="Método de pago">
       {PAYMENT_METHOD_OPTIONS.map((method) => (
         <button
           key={method}
@@ -22,7 +23,7 @@ export const PaymentMethodPicker: React.FC<Props> = ({ value, onChange, disabled
           disabled={disabled}
           onClick={() => onChange(method)}
           className={tailwind(
-            'px-3 py-2 rounded-xl border text-xs font-bold transition-all disabled:opacity-40',
+            'min-h-[44px] px-2.5 rounded-xl border text-sm font-bold transition-all disabled:opacity-40',
             value === method
               ? 'bg-emerald-600 border-emerald-600 text-white'
               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50',

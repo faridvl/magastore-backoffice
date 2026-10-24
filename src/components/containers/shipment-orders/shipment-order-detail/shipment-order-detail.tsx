@@ -1,3 +1,4 @@
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { useRouter } from 'next/router';
 import {
@@ -120,7 +121,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
     handleMarkAsPaid, isMarkingPaid,
 
     showBillingModal, setShowBillingModal,
-    billingDetail, isLoadingBillingDetail,
+    billingDetail, isLoadingBillingDetail, isFetchingBillingDetail, retryBillingDetail,
     handleDownloadBillingPdf, isDownloadingBillingPdf,
 
     showAddressModal, setShowAddressModal,
@@ -366,6 +367,8 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         <BillingDetailModal
           billingDetail={billingDetail}
           isLoading={isLoadingBillingDetail}
+          isRetrying={isFetchingBillingDetail}
+          onRetry={retryBillingDetail}
           onClose={() => setShowBillingModal(false)}
           onMarkAsPaid={handleMarkAsPaid}
           isMarkingPaid={isMarkingPaid}
@@ -943,7 +946,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
               </div>
               {selectedPackageUuids.length > 0 && (
                 <span className="bg-amber-600 text-white text-xs font-black px-3 py-1 rounded-full">
-                  {selectedPackageUuids.length} seleccionado(s)
+                  {formatCount(selectedPackageUuids.length, 'seleccionado', 'seleccionados')}
                 </span>
               )}
             </div>
@@ -981,7 +984,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
                           {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
                         </p>
                         <p className="text-[10px] text-slate-400 truncate">
-                          {Number(pkg.weight_lb).toFixed(2)} lb · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
+                          {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
                         </p>
                       </div>
                     </button>
@@ -1217,7 +1220,7 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
           <div key={pkg.uuid} className="px-4 py-3 bg-slate-50 rounded-2xl min-w-0">
             <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>{pkg.tracking_number}</p>
             <p className="text-[10px] text-slate-400 mb-2 truncate">
-              {Number(pkg.weight_lb).toFixed(2)} lb{pkg.store_name ? ` · ${pkg.store_name}` : ''}
+              {formatWeight(pkg.weight_lb)}{pkg.store_name ? ` · ${pkg.store_name}` : ''}
             </p>
             <div className="grid grid-cols-3 gap-2">
               <div>

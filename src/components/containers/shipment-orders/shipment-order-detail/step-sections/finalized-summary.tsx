@@ -1,3 +1,4 @@
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { CheckCircle2, FileText } from 'lucide-react';
 import { ConsolidationDetail, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
@@ -76,8 +77,8 @@ export const FinalizedSummary: React.FC<{
           </p>
         </Fact>
         <Fact label="Paquetes">
-          <p className="font-semibold text-slate-800">{detail.packages.length} paquete(s)</p>
-          <p className="text-slate-500">{Number(detail.total_weight_lb).toFixed(2)} lb</p>
+          <p className="font-semibold text-slate-800">{formatCount(detail.packages.length, 'paquete', 'paquetes')}</p>
+          <p className="text-slate-500">{formatWeight(detail.total_weight_lb)}</p>
         </Fact>
         <Fact label="Entrega">
           <p className="font-semibold text-slate-800">

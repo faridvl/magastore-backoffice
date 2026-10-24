@@ -29,6 +29,7 @@ export function BoxedLayout({
     return (
         <div
             ref={containerRef}
+            data-scroll-root
             className={tailwind(
                 'relative flex flex-row h-full w-full justify-center',
                 'overscroll-y-contain',

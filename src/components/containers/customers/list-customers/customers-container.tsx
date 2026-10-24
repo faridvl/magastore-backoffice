@@ -53,7 +53,7 @@ export const CustomersContainer: React.FC = () => {
             accessor: 'id_card',
             // Oculta bajo lg (iPad vertical): con 6 columnas el nombre y el
             // correo quedaban ilegibles. El dato sigue en la ficha del cliente.
-            className: 'hidden lg:table-cell',
+            className: 'hidden xl:table-cell',
             render: (row) => (
                 <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-700 whitespace-nowrap">{row.id_card}</span>
@@ -279,6 +279,9 @@ export const CustomersContainer: React.FC = () => {
                     onPageChange={setCurrentPage}
                     onRowClick={(customer) => navigation.admin.customers.detail(customer.id)}
                     itemsPerPage={10}
+                    itemSingular="cliente"
+                    itemPlural="clientes"
+                    emptyTitle="No hay clientes para mostrar"
                 />
             </div>
         </div>

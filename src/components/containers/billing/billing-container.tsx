@@ -1,3 +1,5 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
+import { formatWeight } from '@/shared/utils/format';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Search, ChevronRight } from 'lucide-react';
@@ -5,9 +7,11 @@ import { Typography, TypographyVariant } from '@/components/common/typography/ty
 import { NewTable, Column } from '@/components/common/new-table/new-table';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { useBilling, PaidFilterValue } from './use-billing';
-import { BillingListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { BillingListItem, ConsolidationPaymentStatus, ConsolidationStatus } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { Badge } from '@/components/common/badge/badge';
+import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE } from '@/shared/constants/status-labels';
 import { formatCrc } from '@/shared/utils/format-crc';
 
 const formatCRC = formatCrc;
@@ -27,6 +31,11 @@ const ORDER_STATUS_COLORS: Record<ConsolidationStatus, string> = {
   ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
 };
 
+const PaymentBadge: React.FC<{ isPaid: boolean }> = ({ isPaid }) => {
+  const status = isPaid ? ConsolidationPaymentStatus.PAGADO : ConsolidationPaymentStatus.PENDIENTE_PAGO;
+  return <Badge tone={PAYMENT_STATUS_TONE[status]}>{PAYMENT_STATUS_LABEL[status]}</Badge>;
+};
+
 export const BillingContainer: React.FC = () => {
   const router = useRouter();
   const {
@@ -37,7 +46,7 @@ export const BillingContainer: React.FC = () => {
     dateTo, setDateTo,
     selectedBillingUuid, setSelectedBillingUuid,
     billingList, listMeta, isLoadingList,
-    billingDetail, isLoadingDetail,
+    billingDetail, isLoadingDetail, isFetchingDetail, retryDetail,
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
   } = useBilling();
@@ -47,6 +56,7 @@ export const BillingContainer: React.FC = () => {
     {
       header: 'Factura',
       accessor: 'invoice_number',
+      noWrap: true,
       render: (row) => (
         <span className="font-mono text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
           {formatInvoiceNumber(row.invoice_number)}
@@ -61,8 +71,8 @@ export const BillingContainer: React.FC = () => {
           <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
           <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
           {/* En pantallas angostas (iPad) las columnas Peso/Fecha se ocultan — se resumen aquí */}
-          <span className="text-[10px] text-slate-400 mt-1 xl:hidden">
-            {row.total_weight_charged} lb · {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
+          <span className="text-[10px] text-slate-400 mt-1 2xl:hidden">
+            {formatWeight(row.total_weight_charged)} · {formatBusinessDate(row.created_at)}
           </span>
         </div>
       ),
@@ -71,17 +81,18 @@ export const BillingContainer: React.FC = () => {
       header: 'Peso',
       accessor: 'total_weight_charged',
       align: 'center',
-      className: 'hidden xl:table-cell',
+      noWrap: true,
+      className: 'hidden 2xl:table-cell',
       render: (row) => (
         <span className="font-black text-slate-700 text-sm">
-          {row.total_weight_charged} <span className="text-[10px] text-slate-400">lb</span>
+          {formatWeight(row.total_weight_charged)}
         </span>
       ),
     },
     {
       header: 'Entrega',
       accessor: 'delivery_method',
-      className: 'hidden lg:table-cell',
+      className: 'hidden xl:table-cell',
       render: (row) => row.delivery_method ? (
         <div className="flex flex-col gap-0.5">
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
@@ -107,13 +118,7 @@ export const BillingContainer: React.FC = () => {
       accessor: 'is_paid',
       align: 'center',
       render: (row) => (
-        <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-          row.is_paid
-            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-            : 'bg-orange-50 text-orange-600 border border-orange-100 animate-pulse'
-        }`}>
-          {row.is_paid ? 'Pagado' : 'Pendiente'}
-        </span>
+        <PaymentBadge isPaid={row.is_paid} />
       ),
     },
     {
@@ -133,10 +138,11 @@ export const BillingContainer: React.FC = () => {
     {
       header: 'Fecha',
       accessor: 'created_at',
-      className: 'hidden xl:table-cell',
+      noWrap: true,
+      className: 'hidden 2xl:table-cell',
       render: (row) => (
         <span className="text-xs text-slate-400 font-medium">
-          {new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}
+          {formatBusinessDate(row.created_at)}
         </span>
       ),
     },
@@ -226,6 +232,9 @@ export const BillingContainer: React.FC = () => {
           onPageChange={setPage}
           onRowClick={(item) => setSelectedBillingUuid(item.uuid)}
           itemsPerPage={10}
+          itemSingular="factura"
+          itemPlural="facturas"
+          emptyTitle="No hay facturas para mostrar"
         />
       </div>
 
@@ -254,13 +263,7 @@ export const BillingContainer: React.FC = () => {
                   <p className="font-bold text-slate-800 text-sm">{row.customer_name}</p>
                   <p className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                  row.is_paid
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                    : 'bg-orange-50 text-orange-600 border border-orange-100'
-                }`}>
-                  {row.is_paid ? 'Pagado' : 'Pendiente'}
-                </span>
+                <PaymentBadge isPaid={row.is_paid} />
               </div>
               <div className="flex items-center gap-2">
                 <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${ORDER_STATUS_COLORS[row.consolidation_status]}`}>
@@ -269,8 +272,8 @@ export const BillingContainer: React.FC = () => {
               </div>
               <div className="flex justify-between items-end">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-slate-400">{row.total_weight_charged} lb · {row.delivery_method ? resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data) : '—'}</span>
-                  <span className="text-[10px] text-slate-400">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
+                  <span className="text-[10px] text-slate-400">{formatWeight(row.total_weight_charged)} · {row.delivery_method ? resolveDeliveryMethodLabel(row.delivery_method, deliveryMethodsData?.data) : '—'}</span>
+                  <span className="text-[10px] text-slate-400">{formatBusinessDate(row.created_at)}</span>
                 </div>
                 <span className="text-xl font-black text-slate-900">{formatCRC(row.total_amount_crc)}</span>
               </div>
@@ -291,6 +294,8 @@ export const BillingContainer: React.FC = () => {
         <BillingDetailModal
           billingDetail={billingDetail}
           isLoading={isLoadingDetail}
+          isRetrying={isFetchingDetail}
+          onRetry={retryDetail}
           onClose={() => setSelectedBillingUuid(null)}
           onMarkAsPaid={handleMarkAsPaid}
           isMarkingPaid={isMarkingPaid}

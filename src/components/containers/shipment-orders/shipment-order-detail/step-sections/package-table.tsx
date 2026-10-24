@@ -1,3 +1,4 @@
+import { formatWeight } from '@/shared/utils/format';
 import React from 'react';
 import { Package, X } from 'lucide-react';
 import { ConsolidationPackage } from '@/types/logistics/logistics.types';
@@ -16,7 +17,7 @@ export const PackageTable: React.FC<{
         <div className="flex-1 min-w-0">
           <p className="font-mono text-sm font-bold text-slate-800 [overflow-wrap:anywhere]">{pkg.tracking_number}</p>
           <p className="text-xs text-slate-500">
-            {Number(pkg.weight_lb).toFixed(2)} lb · {packageTypeLabel(pkg.package_type)}
+            {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)}
             {pkg.store_name ? ` · ${pkg.store_name}` : ''}
             {/* En móvil el estado va en esta línea: al costado dejaba sin lugar al número. */}
             <span className="sm:hidden"> · {packageStatusLabel(pkg.status)}</span>

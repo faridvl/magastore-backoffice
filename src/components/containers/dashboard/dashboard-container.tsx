@@ -1,3 +1,4 @@
+import { formatWeight } from '@/shared/utils/format';
 import React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -88,7 +89,7 @@ export const DashboardContainer: React.FC = () => {
       value: formatCRC(stats.pendingBillingCRC),
       hint: 'de todos los meses',
       valueClass: 'text-white',
-      cellClass: 'col-span-2 sm:col-span-1 lg:col-span-2 xl:col-span-1',
+      cellClass: 'col-span-2 sm:col-span-1',
     },
   ];
 
@@ -101,9 +102,8 @@ export const DashboardContainer: React.FC = () => {
     },
     {
       label: 'Libras',
-      // La unidad va en el texto de abajo: con miles de libras, "lb" al lado no cabe en el celular.
-      value: stats.weightLbThisMonth.toLocaleString('es-CR', { maximumFractionDigits: 1 }),
-      hint: 'lb este mes',
+      value: formatWeight(stats.weightLbThisMonth),
+      hint: 'este mes',
       icon: Scale,
     },
     {
@@ -116,9 +116,9 @@ export const DashboardContainer: React.FC = () => {
 
   return (
     <div className="pb-8 space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Resumen del mes */}
-        <section className="relative overflow-hidden rounded-3xl bg-neutral-900 text-white p-5 sm:p-7 lg:col-span-2 shadow-lg">
+        <section className="relative overflow-hidden rounded-3xl bg-neutral-900 text-white p-5 sm:p-7 xl:col-span-2 shadow-lg">
           <div
             aria-hidden
             className="pointer-events-none absolute -top-28 -right-20 h-72 w-72 rounded-full bg-accent/15 blur-3xl"
@@ -134,7 +134,7 @@ export const DashboardContainer: React.FC = () => {
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
               {heroFigures.map((figure) => (
                 <div key={figure.label} className={`min-w-0 bg-neutral-900/95 p-3 sm:p-4 ${figure.cellClass}`}>
                   <p className="text-[11px] sm:text-xs font-semibold text-neutral-400">{figure.label}</p>
@@ -161,11 +161,11 @@ export const DashboardContainer: React.FC = () => {
         </section>
 
         {/* Volumen del mes */}
-        <section className="grid grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4">
+        <section className="grid grid-cols-3 xl:grid-cols-1 gap-3 sm:gap-4">
           {volumeFigures.map((figure) => (
             <div
               key={figure.label}
-              className={`${CARD} p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4`}
+              className={`${CARD} p-4 sm:p-5 flex flex-col xl:flex-row xl:items-center gap-3 xl:gap-4`}
             >
               <span className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center">
                 <figure.icon size={18} strokeWidth={2} />
@@ -186,7 +186,7 @@ export const DashboardContainer: React.FC = () => {
         </section>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Facturación mensual */}
         <section className={`${CARD} p-5 sm:p-7`}>
           <SectionTitle title="Facturación mensual" subtitle="Últimos 6 meses, por fecha de factura" />

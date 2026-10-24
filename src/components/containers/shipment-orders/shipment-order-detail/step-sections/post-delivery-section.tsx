@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
 import React from 'react';
 import { HeartHandshake, MessageCircle, Star } from 'lucide-react';
 import { ConsolidationDetail } from '@/types/logistics/logistics.types';
@@ -5,7 +6,7 @@ import { FOLLOW_UP_DELAY_DAYS } from '@/shared/constants/post-delivery';
 import { usePostDelivery } from './use-post-delivery';
 
 const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' });
+  formatBusinessDate(iso);
 
 const SentChip: React.FC<{ label: string; sentAt: string | null }> = ({ label, sentAt }) => (
   <div className={`flex items-center justify-between gap-2 rounded-2xl px-4 py-3 border ${

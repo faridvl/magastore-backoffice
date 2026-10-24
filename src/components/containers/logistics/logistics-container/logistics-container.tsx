@@ -1,3 +1,5 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
@@ -119,13 +121,13 @@ export const LogisticsContainer: React.FC = () => {
         {
             header: 'Info. Envío',
             accessor: 'package_type',
-            className: 'hidden lg:table-cell',
+            className: 'hidden xl:table-cell',
             render: (row) => (
                 <div className="flex flex-col">
                     <span className="text-[9px] font-black text-slate-400 uppercase">{row.package_type || 'AÉREO'}</span>
                     <div className="flex items-center gap-1 text-slate-400 mt-0.5">
                         <Calendar size={10} />
-                        <span className="text-[10px] font-medium">{new Date(row.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}</span>
+                        <span className="text-[10px] font-medium">{formatBusinessDate(row.created_at)}</span>
                     </div>
                 </div>
             )
@@ -134,10 +136,9 @@ export const LogisticsContainer: React.FC = () => {
             header: 'Peso',
             accessor: 'weight_lb',
             render: (row) => (
-                <div className="flex items-baseline gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 inline-flex">
-                    <span className="text-slate-900 font-black text-xs">{row.weight_lb}</span>
-                    <span className="text-[8px] font-bold text-slate-400">LBS</span>
-                </div>
+                <span className="inline-flex whitespace-nowrap bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 text-slate-900 font-black text-xs">
+                    {formatWeight(row.weight_lb)}
+                </span>
             )
         },
         {
@@ -326,7 +327,7 @@ export const LogisticsContainer: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <PackageCheck size={16} />
                         <span className="text-[11px] font-black uppercase tracking-wide">
-                            {selectedUuids.length} paquete{selectedUuids.length > 1 ? 's' : ''} seleccionado{selectedUuids.length > 1 ? 's' : ''}
+                            {formatCount(selectedUuids.length, 'paquete seleccionado', 'paquetes seleccionados')}
                             {hiddenSelectedCount > 0 && (
                                 <span className="text-slate-400 font-bold normal-case tracking-normal">
                                     {' '}({hiddenSelectedCount} en otras páginas)
@@ -407,7 +408,7 @@ export const LogisticsContainer: React.FC = () => {
                                     <p className="font-mono text-slate-600 text-xs font-bold uppercase truncate">{pkg.tracking_number}</p>
                                 )}
                                 <p className="font-bold text-slate-800 text-sm mt-0.5 truncate">{pkg.first_name} {pkg.last_name}</p>
-                                <p className="text-[10px] text-slate-400 mt-0.5">{new Date(pkg.created_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })} · {pkg.weight_lb} lb</p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">{formatBusinessDate(pkg.created_at)} · {formatWeight(pkg.weight_lb)}</p>
                             </div>
                             <div className="flex flex-col items-end gap-2 flex-shrink-0">
                                 <span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${statusStyles[pkg.status] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
@@ -460,6 +461,9 @@ export const LogisticsContainer: React.FC = () => {
                             : ''
                     }
                     itemsPerPage={PAGE_SIZE}
+                    itemSingular="paquete"
+                    itemPlural="paquetes"
+                    emptyTitle="No hay paquetes para mostrar"
                 />
             </div>
 

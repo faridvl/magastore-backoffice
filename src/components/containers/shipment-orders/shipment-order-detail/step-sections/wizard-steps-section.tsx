@@ -1,3 +1,4 @@
+import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { Check, Plus, AlertCircle } from 'lucide-react';
 import { ConsolidationStatus, ConsolidationDetail, ShipmentOrderStep, DeliveryMethod, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
@@ -136,7 +137,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
   const amountToShow = detail.billing_total_amount_crc ?? detail.pre_billing_amount;
   const isFinalized = detail.current_step === ShipmentOrderStep.FINALIZADA;
   const hasAddress = !!detail.delivery_exact_address;
-  const totalWeight = Number(detail.total_weight_lb).toFixed(2);
+  const totalWeight = formatWeight(detail.total_weight_lb);
 
   const hasActualFee = detail.billing_actual_delivery_fee_crc != null;
   const originalFeeCrc = detail.billing_original_delivery_fee_crc ?? detail.billing_delivery_fee_crc;
@@ -225,7 +226,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           : 'Sin elegir'}
       </ChecklistRow>
       <ChecklistRow title="Paquetes" isDone={detail.packages.length > 0}>
-        {detail.packages.length} paquete(s) · {totalWeight} lb
+        {formatCount(detail.packages.length, 'paquete', 'paquetes')} · {totalWeight}
       </ChecklistRow>
     </StepCard>
   );
@@ -563,7 +564,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
   return (
     <>
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <StatTile label="Peso">{totalWeight} <span className="text-xs text-slate-400">lb</span></StatTile>
+        <StatTile label="Peso">{totalWeight}</StatTile>
         <StatTile label="Monto">
           {amountToShow != null ? formatCrc(Number(amountToShow)) : <span className="text-slate-300">—</span>}
         </StatTile>
@@ -576,7 +577,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
 
       {!isFinalized && <Stepper currentStep={detail.current_step} />}
 
-      <div className={`grid grid-cols-1 gap-6 items-start ${isFinalized ? '' : 'lg:grid-cols-[minmax(0,1fr)_320px]'}`}>
+      <div className={`grid grid-cols-1 gap-6 items-start ${isFinalized ? '' : 'xl:grid-cols-[minmax(0,1fr)_320px]'}`}>
         <div className="space-y-6 min-w-0">
           {isFinalized ? (
             <>
@@ -625,7 +626,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
 
         {/* En la finalizada la ficha ya trae todo el resumen. */}
         {!isFinalized && (
-          <aside className="lg:sticky lg:top-24">
+          <aside className="xl:sticky xl:top-24">
             <OrderSummaryCard detail={detail} deliveryMethods={deliveryMethodsData} isPickup={isPickup} />
           </aside>
         )}

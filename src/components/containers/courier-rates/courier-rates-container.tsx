@@ -212,7 +212,7 @@ function CourierRateForm({
         <div className="px-5 py-5 bg-emerald-50/30 space-y-5">
             <div className="space-y-3">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Courier y tarifa</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     <Field label="Nombre" error={errors.name}>
                         <input type="text" value={draft.name} onChange={(e) => onChange('name', e.target.value)} placeholder="EJ. AÉREO USA" className={cls('name')} />
                     </Field>
@@ -243,7 +243,7 @@ function CourierRateForm({
                         Dirección que se le comparte al cliente para recibir su mercancía, y prefijo con el que se genera su código
                     </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                     <Field label="Prefijo de código" error={errors.code_prefix}>
                         <input type="text" value={draft.code_prefix} onChange={(e) => onChange('code_prefix', e.target.value)} placeholder="MGA-2453-C-" className={`${cls('code_prefix')} font-mono`} />
                     </Field>

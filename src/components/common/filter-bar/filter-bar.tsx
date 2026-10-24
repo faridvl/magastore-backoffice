@@ -29,6 +29,8 @@ interface FilterBarProps {
   /** Contenido extra del panel, debajo de los grupos (p. ej. el rango de fechas). */
   extraPanelContent?: React.ReactNode;
   extraActiveCount?: number;
+  /** Chips de lo que eligió el contenido extra (p. ej. "Creadas 1–9 oct"), quitables con un toque. */
+  extraChips?: { key: string; label: string; onRemove: () => void }[];
   onClearExtra?: () => void;
   resultCount?: number;
 }
@@ -75,6 +77,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   fields,
   extraPanelContent,
   extraActiveCount = 0,
+  extraChips = [],
   onClearExtra,
   resultCount,
 }) => {
@@ -101,7 +104,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       label: field.options.find((o) => o.value === value)?.label ?? value,
       onRemove: () => toggleOption(field, value),
     })),
-  );
+  ).concat(extraChips);
 
   return (
     <div className="flex flex-col gap-3">
@@ -132,25 +135,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {(chips.length > 0 || extraActiveCount > 0) && (
         <div className="flex items-center gap-2">
-          <div
-            className={tailwind(
-              'flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pr-6',
-              '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-              '[mask-image:linear-gradient(to_right,black_85%,transparent)]',
-              'sm:flex-wrap sm:overflow-visible sm:pr-0 sm:[mask-image:none]',
-            )}
-          >
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {chips.map((chip) => (
               <span
                 key={chip.key}
-                className="flex h-8 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white pl-3 pr-0.5 text-sm text-slate-800"
+                className="flex h-11 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-white pl-3 pr-0.5 text-sm text-slate-800"
               >
                 {chip.label}
                 <button
                   type="button"
                   onClick={chip.onRemove}
                   aria-label={`Quitar filtro ${chip.label}`}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
                 >
                   <X size={14} aria-hidden />
                 </button>
@@ -160,7 +156,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             type="button"
             onClick={clearAll}
-            className="h-8 shrink-0 px-1 text-sm font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900"
+            className="min-h-[44px] shrink-0 px-2 text-sm font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900"
           >
             Limpiar
           </button>
@@ -184,7 +180,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 type="button"
                 onClick={() => setIsPanelOpen(false)}
                 aria-label="Cerrar filtros"
-                className="absolute left-3 flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+                className="absolute left-3 flex h-11 w-11 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
               >
                 <X size={20} aria-hidden />
               </button>
@@ -206,7 +202,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                           <button
                             type="button"
                             onClick={() => clearField(field)}
-                            className="text-sm font-medium text-slate-700 underline underline-offset-2"
+                            className="min-h-[44px] px-1 text-sm font-medium text-slate-700 underline underline-offset-2"
                           >
                             Limpiar
                           </button>
@@ -224,7 +220,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             aria-checked={isSelected}
                             onClick={() => toggleOption(field, option.value)}
                             className={tailwind(
-                              'flex min-h-[40px] items-center gap-2 rounded-full border pl-3 pr-4 text-sm font-medium transition-colors',
+                              'flex min-h-[44px] items-center gap-2 rounded-full border pl-3 pr-4 text-sm font-medium transition-colors',
                               isSelected
                                 ? 'border-slate-900 bg-slate-50 text-slate-900'
                                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400',
@@ -250,7 +246,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 type="button"
                 onClick={clearAll}
                 disabled={activeCount === 0}
-                className="px-1 text-sm font-semibold text-slate-800 underline underline-offset-2 disabled:text-slate-300 disabled:no-underline"
+                className="min-h-[44px] px-1 text-sm font-semibold text-slate-800 underline underline-offset-2 disabled:text-slate-300 disabled:no-underline"
               >
                 Limpiar todo
               </button>

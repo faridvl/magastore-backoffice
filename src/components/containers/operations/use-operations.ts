@@ -180,7 +180,7 @@ export function useOperations() {
   // Facturación, con su desglose, PDF y "Marcar como Pagado".
   const [selectedBillingUuid, setSelectedBillingUuid] = useState<string | null>(null);
   const detailQuery = useBillingDetailQuery(selectedBillingUuid ?? '');
-  const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
+  const { data: detailResponse, isLoading: isLoadingDetail, isFetching: isFetchingDetail } = detailQuery.useQuery();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
   const handleMarkAsPaid = async (paymentMethod: PaymentMethod) => {
@@ -271,6 +271,8 @@ export function useOperations() {
     setSelectedBillingUuid,
     billingDetail: detailResponse?.data ?? null,
     isLoadingDetail,
+    isFetchingDetail,
+    retryDetail: detailQuery.invalidate,
     handleMarkAsPaid,
     isMarkingPaid,
     handleDownloadPdf,

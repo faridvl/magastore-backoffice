@@ -1,3 +1,4 @@
+import { formatWeight } from '@/shared/utils/format';
 import React from 'react';
 import Link from 'next/link';
 import { Search, Truck, User, DollarSign, Package } from 'lucide-react';
@@ -153,7 +154,7 @@ export const PackagesContainer: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 flex flex-wrap gap-8 justify-around">
                         <div className="text-center">
                             <p className="text-[10px] font-black text-slate-400 uppercase">Peso Real</p>
-                            <p className="font-bold">{data.weight_lb ? `${data.weight_lb} lbs` : '—'}</p>
+                            <p className="font-bold">{formatWeight(data.weight_lb)}</p>
                         </div>
                         <div className="text-center">
                             <p className="text-[10px] font-black text-slate-400 uppercase">UUID</p>

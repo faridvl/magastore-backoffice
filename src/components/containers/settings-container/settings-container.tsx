@@ -1,3 +1,4 @@
+import { formatBusinessDateTime } from '@/shared/utils/timezone';
 import React, { useState } from 'react';
 import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -107,10 +108,7 @@ export const SettingsContainer: React.FC = () => {
             accessor: 'changed_at',
             render: (row) => (
                 <span className="text-[11px] text-slate-500 font-medium tabular-nums">
-                    {new Date(row.changed_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
-                        day: '2-digit', month: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
-                    })}
+                    {formatBusinessDateTime(row.changed_at)}
                 </span>
             ),
         },
@@ -146,9 +144,7 @@ export const SettingsContainer: React.FC = () => {
     const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.max(1, Math.ceil(history.length / itemsPerPage));
 
-    const formatDate = (d: string) => new Date(d).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
+    const formatDate = formatBusinessDateTime;
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -158,9 +154,9 @@ export const SettingsContainer: React.FC = () => {
     );
 
     return (
-        <div className="flex flex-col lg:flex-row gap-5 items-start animate-in fade-in duration-500 pb-8">
+        <div className="flex flex-col xl:flex-row gap-5 items-start animate-in fade-in duration-500 pb-8">
             {/* Botón guardar + aviso — siempre primero en mobile */}
-            <div className="w-full order-1 lg:hidden">
+            <div className="w-full order-1 xl:hidden">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                         <Info size={13} className="text-amber-500 flex-shrink-0" />
@@ -178,10 +174,10 @@ export const SettingsContainer: React.FC = () => {
             </div>
 
             {/* ÁREA PRINCIPAL */}
-            <div className="flex-1 space-y-4 w-full min-w-0 order-3 lg:order-1">
+            <div className="flex-1 space-y-4 w-full min-w-0 order-3 xl:order-1">
 
                 {/* Botón guardar + aviso — solo desktop */}
-                <div className="hidden lg:flex items-center justify-between gap-3">
+                <div className="hidden xl:flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <Info size={13} className="text-amber-500 flex-shrink-0" />
                         <p className="text-[11px] text-slate-500">Los cambios aplican de forma inmediata a nuevos registros.</p>
@@ -559,13 +555,16 @@ export const SettingsContainer: React.FC = () => {
                             totalPages={totalPages}
                             onPageChange={setCurrentPage}
                             itemsPerPage={itemsPerPage}
+                            itemSingular="cambio"
+                            itemPlural="cambios"
+                            emptyTitle="Aún no hay cambios"
                         />
                     </div>
                 </div>
             </div>
 
             {/* SIDEBAR */}
-            <div className="w-full lg:w-64 space-y-4 flex-shrink-0 order-2 lg:order-2">
+            <div className="w-full xl:w-64 space-y-4 flex-shrink-0 order-2 xl:order-2">
                 {/* Simulación */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">

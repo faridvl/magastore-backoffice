@@ -33,7 +33,7 @@ export const OperationsContainer: React.FC = () => {
     collectionsPanelId, collectionsSummaryLabel, activeCollections, isToNotifyTab, seeAllCollectionsHref, collectionOverdueDays,
     goToOrder,
     selectedBillingUuid, setSelectedBillingUuid,
-    billingDetail, isLoadingDetail,
+    billingDetail, isLoadingDetail, isFetchingDetail, retryDetail,
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
     notifyMultiple, closeNotifyModal,
@@ -96,9 +96,9 @@ export const OperationsContainer: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-5 gap-4 sm:gap-6 items-start">
         {/* Tu día */}
-        <section className={`${CARD} lg:col-span-3`}>
+        <section className={`${CARD} xl:col-span-3`}>
           <div className="p-5 sm:p-6 pb-3 sm:pb-4">
             <SectionTitle title="Tu día" subtitle="En el orden en que conviene hacerlo" />
           </div>
@@ -159,7 +159,7 @@ export const OperationsContainer: React.FC = () => {
         </section>
 
         {/* Cobros */}
-        <section className={`${CARD} p-5 sm:p-6 lg:col-span-2`}>
+        <section className={`${CARD} p-5 sm:p-6 xl:col-span-2`}>
           <SectionTitle title="Cobros" subtitle="Facturas que todavía no se pagan" />
 
           <div
@@ -256,6 +256,8 @@ export const OperationsContainer: React.FC = () => {
         <BillingDetailModal
           billingDetail={billingDetail}
           isLoading={isLoadingDetail}
+          isRetrying={isFetchingDetail}
+          onRetry={retryDetail}
           onClose={() => setSelectedBillingUuid(null)}
           onMarkAsPaid={handleMarkAsPaid}
           isMarkingPaid={isMarkingPaid}

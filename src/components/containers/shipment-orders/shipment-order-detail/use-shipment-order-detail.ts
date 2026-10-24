@@ -150,7 +150,7 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   // Detalle de la factura para el modal — solo se consulta al abrirlo
   const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
-  const { data: billingDetailResponse, isLoading: isLoadingBillingDetail } = billingDetailQuery.useQuery({
+  const { data: billingDetailResponse, isLoading: isLoadingBillingDetail, isFetching: isFetchingBillingDetail } = billingDetailQuery.useQuery({
     enabled: showBillingModal && !!detail?.billing_uuid,
   });
   const billingDetail = billingDetailResponse?.data ?? null;
@@ -1061,6 +1061,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
     showBillingModal, setShowBillingModal,
     billingDetail, isLoadingBillingDetail,
+    isFetchingBillingDetail,
+    retryBillingDetail: billingDetailQuery.invalidate,
     handleDownloadBillingPdf, isDownloadingBillingPdf,
 
     showAddressModal, setShowAddressModal,

@@ -92,7 +92,7 @@ const MyApp: React.FC<AppProps> = ({ Component, pageProps }) => {
 
         {/* El landing es una página pública sin React Query; su botón flotante
             se solapaba con el FAB de WhatsApp en la misma esquina. */}
-        {!isLanding && <ReactQueryDevtools initialIsOpen={false} />}
+        {!isLanding && process.env.NEXT_PUBLIC_RQ_DEVTOOLS === '1' && <ReactQueryDevtools initialIsOpen={false} />}
         <Toaster richColors position="top-right" />
       </QueryClientProvider>
     </>

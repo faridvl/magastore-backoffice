@@ -12,9 +12,9 @@ const ACTION_CLASSNAME: Record<StepActionVariant, string> = {
   [StepActionVariant.PRIMARY]:
     'min-h-[44px] px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold shadow-sm hover:bg-emerald-500',
   [StepActionVariant.SECONDARY]:
-    'min-h-[40px] px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50',
+    'min-h-[44px] px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50',
   [StepActionVariant.LINK]:
-    'min-h-[40px] px-1 text-sm font-semibold text-slate-500 underline underline-offset-4 hover:text-slate-800',
+    'min-h-[44px] px-1 text-sm font-semibold text-slate-500 underline underline-offset-4 hover:text-slate-800',
 };
 
 interface StepActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

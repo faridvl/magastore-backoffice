@@ -3,7 +3,7 @@ import { BarChart3, Wallet, Check, Undo2, Info } from 'lucide-react';
 import { useBillingReports } from './use-billing-reports';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 import { SectionHeader } from '@/components/common/section-header/section-header';
-import { currentMonthKey } from '@/shared/utils/timezone';
+import { currentMonthKey, formatBusinessDate } from '@/shared/utils/timezone';
 import { formatCrc } from '@/shared/utils/format-crc';
 
 const formatCRC = formatCrc;
@@ -86,7 +86,7 @@ export const BillingReportsContainer: React.FC = () => {
           Es la lectura que importa de un vistazo; las tarjetas de abajo y las dos
           tablas son el desglose de estas mismas cifras. */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryFigure
             label="Facturado"
             hint={`${totalInvoices} factura${totalInvoices !== 1 ? 's' : ''} confirmada${totalInvoices !== 1 ? 's' : ''} en el período`}
@@ -359,7 +359,7 @@ const ProfitShareSection: React.FC<ProfitShareSectionProps> = ({
                     {row.is_paid ? (
                       <span
                         className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
-                        title={row.paid_at ? `Pagado el ${new Date(row.paid_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}${row.paid_by_name ? ` por ${row.paid_by_name}` : ''}` : undefined}
+                        title={row.paid_at ? `Pagado el ${formatBusinessDate(row.paid_at)}${row.paid_by_name ? ` por ${row.paid_by_name}` : ''}` : undefined}
                       >
                         <Check className="w-3 h-3" /> Pagado
                       </span>
@@ -421,7 +421,7 @@ const SummaryFigure: React.FC<SummaryFigureProps> = ({
     {withArrow && (
       <span
         aria-hidden="true"
-        className="hidden lg:block absolute -left-2 top-1/2 -translate-y-1/2 text-slate-300 select-none"
+        className="hidden xl:block absolute -left-2 top-1/2 -translate-y-1/2 text-slate-300 select-none"
       >
         →
       </span>

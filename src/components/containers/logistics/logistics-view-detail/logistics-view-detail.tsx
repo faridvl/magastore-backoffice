@@ -89,8 +89,8 @@ export const PackageDetailContainer: React.FC = () => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-6 md:space-y-8 pb-20">
             {/* HEADER */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="flex flex-col min-w-0 w-full lg:w-auto">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                <div className="flex flex-col min-w-0 w-full xl:w-auto">
                     <button onClick={() => router.back()} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
                         <ChevronLeft size={14} /> Volver a logística
                     </button>
@@ -102,11 +102,11 @@ export const PackageDetailContainer: React.FC = () => {
                     </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row w-full lg:w-auto items-stretch sm:items-center gap-3 shrink-0">
+                <div className="flex flex-col sm:flex-row w-full xl:w-auto items-stretch sm:items-center gap-3 shrink-0">
                     <button
                         onClick={handleToggleStatusPanel}
                         disabled={isSavingStatus}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 xl:px-8 py-3 xl:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
                             ? 'bg-slate-500 text-white hover:bg-slate-600'
                             : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                             }`}
@@ -116,7 +116,7 @@ export const PackageDetailContainer: React.FC = () => {
                     <button
                         onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
                         disabled={isSavingWeight}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 xl:px-8 py-3 xl:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
                             ? 'bg-slate-900 text-white shadow-lg scale-105'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                             }`}
@@ -137,7 +137,7 @@ export const PackageDetailContainer: React.FC = () => {
                     <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
                         <RefreshCw size={16} className="text-amber-600" /> Registrar cambio de estado
                     </Typography>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Nuevo Estado</label>
                             <select
@@ -192,18 +192,18 @@ export const PackageDetailContainer: React.FC = () => {
                 </div>
             )}
 
-            {/* Apilado hasta lg: en iPad vertical (768px) dos columnas dejaban la
+            {/* Apilado hasta xl: en iPad vertical (768px) dos columnas dejaban la
                 bitácora y la card de logística aplastadas a media pantalla. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
                 {/* COLUMNA IZQUIERDA: Info y Bitácora */}
-                <div className="lg:col-span-2 space-y-6 md:space-y-8 order-last lg:order-none min-w-0">
+                <div className="xl:col-span-2 space-y-6 md:space-y-8 order-last xl:order-none min-w-0">
 
                     {/* CARD PRINCIPAL LOGÍSTICA */}
                     <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
                         {/* Peso, estado y notas comparten un solo grid: al subir el
                             tracking al header la columna izquierda quedó con una
                             sola tarjeta y se veía desbalanceada. */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                             <div className="p-4 rounded-2xl border border-slate-100 bg-white">
                                 <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Peso Registrado</label>
                                 {isEditingFinancial ? (
@@ -237,7 +237,7 @@ export const PackageDetailContainer: React.FC = () => {
                                 </span>
                             </div>
 
-                            <div className="sm:col-span-2 lg:col-span-1 bg-amber-50/50 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-amber-100/50 flex flex-col">
+                            <div className="sm:col-span-2 xl:col-span-1 bg-amber-50/50 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-amber-100/50 flex flex-col">
                                 <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-3">Notas del Almacén</label>
                                 <p className="text-sm font-medium text-amber-900 italic leading-relaxed flex-grow">
                                     &quot;{data.observaciones}&quot;
@@ -279,7 +279,7 @@ export const PackageDetailContainer: React.FC = () => {
                 </div>
 
                 {/* COLUMNA DERECHA: Resumen Financiero */}
-                <div className="space-y-6 order-first lg:order-none min-w-0">
+                <div className="space-y-6 order-first xl:order-none min-w-0">
                     <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden">
                         {/* Decoración de fondo */}
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
