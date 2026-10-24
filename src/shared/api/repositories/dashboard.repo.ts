@@ -21,9 +21,10 @@ export const DashboardRepository = {
       recentPackagesResult,
       revenueByMonthResult,
       topCustomersResult,
+      monthlyProfitResult,
     ] = await Promise.all([
       sql`
-        SELECT COUNT(*)::int AS count
+        SELECT COUNT(*)::int AS count, COALESCE(SUM(weight_lb), 0)::numeric AS weight_lb
         FROM packages
         WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
             = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
@@ -80,6 +81,22 @@ export const DashboardRepository = {
         ORDER BY total DESC
         LIMIT 4
       `,
+      // Misma fuente que Reportes: ganancia por fecha de emisión de la factura y
+      // participación solo FACTURADO (la de estimados todavía no es plata real).
+      sql`
+        SELECT
+          (SELECT COALESCE(SUM(profit_crc), 0) FROM billing
+            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica'))::numeric AS profit_crc,
+          (SELECT COUNT(*) FROM billing
+            WHERE has_unknown_cost
+              AND date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica'))::int AS unknown_cost_count,
+          (SELECT COALESCE(SUM(share_crc), 0) FROM profit_shares
+            WHERE status = 'FACTURADO'
+              AND period = TO_CHAR(NOW() AT TIME ZONE 'America/Costa_Rica', 'YYYY-MM'))::numeric AS farid_share_crc,
+          (SELECT farid_share_percent FROM system_settings LIMIT 1)::numeric AS farid_share_percent
+      `,
     ]);
 
     const revenueByMonth: RevenueByMonth[] = (revenueByMonthResult as any[]).map((r) => ({
@@ -102,6 +119,11 @@ export const DashboardRepository = {
 
     return {
       packagesThisMonth: packagesResult[0]?.count ?? 0,
+      weightLbThisMonth: Number(packagesResult[0]?.weight_lb ?? 0),
+      profitThisMonthCRC: Number(monthlyProfitResult[0]?.profit_crc ?? 0),
+      unknownCostCountThisMonth: monthlyProfitResult[0]?.unknown_cost_count ?? 0,
+      faridShareThisMonthCRC: Number(monthlyProfitResult[0]?.farid_share_crc ?? 0),
+      faridSharePercent: Number(monthlyProfitResult[0]?.farid_share_percent ?? 0),
       pendingBillingCRC: Number(pendingBillingResult[0]?.total ?? 0),
       activeCustomers: activeCustomersResult[0]?.active_count ?? 0,
       newCustomersThisMonth: activeCustomersResult[0]?.new_this_month ?? 0,

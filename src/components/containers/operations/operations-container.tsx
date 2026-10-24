@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  AlertTriangle, PackagePlus, MessageCircle, Wallet, Check, Receipt,
+  PackagePlus, MessageCircle, Wallet, Check, Receipt,
   ArrowRight, TrendingUp, TrendingDown, Package,
 } from 'lucide-react';
 import { useOperations } from './use-operations';
@@ -299,9 +299,9 @@ export const OperationsContainer: React.FC = () => {
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">
           Cada tarjeta abre su pantalla filtrada
         </p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <InboxCardSkeleton key={i} />)
+            Array.from({ length: 3 }).map((_, i) => <InboxCardSkeleton key={i} />)
           ) : (
             <>
               <InboxCard
@@ -314,15 +314,6 @@ export const OperationsContainer: React.FC = () => {
                 icon={MessageCircle}
                 tone="violet"
                 isEmpty={inbox.packagesNotNotified === 0}
-              />
-              <InboxCard
-                label="Sin costo cargado"
-                value={String(inbox.packagesWithoutCost)}
-                hint="Bloquean el cálculo de ganancia"
-                href={routesPrivate.admin.logistics.index}
-                icon={AlertTriangle}
-                tone="rose"
-                isEmpty={inbox.packagesWithoutCost === 0}
               />
               <InboxCard
                 label="Sin orden de envío"

@@ -16,6 +16,7 @@
 ## En qué estamos
 - Migraciones 028–036 aplicadas en dev; producción sigue en 027 y las aplica el workflow al hacer merge a `main`.
 - Dos rondas de pruebas contra el API de dev y dos de revisión: sin defectos abiertos.
+- Anotaciones de la agenda hechas: sin la tarjeta "Sin costo cargado" en el Operativo; libras, ganancia y "Para Farid" del mes en el Dashboard.
 - Dashboard "Operativo" revisado: números inflados por paquetes entregados, enlaces que no coinciden con la tarjeta, nada del flujo de órdenes, tablas con scroll lateral en iPad y celular, botones chicos, sin "Reintentar". Propuesta: lista "Tu día" en el orden del flujo + panel de cobros. **Esperando decisión** (todo junto o primero números y enlaces).
 
 ## Pendiente

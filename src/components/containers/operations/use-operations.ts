@@ -12,7 +12,6 @@ import { routesPrivate } from '@/shared/navigation/routes';
 
 const EMPTY_STATS: OperationsStats = {
   inbox: {
-    packagesWithoutCost: 0,
     packagesWithoutOrder: 0,
     customersWithPackagesWithoutOrder: 0,
     packagesNotNotified: 0,

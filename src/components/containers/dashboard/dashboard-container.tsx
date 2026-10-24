@@ -3,7 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell,
 } from 'recharts';
-import { TrendingUp, Package, Clock, Users } from 'lucide-react';
+import { TrendingUp, Package, Clock, Users, Scale, PiggyBank, HandCoins } from 'lucide-react';
 import { useDashboard } from './use-dashboard';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 import { formatCrc } from '@/shared/utils/format-crc';
@@ -39,6 +39,14 @@ export const DashboardContainer: React.FC = () => {
       bg: 'bg-amber-50',
     },
     {
+      label: 'Libras este mes',
+      value: isLoading ? '—' : `${stats.weightLbThisMonth.toLocaleString('es-CR')} lb`,
+      hint: undefined as string | undefined,
+      icon: Scale,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+    },
+    {
       label: 'Por Cobrar',
       value: isLoading ? '—' : formatCRC(stats.pendingBillingCRC),
       hint: undefined as string | undefined,
@@ -51,6 +59,26 @@ export const DashboardContainer: React.FC = () => {
       value: isLoading ? '—' : formatCRC(stats.revenueThisMonthCRC),
       hint: undefined as string | undefined,
       icon: TrendingUp,
+      color: 'text-emerald-600',
+      bg: 'bg-green-50',
+    },
+    {
+      label: 'Ganancia del mes',
+      value: isLoading ? '—' : formatCRC(stats.profitThisMonthCRC),
+      hint:
+        stats.unknownCostCountThisMonth > 0
+          ? `${stats.unknownCostCountThisMonth} sin costo de entrega: cifra incompleta`
+          : undefined,
+      hintClass: 'text-orange-600',
+      icon: PiggyBank,
+      color: 'text-emerald-600',
+      bg: 'bg-green-50',
+    },
+    {
+      label: 'Para Farid',
+      value: isLoading ? '—' : formatCRC(stats.faridShareThisMonthCRC),
+      hint: stats.faridSharePercent > 0 ? `${stats.faridSharePercent}% de la ganancia facturada` : undefined,
+      icon: HandCoins,
       color: 'text-emerald-600',
       bg: 'bg-green-50',
     },
@@ -71,7 +99,7 @@ export const DashboardContainer: React.FC = () => {
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+          ? Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)
           : kpiCards.map((stat, index) => (
               <div
                 key={index}
@@ -87,7 +115,7 @@ export const DashboardContainer: React.FC = () => {
                 </p>
                 <h3 className="text-xl md:text-2xl font-black text-slate-900 mt-1">{stat.value}</h3>
                 {stat.hint && (
-                  <p className="text-[10px] md:text-xs font-semibold text-emerald-600 mt-1">
+                  <p className={`text-[10px] md:text-xs font-semibold mt-1 ${'hintClass' in stat ? stat.hintClass : 'text-emerald-600'}`}>
                     {stat.hint}
                   </p>
                 )}

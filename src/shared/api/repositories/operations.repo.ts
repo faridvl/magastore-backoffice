@@ -36,9 +36,6 @@ export const OperationsRepository = {
       sql`
         SELECT
           (SELECT COUNT(*) FROM packages
-            WHERE courier_cost_usd IS NULL OR tc_banco IS NULL)::int
-            AS packages_without_cost,
-          (SELECT COUNT(*) FROM packages
             WHERE consolidation_id IS NULL)::int
             AS packages_without_order,
           (SELECT COUNT(DISTINCT customer_id) FROM packages
@@ -220,7 +217,6 @@ export const OperationsRepository = {
 
     const inboxRow = inboxResult[0];
     const inbox: OperationsInbox = {
-      packagesWithoutCost: inboxRow?.packages_without_cost ?? 0,
       packagesWithoutOrder: inboxRow?.packages_without_order ?? 0,
       customersWithPackagesWithoutOrder:
         inboxRow?.customers_with_packages_without_order ?? 0,

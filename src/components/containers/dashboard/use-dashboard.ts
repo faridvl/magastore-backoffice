@@ -3,6 +3,11 @@ import { DashboardStats } from '@/types/dashboard/dashboard.types';
 
 const EMPTY_STATS: DashboardStats = {
   packagesThisMonth: 0,
+  weightLbThisMonth: 0,
+  profitThisMonthCRC: 0,
+  unknownCostCountThisMonth: 0,
+  faridShareThisMonthCRC: 0,
+  faridSharePercent: 0,
   pendingBillingCRC: 0,
   activeCustomers: 0,
   newCustomersThisMonth: 0,

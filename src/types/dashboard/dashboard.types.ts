@@ -22,6 +22,13 @@ export interface TopCustomer {
 
 export interface DashboardStats {
   packagesThisMonth: number;
+  weightLbThisMonth: number;
+  profitThisMonthCRC: number;
+  /** Facturas del mes sin el costo real de entrega: la ganancia queda por encima de la real. */
+  unknownCostCountThisMonth: number;
+  /** Participación de Farid ya facturada en el mes. */
+  faridShareThisMonthCRC: number;
+  faridSharePercent: number;
   pendingBillingCRC: number;
   activeCustomers: number;
   /** Clientes dados de alta dentro del mes en curso (hora de Costa Rica). */
