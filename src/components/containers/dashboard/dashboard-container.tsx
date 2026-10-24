@@ -88,7 +88,7 @@ export const DashboardContainer: React.FC = () => {
       value: formatCRC(stats.pendingBillingCRC),
       hint: 'de todos los meses',
       valueClass: 'text-white',
-      cellClass: 'col-span-2 sm:col-span-1',
+      cellClass: 'col-span-2 sm:col-span-1 lg:col-span-2 xl:col-span-1',
     },
   ];
 
@@ -101,8 +101,9 @@ export const DashboardContainer: React.FC = () => {
     },
     {
       label: 'Libras',
-      value: `${stats.weightLbThisMonth.toLocaleString('es-CR')} lb`,
-      hint: 'este mes',
+      // La unidad va en el texto de abajo: con miles de libras, "lb" al lado no cabe en el celular.
+      value: stats.weightLbThisMonth.toLocaleString('es-CR', { maximumFractionDigits: 1 }),
+      hint: 'lb este mes',
       icon: Scale,
     },
     {
@@ -133,14 +134,14 @@ export const DashboardContainer: React.FC = () => {
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
               {heroFigures.map((figure) => (
                 <div key={figure.label} className={`min-w-0 bg-neutral-900/95 p-3 sm:p-4 ${figure.cellClass}`}>
                   <p className="text-[11px] sm:text-xs font-semibold text-neutral-400">{figure.label}</p>
                   {isLoading ? (
                     <div className="mt-2 h-6 w-16 rounded bg-white/10 animate-pulse" />
                   ) : (
-                    <p className={`mt-1 break-words text-base sm:text-xl font-black tabular-nums ${figure.valueClass}`}>
+                    <p className={`mt-1 whitespace-nowrap text-base sm:text-xl font-black tabular-nums ${figure.valueClass}`}>
                       {figure.value}
                     </p>
                   )}
@@ -174,7 +175,7 @@ export const DashboardContainer: React.FC = () => {
                 {isLoading ? (
                   <Shimmer className="mt-1 h-6 w-14" />
                 ) : (
-                  <p className="text-lg sm:text-2xl font-black text-neutral-900 tabular-nums whitespace-nowrap">
+                  <p className="text-base sm:text-2xl font-black text-neutral-900 tabular-nums whitespace-nowrap">
                     {figure.value}
                   </p>
                 )}
