@@ -42,3 +42,12 @@
 - Favicon, íconos de la PWA y splash de iOS con el logo nuevo.
 - Crear orden y confirmar factura usan `BEGIN` sobre HTTP de Neon, que no es una transacción real.
 - El API de personas que reciben guarda el teléfono tal cual llega; la máscara es solo de la interfaz.
+
+## Sin verificar (2026-10-24, migraciones a producción en dos pasos)
+
+Se probó con un Postgres local simulando producción en 027. Falta:
+- La corrida real del workflow en GitHub Actions (plan en push a `main` y Run workflow con
+  confirmación); no se validó con actionlint.
+- La conexión a Neon con TLS real y los datos reales de producción.
+- Corregir la autoría que deja la 033 en `finalized-summary.tsx` y el tooltip de
+  `billing-reports-container.tsx` antes de aplicar en producción.
