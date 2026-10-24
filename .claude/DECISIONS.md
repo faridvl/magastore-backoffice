@@ -173,3 +173,22 @@ un estimado que nadie mandó haría que la operadora no avise el cobro. La regla
 
 En celular el título quedaba en 142 px. Desde una ficha o un formulario se vuelve al listado, que
 sí tiene el menú.
+
+## El cliente nunca ve Panamá (decisión del usuario, 2026-10-24)
+
+El casillero opera en Panamá, pero el cliente no debe saberlo: nada que vea o reciba (rastreo
+público y su API, plantillas de WhatsApp, correos, PDF, landing) menciona Panamá ni PTY. El API
+público de rastreo traduce `PANAMA` a `RECEIVED` ("Recibido en bodega") y devuelve solo estado,
+fechas, peso y el nombre con la inicial del apellido: ya no expone notas internas, evidencia,
+ubicaciones, `uuid` ni código de cliente (cualquiera con el número de rastreo puede consultarlo). La 037 corrige la plantilla guardada
+solo si conserva la frase original (criterio de la 036). El editor de plantillas avisa si alguien
+escribe "Panamá", sin bloquear el guardado. En el backoffice "En Panamá" se mantiene.
+
+## Rastreo público: "Preparando tu envío" y búsqueda tolerante sin confundir clientes (2026-10-24)
+
+Un paquete que sigue en bodega pero ya está en una orden se muestra como "Preparando tu envío"
+(`PREPARING`): decirle "escríbenos para pedir el envío" a quien ya lo pidió lo confunde. La búsqueda
+prueba primero el número exacto y después sin mayúsculas ni espacios; si la segunda encuentra dos
+paquetes, responde "no encontrado" para no mostrar el nombre de otra persona. En la bienvenida del
+casillero `{{ruta_label}}` es la ruta ("Estados Unidos · Aéreo") y no el nombre del courier, que
+puede delatar el país.

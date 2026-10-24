@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { q } = req.query;
-  if (!q || typeof q !== 'string') {
+  if (typeof q !== 'string' || !q.trim()) {
     return res.status(400).json({ message: 'El número de tracking es requerido.' });
   }
 

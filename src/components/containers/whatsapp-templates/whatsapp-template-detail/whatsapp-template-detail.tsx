@@ -16,7 +16,7 @@ const PREVIEW_VALUES: Record<string, string> = {
     metodo_entrega: 'Correos de Costa Rica',
     monto: '₡24.500',
     codigo: 'MGA-2453-C-11',
-    ruta_label: 'USA Aéreo',
+    ruta_label: 'Estados Unidos · Aéreo',
     direccion: '2610 NW 89TH CT',
     ciudad: 'Doral',
     estado: 'Florida',
@@ -43,7 +43,7 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
     const router = useRouter();
     const uuid = typeof router.query.uuid === 'string' ? router.query.uuid : undefined;
     const {
-        template, isLoading, draft, variables, unknownVars,
+        template, isLoading, draft, variables, unknownVars, hasHiddenLocation,
         isDirty, canSave, isSaving,
         updateDraft, insertVariable, resetDraft, save, handleBack,
     } = useWhatsAppTemplateDetail(uuid);
@@ -138,6 +138,15 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
                                 </button>
                             </div>
 
+                            {hasHiddenLocation && (
+                                <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+                                    <AlertTriangle size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                        Este mensaje menciona Panamá. Quítalo: el cliente no debe saber por dónde pasan sus paquetes.
+                                    </p>
+                                </div>
+                            )}
+
                             {showPreview ? (
                                 <div className="bg-[#e5ddd5] rounded-xl p-3 sm:p-4">
                                     <div className="bg-white rounded-xl rounded-tl-sm px-4 py-3 shadow-sm max-w-lg">
@@ -177,7 +186,7 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
                         <p className="text-[11px] font-bold text-slate-700">Variables disponibles</p>
                         <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
                             Al enviar el mensaje, cada variable se reemplaza por el dato real del cliente.
-                            Tocá una para insertarla donde tenés el cursor.
+                            Toca una para insertarla donde tienes el cursor.
                         </p>
                     </div>
 

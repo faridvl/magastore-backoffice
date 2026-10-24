@@ -590,30 +590,46 @@ export const LogisticsRepository = {
 
   /**
    * 2c. GET TRACKING BY NUMBER: Consulta pública por tracking_number (para /tracking).
+   * Primero coincidencia exacta; si no hay, sin mayúsculas ni espacios internos. Más de
+   * una coincidencia se trata como no encontrado para no mostrar el paquete de otra persona.
    */
   getTrackingByNumber: async (trackingNumber: string): Promise<any> => {
-    const rows = await sql`
+    const normalized = trackingNumber.replace(/\s+/g, '').toUpperCase();
+
+    const exact = await sql`
       SELECT
-        p.uuid,
-        p.tracking_number,
-        p.status,
-        p.weight_lb,
-        p.arrival_date,
-        p.internal_notes,
-        p.evidence_url,
-        c.first_name,
-        c.last_name,
-        c.customer_code,
+        p.tracking_number, p.status, p.weight_lb, p.arrival_date, p.consolidation_id, con.status AS consolidation_status,
+        c.first_name, c.last_name,
         COALESCE(
-          (SELECT json_agg(ev.* ORDER BY ev.created_at ASC)
+          (SELECT json_agg(json_build_object('status', ev.status, 'created_at', ev.created_at) ORDER BY ev.created_at ASC)
            FROM package_events ev WHERE ev.package_id = p.id),
           '[]'::json
         ) AS events
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN consolidations con ON p.consolidation_id = con.id
       WHERE p.tracking_number = ${trackingNumber}
+      LIMIT 2
     `;
-    return rows[0] || null;
+    if (exact.length === 1) return exact[0];
+    if (exact.length > 1) return null;
+
+    const loose = await sql`
+      SELECT
+        p.tracking_number, p.status, p.weight_lb, p.arrival_date, p.consolidation_id, con.status AS consolidation_status,
+        c.first_name, c.last_name,
+        COALESCE(
+          (SELECT json_agg(json_build_object('status', ev.status, 'created_at', ev.created_at) ORDER BY ev.created_at ASC)
+           FROM package_events ev WHERE ev.package_id = p.id),
+          '[]'::json
+        ) AS events
+      FROM packages p
+      LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN consolidations con ON p.consolidation_id = con.id
+      WHERE UPPER(REPLACE(p.tracking_number, ' ', '')) = ${normalized}
+      LIMIT 2
+    `;
+    return loose.length === 1 ? loose[0] : null;
   },
 
   /**

@@ -127,7 +127,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'nombre_completo', label: 'Nombre y apellidos — ej. María Rodríguez' },
     { key: 'codigo', label: 'Código de casillero del cliente — ej. MGA-2453-C-11' },
-    { key: 'ruta_label', label: 'Nombre de la ruta — ej. USA Aéreo' },
+    { key: 'ruta_label', label: 'Ruta del casillero — ej. Estados Unidos · Aéreo' },
     { key: 'direccion', label: 'Dirección del casillero — ej. 2610 NW 89TH CT' },
     { key: 'ciudad', label: 'Ciudad del casillero — ej. Doral' },
     { key: 'estado', label: 'Estado o provincia — ej. Florida' },
@@ -135,6 +135,20 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'telefono', label: 'Teléfono del casillero — ej. +1 786-360-2816' },
   ],
 };
+
+/** Plantillas que no van al cliente: es el único destino donde sí se puede nombrar la bodega. */
+const NON_CUSTOMER_TEMPLATE_CODES: string[] = [WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST];
+
+const HIDDEN_LOCATION_PATTERN = /panam|\bpty\b/i;
+
+/**
+ * El cliente no debe saber que sus paquetes pasan por Panamá. Se compara sin tildes
+ * ni mayúsculas para atrapar "Panamá", "PANAMA" y "PTY".
+ */
+export function mentionsHiddenLocation(code: string, body: string): boolean {
+  if (NON_CUSTOMER_TEMPLATE_CODES.includes(code)) return false;
+  return HIDDEN_LOCATION_PATTERN.test(body.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+}
 
 /** Placeholders {{...}} presentes en un texto. */
 export function extractPlaceholders(body: string): string[] {

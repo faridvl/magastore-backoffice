@@ -1,63 +1,68 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 import { DashboardLayout } from '@/components/common/layout/dashboard-layout';
 import { BoxedLayoutStyle } from '@/components/common/layout/boxed-container/boxed-container';
 import {
-    Search, Package, Truck, Globe, CheckCircle,
-    MapPin, AlertCircle,
+    Search, Package, Globe, CheckCircle,
+    AlertCircle, RotateCcw, MessageCircle,
 } from 'lucide-react';
-import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { PublicTrackingResult, PublicTrackingStatus } from '@/types/logistics/public-tracking.types';
+import { formatBusinessDate } from '@/shared/utils/timezone';
+import { formatWeight } from '@/shared/utils/format';
+import { buildBusinessWhatsappHref } from '@/shared/constants/contact';
 
-interface TrackingEvent {
-    id: number;
-    status: string;
-    event_type: string;
-    description: string;
-    location: string;
-    created_at: string;
-}
+const LOGO_SRC = '/logo/magastore-logo-2026.png';
+const LOGO_WIDTH = 1126;
+const LOGO_HEIGHT = 718;
+const HTTP_NOT_FOUND = 404;
 
-interface TrackingResult {
-    uuid: string;
-    tracking_number: string;
-    status: string;
-    weight_lb: number;
-    arrival_date: string | null;
-    first_name: string | null;
-    last_name: string | null;
-    customer_code: string | null;
-    events: TrackingEvent[];
-}
-
-const STATUS_LABELS: Record<string, string> = {
-    PANAMA: 'En Panamá',
-    EN_TRAMITE: 'En Trámite de Envío',
-    ENTREGADO: 'Entregado',
+const STATUS_LABELS: Record<PublicTrackingStatus, string> = {
+    [PublicTrackingStatus.RECEIVED]: 'Recibido en bodega',
+    [PublicTrackingStatus.PREPARING]: 'Preparando tu envío',
+    [PublicTrackingStatus.EN_TRAMITE]: 'En camino a Costa Rica',
+    [PublicTrackingStatus.ENTREGADO]: 'Entregado',
 };
 
-const LIFECYCLE: Array<{ status: string; label: string; location: string }> = [
-    { status: 'PANAMA', label: 'Recibido en Panamá', location: 'Bodega Panamá' },
-    { status: 'EN_TRAMITE', label: 'En Trámite de Envío', location: 'Costa Rica' },
-    { status: 'ENTREGADO', label: 'Entregado al Cliente', location: 'Destino Final' },
+const LIFECYCLE: PublicTrackingStatus[] = [
+    PublicTrackingStatus.RECEIVED,
+    PublicTrackingStatus.EN_TRAMITE,
+    PublicTrackingStatus.ENTREGADO,
 ];
 
-const STATUS_ORDER = ['PANAMA', 'EN_TRAMITE', 'ENTREGADO'];
+const NEXT_STEP: Record<PublicTrackingStatus, string> = {
+    [PublicTrackingStatus.RECEIVED]: 'Ya lo tenemos. Escríbenos por WhatsApp para pedir el envío a Costa Rica.',
+    [PublicTrackingStatus.PREPARING]: 'Ya pediste el envío. Te avisamos por WhatsApp cuando salga.',
+    [PublicTrackingStatus.EN_TRAMITE]: 'Va camino a Costa Rica. Te avisamos por WhatsApp cuando esté listo para entrega.',
+    [PublicTrackingStatus.ENTREGADO]: '',
+};
 
-function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-    });
+enum SearchError {
+    NOT_FOUND = 'NOT_FOUND',
+    SERVER = 'SERVER',
+}
+
+const ERROR_MESSAGES: Record<SearchError, string> = {
+    [SearchError.NOT_FOUND]: 'No encontramos ese número. Aparece cuando lo registremos, unos días después de que la tienda lo entregue.',
+    [SearchError.SERVER]: 'No pudimos buscar tu paquete. Revisa tu conexión e intenta de nuevo.',
+};
+
+/** Fecha en que el paquete llegó a ese paso: la de llegada para el primero, la del evento para el resto. */
+function stepDate(result: PublicTrackingResult, status: PublicTrackingStatus): string | null {
+    if (status === PublicTrackingStatus.PREPARING) return stepDate(result, PublicTrackingStatus.RECEIVED);
+    if (status === PublicTrackingStatus.RECEIVED && result.arrival_date) return result.arrival_date;
+    return result.events.find((ev) => ev.status === status)?.created_at ?? null;
 }
 
 const TrackingPage: React.FC = () => {
     const [search, setSearch] = useState('');
-    const [result, setResult] = useState<TrackingResult | null>(null);
+    const [result, setResult] = useState<PublicTrackingResult | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<SearchError | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [searchedQuery, setSearchedQuery] = useState('');
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const runSearch = async () => {
         const q = search.trim();
         if (!q) return;
 
@@ -65,34 +70,45 @@ const TrackingPage: React.FC = () => {
         setError(null);
         setResult(null);
         setHasSearched(true);
+        setSearchedQuery(q);
 
         try {
             const res = await fetch(`/api/tracking?q=${encodeURIComponent(q)}`);
-            const body = await res.json();
 
             if (!res.ok) {
-                setError(body.message || 'No se encontró el paquete.');
+                setError(res.status === HTTP_NOT_FOUND ? SearchError.NOT_FOUND : SearchError.SERVER);
                 return;
             }
 
+            const body = await res.json();
             setResult(body.data);
         } catch {
-            setError('Error al conectar con el servidor. Intenta de nuevo.');
+            setError(SearchError.SERVER);
         } finally {
             setLoading(false);
         }
     };
 
-    const currentIndex = result ? STATUS_ORDER.indexOf(result.status) : -1;
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        void runSearch();
+    };
 
-    const timeline = LIFECYCLE.map((step, index) => {
-        const event = result?.events.find((ev) => ev.status === step.status);
+    // Preparando el envío cuenta como paso 1 hecho y paso 2 pendiente.
+    const currentIndex = result
+        ? LIFECYCLE.indexOf(result.status === PublicTrackingStatus.PREPARING ? PublicTrackingStatus.RECEIVED : result.status)
+        : -1;
+    const isDelivered = result?.status === PublicTrackingStatus.ENTREGADO;
+    const currentDate = result ? stepDate(result, result.status) : null;
+
+    const timeline = LIFECYCLE.map((status, index) => {
+        const iso = result ? stepDate(result, status) : null;
         return {
-            ...step,
+            status,
+            label: STATUS_LABELS[status],
             completed: index <= currentIndex,
             current: index === currentIndex,
-            date: event ? formatDate(event.created_at) : '-',
-            location: event?.location || step.location,
+            date: iso ? formatBusinessDate(iso) : null,
         };
     });
 
@@ -111,11 +127,18 @@ const TrackingPage: React.FC = () => {
                         {/* Título solo visible en estado idle */}
                         {!hasSearched && (
                             <div className="text-center mb-8 animate-in fade-in duration-500">
-                                <div className="bg-amber-50 h-16 w-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500">
-                                    <Truck size={32} />
+                                <div className="bg-slate-900 rounded-2xl px-5 py-3 inline-flex mx-auto mb-4">
+                                    <Image
+                                        src={LOGO_SRC}
+                                        alt="Magastore"
+                                        width={LOGO_WIDTH}
+                                        height={LOGO_HEIGHT}
+                                        priority
+                                        className="h-14 w-auto"
+                                    />
                                 </div>
                                 <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Rastrear Paquete</h2>
-                                <p className="text-slate-400 text-sm mt-1">Ingresa el número de tracking para ver el estado de tu envío</p>
+                                <p className="text-slate-500 text-sm mt-1">Ingresa el número de tracking para ver el estado de tu envío</p>
                             </div>
                         )}
 
@@ -128,10 +151,15 @@ const TrackingPage: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Número de tracking..."
+                                        aria-label="Número de tracking"
                                         className="w-full py-3 md:py-3.5 bg-transparent border-none focus:ring-0 font-bold text-slate-700 placeholder:text-slate-300 text-sm md:text-base min-w-0"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         autoComplete="off"
+                                        autoCapitalize="characters"
+                                        autoCorrect="off"
+                                        spellCheck={false}
+                                        enterKeyHint="search"
                                     />
                                     <button
                                         type="submit"
@@ -157,11 +185,32 @@ const TrackingPage: React.FC = () => {
                             {/* Error */}
                             {error && (
                                 <div className="max-w-2xl mx-auto mb-6 animate-in fade-in duration-300">
-                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3">
-                                        <div className="bg-red-500 text-white p-2.5 rounded-xl flex-shrink-0">
-                                            <AlertCircle size={18} />
+                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex flex-col gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-red-500 text-white p-2.5 rounded-xl flex-shrink-0">
+                                                <AlertCircle size={18} />
+                                            </div>
+                                            <p className="text-red-700 font-bold text-sm">{ERROR_MESSAGES[error]}</p>
                                         </div>
-                                        <p className="text-red-700 font-bold text-sm">{error}</p>
+                                        {error === SearchError.SERVER && (
+                                            <button
+                                                type="button"
+                                                onClick={() => void runSearch()}
+                                                className="self-start inline-flex items-center gap-2 px-4 min-h-[44px] rounded-xl bg-white border border-red-200 text-red-700 text-sm font-bold hover:bg-red-100 transition-colors"
+                                            >
+                                                <RotateCcw size={14} /> Reintentar
+                                            </button>
+                                        )}
+                                        {error === SearchError.NOT_FOUND && (
+                                            <a
+                                                href={buildBusinessWhatsappHref(`Hola, no encuentro mi paquete ${searchedQuery}`)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="self-start inline-flex items-center gap-2 px-4 min-h-[44px] rounded-xl bg-white border border-red-200 text-red-700 text-sm font-bold hover:bg-red-100 transition-colors"
+                                            >
+                                                <MessageCircle size={14} /> Escríbenos por WhatsApp
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -170,8 +219,8 @@ const TrackingPage: React.FC = () => {
                             {loading && (
                                 <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 animate-pulse">
                                     <div className="space-y-4">
-                                        <div className="bg-white rounded-2xl h-40 border border-slate-100" />
                                         <div className="bg-slate-800 rounded-2xl h-24" />
+                                        <div className="bg-white rounded-2xl h-40 border border-slate-100" />
                                     </div>
                                     <div className="lg:col-span-2 bg-white rounded-2xl h-80 border border-slate-100" />
                                 </div>
@@ -181,8 +230,47 @@ const TrackingPage: React.FC = () => {
                             {result && (
                                 <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
 
-                                    {/* Columna izquierda: detalles + estado */}
+                                    {/* Columna izquierda: estado (primero en celular) + detalles */}
                                     <div className="flex flex-col gap-4">
+
+                                        {/* Tarjeta estado actual */}
+                                        <div className="bg-slate-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Globe size={13} className="text-amber-400" />
+                                                <span className="text-xs font-semibold text-slate-400">Estado actual</span>
+                                            </div>
+                                            <h3 className="text-xl font-black tracking-tight">
+                                                {STATUS_LABELS[result.status]}
+                                            </h3>
+                                            {isDelivered ? (
+                                                currentDate && (
+                                                    <p className="text-slate-300 text-sm mt-2 leading-snug">
+                                                        El {formatBusinessDate(currentDate)}.
+                                                    </p>
+                                                )
+                                            ) : (
+                                                <>
+                                                    {currentDate && (
+                                                        <p className="text-slate-400 text-xs mt-2 font-medium">
+                                                            Desde el {formatBusinessDate(currentDate)}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-slate-300 text-sm mt-2 leading-snug">
+                                                        {NEXT_STEP[result.status]}
+                                                    </p>
+                                                    {result.status === PublicTrackingStatus.RECEIVED && (
+                                                        <a
+                                                            href={buildBusinessWhatsappHref(`Hola, quiero pedir el envío del paquete ${result.tracking_number}`)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="mt-3 inline-flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700 transition-colors"
+                                                        >
+                                                            <MessageCircle size={16} /> Escríbenos por WhatsApp
+                                                        </a>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
 
                                         {/* Tarjeta detalles */}
                                         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-6">
@@ -190,82 +278,64 @@ const TrackingPage: React.FC = () => {
                                                 <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
                                                     <Package size={16} />
                                                 </div>
-                                                <span className="text-xs font-black text-slate-600 uppercase tracking-wider">Detalles</span>
+                                                <span className="text-xs font-semibold text-slate-600">Detalles</span>
                                             </div>
                                             <div className="space-y-3">
                                                 <div>
-                                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Tracking</p>
+                                                    <p className="text-xs text-slate-500">Tracking</p>
                                                     <p className="font-mono text-xs font-bold text-amber-600 break-all mt-0.5">{result.tracking_number}</p>
                                                 </div>
-                                                <div className="border-t border-slate-50 pt-3 flex justify-between">
-                                                    <div>
-                                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Cliente</p>
-                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{result.first_name} {result.last_name}</p>
-                                                        {result.customer_code && (
-                                                            <p className="text-[10px] font-mono text-slate-400 mt-0.5">{result.customer_code}</p>
-                                                        )}
+                                                <div className="border-t border-slate-50 pt-3 flex justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs text-slate-500">Cliente</p>
+                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{result.customer_name ?? 'Sin registrar'}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Peso</p>
-                                                        <p className="text-sm font-bold text-slate-700 mt-0.5">{result.weight_lb} LB</p>
+                                                        <p className="text-xs text-slate-500">Peso</p>
+                                                        <p className="text-sm font-bold text-slate-700 mt-0.5 whitespace-nowrap">{formatWeight(result.weight_lb)}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        {/* Tarjeta estado actual */}
-                                        <div className="bg-slate-900 rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/10">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Globe size={13} className="text-amber-400" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Estado Actual</span>
-                                            </div>
-                                            <h3 className="text-xl font-black tracking-tight">
-                                                {STATUS_LABELS[result.status] ?? result.status}
-                                            </h3>
-                                            {result.arrival_date && (
-                                                <p className="text-slate-500 text-xs mt-2 font-medium">
-                                                    Llegó: {formatDate(result.arrival_date)}
-                                                </p>
-                                            )}
                                         </div>
                                     </div>
 
                                     {/* Columna derecha: timeline */}
                                     <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-8">
-                                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-5">Historial de Seguimiento</p>
+                                        <p className="text-xs font-semibold text-slate-500 mb-5">Historial de seguimiento</p>
                                         <div className="relative space-y-6 md:space-y-10">
                                             <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-100" />
-                                            {timeline.map((step, index) => (
-                                                <div key={index} className="relative flex gap-5 md:gap-6">
-                                                    <div className={`z-10 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-white transition-all flex-shrink-0 ${
-                                                        step.current
-                                                            ? 'bg-amber-600 shadow-md shadow-amber-200'
-                                                            : step.completed
-                                                            ? 'bg-emerald-500'
-                                                            : 'bg-slate-200'
-                                                    }`}>
-                                                        {step.completed
-                                                            ? <CheckCircle size={15} className="text-white" />
-                                                            : <div className="h-2 w-2 rounded-full bg-white opacity-50" />}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0 pt-0.5">
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <h4 className={`font-black text-sm uppercase tracking-wide leading-tight ${
-                                                                step.current ? 'text-amber-600' : step.completed ? 'text-slate-800' : 'text-slate-300'
-                                                            }`}>
-                                                                {step.label}
-                                                            </h4>
-                                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
-                                                                {step.date}
-                                                            </span>
+                                            {timeline.map((step) => {
+                                                const isActive = step.current && step.status !== PublicTrackingStatus.ENTREGADO;
+                                                return (
+                                                    <div key={step.status} className="relative flex gap-5 md:gap-6">
+                                                        <div className={`z-10 h-8 w-8 rounded-full flex items-center justify-center ring-4 ring-white transition-all flex-shrink-0 ${
+                                                            isActive
+                                                                ? 'bg-amber-600 shadow-md shadow-amber-200'
+                                                                : step.completed
+                                                                ? 'bg-emerald-500'
+                                                                : 'bg-slate-200'
+                                                        }`}>
+                                                            {step.completed
+                                                                ? <CheckCircle size={15} className="text-white" />
+                                                                : <div className="h-2 w-2 rounded-full bg-white opacity-50" />}
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 mt-1 text-slate-400">
-                                                            <MapPin size={11} />
-                                                            <span className="text-xs font-medium">{step.location}</span>
+                                                        <div className="flex-1 min-w-0 pt-0.5">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <h4 className={`font-black text-sm leading-tight ${
+                                                                    isActive ? 'text-amber-600' : step.completed ? 'text-slate-800' : 'text-slate-400'
+                                                                }`}>
+                                                                    {step.label}
+                                                                </h4>
+                                                                {step.date && (
+                                                                    <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
+                                                                        {step.date}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
 

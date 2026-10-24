@@ -159,7 +159,7 @@ export async function notifyWhatsApp(phone: string, message: string): Promise<vo
 
 export const WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE = `📦 Estimado(a), {{nombre}}.
 
-Le informamos que actualmente tiene los siguientes paquetes disponibles en nuestra bodega en Panamá:
+Le informamos que actualmente tiene los siguientes paquetes disponibles en nuestra bodega:
 
 {{lista_paquetes}}
 

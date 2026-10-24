@@ -1,6 +1,7 @@
 import { LogisticsRepository } from '../repositories/logistics.repo';
 import {
   PackageStatus,
+  ConsolidationStatus,
   PackageInput,
   Package,
   Consolidation,
@@ -8,11 +9,70 @@ import {
   PreBilling,
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
+import {
+  PublicTrackingEvent,
+  PublicTrackingResult,
+  PublicTrackingStatus,
+} from '@/types/logistics/public-tracking.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 import type { Actor } from '@/shared/api/get-actor';
 import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
+
+const PUBLIC_TRACKING_STATUS: Record<string, PublicTrackingStatus> = {
+  [PackageStatus.PANAMA]: PublicTrackingStatus.RECEIVED,
+  [PackageStatus.EN_TRAMITE]: PublicTrackingStatus.EN_TRAMITE,
+  [PackageStatus.ENTREGADO]: PublicTrackingStatus.ENTREGADO,
+};
+
+/**
+ * Proyección del rastreo sin sesión: el cliente no debe enterarse de dónde está la
+ * bodega, y las notas, la evidencia y la ubicación de los eventos son del operador.
+ * Quien tenga el número ve solo el nombre y la inicial del apellido, sin uuid ni código.
+ */
+function toPublicTracking(row: {
+  tracking_number: string;
+  status: string;
+  weight_lb: number;
+  arrival_date: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  consolidation_id: number | string | null;
+  consolidation_status: string | null;
+  events: Array<{ status: string; created_at: string }> | null;
+}): PublicTrackingResult {
+  const events: PublicTrackingEvent[] = [];
+  for (const event of row.events ?? []) {
+    const status = PUBLIC_TRACKING_STATUS[event.status];
+    if (status) events.push({ status, created_at: event.created_at });
+  }
+
+  // Un paquete sin despachar que ya pertenece a una orden: el cliente pidió el envío, y si
+  // la orden ya salió va en camino.
+  const mappedStatus = PUBLIC_TRACKING_STATUS[row.status] ?? PublicTrackingStatus.RECEIVED;
+  const orderDispatched =
+    row.consolidation_status === ConsolidationStatus.DESPACHADO ||
+    row.consolidation_status === ConsolidationStatus.ENTREGADO;
+  let publicStatus = mappedStatus;
+  if (mappedStatus === PublicTrackingStatus.RECEIVED && row.consolidation_id != null) {
+    publicStatus = orderDispatched ? PublicTrackingStatus.EN_TRAMITE : PublicTrackingStatus.PREPARING;
+  }
+
+  const lastInitial = row.last_name?.trim().charAt(0).toUpperCase();
+  const customerName = [row.first_name?.trim(), lastInitial ? `${lastInitial}.` : '']
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    tracking_number: row.tracking_number,
+    status: publicStatus,
+    weight_lb: row.weight_lb,
+    arrival_date: row.arrival_date,
+    customer_name: customerName || null,
+    events,
+  };
+}
 
 /**
  * El cliente no tiene casillero en la ruta del courier elegido. Se distingue de
@@ -166,7 +226,7 @@ export const LogisticsService = {
   /**
    * Búsqueda pública por tracking_number. Usada en /tracking sin autenticación.
    */
-  getPackageByTrackingNumber: async (trackingNumber: string): Promise<any> => {
+  getPackageByTrackingNumber: async (trackingNumber: string): Promise<PublicTrackingResult> => {
     const clean = trackingNumber?.trim();
     if (!clean) throw new Error('El número de tracking es requerido.');
 
@@ -176,7 +236,7 @@ export const LogisticsService = {
       throw new Error('No se encontró ningún paquete con ese número de tracking.');
     }
 
-    return packageData;
+    return toPublicTracking(packageData);
   },
 
   /**

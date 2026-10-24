@@ -15,10 +15,16 @@ EMAIL_LOGO_URL=""                  # URL publica del logo (dejar vacio para fall
 
 ## Para produccion
 
-1. Verificar el dominio `magastore.com` (o el dominio real) en Resend > Domains.
-2. Cambiar `EMAIL_FROM` a `noreply@magastore.com` (o similar).
-3. Subir el logo a CDN o al directorio `public/` del proyecto y exponer una URL publica.
-4. Configurar `EMAIL_LOGO_URL` con esa URL publica.
+El remitente oficial sera `notifications@magastorecr.com`, solo cuando `magastorecr.com` este verificado en Resend.
+
+1. Resend > Domains > agregar `magastorecr.com`.
+2. Cargar en el DNS del dominio los registros SPF y DKIM que Resend indica y esperar a que quede verificado.
+3. En Vercel (Production) definir `EMAIL_FROM="Magastore <notifications@magastorecr.com>"` y `RESEND_API_KEY`.
+4. Volver a desplegar para que tome las variables.
+5. Subir el logo a CDN o al directorio `public/` del proyecto y exponer una URL publica.
+6. Configurar `EMAIL_LOGO_URL` con esa URL publica.
+
+> Importante: con `onboarding@resend.dev` Resend solo entrega al dueno de la cuenta. Mientras no se verifique el dominio, los correos probablemente no llegan a los clientes. El valor por defecto del codigo sigue siendo `onboarding@resend.dev`.
 
 ---
 

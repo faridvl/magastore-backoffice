@@ -30,10 +30,10 @@ const PACKAGE_STATUS_STYLES: Record<string, string> = {
 // Casillero por ruta (origin + package_type) — solo USA/AEREO tiene datos
 // reales hoy (ver warehouse_routes). Rutas futuras se agregan como fila nueva
 // en esa tabla, sin tocar este mapa de presentación.
-const WAREHOUSE_ROUTE_DISPLAY: Record<string, { label: string; flag: string; color: string }> = {
-  'USA-AEREO': { label: 'USA Aéreo', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
-  'USA-MARITIMO': { label: 'USA Marítimo', flag: '🚢', color: 'bg-blue-50 border-blue-100 text-blue-700' },
-  'CHINA-MARITIMO': { label: 'China', flag: '🇨🇳', color: 'bg-red-50 border-red-100 text-red-700' },
+const WAREHOUSE_ROUTE_DISPLAY: Record<string, { label: string; neutralLabel: string; flag: string; color: string }> = {
+  'USA-AEREO': { label: 'USA Aéreo', neutralLabel: 'Estados Unidos · Aéreo', flag: '🇺🇸', color: 'bg-sky-50 border-sky-100 text-sky-700' },
+  'USA-MARITIMO': { label: 'USA Marítimo', neutralLabel: 'Estados Unidos · Marítimo', flag: '🚢', color: 'bg-blue-50 border-blue-100 text-blue-700' },
+  'CHINA-MARITIMO': { label: 'China', neutralLabel: 'China · Marítimo', flag: '🇨🇳', color: 'bg-red-50 border-red-100 text-red-700' },
 };
 
 function WarehouseCodeCard({
@@ -55,6 +55,7 @@ function WarehouseCodeCard({
   // solo aporta bandera y color.
   const routeStyle = WAREHOUSE_ROUTE_DISPLAY[`${origin}-${packageType}`] ?? {
     label: `${origin} ${packageType}`,
+    neutralLabel: `Estados Unidos · ${packageType === 'MARITIMO' ? 'Marítimo' : 'Aéreo'}`,
     flag: '📦',
     color: 'bg-slate-50 border-slate-100 text-slate-700',
   };
@@ -73,7 +74,8 @@ function WarehouseCodeCard({
       firstName: customerFirstName,
       fullName: customerFullName,
       code,
-      routeLabel: display.label,
+      // Lo que recibe el cliente lleva la ruta neutra, nunca el nombre del courier.
+      routeLabel: routeStyle.neutralLabel,
       addressLine, city, state, postalCode, contactPhone,
       templateBody: welcomeTemplateBody,
     });

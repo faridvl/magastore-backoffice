@@ -11,6 +11,7 @@
 - Paso 3 → 4 deja la orden Despachada; Finalizar la marca Entregada junto con sus paquetes. Retiro en oficina: sin dirección, guía ni persona que recibe.
 - Plantillas de WhatsApp alineadas con los textos de TickTick (migración 036). La reseña va sin enlace: el cliente responde por WhatsApp.
 - Incidencias: fuera de alcance por ahora.
+- **El cliente nunca sabe que sus paquetes pasan por Panamá** (2026-10-24): rastreo público, plantillas de WhatsApp, correos, PDF y landing no mencionan Panamá ni PTY; la ruta que ve es "Estados Unidos → Costa Rica". En el backoffice "En Panamá" sigue.
 - Logo oficial: `D:\Documentos\Docs_Clientes\Magastore\` (versiones transparentes en `public/logo/`).
 
 ## En qué estamos
@@ -32,6 +33,12 @@
 - **Falta, al arrancar Docker** (solo con `arrancar-docker.ps1` de la skill `docker`): `npm run docker:reset`, que el proxy acepte `db.localtest.me` (HTTP y WebSocket del `Pool`), `docker:reset:027` + `docker:migrate`, `dev:docker` en `http://127.0.0.1:3030` con login del usuario de prueba, persistencia tras down/up, capturas (375, 1024, 1280) de Inicio, Órdenes, detalle, finalizada, cliente con personas que reciben y PDF. Después, fijar la imagen del proxy por digest.
 
 ## Pase a producción (pendiente, lo hace el usuario)
+- **Ya visible en producción:** el rastreo público dice "Recibido en Panamá" / "Bodega Panamá" y devuelve notas internas del operador, y la plantilla de paquetes disponibles dice "bodega en Panamá". Lo corrige el próximo pase (código + migración 037).
+- **Correos:** hoy probablemente no llegan a los clientes: con el remitente por defecto `onboarding@resend.dev` Resend solo entrega al dueño de la cuenta. Confirmar en Vercel (`EMAIL_FROM`) o en el panel de Resend. El remitente será `notifications@magastorecr.com` cuando se verifique `magastorecr.com` (pasos en `.claude/docs/email-setup.md`). Pregunta abierta: ¿quieres los dos correos (factura y entrega), solo uno o ninguno?
+- **Antes del pase, en producción (solo lectura):** `SELECT code FROM whatsapp_templates WHERE body ~* 'panam|pty'`, `SELECT name, origin FROM courier_rates` y `SELECT origin, address_line, city, state FROM warehouse_routes`: nada que diga Panamá o PTY. Mitigación inmediata sin deploy: editar hoy en Ajustes de producción la plantilla "Paquetes disponibles" para quitar "en Panamá" (la 037 es idempotente y después no hace nada).
+- **Migración 037** (plantilla sin Panamá): lista y probada en PGlite, sin aplicar en dev: espera tu OK.
+- **Pregunta abierta (Panamá):** el repo es público y el README, CLAUDE.md, el glosario, los seeds y el historial dicen que los paquetes pasan por Panamá. ¿Lo hacemos privado? (Lo decides tú; borrar el texto no basta por el historial.)
+- **Pregunta abierta (seguridad):** varias APIs solo comprueban que exista un token y no lo validan (`/api/logistics`, `customers/[id]/packages`, `dashboard/operations`): con cualquier `Authorization: Bearer x` devuelven paquetes con datos del cliente y el estado "PANAMA". Propuesta: una fase propia que valide el JWT en todos los handlers.
 - **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).
 - **Antes del primer merge a `main`**, en GitHub → Settings → Environments → New environment `db-production` (no usar "Production": es de Vercel):
   1. Deployment branches → Selected branches → `main`.
