@@ -14,6 +14,7 @@ import type { Actor } from '@/shared/api/get-actor';
 import { getSettings } from './settings.repo';
 import { DeliveryRatesRepository } from './delivery-rates.repo';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
+import { currentMonthKey } from '@/shared/utils/timezone';
 
 /**
  * Registra la participación de Farid sobre la ganancia de una orden.
@@ -333,7 +334,7 @@ export const LogisticsRepository = {
       await upsertProfitShare({
         consolidationId: c.id,
         billingId: null,
-        period: new Date().toISOString().slice(0, 7),
+        period: currentMonthKey(),
         status: 'ESTIMADO',
         revenueCrc: estimatedCrc,
         courierCostCrc: Number(preCostRow.total),
@@ -459,7 +460,7 @@ export const LogisticsRepository = {
       await upsertProfitShare({
         consolidationId: c.id,
         billingId: bill.id,
-        period: new Date().toISOString().slice(0, 7),
+        period: currentMonthKey(),
         status: 'FACTURADO',
         revenueCrc: Number(pre.estimated_amount_crc),
         courierCostCrc: courierCostCrc,

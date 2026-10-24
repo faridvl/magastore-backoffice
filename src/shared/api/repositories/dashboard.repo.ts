@@ -49,11 +49,9 @@ export const DashboardRepository = {
           p.tracking_number,
           p.status,
           p.created_at,
-          c.first_name || ' ' || c.last_name AS customer_name,
-          b.total_amount_crc
+          TRIM(COALESCE(c.first_name,'') || ' ' || COALESCE(c.last_name,'')) AS customer_name
         FROM packages p
         LEFT JOIN customers c ON p.customer_id = c.id
-        LEFT JOIN billing b ON b.consolidation_id = p.consolidation_id
         ORDER BY p.created_at DESC
         LIMIT 5
       `,
@@ -71,7 +69,8 @@ export const DashboardRepository = {
       `,
       sql`
         SELECT
-          c.first_name || ' ' || c.last_name AS name,
+          c.id::text AS id,
+          TRIM(COALESCE(c.first_name,'') || ' ' || COALESCE(c.last_name,'')) AS name,
           SUM(b.total_amount_crc)::bigint AS total
         FROM billing b
         JOIN consolidations con ON b.consolidation_id = con.id
@@ -95,7 +94,12 @@ export const DashboardRepository = {
           (SELECT COALESCE(SUM(share_crc), 0) FROM profit_shares
             WHERE status = 'FACTURADO'
               AND period = TO_CHAR(NOW() AT TIME ZONE 'America/Costa_Rica', 'YYYY-MM'))::numeric AS farid_share_crc,
-          (SELECT farid_share_percent FROM system_settings LIMIT 1)::numeric AS farid_share_percent
+          COALESCE(
+            (SELECT MAX(share_percent) FROM profit_shares
+              WHERE status = 'FACTURADO'
+                AND period = TO_CHAR(NOW() AT TIME ZONE 'America/Costa_Rica', 'YYYY-MM')),
+            (SELECT farid_share_percent FROM system_settings LIMIT 1)
+          )::numeric AS farid_share_percent
       `,
     ]);
 
@@ -131,6 +135,7 @@ export const DashboardRepository = {
       recentPackages: recentPackagesResult as RecentPackage[],
       revenueByMonth,
       topCustomers: (topCustomersResult as any[]).map((r) => ({
+        id: r.id as string,
         name: r.name as string,
         total: Number(r.total),
       })) as TopCustomer[],

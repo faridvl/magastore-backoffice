@@ -3,7 +3,6 @@ export interface RecentPackage {
   tracking_number: string;
   status: string;
   customer_name: string;
-  total_amount_crc: number | null;
   created_at: string;
 }
 
@@ -16,6 +15,7 @@ export interface RevenueByMonth {
 }
 
 export interface TopCustomer {
+  id: string;
   name: string;
   total: number;
 }

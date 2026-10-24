@@ -33,7 +33,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) 
   return (
     <div>
       <h3 className="font-black text-neutral-900 tracking-tight">{title}</h3>
-      <p className="text-neutral-400 text-xs font-semibold mt-0.5">{subtitle}</p>
+      <p className="text-neutral-500 text-xs font-semibold mt-0.5">{subtitle}</p>
     </div>
   );
 }
@@ -74,18 +74,21 @@ export const DashboardContainer: React.FC = () => {
       value: formatCRC(stats.profitThisMonthCRC),
       hint: 'del mes',
       valueClass: 'text-primary-light',
+      cellClass: '',
     },
     {
       label: 'Para Farid',
       value: formatCRC(stats.faridShareThisMonthCRC),
       hint: stats.faridSharePercent > 0 ? `${stats.faridSharePercent}% de la ganancia` : 'del mes',
       valueClass: 'text-accent',
+      cellClass: '',
     },
     {
       label: 'Por cobrar',
       value: formatCRC(stats.pendingBillingCRC),
-      hint: 'facturas sin pagar',
+      hint: 'de todos los meses',
       valueClass: 'text-white',
+      cellClass: 'col-span-2 sm:col-span-1',
     },
   ];
 
@@ -105,7 +108,7 @@ export const DashboardContainer: React.FC = () => {
     {
       label: 'Clientes',
       value: String(stats.activeCustomers),
-      hint: `+${stats.newCustomersThisMonth} este mes`,
+      hint: isLoading ? 'activos' : `+${stats.newCustomersThisMonth} este mes`,
       icon: Users,
     },
   ];
@@ -130,26 +133,27 @@ export const DashboardContainer: React.FC = () => {
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-white/10">
               {heroFigures.map((figure) => (
-                <div key={figure.label} className="bg-neutral-900/95 p-3 sm:p-4">
+                <div key={figure.label} className={`min-w-0 bg-neutral-900/95 p-3 sm:p-4 ${figure.cellClass}`}>
                   <p className="text-[11px] sm:text-xs font-semibold text-neutral-400">{figure.label}</p>
                   {isLoading ? (
                     <div className="mt-2 h-6 w-16 rounded bg-white/10 animate-pulse" />
                   ) : (
-                    <p className={`mt-1 text-base sm:text-xl font-black tabular-nums ${figure.valueClass}`}>
+                    <p className={`mt-1 break-words text-base sm:text-xl font-black tabular-nums ${figure.valueClass}`}>
                       {figure.value}
                     </p>
                   )}
-                  <p className="mt-0.5 text-[11px] sm:text-xs text-neutral-500 leading-snug">{figure.hint}</p>
+                  <p className="mt-0.5 text-[11px] sm:text-xs text-neutral-400 leading-snug">{figure.hint}</p>
                 </div>
               ))}
             </div>
 
             {!isLoading && stats.unknownCostCountThisMonth > 0 && (
               <p className="mt-3 text-xs text-accent">
-                {stats.unknownCostCountThisMonth} factura{stats.unknownCostCountThisMonth !== 1 ? 's' : ''} sin
-                costo de entrega: la ganancia todavía no es la final.
+                {stats.unknownCostCountThisMonth === 1
+                  ? 'Falta el costo de entrega de 1 factura: la ganancia es aproximada.'
+                  : `Faltan los costos de entrega de ${stats.unknownCostCountThisMonth} facturas: la ganancia es aproximada.`}
               </p>
             )}
           </div>
@@ -237,13 +241,13 @@ export const DashboardContainer: React.FC = () => {
                 ))}
               </div>
             ) : stats.topCustomers.length === 0 ? (
-              <p className="py-10 text-center text-sm font-semibold text-neutral-400">
+              <p className="py-10 text-center text-sm font-semibold text-neutral-500">
                 Todavía no hay facturas pagadas
               </p>
             ) : (
               <ol className="space-y-5">
                 {stats.topCustomers.map((customer, index) => (
-                  <li key={customer.name}>
+                  <li key={customer.id}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
                       <span className="min-w-0 truncate font-bold text-neutral-800">
                         <span className="mr-2 text-neutral-400 tabular-nums">{index + 1}</span>
@@ -279,7 +283,7 @@ export const DashboardContainer: React.FC = () => {
             ))}
           </div>
         ) : stats.recentPackages.length === 0 ? (
-          <p className="px-5 pb-8 pt-4 text-center text-sm font-semibold text-neutral-400">
+          <p className="px-5 pb-8 pt-4 text-center text-sm font-semibold text-neutral-500">
             Todavía no hay paquetes registrados
           </p>
         ) : (
@@ -288,20 +292,15 @@ export const DashboardContainer: React.FC = () => {
               <li key={pkg.uuid} className="flex items-center justify-between gap-3 px-5 sm:px-7 py-3.5">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-neutral-800">{pkg.customer_name}</p>
-                  <p className="truncate font-mono text-xs text-neutral-400">{pkg.tracking_number}</p>
+                  <p className="truncate font-mono text-xs text-neutral-500">{pkg.tracking_number}</p>
                 </div>
-                <div className="shrink-0 flex flex-col items-end gap-1">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                      STATUS_BADGE[pkg.status] ?? 'bg-neutral-100 text-neutral-600'
-                    }`}
-                  >
-                    {STATUS_LABELS[pkg.status] ?? pkg.status}
-                  </span>
-                  <span className="text-sm font-black text-neutral-900 tabular-nums">
-                    {pkg.total_amount_crc != null ? formatCRC(pkg.total_amount_crc) : 'Sin factura'}
-                  </span>
-                </div>
+                <span
+                  className={`shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    STATUS_BADGE[pkg.status] ?? 'bg-neutral-100 text-neutral-600'
+                  }`}
+                >
+                  {STATUS_LABELS[pkg.status] ?? pkg.status}
+                </span>
               </li>
             ))}
           </ul>

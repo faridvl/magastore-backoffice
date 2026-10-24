@@ -8,7 +8,6 @@
 
 /** Contadores de la bandeja de pendientes — cada uno enlaza a su pantalla filtrada. */
 export interface OperationsInbox {
-  /** Paquetes sin costo de courier o sin tipo de cambio: bloquean el cálculo de ganancia. */
   /** Paquetes recibidos que todavía no pertenecen a ninguna orden de envío. */
   packagesWithoutOrder: number;
   /** Clientes distintos que agrupan esos paquetes sueltos. */
