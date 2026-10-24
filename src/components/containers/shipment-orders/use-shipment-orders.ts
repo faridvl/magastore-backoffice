@@ -124,17 +124,17 @@ export const useShipmentOrders = () => {
       setPaidFilter(ShipmentOrderPaidFilter.PAGADA);
       touched = true;
     } else if (legacyPayment === 'ENTREGADO') {
-      // "Entregada" (status) ahora cubre dos pasos del wizard (4 y 5): el
-      // enlace legado apunta al 4 (Cierre), que es donde una
-      // orden recién entregada aterriza — sin filtro de step no se podría
-      // distinguir "recién entregada, con seguimiento pendiente" de
-      // "finalizada hace tiempo" en un solo valor.
-      setStepFilters([ShipmentOrderStepFilter.NOTIFICACION]);
+      // Una orden pasa a entregada recién al finalizar (paso 5).
+      setStepFilters([ShipmentOrderStepFilter.FINALIZADA]);
+      setPaidFilter(ShipmentOrderPaidFilter.ALL);
       touched = true;
     }
 
     if (stepParam && stepParam in ShipmentOrderStepFilter) {
-      setStepFilters([ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter]]);
+      const step = ShipmentOrderStepFilter[stepParam as keyof typeof ShipmentOrderStepFilter];
+      setStepFilters([step]);
+      // Mismo criterio que al elegirlo a mano: con "Sin pagar" casi no aparecería nada.
+      if (step === ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE && !paidParam) setPaidFilter(ShipmentOrderPaidFilter.ALL);
       touched = true;
     }
     if (paidParam && paidParam in ShipmentOrderPaidFilter) {

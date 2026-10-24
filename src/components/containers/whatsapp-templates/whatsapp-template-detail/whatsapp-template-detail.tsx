@@ -8,12 +8,13 @@ import { useWhatsAppTemplateDetail } from './use-whatsapp-template-detail';
 /** Ejemplo de cómo se ve el mensaje ya con datos reales. */
 const PREVIEW_VALUES: Record<string, string> = {
     nombre: 'María',
+    descuento: 'Descuento cliente (10%): -₡900',
     nombre_completo: 'María Rodríguez',
     lista_paquetes: '* Amazon – 4.50 lb\n* SHEIN – 2.00 lb',
     peso_total: '6.50',
     id_orden: 'A1B2C3D4',
     metodo_entrega: 'Correos de Costa Rica',
-    monto: '₡24,500',
+    monto: '₡24.500',
     codigo: 'MGA-2453-C-11',
     ruta_label: 'USA Aéreo',
     direccion: '2610 NW 89TH CT',

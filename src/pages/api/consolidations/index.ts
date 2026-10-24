@@ -223,7 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
     // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
     const status = message.includes('no encontrad') ? 404
-      : message.includes('inválid') || message.includes('requerido') ? 400
+      : message.includes('inválid') || message.includes('requerid') ? 400
       : /^(solo|no) se puede/i.test(message) ? 409
       : 500;
     return res.status(status).json({ message });

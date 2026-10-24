@@ -1,28 +1,25 @@
 # Traspaso — Magastore backoffice
 
 ## Qué quiere el usuario
-- Todo muy probado: recorrer los flujos que pueden romperse y entregar capturas (móvil y escritorio).
-- Botones con buen espaciado interno; mensajes para el operador, nada técnico (sin `EN_TRAMITE`, `PANAMA`, `AEREO`); tuteo, no voseo.
-- Que cada paso tenga un sentido operativo obvio: una acción principal por paso.
-- Filtros del listado de órdenes como en `audiocolors-backoffice`: sección de filtros con varias casillas por grupo, no selects que se cortan.
-- Migraciones automáticas con GitHub Actions al aprobar el PR a `main`.
+- Todo muy probado: recorrer los flujos que pueden romperse y entregar capturas (móvil, iPad y escritorio). El iPad (app instalada, sin WhatsApp) es el dispositivo principal.
+- El operador no es técnico: mensajes claros, tuteo, sin términos internos. Pocas palabras en las tareas, una acción principal por paso.
+- Prioridad a lo pendiente en TickTick (proyecto "🏪 MagaStore").
+- Todo a `develop`, sin push ni PR hasta que lo pida.
 
 ## Reglas de negocio confirmadas
-- Quién recibe va aparte de la dirección: el cliente tiene una lista de personas que reciben (mamá, tío…) y en cada orden se elige dirección y persona por separado ("él recibe en X" o "su mamá recibe en X"). Confirmado el 23/10/2026.
-- Sección de Incidencias: fuera de alcance por ahora.
-- Teléfono del PDF: lo cambia el usuario en Vercel (`NEXT_PUBLIC_WHATSAPP_NUMBER`).
-- Logo oficial: sistema de logos del 30/08/2026 en `D:\Documentos\Docs_Clientes\Magastore\` (brand book con los mismos colores que `src/components/landing/tokens.ts`).
+- Quién recibe va aparte de la dirección: el cliente tiene personas que reciben y en cada orden se elige dirección y persona por separado.
+- Paso 3 → 4 deja la orden Despachada; Finalizar la marca Entregada junto con sus paquetes. Retiro en oficina: sin dirección, guía ni persona que recibe.
+- Plantillas de WhatsApp alineadas con los textos de TickTick (migración 036). La reseña va sin enlace: el cliente responde por WhatsApp.
+- Incidencias: fuera de alcance por ahora.
+- Logo oficial: `D:\Documentos\Docs_Clientes\Magastore\` (versiones transparentes en `public/logo/`).
 
-## En qué estamos (rama `feat/ui-ordenes-marca`, sin subir)
-- PDF de marca (`b7f1ea0`) y workflow de migraciones en main (`73ab4cf`; falta el secreto `DATABASE_URL` en el entorno `production` de GitHub).
-- Hallazgos 1–10 corregidos, detalle rediseñado (un paso activo como lista de tareas, resumen al costado, ficha de orden finalizada con historial), filtros con casillas (`FilterBar` común), personas que reciben aparte de la dirección (migración 035 `customer-recipients`, aplicada solo en dev).
-- Semántica nueva: paso 3 → 4 deja la orden Despachada; Finalizar la marca Entregada junto con los paquetes. Retiro en oficina sin dirección ni guía.
-- Probado en dev con PRB202 (retiro, sin pago y luego pago en efectivo) y PRB203 (Correos, recibe la mamá), móvil y escritorio.
+## En qué estamos
+- Migraciones 028–036 aplicadas en dev; producción sigue en 027 y las aplica el workflow al hacer merge a `main`.
+- Dos rondas de pruebas contra el API de dev y dos de revisión: sin defectos abiertos.
+- Dashboard "Operativo" revisado: números inflados por paquetes entregados, enlaces que no coinciden con la tarjeta, nada del flujo de órdenes, tablas con scroll lateral en iPad y celular, botones chicos, sin "Reintentar". Propuesta: lista "Tu día" en el orden del flujo + panel de cobros. **Esperando decisión** (todo junto o primero números y enlaces).
 
-## Observaciones sin cambiar
-- Los paquetes pasan a "En trámite" recién al registrar el pago: despachados sin pago siguen "En Panamá" en el rastreo.
-- Quedan órdenes de prueba de postventa (PRB101) con 0 paquetes en dev.
-
-## Preguntas abiertas
-- Plantillas: el usuario pidió alinearlas con TickTick. Diferencias: seguimiento postventa sin número de orden, pedir y confirmar dirección con otra redacción, estimado con campos vacíos ("Precio x lb:", "Envío:"). Falta su visto bueno al texto final.
-- ¿Qué base usa Vercel en producción? Debe ser la misma del secreto `DATABASE_URL` (`ep-blue-sky…`).
+## Pendiente
+- Secreto `DATABASE_URL` del entorno `production` en GitHub y revisar qué base usa Vercel (lo dejó para después).
+- Favicon, íconos de la PWA y splash de iOS con el logo nuevo.
+- Crear orden y confirmar factura usan `BEGIN` sobre HTTP de Neon, que no es una transacción real.
+- El API de personas que reciben guarda el teléfono tal cual llega; la máscara es solo de la interfaz.

@@ -8,8 +8,9 @@ import { useBilling, PaidFilterValue } from './use-billing';
 import { BillingListItem, ConsolidationStatus } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
+import { formatCrc } from '@/shared/utils/format-crc';
 
-const formatCRC = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 const formatInvoiceNumber = (n: number) => `F-${String(n).padStart(4, '0')}`;
 
 const ORDER_STATUS_LABELS: Record<ConsolidationStatus, string> = {

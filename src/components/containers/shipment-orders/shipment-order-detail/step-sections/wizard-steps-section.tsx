@@ -149,9 +149,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
     <StepCard
       stepLabel={stepLabel(ShipmentOrderStep.CONFIRMACION)}
       title="Confirmación"
-      description={isPickup
-        ? 'Revisa los paquetes y genera el estimado. El cliente retira en oficina.'
-        : 'Confirma con el cliente a dónde se entrega y quién recibe, y genera el estimado.'}
+      description={isPickup ? 'El cliente retira en oficina.' : undefined}
       footer={
         <StepFooter
           hint={props.step1BlockedReason}
@@ -169,7 +167,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
     >
       {isPickup ? (
         <ChecklistRow title="Dirección de entrega" isDone>
-          No hace falta: el cliente retira en oficina.
+          No hace falta
         </ChecklistRow>
       ) : (
         <ChecklistRow
@@ -201,7 +199,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
               </p>
             </>
           ) : (
-            'Sin dirección todavía. Pídela al cliente o regístrala.'
+            'Sin dirección'
           )}
         </ChecklistRow>
       )}
@@ -223,7 +221,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       >
         {detail.delivery_method
           ? resolveDeliveryMethodLabel(detail.delivery_method, deliveryMethodsData)
-          : 'Sin elegir: se pedirá al generar el estimado.'}
+          : 'Sin elegir'}
       </ChecklistRow>
       <ChecklistRow title="Paquetes" isDone={detail.packages.length > 0}>
         {detail.packages.length} paquete(s) · {totalWeight} lb
@@ -244,7 +242,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       >
         {detail.pre_billing_notified_at
           ? `Enviado el ${formatBusinessDate(detail.pre_billing_notified_at)}`
-          : 'Todavía no se envió.'}
+          : 'Sin enviar'}
       </ChecklistRow>
     );
     const pdfAction = (
@@ -263,10 +261,10 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         <StepCard
           stepLabel={stepLabel(ShipmentOrderStep.COBRO)}
           title="Cobro"
-          description="Cuando el cliente pague, pasa la orden a despacho. Si despachas sin pago, queda marcada como pendiente."
           footer={
             <StepFooter
               back={!isPaid ? backLink : undefined}
+              hint={!isPaid ? 'Sin pago, se despacha como pendiente.' : null}
               next={
                 <StepAction
                   variant={StepActionVariant.PRIMARY}
@@ -320,10 +318,10 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       <StepCard
         stepLabel={stepLabel(ShipmentOrderStep.COBRO)}
         title="Cobro"
-        description="Envía el estimado al cliente y confírmalo cuando lo apruebe. Al confirmarlo se genera la factura."
         footer={
           <StepFooter
             back={backLink}
+            hint="Si cambiaron tarifas, recalcula antes."
             next={
               <StepAction
                 variant={StepActionVariant.PRIMARY}
@@ -357,7 +355,6 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           {detail.pre_billing_delivery_method && (
             <span className="ml-2">Entrega: {resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData)}</span>
           )}
-          <p className="text-xs mt-1">Si cambiaron las tarifas después de enviarlo, recalcula antes de confirmar.</p>
         </ChecklistRow>
         {notifyRow}
       </StepCard>
@@ -381,9 +378,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           ? detail.billing_payment_notified_at
             ? `Pagada · aviso enviado el ${formatBusinessDate(detail.billing_payment_notified_at)}`
             : 'Pagada · falta avisarle al cliente'
-          : isPickup
-            ? 'Pendiente de pago: cóbralo cuando retire.'
-            : 'Pendiente de pago: el aviso al cliente le recordará el monto.'}
+          : isPickup ? 'Pendiente: se cobra al retirar' : 'Pendiente de pago'}
       </ChecklistRow>
     );
 
@@ -392,7 +387,6 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         <StepCard
           stepLabel={stepLabel(ShipmentOrderStep.DESPACHO)}
           title="Listo para retiro"
-          description="El cliente retira en oficina: no hay solicitud al proveedor ni guía."
           footer={
             <StepFooter
               next={
@@ -412,7 +406,6 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       <StepCard
         stepLabel={stepLabel(ShipmentOrderStep.DESPACHO)}
         title="Despacho"
-        description="Pide el envío al proveedor, avisa al cliente y carga la guía cuando el proveedor la confirme."
         footer={
           <StepFooter
             hint={!detail.tracking_code ? 'Carga la guía para pasar al cierre.' : null}
@@ -440,7 +433,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         >
           {detail.shipment_requested_at
             ? `Solicitada el ${formatBusinessDate(detail.shipment_requested_at)}`
-            : 'Copia la solicitud y pégala en el chat del proveedor.'}
+            : 'Pendiente'}
         </ChecklistRow>
         <ChecklistRow
           title="Aviso al cliente"
@@ -453,7 +446,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         >
           {detail.customer_notified_shipment_at
             ? `Avisado el ${formatBusinessDate(detail.customer_notified_shipment_at)}`
-            : 'Avísale que su envío ya fue solicitado.'}
+            : 'Pendiente'}
         </ChecklistRow>
         <ChecklistRow
           title="Guía del proveedor"
@@ -466,7 +459,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         >
           {detail.tracking_code
             ? <span className="font-mono text-slate-700 break-all">{detail.tracking_code}</span>
-            : 'Esperando que el proveedor la confirme.'}
+            : 'Esperando al proveedor'}
         </ChecklistRow>
         {detail.tracking_code && (
           <ChecklistRow
@@ -479,8 +472,8 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
             ) : undefined}
           >
             {props.canNotifyDispatch
-              ? 'Envíale al cliente la guía con el enlace de rastreo.'
-              : 'Este método no tiene enlace de rastreo. Agrégalo en Ajustes → Métodos de entrega.'}
+              ? 'Guía y enlace de rastreo'
+              : 'Falta el enlace de rastreo en Ajustes → Métodos de entrega'}
           </ChecklistRow>
         )}
       </StepCard>
@@ -491,12 +484,10 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
     <StepCard
       stepLabel={stepLabel(ShipmentOrderStep.NOTIFICACION)}
       title="Cierre"
-      description={isPickup
-        ? 'Finaliza la orden cuando el cliente retire sus paquetes.'
-        : 'Cuando el paquete llegue, registra el costo real del envío y finaliza la orden.'}
+      description={isPickup ? 'Finaliza cuando el cliente retire.' : undefined}
       footer={
         <StepFooter
-          hint="Al finalizar, la orden y sus paquetes quedan como entregados."
+          hint="La orden queda como entregada."
           next={
             <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleFinalizeOrder} disabled={props.isFinalizing}>
               {props.isFinalizing ? 'Finalizando…' : 'Finalizar orden'}
@@ -530,7 +521,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         >
           {hasActualFee
             ? `${formatCrc(Number(detail.billing_actual_delivery_fee_crc))} · se cobró ${formatCrc(Number(originalFeeCrc ?? 0))}`
-            : 'Opcional: lo que cobró el transportista, si difiere de lo cobrado.'}
+            : 'Opcional: lo que cobró el transportista'}
         </ChecklistRow>
       )}
       {hasChangeDue && (
@@ -543,12 +534,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
             </StepAction>
           ) : undefined}
         >
-          {detail.billing_change_returned ? 'Devuelto al cliente.' : 'Se le cobró de más al cliente por el envío.'}
-        </ChecklistRow>
-      )}
-      {isPickup && (
-        <ChecklistRow title="Retiro en oficina" isDone={null}>
-          Finaliza cuando el cliente haya retirado.
+          {detail.billing_change_returned ? 'Devuelto' : 'Se cobró de más: pendiente de devolver'}
         </ChecklistRow>
       )}
       {hasBilling && !isPaid && (
@@ -557,7 +543,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           isDone={false}
           action={<StepAction onClick={() => props.setShowBillingModal(true)}>Registrar pago</StepAction>}
         >
-          La factura sigue pendiente de pago.
+          Pendiente
         </ChecklistRow>
       )}
     </StepCard>

@@ -97,10 +97,10 @@ export function Header({
                   `bg-primary` perdía contraste. */}
               <div className="h-10 w-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-md overflow-hidden shrink-0">
                 <Image
-                  src="/logo/magastore-isotipo-2026.png"
+                  src="/logo/magastore-isotipo-transparente.png"
                   alt={userName}
-                  width={741}
-                  height={485}
+                  width={400}
+                  height={289}
                   className="h-full w-full object-contain p-1.5"
                 />
               </div>

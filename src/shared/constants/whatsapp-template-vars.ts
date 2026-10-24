@@ -43,7 +43,7 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'metodo_entrega', label: 'Cómo se entrega — ej. Correos de Costa Rica' },
     { key: 'monto_envio', label: 'Cobro del envío internacional a precio de lista, antes del descuento — ej. ₡8.730' },
     { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6.900 (o "Sin cargo" si es retiro)' },
-    { key: 'descuento', label: 'Renglón de descuento si el cliente tiene tarifa especial, ya con su salto de línea — ej. Descuento cliente (10%): -₡900. Vacío si no aplica: va pegado antes del renglón de entrega' },
+    { key: 'descuento', label: 'Renglón de descuento si el cliente tiene tarifa especial — ej. Descuento cliente (10%): -₡900. Si no aplica, el renglón no aparece' },
     { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24.500' },
   ],
   // Va al PROVEEDOR, no al cliente: es el texto que se copia para pedirle el

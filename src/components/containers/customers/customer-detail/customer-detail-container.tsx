@@ -157,6 +157,7 @@ import { notifyWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
     const router = useRouter();
@@ -233,7 +234,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
 
     const metricPackageCount = metrics != null ? String(metrics.packageCount) : '—';
     const metricTotalLbs = metrics != null ? `${Number(metrics.totalLbs).toFixed(2)} lb` : '—';
-    const metricTotalSpent = metrics != null ? `₡${Math.round(metrics.totalSpent).toLocaleString('es-CR')}` : '—';
+    const metricTotalSpent = metrics != null ? formatCrc(metrics.totalSpent) : '—';
     const metricFirstPackageDate = metrics != null ? metrics.firstPackageDate : '—';
     const metricLastPackageDate = metrics != null ? metrics.lastPackageDate : '—';
 

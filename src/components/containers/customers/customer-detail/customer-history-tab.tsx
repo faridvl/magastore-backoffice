@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Search, Package, ArrowUpRight } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 interface CustomerHistoryTabProps {
     seasonalityData: any[];
@@ -113,7 +114,7 @@ export const CustomerHistoryTab: React.FC<CustomerHistoryTabProps> = ({
                                     </td>
                                     <td className="px-8 py-5">
                                         <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800">
-                                            ₡{item.total.toLocaleString()}
+                                            {formatCrc(item.total)}
                                         </Typography>
                                     </td>
                                     <td className="px-8 py-5">

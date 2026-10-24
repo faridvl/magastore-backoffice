@@ -1,12 +1,13 @@
 -- 036-align-whatsapp-templates.sql
 --
--- Alinea las plantillas de WhatsApp con los textos definidos por el negocio en
--- TickTick y corrige el estimado, que mandaba "Precio x lb:" y "Envío:" vacíos.
+-- Textos de plantillas definidos por el negocio y corrección del estimado, que
+-- mandaba "Precio x lb:" y "Envío:" vacíos.
 --
--- Pedir y confirmar dirección, y la reseña, se reemplazan completas: son los
--- textos que el negocio escribió. La reseña va sin enlace: todavía no hay dónde
--- publicarlas, el cliente responde por WhatsApp. En el resto solo se toca la
--- parte que falla, para no pisar otros ajustes hechos desde Ajustes.
+-- Pedir y confirmar dirección, y la reseña, se reemplazan completas: en
+-- producción nacen en este mismo lote (028, 029, 034), no hay ediciones que
+-- perder. La reseña va sin enlace: el cliente responde por WhatsApp. El resto
+-- solo se toca si tiene el texto original o el defecto conocido, para no pisar
+-- ajustes hechos desde Ajustes.
 --
 -- Idempotente: reejecutarla deja el mismo texto.
 
@@ -46,7 +47,9 @@ Tu opinión nos ayuda a seguir mejorando y también permite que más personas co
 
 ¡Muchas gracias por confiar en nosotros!
 
-*MAGASTORE 📦✈️*$tpl$, updated_at = NOW()
+*MAGASTORE 📦✈️*$tpl$,
+  description = 'Se envía después del seguimiento, cuando el cliente confirmó que todo llegó bien. El cliente responde por WhatsApp.',
+  updated_at = NOW()
 WHERE code = 'REVIEW_REQUEST';
 
 UPDATE whatsapp_templates SET body = $tpl$📦 Estimado(a), {{nombre}}.
@@ -57,7 +60,8 @@ Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 {{desglose_paquetes}}
 
 Envío internacional: {{monto_envio}}
-{{descuento}}{{metodo_entrega}}: {{monto_entrega}}
+{{descuento}}
+{{metodo_entrega}}: {{monto_entrega}}
 *Total a pagar: {{monto}}*
 
 Peso total: {{peso_total}} lb
@@ -65,7 +69,20 @@ Peso total: {{peso_total}} lb
 Quedamos atentos a su confirmación para proceder.
 
 *MAGASTORE 📦✈️*$tpl$, updated_at = NOW()
-WHERE code = 'PREBILLING_READY';
+WHERE code = 'PREBILLING_READY'
+  AND (
+    body ~ ('(Precio x lb|Envío):[ ]*(' || chr(10) || '|$)')
+    OR body = $orig$📦 Estimado(a), {{nombre}}.
+
+Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
+
+Peso total: {{peso_total}} lb
+Método de entrega: {{metodo_entrega}}
+
+Quedamos atentos a su confirmación para proceder.
+
+*MAGASTORE 📦✈️*$orig$
+  );
 
 -- Seguimiento: el número de orden que pide TickTick, solo si todavía no está.
 UPDATE whatsapp_templates
@@ -77,8 +94,8 @@ UPDATE whatsapp_templates
 SET body = regexp_replace(body, '\{\{peso_total\}\}(?! ?lb)', '{{peso_total}} lb', 'g'), updated_at = NOW()
 WHERE code = 'PACKAGES_AVAILABLE' AND body ~ '\{\{peso_total\}\}(?! ?lb)';
 
--- Bienvenida de casillero: la ruta sale del dato; el título fijo decía "Aéreo —
--- Estados Unidos" también para casilleros marítimos o de otro origen.
+-- Bienvenida de casillero: si el título se editó en Ajustes con "Aéreo — Estados
+-- Unidos" fijo, se cambia por la ruta, que también sirve a casilleros de otro origen.
 UPDATE whatsapp_templates
 SET body = replace(body, '*Casillero Aéreo — Estados Unidos* 🇺🇸', '*Casillero {{ruta_label}}*'), updated_at = NOW()
 WHERE code = 'WAREHOUSE_WELCOME' AND body LIKE '%Casillero Aéreo — Estados Unidos%';

@@ -3,8 +3,19 @@ import { toast } from 'sonner';
 
 export type WhatsAppTemplateVars = Record<string, string>;
 
+const PLACEHOLDER = /\{\{(\w+)\}\}/g;
+
+/**
+ * Un renglón que solo tenía variables y quedó vacío (el descuento sin rebaja,
+ * el enlace de rastreo sin configurar) se quita en vez de dejar un hueco.
+ */
 export function interpolate(template: string, vars: WhatsAppTemplateVars): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? '');
+  return template
+    .split('\n')
+    .map((line) => ({ line, rendered: line.replace(PLACEHOLDER, (_, key: string) => vars[key] ?? '') }))
+    .filter(({ line, rendered }) => !(line.match(PLACEHOLDER) && rendered.trim() === ''))
+    .map(({ rendered }) => rendered)
+    .join('\n');
 }
 
 /**
@@ -175,7 +186,8 @@ Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 {{desglose_paquetes}}
 
 Envío internacional: {{monto_envio}}
-{{descuento}}{{metodo_entrega}}: {{monto_entrega}}
+{{descuento}}
+{{metodo_entrega}}: {{monto_entrega}}
 *Total a pagar: {{monto}}*
 
 Peso total: {{peso_total}} lb
@@ -287,10 +299,9 @@ export function buildPreBillingReadyMessage(params: {
     monto_entrega: params.deliveryFeeCrc != null
       ? (Number(params.deliveryFeeCrc) > 0 ? formatCrc(Number(params.deliveryFeeCrc)) : 'Sin cargo')
       : '—',
-    // Renglón completo con su salto de línea, o vacío si no hubo rebaja: así la
-    // plantilla lo pega antes de la entrega sin dejar un renglón en blanco.
+    // Vacío si no hubo rebaja: interpolate quita el renglón.
     descuento: params.discountLabel && params.discountCrc
-      ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}\n`
+      ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}`
       : '',
     monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
   });

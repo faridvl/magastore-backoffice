@@ -7,6 +7,7 @@ import { PackageStatus } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 const STATUS_LABELS: Record<PackageStatus, string> = {
     [PackageStatus.PANAMA]:     'En Bodega Panamá',
@@ -313,11 +314,11 @@ export const PackageDetailContainer: React.FC = () => {
                                             no de peso × tarifa: para un cliente al costo o con descuento
                                             ese producto no es lo que se cobró. */}
                                         {facturaBreakdown && !facturaBreakdown.isNormal && (
-                                            <FinanceRow label={facturaBreakdown.ruleLabel ?? 'Ajuste'} value={`- ₡${Math.round(facturaBreakdown.descuento).toLocaleString()}`} />
+                                            <FinanceRow label={facturaBreakdown.ruleLabel ?? 'Ajuste'} value={`- ${formatCrc(facturaBreakdown.descuento)}`} />
                                         )}
                                         <FinanceRow
                                             label="Flete Internacional"
-                                            value={facturaBreakdown ? `₡${Math.round(facturaBreakdown.flete).toLocaleString()}` : '—'}
+                                            value={facturaBreakdown ? formatCrc(facturaBreakdown.flete) : '—'}
                                             isHighlight
                                         />
 
@@ -328,13 +329,13 @@ export const PackageDetailContainer: React.FC = () => {
                                             <FinanceRow label="Método de Entrega" value={resolveDeliveryMethodLabel(data.deliveryMethod, deliveryMethodsData?.data)} />
                                         )}
                                         {data.deliveryFeeCrc !== null && data.deliveryFeeCrc > 0 && (
-                                            <FinanceRow label="Costo de Entrega" value={`₡${Number(data.deliveryFeeCrc).toLocaleString()}`} />
+                                            <FinanceRow label="Costo de Entrega" value={formatCrc(Number(data.deliveryFeeCrc))} />
                                         )}
 
                                         <div className="pt-6 border-t border-white/10">
                                             <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Total Facturado</label>
                                             <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-emerald-400">
-                                                ₡{Number(data.totalFacturado).toLocaleString()}
+                                                {formatCrc(Number(data.totalFacturado))}
                                             </span>
                                             <div className="mt-3 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg w-fit">
                                                 <span className="text-[9px] font-black text-emerald-400 uppercase tracking-tighter">{data.estadoPago}</span>
@@ -360,7 +361,7 @@ export const PackageDetailContainer: React.FC = () => {
                                         <div className="pt-6 border-t border-white/10">
                                             <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Estimado a Pagar</label>
                                             <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-slate-300">
-                                                ₡{calculos.totalPagar.toLocaleString()}
+                                                {formatCrc(calculos.totalPagar)}
                                             </span>
                                             <div className="mt-3 px-3 py-1 bg-slate-700/50 border border-slate-600/30 rounded-lg w-fit">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Sin Factura</span>

@@ -31,6 +31,16 @@ export const CustomerRecipientsRepository = {
   },
 
   remove: async (customerId: string, recipientId: string): Promise<CustomerRecipient[]> => {
+    // Borrarla pasaría esas órdenes a "recibe el cliente" sin avisar, y la
+    // solicitud al proveedor saldría a nombre equivocado.
+    const [inUse] = await sql`
+      SELECT COUNT(*)::int AS count FROM consolidations c
+      WHERE c.recipient_id = ${recipientId}
+        AND NOT EXISTS (SELECT 1 FROM billing b WHERE b.consolidation_id = c.id)
+    `;
+    if (Number(inUse?.count) > 0) {
+      throw new Error('No se puede eliminar: recibe en una orden que todavía no tiene factura. Cambia quién recibe en esa orden primero.');
+    }
     const [deleted] = await sql`
       DELETE FROM customer_recipients WHERE id = ${recipientId} AND customer_id = ${customerId}
       RETURNING id

@@ -6,9 +6,9 @@ import {
 import { TrendingUp, Package, Clock, Users } from 'lucide-react';
 import { useDashboard } from './use-dashboard';
 import { PackageStatus } from '@/types/logistics/logistics.types';
+import { formatCrc } from '@/shared/utils/format-crc';
 
-const formatCRC = (amount: number) =>
-  `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 
 const STATUS_LABELS: Record<string, string> = {
   [PackageStatus.PANAMA]: 'En Panamá',

@@ -26,7 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno';
-    const status = message.includes('requerid') ? 400 : /no existe|no encontrad/.test(message) ? 404 : 500;
+    const status = message.includes('requerid') ? 400
+      : /no existe|no encontrad/.test(message) ? 404
+      : /^(solo|no) se puede/i.test(message) ? 409
+      : 500;
     return res.status(status).json({ message });
   }
 }

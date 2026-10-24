@@ -76,6 +76,9 @@ try {
     }
     console.log(`Punto de partida: ${baseline.length} migraciones ya aplicadas según ${LEDGER_FILE} (${ledgerEnv}).`);
     if (!isDryRun) {
+      // Todo o nada: un punto de partida a medias haría que la próxima corrida
+      // ejecute migraciones viejas sobre la base con datos.
+      await client.query('BEGIN');
       await client.query(`
         CREATE TABLE IF NOT EXISTS schema_migrations (
           name        TEXT PRIMARY KEY,
@@ -93,6 +96,7 @@ try {
           [name, name.match(MIGRATION_PATTERN)?.[1] ?? '', migration ? checksum(migration.path) : null],
         );
       }
+      await client.query('COMMIT');
     }
     appliedNames = new Set(baseline);
   }

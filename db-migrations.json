@@ -258,14 +258,14 @@
         {
           "name": "035-customer-recipients.sql",
           "version": "035",
-          "checksum": "3d0973b19cac45c3",
+          "checksum": "31d7ce3a999e5b2e",
           "appliedAt": "2026-10-23T15:50:07.267Z",
           "appliedBy": "Farid"
         },
         {
           "name": "036-align-whatsapp-templates.sql",
           "version": "036",
-          "checksum": "83e2af26cf452c41",
+          "checksum": "8657d7cc7ce65573",
           "appliedAt": "2026-10-24T03:38:06.235Z",
           "appliedBy": "Farid"
         }

@@ -1,3 +1,4 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 interface DeliveryEmailData {
   firstName: string;
   trackingNumber: string;
@@ -109,11 +110,7 @@ export function renderDeliveryEmail(data: DeliveryEmailData): string {
 }
 
 export function renderInvoiceEmail(data: InvoiceEmailData): string {
-  const formatted = new Intl.NumberFormat('es-CR', {
-    style: 'currency',
-    currency: 'CRC',
-    minimumFractionDigits: 0,
-  }).format(data.totalAmountCRC);
+  const formatted = formatCrc(data.totalAmountCRC);
 
   const rows = `
     ${buildHeader(data.logoUrl)}

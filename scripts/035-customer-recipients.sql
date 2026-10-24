@@ -1,4 +1,4 @@
--- 035-address-recipient.sql
+-- 035-customer-recipients.sql
 --
 -- Quién recibe, separado de dónde. Un cliente puede tener varias personas que
 -- reciben por él (mamá, tío) y en cada orden se elige dirección y persona por
@@ -9,8 +9,8 @@
 -- ON DELETE SET NULL: borrar a una persona no deja órdenes apuntando a nada;
 -- la factura ya emitida conserva el nombre en su copia de la dirección.
 --
--- ADITIVO. El DROP limpia las columnas de un primer diseño que solo llegó a
--- la base de desarrollo; en producción no existen y no hace nada.
+-- ADITIVO. Los DROP ... IF EXISTS quitan columnas de quién recibe por dirección
+-- si existieran; donde no existen no hacen nada.
 
 CREATE TABLE IF NOT EXISTS customer_recipients (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

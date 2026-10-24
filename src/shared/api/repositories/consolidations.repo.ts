@@ -73,6 +73,12 @@ export const ConsolidationsRepository = {
         ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${deliveryMethod}`
         : [null];
       let resolvedAddressId = deliveryAddressId ?? null;
+      if (resolvedAddressId) {
+        const [address] = await sql`
+          SELECT id FROM customer_addresses WHERE id = ${resolvedAddressId} AND customer_id = ${customerUuid}
+        `;
+        if (!address) throw new Error('Dirección inválida: no pertenece a este cliente.');
+      }
       if (!resolvedAddressId && !method?.is_pickup) {
         const addresses = await sql`
           SELECT id FROM customer_addresses WHERE customer_id = ${customerUuid}
@@ -84,6 +90,11 @@ export const ConsolidationsRepository = {
         }
       }
 
+      // En retiro no hay entrega: ni dirección ni quién recibe, aunque vengan.
+      if (method?.is_pickup) {
+        resolvedAddressId = null;
+        recipientId = null;
+      }
       if (recipientId) {
         const [recipient] = await sql`
           SELECT id FROM customer_recipients WHERE id = ${recipientId} AND customer_id = ${customerUuid}
@@ -139,7 +150,7 @@ export const ConsolidationsRepository = {
     // implica Finalizada.
     const stepTokens = (stepFilter ?? '').split(',').map((s) => s.trim()).filter((s) => s && s !== 'ALL');
     const isFollowUpPending = stepTokens.includes(FOLLOW_UP_PENDING_STEP_FILTER);
-    const stepValues = stepTokens.map(Number).filter((n) => Number.isInteger(n));
+    const stepValues = stepTokens.map(Number).filter((n) => Number.isInteger(n) && n >= ShipmentOrderStep.CONFIRMACION && n <= ShipmentOrderStep.FINALIZADA);
     const hasStepFilter = isFollowUpPending || stepValues.length > 0;
     // Eje 2: pago. Independiente del paso — una orden en paso 3 (despacho) o
     // ya finalizada puede seguir sin pagar (clientes a los que se les
@@ -370,7 +381,7 @@ export const ConsolidationsRepository = {
     `;
     if (!row) throw new Error('Orden de envío no encontrada.');
     if (row.status !== 'ABIERTO') {
-      throw new Error('Transición inválida: solo se puede cambiar la dirección de entrega mientras la orden esté ABIERTO.');
+      throw new Error('Solo se puede cambiar la dirección antes de generar el estimado.');
     }
     if (!row.address_id) {
       throw new Error('Dirección inválida: no pertenece a este cliente.');
@@ -417,13 +428,22 @@ export const ConsolidationsRepository = {
     `;
     if (!row) throw new Error('Orden de envío no encontrada.');
     if (row.status !== 'ABIERTO') {
-      throw new Error('Transición inválida: solo se puede cambiar el método de envío mientras la orden esté ABIERTO.');
+      throw new Error('Solo se puede cambiar el método de envío antes de generar el estimado.');
     }
 
-    await sql`
-      UPDATE consolidations SET delivery_method = ${deliveryMethod}, updated_at = NOW()
-      WHERE id = ${row.id}
+    // En retiro no hay entrega: se sueltan dirección y quién recibe para que la
+    // solicitud y el estimado no muestren una dirección que no aplica.
+    const [updated] = await sql`
+      UPDATE consolidations c
+      SET delivery_method = ${deliveryMethod},
+          delivery_address_id = CASE WHEN dm.is_pickup THEN NULL ELSE c.delivery_address_id END,
+          recipient_id = CASE WHEN dm.is_pickup THEN NULL ELSE c.recipient_id END,
+          updated_at = NOW()
+      FROM delivery_methods dm
+      WHERE c.id = ${row.id} AND dm.code = ${deliveryMethod}
+      RETURNING c.id
     `;
+    if (!updated) throw new Error('Método de entrega inválido.');
   },
 
   /**

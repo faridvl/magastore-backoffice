@@ -9,6 +9,7 @@ import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { SettingsHistory } from '@/types/settings/settings.types';
 import { DeliveryRate, DeliveryZone } from '@/types/logistics/logistics.types';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 const ZONE_OPTIONS: { value: DeliveryZone | ''; label: string }[] = [
     { value: '', label: 'Sin zona' },
@@ -373,9 +374,9 @@ export const SettingsContainer: React.FC = () => {
                                             <p className="text-[11px] text-slate-500 font-mono mt-0.5">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</p>
                                         </div>
                                         <div className="text-right flex-shrink-0">
-                                            <p className="text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</p>
+                                            <p className="text-xs font-bold text-slate-800">{formatCrc(Number(rate.fee_crc))}</p>
                                             <p className="text-[11px] text-slate-500">
-                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `Costo ₡${Number(rate.cost_crc).toLocaleString()}`}
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `Costo ${formatCrc(Number(rate.cost_crc))}`}
                                             </p>
                                         </div>
                                     </div>
@@ -444,9 +445,9 @@ export const SettingsContainer: React.FC = () => {
                                             </td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">{rate.zone ?? '—'}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</td>
-                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</td>
+                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-800">{formatCrc(Number(rate.fee_crc))}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">
-                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `₡${Number(rate.cost_crc).toLocaleString()}`}
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : formatCrc(Number(rate.cost_crc))}
                                             </td>
                                             <td className="px-4 py-2.5">
                                                 <button
@@ -575,7 +576,7 @@ export const SettingsContainer: React.FC = () => {
                         <div>
                             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Cobro x libra</p>
                             <div className="flex items-baseline gap-1.5">
-                                <span className="text-2xl font-black text-slate-800 leading-none">₡{priceInCRC.toLocaleString()}</span>
+                                <span className="text-2xl font-black text-slate-800 leading-none">{formatCrc(priceInCRC)}</span>
                                 <span className="text-[10px] font-bold text-slate-400">CRC</span>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-1">

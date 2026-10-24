@@ -5,6 +5,7 @@ import { usePackageCalculator } from './use-package-calculator';
 import { routesPrivate } from '@/shared/navigation/routes';
 import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
@@ -215,7 +216,7 @@ export const CreatePackageContainer: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Cobro al Cliente</p>
-                                <h3 className="text-2xl md:text-4xl font-black italic text-white">₡{Math.round(calculations.cobroTotalCRC).toLocaleString()}</h3>
+                                <h3 className="text-2xl md:text-4xl font-black italic text-white">{formatCrc(calculations.cobroTotalCRC)}</h3>
                                 {/* El monto ya no es el de lista: se dice de dónde sale para que
                                     el operador no lo lea como un error de cálculo. */}
                                 {calculations.billingMode !== CustomerBillingMode.NORMAL && selectedCustomer && (
@@ -227,7 +228,7 @@ export const CreatePackageContainer: React.FC = () => {
                                         />
                                         {calculations.listaCRC > 0 && (
                                             <span className="text-[10px] font-bold text-slate-500 line-through">
-                                                ₡{Math.round(calculations.listaCRC).toLocaleString()}
+                                                {formatCrc(calculations.listaCRC)}
                                             </span>
                                         )}
                                     </div>
@@ -238,13 +239,13 @@ export const CreatePackageContainer: React.FC = () => {
                                     <div className="flex justify-between items-center">
                                         <p className="text-[10px] uppercase font-bold text-slate-500">Costo Courier</p>
                                         <p className="text-sm font-bold text-slate-300">
-                                            ${calculations.courierCostUSD.toFixed(2)} · ₡{Math.round(calculations.courierCostCRC).toLocaleString()}
+                                            ${calculations.courierCostUSD.toFixed(2)} · {formatCrc(calculations.courierCostCRC)}
                                         </p>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <p className="text-[10px] uppercase font-bold text-slate-500">Ganancia Est.</p>
                                         <p className={`text-sm font-bold ${calculations.ganancia >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                                            ₡{Math.round(calculations.ganancia).toLocaleString()}
+                                            {formatCrc(calculations.ganancia)}
                                         </p>
                                     </div>
                                 </div>

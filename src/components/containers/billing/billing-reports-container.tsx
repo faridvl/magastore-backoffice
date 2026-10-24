@@ -4,8 +4,9 @@ import { useBillingReports } from './use-billing-reports';
 import { BillingMonthlyReport, ProfitShareMonthlyReport } from '@/types/logistics/logistics.types';
 import { SectionHeader } from '@/components/common/section-header/section-header';
 import { currentMonthKey } from '@/shared/utils/timezone';
+import { formatCrc } from '@/shared/utils/format-crc';
 
-const formatCRC = (n: number) => `₡${Math.round(Number(n)).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 
 const MONTH_LABELS: Record<string, string> = {
   '01': 'Ene', '02': 'Feb', '03': 'Mar', '04': 'Abr',

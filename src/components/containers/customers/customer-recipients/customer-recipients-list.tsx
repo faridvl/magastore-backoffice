@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, Plus, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { tailwind } from '@/utils/tailwind-utils';
+import { applyPhoneMask } from '@/shared/utils/customer-masks';
 import { CustomerRecipientInput } from '@/types/customer/customer.types';
 import { useCustomerRecipientsQuery } from '@/shared/api/querys/customers/use-customer-recipients-query';
 import { useCustomerRecipientMutations } from '@/shared/api/mutations/customers/use-customer-recipient-mutations';
@@ -116,7 +117,7 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
             <div className="flex items-center gap-3 pl-4">
               <button
                 type="button"
-                onClick={() => setDraft({ id: r.id, full_name: r.full_name, phone: r.phone ?? '', id_card: r.id_card ?? '' })}
+                onClick={() => setDraft({ id: r.id, full_name: r.full_name, phone: r.phone ? applyPhoneMask(r.phone) : '', id_card: r.id_card ?? '' })}
                 className="min-h-[32px] text-xs font-semibold text-slate-500 hover:text-slate-900"
               >
                 Editar
@@ -165,8 +166,8 @@ export const CustomerRecipientsList: React.FC<Props> = ({ customerId, customerNa
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               value={draft.phone ?? ''}
-              onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
-              placeholder="Teléfono"
+              onChange={(e) => setDraft({ ...draft, phone: applyPhoneMask(e.target.value) })}
+              placeholder="+506 8888-7777"
               inputMode="tel"
               className={INPUT_CLASSNAME}
             />

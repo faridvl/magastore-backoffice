@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Search, Truck, User, DollarSign, Package } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
 import { usePackages } from './use-packages';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 const STATUS_LABELS: Record<string, string> = {
     PANAMA: 'En Panamá',
@@ -123,7 +124,7 @@ export const PackagesContainer: React.FC = () => {
                                     <span className={`text-xl font-black ${sinFactura ? 'text-slate-500' : 'text-white'}`}>
                                         {sinFactura
                                             ? '—'
-                                            : `₡${Number(data.total_amount_crc).toLocaleString('es-CR')}`}
+                                            : formatCrc(Number(data.total_amount_crc))}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">

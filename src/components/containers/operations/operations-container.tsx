@@ -12,9 +12,9 @@ import { BillingDetailModal } from '@/components/common/billing-detail-modal/bil
 import { NotifyPackagesModal } from '@/components/common/notify-packages-modal/notify-packages-modal';
 import { PendingReceivable } from '@/types/dashboard/operations.types';
 import { routesPrivate } from '@/shared/navigation/routes';
+import { formatCrc } from '@/shared/utils/format-crc';
 
-const formatCRC = (amount: number) =>
-  `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const formatCRC = formatCrc;
 
 /**
  * Colores de las dos series del gráfico. El par ámbar/azul está validado para

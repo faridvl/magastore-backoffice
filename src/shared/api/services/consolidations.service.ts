@@ -9,11 +9,12 @@ import { isUuid } from '@/shared/utils/is-uuid';
 
 // ABIERTO → CERRADO ya no es una transición manual: ocurre automáticamente al
 // generar el estimado (ver LogisticsRepository.generatePreBilling). Desde ABIERTO
-// no hay avance manual posible.
+// no hay avance manual posible. ENTREGADO tampoco: solo lo pone finalizeOrder,
+// para que el rastreo no diga "Entregado" mientras el paquete va en camino.
 const STATUS_TRANSITIONS: Record<ConsolidationStatus, ConsolidationStatus | null> = {
   [ConsolidationStatus.ABIERTO]: null,
   [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
-  [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
+  [ConsolidationStatus.DESPACHADO]: null,
   [ConsolidationStatus.ENTREGADO]: null,
 };
 
@@ -31,11 +32,13 @@ export const ConsolidationsService = {
     deliveryMethod?: DeliveryMethod,
     recipientId?: string | null,
   ) => {
-    if (!customerUuid) throw new Error('Se requiere el UUID del cliente.');
+    if (!isUuid(customerUuid)) throw new Error('Cliente inválido.');
     if (recipientId && !isUuid(recipientId)) throw new Error('Persona inválida: no pertenece a este cliente.');
+    if (deliveryAddressId && !isUuid(deliveryAddressId)) throw new Error('Dirección inválida: no pertenece a este cliente.');
     if (!packageUuids || packageUuids.length === 0) {
       throw new Error('Debe seleccionar al menos un paquete para crear la orden de envío.');
     }
+    if (!packageUuids.every(isUuid)) throw new Error('Paquete inválido.');
 
     return ConsolidationsRepository.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId);
   },
@@ -112,7 +115,7 @@ export const ConsolidationsService = {
       const allowed = STATUS_TRANSITIONS[currentStatus];
       if (allowed !== newStatus) {
         throw new Error(
-          `Transición inválida: ${currentStatus} → ${newStatus}. Solo se permite: ${currentStatus} → ${allowed ?? '(ninguna)'}`,
+          'Acción inválida para el estado actual de la orden. Actualiza la pantalla e intenta de nuevo.',
         );
       }
     }
