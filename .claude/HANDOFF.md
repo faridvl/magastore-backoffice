@@ -19,6 +19,11 @@
 - Anotaciones de la agenda hechas: sin la tarjeta "Sin costo cargado" en el Operativo; libras, ganancia y "Para Farid" del mes en el Dashboard.
 - Dashboard "Operativo" revisado: números inflados por paquetes entregados, enlaces que no coinciden con la tarjeta, nada del flujo de órdenes, tablas con scroll lateral en iPad y celular, botones chicos, sin "Reintentar". Propuesta: lista "Tu día" en el orden del flujo + panel de cobros. **Esperando decisión** (todo junto o primero números y enlaces).
 
+## Entorno local con Docker (rama `feat/docker-local`, sin verificar en Docker)
+- Base Postgres 17 + proxy del driver de Neon, persistente (`magastore-local`). Estructura de prod (027) y, con otro comando, 028–036 con el mismo `migrate.mjs` de producción. Datos: solo el seed ficticio de `docker/seed/` (el usuario no quiere copias de dev ni de prod). Comandos y escenarios en README, "Entorno local con Docker".
+- Probado sin daemon (PGlite): esquema 001 + 003–036, seed idempotente, la 036 actualiza el estimado; tsc y eslint limpios.
+- **Falta, al arrancar Docker** (solo con `arrancar-docker.ps1` de la skill `docker`): `npm run docker:reset`, que el proxy acepte `db.localtest.me` (HTTP y WebSocket del `Pool`), `docker:reset:027` + `docker:migrate`, `dev:docker` en `http://127.0.0.1:3030` con login del usuario de prueba, persistencia tras down/up, capturas (375, 1024, 1280) de Inicio, Órdenes, detalle, finalizada, cliente con personas que reciben y PDF. Después, fijar la imagen del proxy por digest.
+
 ## Pase a producción (pendiente, lo hace el usuario)
 - **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).
 - **Antes del primer merge a `main`**, en GitHub → Settings → Environments → New environment `db-production` (no usar "Production": es de Vercel):
