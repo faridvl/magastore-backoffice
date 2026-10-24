@@ -2,11 +2,17 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(git commit *)",
-      "Bash(git push *)",
       "Read",
       "Edit(*.md)",
       "Edit(**/*.md)"
+    ],
+    "ask": [
+      "Bash(*migrate.mjs*)",
+      "PowerShell(*migrate.mjs*)",
+      "Bash(*dbmigrate*)",
+      "PowerShell(*dbmigrate*)",
+      "Bash(git push*)",
+      "PowerShell(git push*)"
     ]
   },
   "hooks": {

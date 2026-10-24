@@ -36,7 +36,7 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=506XXXXXXXX         # opcional
 ```
 
 - `MAGASTORE_DB_POSTGRES_URL` — string de conexión a Neon PostgreSQL
-- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 7 días). Si está ausente, el sistema cae a un fallback hardcodeado — **no usar en producción sin esta variable**
+- `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 7 días). Es obligatoria: sin ella fallan el login, `/api/auth/me` y los endpoints que usan `getActor` (facturación y logística)
 - `RESEND_API_KEY` — para notificaciones de entrega y facturas por email
 - `EMAIL_FROM` — dirección remitente que debe estar verificada en Resend
 - `EMAIL_LOGO_URL` — URL pública del logo para los emails (opcional)
@@ -149,9 +149,9 @@ src/
 
 Archivos numerados en `scripts/` (`NNN-descripcion.sql`), idempotentes (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`).
 
-- **Producción:** se aplican solas al hacer merge a `main`, con el workflow `.github/workflows/migrate-production.yml`. El registro de lo aplicado vive en la tabla `schema_migrations` de la propia base. Requiere el secreto `DATABASE_URL` en el entorno `production` de GitHub (Settings → Environments).
+- **Producción:** un push a `main` solo calcula y muestra el plan (workflow `.github/workflows/migrate-production.yml`, resumen del job). Para aplicarlo: Actions → "Migraciones de producción" → Run workflow en `main`, con `aplicar` marcado y `confirmar` = el texto exacto que muestra el resumen del plan (`<versión>@<sha7>`, ej. `036@1a2b3c4`), que amarra la confirmación al commit revisado. "Re-run failed jobs" de una corrida vieja no sirve (falla cerrado): lanza un Run workflow nuevo. Si el plan falla por "base más adelantada", no apliques: revisa la base y `db-migrations.json`. Usa el environment `db-production` (rama permitida: solo `main`) con el secreto `DATABASE_URL` y las variables `EXPECTED_DATABASE_HOST` y `EXPECTED_DATABASE_NAME`; si algo no coincide, el workflow se detiene antes de tocar la base. El registro de lo aplicado vive en la tabla `schema_migrations` de la propia base.
 - **Desarrollo:** `dbmigrate up "[DEV] MAGASTORE"` desde la raíz, que registra en `db-migrations.json`.
-- Ver lo que falta sin aplicar nada: `DATABASE_URL=... node .github/scripts/migrate.mjs --dry-run`.
+- Ver lo que falta sin aplicar nada: `DATABASE_URL=... EXPECTED_DATABASE_HOST=... EXPECTED_DATABASE_NAME=... node .github/scripts/migrate.mjs --plan`.
 
 Cada migración corre en su propia transacción junto con su registro: si falla, no queda a medias y el workflow termina en error sin seguir con las siguientes.
 

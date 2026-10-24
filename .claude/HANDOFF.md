@@ -14,13 +14,31 @@
 - Logo oficial: `D:\Documentos\Docs_Clientes\Magastore\` (versiones transparentes en `public/logo/`).
 
 ## En qué estamos
-- Migraciones 028–036 aplicadas en dev; producción sigue en 027 y las aplica el workflow al hacer merge a `main`.
+- Migraciones 028–036 aplicadas en dev; producción sigue en 027. El merge a `main` ya no migra: solo muestra el plan, y aplicar es manual desde Actions con confirmación (README, "Migraciones SQL").
 - Dos rondas de pruebas contra el API de dev y dos de revisión: sin defectos abiertos.
 - Anotaciones de la agenda hechas: sin la tarjeta "Sin costo cargado" en el Operativo; libras, ganancia y "Para Farid" del mes en el Dashboard.
 - Dashboard "Operativo" revisado: números inflados por paquetes entregados, enlaces que no coinciden con la tarjeta, nada del flujo de órdenes, tablas con scroll lateral en iPad y celular, botones chicos, sin "Reintentar". Propuesta: lista "Tu día" en el orden del flujo + panel de cobros. **Esperando decisión** (todo junto o primero números y enlaces).
 
-## Pendiente
-- Secreto `DATABASE_URL` del entorno `production` en GitHub y revisar qué base usa Vercel (lo dejó para después).
+## Pase a producción (pendiente, lo hace el usuario)
+- **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).
+- **Antes del primer merge a `main`**, en GitHub → Settings → Environments → New environment `db-production` (no usar "Production": es de Vercel):
+  1. Deployment branches → Selected branches → `main`.
+  2. Environment secret `DATABASE_URL` = la URL de Vercel de arriba.
+  3. Environment variables `EXPECTED_DATABASE_HOST` y `EXPECTED_DATABASE_NAME`, copiadas de la URL de **Vercel** (host y lo que va después de la `/`), no de la que pegaste en el secreto.
+  Si el merge llega antes, GitHub crea el environment vacío y sin regla de rama: configurarlo igual.
+- Antes de aplicar, en la consola de Neon (solo lectura) confirmar que producción va en 027:
+  `SELECT column_name FROM information_schema.columns WHERE table_name='consolidations' AND column_name='current_step'` → sin filas. Si el plan dice "la base ya tiene cambios de…", no aplicar.
+- **Merge fuera del horario del operador** y aplicar apenas salga el plan: Actions → "Migraciones de producción" → Run workflow en `main`, `aplicar` ✓, `confirmar` = el texto `<versión>@<sha>` que muestra el resumen del plan. Entre el deploy de Vercel y la migración fallan Órdenes, estimados y su PDF, confirmar factura, marcar pagado, reportes de facturación y personas que reciben (y el Inicio, si se sube el Operativo). El código actual de `main` sí funciona con las columnas nuevas.
+- Si un apply falla a medias, lanzar un Run workflow nuevo; "Re-run failed jobs" falla cerrado.
+- La rama local `feat/ui-ordenes-marca` trae el workflow viejo (aplica sin confirmar): no mergearla tal cual.
+
+## Riesgos de las migraciones 028–036 sobre datos reales
+- 033 atribuye todas las facturas viejas al usuario más antiguo (`authorship_backfilled = true`). El modal de factura lo muestra como histórico, pero el resumen de la orden finalizada (`finalized-summary.tsx`) y el tooltip de reportes (`billing-reports-container.tsx`) muestran "por <ese usuario>": corregir antes de producción.
+- 030 deja las órdenes viejas DESPACHADO en el paso 3 (piden guía para avanzar) y las ENTREGADO en 5; las despachadas hace 3 a 30 días salen en "Seguimiento pendiente".
+- 036 reemplaza el estimado (`PREBILLING_READY`) si tiene el texto original o conserva una línea que termina en "Envío:" o "Precio x lb:", aunque el resto se haya editado en Ajustes.
+- 035 borra columnas que no existen en producción: sin pérdida.
+
+## Otros pendientes
 - Favicon, íconos de la PWA y splash de iOS con el logo nuevo.
 - Crear orden y confirmar factura usan `BEGIN` sobre HTTP de Neon, que no es una transacción real.
 - El API de personas que reciben guarda el teléfono tal cual llega; la máscara es solo de la interfaz.
