@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { CustomerService } from '@/shared/api/services/customers.service';
+import { isUuid } from '@/shared/utils/is-uuid';
 
 /**
  * PATCH estampa customers.win_back_sent_at al abrir WhatsApp con la invitación
@@ -18,8 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!token) return res.status(401).json({ message: 'No autorizado' });
 
   const { id } = req.query;
-  if (!id || typeof id !== 'string') {
-    return res.status(400).json({ message: 'ID de cliente requerido' });
+  if (!isUuid(id)) {
+    return res.status(400).json({ message: 'Cliente inválido.' });
   }
 
   try {

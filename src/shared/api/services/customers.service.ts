@@ -1,6 +1,5 @@
-import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerUpdateInput, CustomerAddressInput, CustomerAddressUpdateInput, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
 import * as CustomerRepo from '../repositories/customers.repo';
-import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
 import { PaginatedResponse } from '@/types/paginate.types';
 import { resolveLocation } from '@/shared/constants/costa-rica-locations';
@@ -40,66 +39,6 @@ function normalizeCustomerIdentity<T extends {
     ...(data.id_card != null && { id_card: data.id_card.trim().toUpperCase() }),
     ...(data.email != null && { email: data.email.trim().toLowerCase() }),
   };
-}
-
-/**
- * Traduce la columna `couriers` de la plantilla (nombres separados por coma) a
- * los ids de ruta de casillero que el repositorio necesita. Se hace una sola
- * vez para todo el archivo — no una consulta por fila — y se falla antes de
- * insertar nada: un nombre mal escrito debe detener la importación completa,
- * no dejar la mitad de los clientes con el casillero equivocado.
- */
-async function resolveImportCouriers(rows: CustomerImportRow[]): Promise<void> {
-  const needsResolution = rows.some((r) => r.couriers?.trim() || r.customer_code?.trim());
-  if (!needsResolution) return;
-
-  const rates = await CourierRatesRepository.getAllWithWarehouse();
-  const byName = new Map(rates.map((r) => [r.name.trim().toLowerCase(), r]));
-
-  for (const row of rows) {
-    const raw = row.couriers?.trim();
-    // La plantilla admite un solo código manual por cliente: se aplica al
-    // primer courier de la fila. Sin couriers, el repositorio usa el
-    // predeterminado y el código va ahí.
-    const manualCode = row.customer_code?.trim().toUpperCase() || null;
-
-    if (!raw) {
-      if (manualCode) {
-        const fallback = await WarehouseRoutesRepository.getDefaultRoute();
-        if (!fallback) {
-          throw new Error(`Fila con cédula ${row.id_card}: hay un código manual pero no existe un courier predeterminado al cual asignarlo.`);
-        }
-        row.warehouse_codes = [{ warehouse_route_id: fallback.id, code: manualCode }];
-      }
-      continue;
-    }
-
-    const names = raw.split(',').map((n) => n.trim()).filter(Boolean);
-    const codes: CustomerWarehouseCodeInput[] = [];
-
-    for (const name of names) {
-      const rate = byName.get(name.toLowerCase());
-      if (!rate) {
-        throw new Error(`Fila con cédula ${row.id_card}: el courier "${name}" no existe. Couriers disponibles: ${rates.map((r) => r.name).join(', ')}.`);
-      }
-      if (!rate.is_active) {
-        throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" está inactivo y no puede asignarse.`);
-      }
-      const route = await WarehouseRoutesRepository.getActiveRouteByCourier(rate.id);
-      if (!route) {
-        throw new Error(`Fila con cédula ${row.id_card}: el courier "${rate.name}" no tiene casillero configurado.`);
-      }
-      // Un cliente no puede tener dos veces la misma ruta: la tabla de unión lo
-      // rechazaría a mitad de la importación.
-      if (codes.some((c) => c.warehouse_route_id === route.id)) continue;
-      codes.push({
-        warehouse_route_id: route.id,
-        code: codes.length === 0 ? manualCode : null,
-      });
-    }
-
-    row.warehouse_codes = codes;
-  }
 }
 
 /**
@@ -206,48 +145,6 @@ export const CustomerService = {
     const customer = await CustomerRepo.getCustomerById(id);
     if (!customer) throw new Error('Cliente no encontrado.');
     return customer;
-  },
-
-  importCustomers: async (rows: CustomerImportRow[]): Promise<CustomerImportResult> => {
-    if (!rows || rows.length === 0) {
-      throw new Error('No se proporcionaron filas para importar.');
-    }
-
-    // Validar conflictos de datos entre filas del mismo id_card antes de insertar.
-    // La normalización va primero: dos filas del mismo cliente escritas con
-    // distinta caja deben agruparse, no reportarse como "datos distintos".
-    const seen = new Map<string, { email: string; first_name: string; last_name: string }>();
-    for (let i = 0; i < rows.length; i++) {
-      rows[i] = normalizeCustomerIdentity(rows[i]);
-      const row = rows[i];
-      if (!row.id_card?.trim()) throw new Error('Una o más filas tienen la cédula vacía.');
-      if (!row.email?.trim()) throw new Error(`Fila con cédula ${row.id_card}: el correo es requerido.`);
-      if (!row.first_name?.trim() || !row.last_name?.trim()) throw new Error(`Fila con cédula ${row.id_card}: nombre y apellidos son requeridos.`);
-      if (!row.province?.trim() || !row.canton?.trim() || !row.district?.trim() || !row.exact_address?.trim()) {
-        throw new Error(`Fila con cédula ${row.id_card}: todos los campos de dirección son requeridos.`);
-      }
-      const resolved = resolveLocation(row.province, row.canton, row.district);
-      if (!resolved) {
-        throw new Error(`Fila con cédula ${row.id_card}: la combinación provincia/cantón/distrito "${row.province} / ${row.canton} / ${row.district}" no coincide con la división territorial de Costa Rica.`);
-      }
-      row.province = resolved.province;
-      row.canton = resolved.canton;
-      row.district = resolved.district;
-      row.exact_address = row.exact_address.trim().toUpperCase();
-
-      if (seen.has(row.id_card)) {
-        const prev = seen.get(row.id_card)!;
-        if (prev.email !== row.email || prev.first_name !== row.first_name || prev.last_name !== row.last_name) {
-          throw new Error(`La cédula ${row.id_card} aparece con datos de cliente distintos en múltiples filas.`);
-        }
-      } else {
-        seen.set(row.id_card, { email: row.email, first_name: row.first_name, last_name: row.last_name });
-      }
-    }
-
-    await resolveImportCouriers(rows);
-
-    return CustomerRepo.importCustomers(rows);
   },
 
   /**

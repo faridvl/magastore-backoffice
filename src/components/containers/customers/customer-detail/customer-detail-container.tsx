@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import {
     Phone, MapPin, Mail, IdCard, Box, TrendingUp, DollarSign, Edit3, Plus, Copy,
     Check as CheckIcon, CheckCircle, Package, Clock, Loader2, MessageCircle, CheckSquare, Square,
-    Boxes, ChevronRight, Plane, Ship,
+    Boxes, ChevronRight, Plane, Ship, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
@@ -16,7 +16,7 @@ import { useCustomerDetail } from './use-customer-detail';
 import { CustomerEditForm } from './customer-edit-form';
 import { CustomerAddressesModal } from './customer-addresses-modal';
 import { CustomerRecipientsList } from '../customer-recipients/customer-recipients-list';
-import { notifyWhatsApp, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
+import { notifyWhatsApp, copyToClipboard, buildWarehouseWelcomeMessage } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
@@ -41,6 +41,9 @@ const CARD_CLASSNAME = 'bg-white p-5 xl:p-8 rounded-[24px] xl:rounded-[32px] bor
 const ACTIVITY_CARD_CLASSNAME = 'bg-white p-5 xl:p-6 rounded-[24px] xl:rounded-[2rem] border border-slate-100 shadow-sm';
 const DARK_BUTTON_CLASSNAME = 'flex items-center justify-center gap-2 min-h-[44px] px-5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all disabled:opacity-50';
 const TEXT_BUTTON_CLASSNAME = 'flex items-center justify-center min-h-[44px] px-4 rounded-xl text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors';
+const COPIED_FEEDBACK_MS = 1500;
+// Acciones secundarias de la tarjeta de casillero: discretas, con el área táctil de 44 px.
+const CARD_ACTION_CLASSNAME = 'flex items-center justify-center gap-1.5 min-h-[44px] px-3 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors';
 const SELECT_CLASSNAME = 'w-full min-h-[44px] px-4 bg-slate-50 border border-slate-100 rounded-2xl text-base font-medium outline-none focus:ring-2 focus:ring-amber-500 transition-all';
 
 // Etiqueta por ruta (origin + package_type) para la tarjeta del casillero. `neutralLabel`
@@ -50,6 +53,22 @@ const WAREHOUSE_ROUTE_DISPLAY: Record<string, { routeLabel: string; neutralLabel
     'USA-MARITIMO': { routeLabel: 'USA · Marítimo', neutralLabel: 'Estados Unidos · Marítimo' },
     'CHINA-MARITIMO': { routeLabel: 'China · Marítimo', neutralLabel: 'China · Marítimo' },
 };
+
+const normalizeForCompare = (text: string) =>
+    text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// Courier, país y tipo para distinguir dos rutas del mismo courier; se omite lo que
+// el nombre del courier ya dice ("Aéreo USA" no repite USA ni Aéreo).
+function warehouseHeaderLabel(courierName: string, origin: string, packageType: string): string {
+    const normalizedName = normalizeForCompare(courierName);
+    const countryLabel = origin === 'CHINA' ? 'China' : origin;
+    const typeLabel = packageTypeLabel(packageType);
+    return [
+        courierName,
+        normalizedName.includes(normalizeForCompare(countryLabel)) ? null : countryLabel,
+        normalizedName.includes(normalizeForCompare(typeLabel)) ? null : typeLabel,
+    ].filter(Boolean).join(' · ');
+}
 
 function WarehouseCodeCard({
     code, courierName, origin, packageType, addressLine, city, state, postalCode, contactPhone,
@@ -72,26 +91,32 @@ function WarehouseCodeCard({
         neutralLabel: packageTypeLabel(packageType),
     };
     const RouteIcon = packageType === 'MARITIMO' ? Ship : Plane;
-    const handleCopy = () => {
-        navigator.clipboard.writeText(code);
+    // Un solo armado para "WhatsApp" y "Copiar mensaje": lo que se copia es
+    // exactamente lo que recibe el cliente. Lleva la ruta neutra, nunca el courier.
+    const buildWelcomeMessage = () => buildWarehouseWelcomeMessage({
+        firstName: customerFirstName,
+        fullName: customerFullName,
+        code,
+        routeLabel: routeDisplay.neutralLabel,
+        addressLine, city, state, postalCode, contactPhone,
+        templateBody: welcomeTemplateBody,
+    });
+    const handleCopy = async () => {
+        const wasCopied = await copyToClipboard(buildWelcomeMessage());
+        if (!wasCopied) {
+            toast.error('No se pudo copiar el mensaje. Inténtalo de nuevo.');
+            return;
+        }
+        toast.success('Mensaje copiado');
         setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
     };
     const handleSendWelcome = () => {
         if (!customerPhone) {
-            toast.error('Este cliente no tiene teléfono registrado.');
+            toast.error('Este cliente no tiene teléfono. Agrégalo en Editar cliente o usa Copiar mensaje.');
             return;
         }
-        const message = buildWarehouseWelcomeMessage({
-            firstName: customerFirstName,
-            fullName: customerFullName,
-            code,
-            // Lo que recibe el cliente lleva la ruta neutra, nunca el nombre del courier.
-            routeLabel: routeDisplay.neutralLabel,
-            addressLine, city, state, postalCode, contactPhone,
-            templateBody: welcomeTemplateBody,
-        });
-        void notifyWhatsApp(customerPhone, message);
+        void notifyWhatsApp(customerPhone, buildWelcomeMessage());
     };
     const handleConfirmRemove = async () => {
         // Si falla, el modal queda abierto: el toast del hook explica el motivo.
@@ -100,22 +125,14 @@ function WarehouseCodeCard({
     };
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 min-w-0">
-            <div className="flex items-start gap-2 min-w-0">
-                <RouteIcon size={18} className="flex-shrink-0 mt-0.5 text-slate-500" aria-hidden />
-                <p className="min-w-0 text-sm break-words">
-                    <span className="font-bold text-slate-800">{courierName || routeDisplay.routeLabel}</span>
-                    <span className="text-slate-500"> · {routeDisplay.routeLabel}</span>
-                </p>
-            </div>
-            <p className="font-mono text-xl font-black break-all text-slate-900">{code}</p>
-            <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                <Button variant={ButtonVariant.SUCCESS} onClick={handleSendWelcome} className="px-4">
-                    <MessageCircle size={16} /> Enviar por WhatsApp
-                </Button>
-                <Button variant={ButtonVariant.CANCEL} onClick={handleCopy} className="px-4">
-                    {copied ? <CheckIcon size={16} /> : <Copy size={16} />}
-                    {copied ? 'Copiado' : 'Copiar código'}
-                </Button>
+            <div className="flex items-start justify-between gap-2 min-w-0">
+                <div className="flex items-start gap-2 min-w-0">
+                    <RouteIcon size={18} className="flex-shrink-0 mt-0.5 text-slate-500" aria-hidden />
+                    {/* Courier y tipo, sin repetir el país que ya suele ir en el nombre del courier. */}
+                    <p className="min-w-0 text-sm font-bold text-slate-800 break-words">
+                        {courierName ? warehouseHeaderLabel(courierName, origin, packageType) : routeDisplay.routeLabel}
+                    </p>
+                </div>
                 {/* Solo quita la asignación de ESTE cliente: el casillero del
                     proveedor sigue existiendo para los demás. */}
                 {canRemove && (
@@ -123,11 +140,27 @@ function WarehouseCodeCard({
                         type="button"
                         onClick={() => setConfirmRemove(true)}
                         disabled={isRemoving}
-                        className="ml-auto min-h-[44px] px-3 text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                        className="-mt-3 -mr-2 flex flex-shrink-0 items-center gap-1.5 min-h-[44px] px-3 text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors disabled:opacity-50"
                     >
+                        <Trash2 size={14} aria-hidden />
                         Quitar
                     </button>
                 )}
+            </div>
+            <p className="font-mono text-xl font-black break-all text-slate-900">{code}</p>
+            <div className="flex flex-wrap items-center justify-end gap-x-1 border-t border-slate-100 pt-1">
+                <button
+                    type="button"
+                    onClick={handleSendWelcome}
+                    aria-label="Enviar datos del casillero por WhatsApp"
+                    className={CARD_ACTION_CLASSNAME}
+                >
+                    <MessageCircle size={16} aria-hidden /> WhatsApp
+                </button>
+                <button type="button" onClick={handleCopy} className={CARD_ACTION_CLASSNAME}>
+                    {copied ? <CheckIcon size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
+                    Copiar mensaje
+                </button>
             </div>
 
             {confirmRemove && (
@@ -409,7 +442,7 @@ export const CustomerDetailContainer: React.FC<{ id: string }> = ({ id }) => {
                                                     onClick={() => router.push('/admin/courier-rates')}
                                                     className="underline font-bold hover:text-amber-800"
                                                 >
-                                                    Configurarlo en Couriers
+                                                    Ir a Couriers
                                                 </button>
                                             </p>
                                         )}

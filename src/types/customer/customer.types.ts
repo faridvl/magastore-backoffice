@@ -112,44 +112,6 @@ export interface Customer {
   win_back_pending: boolean;
 }
 
-export interface CustomerImportRow {
-  id_card: string;
-  id_type: IdType;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  customer_code?: string;
-  /**
-   * Nombres de courier separados por coma, tal como los escribe el operador en
-   * la columna `couriers` de la plantilla. El servicio los traduce a
-   * warehouse_codes; vacío significa "usar el predeterminado".
-   */
-  couriers?: string;
-  /**
-   * Resuelto por el servicio a partir de `couriers` + `customer_code`. No viene
-   * del archivo. La plantilla solo admite un código manual por cliente, así que
-   * se aplica al primer courier de la lista.
-   */
-  warehouse_codes?: CustomerWarehouseCodeInput[];
-  province: string;
-  canton: string;
-  district: string;
-  exact_address: string;
-  address_label?: string;
-  is_default?: boolean;
-}
-
-export interface CustomerImportError {
-  id_card: string;
-  reason: string;
-}
-
-export interface CustomerImportResult {
-  inserted: number;
-  errors: CustomerImportError[];
-}
-
 export interface WarehouseRoute {
   id: number;
   uuid: string;
