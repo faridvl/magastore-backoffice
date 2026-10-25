@@ -22,7 +22,7 @@ export const NotifyPackagesModal: React.FC<Props> = ({
   customers, isLoading, sentCustomerIds, sendingCustomerId, onSend, onClose,
 }) => (
   <Modal
-    title="Notificar paquetes disponibles"
+    title="Avisar paquetes que llegaron"
     subtitle="Toca Enviar o Reenviar junto a cada cliente."
     onClose={onClose}
     footer={
@@ -76,12 +76,12 @@ export const NotifyPackagesModal: React.FC<Props> = ({
                 </p>
                 {allNotified && !sent && (
                   <p className="text-xs font-bold text-emerald-600 mt-0.5 flex items-center gap-1">
-                    <CheckCircle size={12} /> Notificado
+                    <CheckCircle size={12} /> Avisado
                   </p>
                 )}
                 {hasNew && (
                   <p className="text-xs font-bold text-amber-700 mt-0.5">
-                    {formatCount(unnotified, 'paquete nuevo', 'paquetes nuevos')} sin notificar
+                    {formatCount(unnotified, 'paquete nuevo', 'paquetes nuevos')} sin avisar
                   </p>
                 )}
               </div>

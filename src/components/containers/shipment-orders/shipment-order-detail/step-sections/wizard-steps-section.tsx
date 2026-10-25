@@ -615,6 +615,9 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                 </StepAction>
               )}
             </div>
+            {hasBilling && !props.canAssignPackages && (detail.current_step === ShipmentOrderStep.CONFIRMACION || detail.current_step === ShipmentOrderStep.COBRO) && (
+              <p className="mb-3 text-sm text-slate-500">La orden ya tiene factura: no se pueden agregar ni quitar paquetes.</p>
+            )}
             {detail.packages.length === 0 ? (
               <p className="text-center py-6 text-slate-500 text-sm">Esta orden no tiene paquetes.</p>
             ) : (

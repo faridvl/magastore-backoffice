@@ -1,6 +1,7 @@
 import { BillingRepository } from '../repositories/billing.repo';
 import {
   BillingListItem,
+  BillingListSummary,
   BillingDetail,
   BillingMonthlyReport,
   ProfitShareMonthlyReport,
@@ -17,25 +18,28 @@ export const BillingService = {
     isPaid?: boolean,
     dateFrom?: string,
     dateTo?: string,
-  ): Promise<PaginatedResponse<BillingListItem>> => {
+    paymentMethod?: PaymentMethod,
+  ): Promise<PaginatedResponse<BillingListItem> & { summary: BillingListSummary }> => {
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, limit);
 
     try {
-      const { data, total } = await BillingRepository.getPaginatedBilling(
+      const { data, total, summary } = await BillingRepository.getPaginatedBilling(
         safePage,
         safeLimit,
         search,
         isPaid,
         dateFrom,
         dateTo,
+        paymentMethod,
       );
 
-      const totalPages = Math.ceil(total / safeLimit);
+      const totalPages = Math.max(1, Math.ceil(total / safeLimit));
 
       return {
         data,
         meta: { total, page: safePage, limit: safeLimit, totalPages },
+        summary,
       };
     } catch (error: unknown) {
       console.error('[BillingService.getBillingList]:', error);

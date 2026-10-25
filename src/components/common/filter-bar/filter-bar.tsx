@@ -242,6 +242,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               {extraPanelContent && <div className="py-4">{extraPanelContent}</div>}
             </div>
 
+            {resultCount === 0 && (
+              <p className="border-t border-slate-100 px-5 py-3 text-sm text-slate-600">Ningún resultado cumple estos filtros.</p>
+            )}
             <div
               className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3"
               style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
@@ -259,7 +262,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 onClick={() => setIsPanelOpen(false)}
                 className="min-h-[44px] px-5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition-colors"
               >
-                {resultCount === undefined ? 'Aplicar' : `Ver ${resultCount} resultado${resultCount === 1 ? '' : 's'}`}
+                {resultCount === undefined ? 'Aplicar' : resultCount === 0 ? 'Sin resultados' : `Ver ${resultCount} resultado${resultCount === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>

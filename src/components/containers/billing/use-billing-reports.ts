@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useBillingReportsQuery } from '@/shared/api/querys/billing/use-billing-reports-query';
 import { useProfitShareQuery } from '@/shared/api/querys/billing/use-profit-share-query';
@@ -13,34 +13,40 @@ function lastDayOfMonth(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+const MONTH_QUERY_KEY = 'month';
+const YEAR_QUERY_KEY = 'year';
+const FIRST_MONTH = 1;
+const LAST_MONTH = 12;
+const FIRST_VALID_YEAR = 2020;
+
+const singleQueryValue = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? undefined : value;
+
 export function useBillingReports() {
-  // Por defecto se filtra el mes y año actuales completos. El rango libre
-  // Desde/Hasta queda oculto en la UI por ahora, pero el estado se conserva
-  // para no tener que tocar las queries si se vuelve a exponer más adelante.
+  const router = useRouter();
   // El mes por defecto es el de Costa Rica y no el del equipo del operador:
   // con la maquina en otra zona, el filtro podia abrir en el mes equivocado.
   const [currentYearStr, currentMonth] = currentMonthKey().split('-');
   const currentYear = Number(currentYearStr);
 
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
-  const [from, setFrom] = useState(`${currentYear}-${currentMonth}-01`);
-  const [to,   setTo]   = useState(lastDayOfMonth(currentYear, Number(currentMonth)));
+  // Mes y año viven en la URL; uno inválido o fuera de rango cae al mes actual.
+  const rawMonth = Number(singleQueryValue(router.query[MONTH_QUERY_KEY]));
+  const rawYear = Number(singleQueryValue(router.query[YEAR_QUERY_KEY]));
+  const isMonthValid = Number.isInteger(rawMonth) && rawMonth >= FIRST_MONTH && rawMonth <= LAST_MONTH;
+  const isYearValid = Number.isInteger(rawYear) && rawYear >= FIRST_VALID_YEAR && rawYear <= currentYear;
+  const selectedYear = isYearValid ? rawYear : currentYear;
+  const selectedMonth = isMonthValid ? String(rawMonth).padStart(2, '0') : currentMonth;
+
+  const from = `${selectedYear}-${selectedMonth}-01`;
+  const to = lastDayOfMonth(selectedYear, Number(selectedMonth));
 
   const applyMonthFilter = (year: number, month: string) => {
-    setSelectedYear(year);
-    setSelectedMonth(month);
-    if (month === '') return;
-    const m = Number(month);
-    setFrom(`${year}-${month}-01`);
-    setTo(lastDayOfMonth(year, m));
+    const query = { ...router.query, [MONTH_QUERY_KEY]: month, [YEAR_QUERY_KEY]: String(year) };
+    void router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
   };
 
-  const setFromManual = (v: string) => { setSelectedMonth(''); setFrom(v); };
-  const setToManual = (v: string) => { setSelectedMonth(''); setTo(v); };
-
   const { useQuery } = useBillingReportsQuery(from, to);
-  const { data, isLoading } = useQuery();
+  const { data, isLoading, isError: isReportError, refetch: refetchReport } = useQuery({ enabled: router.isReady });
 
   const rows: BillingMonthlyReport[] = data?.data ?? [];
 
@@ -48,18 +54,10 @@ export function useBillingReports() {
   // reparto se liquida mes a mes y hay que ver los meses anteriores para saber
   // cuáles quedaron pendientes de pago.
   const { useQuery: useShareQuery } = useProfitShareQuery();
-  const { data: shareData, isLoading: isLoadingShare } = useShareQuery();
+  const {
+    data: shareData, isLoading: isLoadingShare, isError: isShareError, refetch: refetchShare,
+  } = useShareQuery();
   const shareRows: ProfitShareMonthlyReport[] = shareData?.data ?? [];
-
-  // Las tarjetas del resumen, en cambio, hablan del mes filtrado: se recorta el
-  // historial a ese rango. Mezclar ambos universos hacía que "Para Farid"
-  // mostrara el acumulado de todos los meses junto a un pendiente de uno solo,
-  // y que la utilidad neta restara participación de meses ajenos al filtro.
-  const fromPeriod = from.slice(0, 7);
-  const toPeriod = to.slice(0, 7);
-  const shareRowsInRange = shareRows.filter(
-    (r) => r.period >= fromPeriod && r.period <= toPeriod,
-  );
 
   const { markPeriodPaid, isPending: isMarkingPaid } = useMarkProfitSharePaidMutation();
 
@@ -77,14 +75,15 @@ export function useBillingReports() {
   };
 
   return {
-    from, setFrom: setFromManual,
-    to,   setTo: setToManual,
     selectedYear, selectedMonth, applyMonthFilter,
     rows,
     isLoading,
+    isReportError,
+    refetchReport,
     shareRows,
-    shareRowsInRange,
     isLoadingShare,
+    isShareError,
+    refetchShare,
     togglePeriodPaid,
     isMarkingPaid,
   };

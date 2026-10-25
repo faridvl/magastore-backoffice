@@ -1,12 +1,18 @@
 import sql from '@/lib/db';
 import {
   BillingListItem,
+  BillingListSummary,
   BillingDetail,
   BillingMonthlyReport,
   ProfitShareMonthlyReport,
   PaymentMethod,
 } from '@/types/logistics/logistics.types';
 import type { Actor } from '@/shared/api/get-actor';
+
+// "F-0060", "0060", "f60": un número de factura, con o sin la F y los ceros.
+const INVOICE_SEARCH_PATTERN = /^\s*F?-?0*(\d+)\s*$/i;
+// Un número más largo que un int de Postgres no puede ser una factura.
+const MAX_INVOICE_DIGITS = 9;
 
 export const BillingRepository = {
   getPaginatedBilling: async (
@@ -16,13 +22,21 @@ export const BillingRepository = {
     isPaid?: boolean,
     dateFrom?: string,
     dateTo?: string,
-  ): Promise<{ data: BillingListItem[]; total: number }> => {
+    paymentMethod?: string,
+  ): Promise<{ data: BillingListItem[]; total: number; summary: BillingListSummary }> => {
     const offset = (page - 1) * limit;
     const searchTerm = search ? `%${search}%` : null;
+    // "F-0060", "0060" o "f60" buscan esa factura exacta; el resto, por cliente o casillero.
+    const invoiceMatch = search?.match(INVOICE_SEARCH_PATTERN);
+    const invoiceNumber = invoiceMatch && invoiceMatch[1].length <= MAX_INVOICE_DIGITS ? Number(invoiceMatch[1]) : null;
     const isPaidFilter = isPaid !== undefined ? isPaid : null;
+    const methodFilter = paymentMethod || null;
     const fromDate = dateFrom || null;
     const toDate = dateTo || null;
 
+    // LEFT JOIN: una factura vieja sin orden o sin cliente aparece igual que en Reportes.
+    // La búsqueda por número suma a la de nombre o casillero ("60" trae la F-0060 y también
+    // al cliente cuyo casillero contiene 60); no excluye nada del resto de los filtros.
     const [rows, countResult] = await Promise.all([
       sql`
         SELECT
@@ -30,7 +44,8 @@ export const BillingRepository = {
           b.invoice_number,
           con.uuid AS consolidation_uuid,
           con.status AS consolidation_status,
-          c.first_name || ' ' || c.last_name AS customer_name,
+          con.current_step AS consolidation_step,
+          COALESCE(c.first_name || ' ' || c.last_name, '') AS customer_name,
           c.customer_code,
           b.total_weight_charged,
           b.applied_rate_usd,
@@ -39,37 +54,43 @@ export const BillingRepository = {
           b.is_paid,
           b.paid_at,
           b.created_at,
+          b.payment_method,
           b.delivery_method,
           COALESCE(b.delivery_fee_crc, 0) AS delivery_fee_crc
         FROM billing b
-        JOIN consolidations con ON b.consolidation_id = con.id
-        JOIN customers c ON con.customer_id = c.id
+        LEFT JOIN consolidations con ON b.consolidation_id = con.id
+        LEFT JOIN customers c ON con.customer_id = c.id
         WHERE
           (${searchTerm}::text IS NULL
+            OR (${invoiceNumber}::int IS NOT NULL AND b.invoice_number = ${invoiceNumber}::int)
             OR c.first_name ILIKE ${searchTerm}
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
-            OR b.uuid::text ILIKE ${searchTerm}
-            OR b.invoice_number::text = ${search ?? null})
+            OR b.uuid::text ILIKE ${searchTerm})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
+          AND (${methodFilter}::text IS NULL OR b.payment_method = ${methodFilter})
           AND (${fromDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
         ORDER BY b.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
       sql`
-        SELECT COUNT(*) AS total
+        SELECT
+          COUNT(*) AS total,
+          COALESCE(SUM(b.total_amount_crc), 0) AS total_amount_crc,
+          COALESCE(SUM(CASE WHEN NOT b.is_paid THEN b.total_amount_crc ELSE 0 END), 0) AS pending_amount_crc
         FROM billing b
-        JOIN consolidations con ON b.consolidation_id = con.id
-        JOIN customers c ON con.customer_id = c.id
+        LEFT JOIN consolidations con ON b.consolidation_id = con.id
+        LEFT JOIN customers c ON con.customer_id = c.id
         WHERE
           (${searchTerm}::text IS NULL
+            OR (${invoiceNumber}::int IS NOT NULL AND b.invoice_number = ${invoiceNumber}::int)
             OR c.first_name ILIKE ${searchTerm}
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
-            OR b.uuid::text ILIKE ${searchTerm}
-            OR b.invoice_number::text = ${search ?? null})
+            OR b.uuid::text ILIKE ${searchTerm})
           AND (${isPaidFilter}::boolean IS NULL OR b.is_paid = ${isPaidFilter})
+          AND (${methodFilter}::text IS NULL OR b.payment_method = ${methodFilter})
           AND (${fromDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (b.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
@@ -78,6 +99,10 @@ export const BillingRepository = {
     return {
       data: rows as BillingListItem[],
       total: parseInt(countResult[0].total, 10),
+      summary: {
+        total_amount_crc: Number(countResult[0].total_amount_crc),
+        pending_amount_crc: Number(countResult[0].pending_amount_crc),
+      },
     };
   },
 
@@ -88,7 +113,7 @@ export const BillingRepository = {
         b.invoice_number,
         con.uuid AS consolidation_uuid,
         con.status AS consolidation_status,
-        c.first_name || ' ' || c.last_name AS customer_name,
+        COALESCE(c.first_name || ' ' || c.last_name, '') AS customer_name,
         c.customer_code,
         c.email AS customer_email,
         con.total_weight_lb,
@@ -124,8 +149,8 @@ export const BillingRepository = {
           '[]'::json
         ) AS packages
       FROM billing b
-      JOIN consolidations con ON b.consolidation_id = con.id
-      JOIN customers c ON con.customer_id = c.id
+      LEFT JOIN consolidations con ON b.consolidation_id = con.id
+      LEFT JOIN customers c ON con.customer_id = c.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
       WHERE b.uuid = ${uuid}
     `;
@@ -148,8 +173,8 @@ export const BillingRepository = {
         COUNT(CASE WHEN b.is_paid THEN 1 END)::int             AS paid_count,
         COUNT(CASE WHEN b.has_unknown_cost THEN 1 END)::int    AS unknown_cost_count
       FROM billing b
-      WHERE b.created_at >= ${from}::timestamptz
-        AND b.created_at <  (${to}::date + INTERVAL '1 day')
+      WHERE (b.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${from}::date
+        AND (b.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${to}::date
       GROUP BY DATE_TRUNC('month', b.created_at AT TIME ZONE 'America/Costa_Rica')
       ORDER BY DATE_TRUNC('month', b.created_at AT TIME ZONE 'America/Costa_Rica') ASC
     `;

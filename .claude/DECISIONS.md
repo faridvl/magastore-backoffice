@@ -272,3 +272,15 @@ pide escribirlo exacto (409) en vez de elegir uno.
 "Configuración no se integra". El trabajo de esa fase (Tarifas, Couriers, Tipos, Métodos, Plantillas,
 menú, nombres del header, Inicio y el botón principal en teal-700) quedó como parche fuera del repo,
 revisado por UX, para retomarlo cuando el dueño lo pida.
+
+## Facturación y Reportes: filtros como Órdenes, totales del filtro y meses en hora de Costa Rica (pedido del dueño, 2026-10-24)
+
+Facturación usa el mismo `FilterBar` (estado de pago, método y período por fecha de emisión en día
+de Costa Rica) con los filtros en la URL y la búsqueda en `sessionStorage`; la línea "N facturas ·
+Facturado · Por cobrar" sale del servidor con el mismo WHERE que las filas. La búsqueda acepta el
+número de factura ("F-0060", "0060") además del nombre o el casillero. Reportes mantiene Mes/Año
+porque la participación de Farid se liquida por mes, y ahora filtra por día de Costa Rica: antes
+comparaba en UTC y una factura emitida el último día del mes después de las 18:00 se perdía.
+"Cobrado" es lo cobrado de las facturas emitidas en el mes (pregunta abierta al dueño). No se puede
+recalcular el estimado ni agregar paquetes a una orden con factura, y no se liquida a Farid un mes
+que aún no termina (regla provisional, también en el API).

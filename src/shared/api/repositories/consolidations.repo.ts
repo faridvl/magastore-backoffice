@@ -998,6 +998,11 @@ export const ConsolidationsRepository = {
         throw new Error('Solo se pueden agregar paquetes en el paso de confirmación o de cobro de la orden de envío.');
       }
 
+      const [existingBill] = await sql`SELECT 1 AS found FROM billing WHERE consolidation_id = ${con.id} LIMIT 1`;
+      if (existingBill) {
+        throw new Error('No se puede agregar paquetes: la orden ya tiene factura.');
+      }
+
       const [mismatch] = await sql`
         SELECT COUNT(*) AS mismatched
         FROM packages

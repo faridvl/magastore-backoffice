@@ -365,7 +365,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
           extraActiveCount={dateFrom || dateTo ? 1 : 0}
           extraChips={dateFrom || dateTo ? [{ key: 'period', label: `Creadas ${formatPeriodLabel(dateFrom, dateTo)}`, onRemove: clearDates }] : []}
           onClearExtra={clearDates}
-          resultCount={isLoadingList ? undefined : listMeta.total}
+          resultCount={isLoadingList || isErrorList ? undefined : listMeta.total}
         />
       </div>
 

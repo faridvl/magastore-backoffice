@@ -33,6 +33,8 @@ interface TableProps<T> {
     itemSingular?: string;
     itemPlural?: string;
     emptyTitle?: string;
+    /** El conteo ya se muestra en otro lugar de la pantalla (p. ej. la tarjeta de filtros). */
+    hideCount?: boolean;
     emptyActionLabel?: string;
     onEmptyAction?: () => void;
 }
@@ -54,6 +56,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
     itemSingular = 'registro',
     itemPlural = 'registros',
     emptyTitle = 'No hay resultados',
+    hideCount = false,
     emptyActionLabel,
     onEmptyAction,
 }: TableProps<T>) => {
@@ -123,7 +126,7 @@ export const NewTable = <T extends { id?: string | number; uuid?: string }>({
             {/* FOOTER DE PAGINACIÓN */}
             <div className="px-3 py-3 md:px-4 md:py-4 xl:px-6 bg-white border-t border-slate-100 rounded-b-2xl mt-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <span className="text-sm font-bold text-slate-700">
-                    {formatCount(totalRows, itemSingular, itemPlural)}
+                    {hideCount ? '' : isLoading ? '—' : formatCount(totalRows, itemSingular, itemPlural)}
                 </span>
 
                 <div className="flex items-center justify-between gap-3">

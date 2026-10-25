@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService, isPaymentMethod } from '@/shared/api/services/billing.service';
+import { isIsoDate } from '@/shared/utils/is-iso-date';
 import { getActor } from '@/shared/api/get-actor';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, isPaid, dateFrom, dateTo } = req.query;
+      const { uuid, page, limit, search, isPaid, dateFrom, dateTo, paymentMethod } = req.query;
 
       if (uuid) {
         const detail = await BillingService.getBillingDetail(uuid as string);
@@ -35,7 +36,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const df = dateFrom as string | undefined;
       const dt = dateTo as string | undefined;
 
-      const result = await BillingService.getBillingList(p, l, s, paidFilter, df, dt);
+      if ((df !== undefined && !isIsoDate(df)) || (dt !== undefined && !isIsoDate(dt))) {
+        return res.status(400).json({ message: 'Las fechas deben tener el formato AAAA-MM-DD.' });
+      }
+      if (df && dt && df > dt) {
+        return res.status(400).json({ message: 'La fecha de inicio no puede ser posterior a la fecha final.' });
+      }
+      if (paymentMethod !== undefined && !isPaymentMethod(paymentMethod)) {
+        return res.status(400).json({ message: 'El método de pago no es válido.' });
+      }
+
+      const result = await BillingService.getBillingList(p, l, s, paidFilter, df, dt, paymentMethod);
       return res.status(200).json(result);
     }
 

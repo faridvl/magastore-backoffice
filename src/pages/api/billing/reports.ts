@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/api/services/billing.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
+import { isIsoDate } from '@/shared/utils/is-iso-date';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const context = { req, res } as any;
@@ -29,7 +30,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Los parámetros from y to son requeridos.' });
     }
 
-    const data = await BillingService.getBillingReports(from as string, to as string);
+    if (!isIsoDate(from) || !isIsoDate(to)) {
+      return res.status(400).json({ message: 'Las fechas deben tener el formato AAAA-MM-DD.' });
+    }
+    if (from > to) {
+      return res.status(400).json({ message: 'La fecha de inicio no puede ser posterior a la fecha final.' });
+    }
+
+    const data = await BillingService.getBillingReports(from, to);
     return res.status(200).json({ data });
   } catch (error: any) {
     console.error('[Billing Reports Controller Error]:', error);

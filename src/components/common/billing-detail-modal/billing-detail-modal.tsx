@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
 import { Modal } from '@/components/common/modal/modal';
 import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
 import { BillingDetail, ConsolidationPaymentStatus, PaymentMethod } from '@/types/logistics/logistics.types';
-import { BACKFILLED_AUTHOR_LABEL, PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
+import { PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
@@ -30,6 +30,8 @@ interface Props {
   isMarkingPaid: boolean;
   onDownloadPdf: (uuid: string, invoiceNumber?: number) => void;
   isDownloadingPdf: boolean;
+  /** Lleva al detalle de la orden de esta factura; sin él no se ofrece el botón. */
+  onViewOrder?: (consolidationUuid: string) => void;
 }
 
 export const BillingDetailModal: React.FC<Props> = ({
@@ -42,6 +44,7 @@ export const BillingDetailModal: React.FC<Props> = ({
   isMarkingPaid,
   onDownloadPdf,
   isDownloadingPdf,
+  onViewOrder,
 }) => {
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
@@ -87,6 +90,14 @@ export const BillingDetailModal: React.FC<Props> = ({
         </>
       )}
       <div className="grid grid-cols-2 gap-3">
+        {onViewOrder && billingDetail.consolidation_uuid && (
+          <button
+            onClick={() => onViewOrder(billingDetail.consolidation_uuid)}
+            className="flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50"
+          >
+            Ver orden
+          </button>
+        )}
         <button
           onClick={() => onDownloadPdf(billingDetail.uuid, billingDetail.invoice_number)}
           disabled={isDownloadingPdf}
@@ -95,12 +106,14 @@ export const BillingDetailModal: React.FC<Props> = ({
           <FileDown size={15} />
           {isDownloadingPdf ? 'Generando PDF...' : 'Descargar PDF'}
         </button>
-        <button
-          onClick={onClose}
-          className="min-h-[44px] whitespace-nowrap rounded-2xl bg-slate-100 px-4 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200"
-        >
-          Cerrar
-        </button>
+        {!(onViewOrder && billingDetail.consolidation_uuid) && (
+          <button
+            onClick={onClose}
+            className="min-h-[44px] whitespace-nowrap rounded-2xl bg-slate-100 px-4 text-sm font-bold text-slate-600 transition-all hover:bg-slate-200"
+          >
+            Cerrar
+          </button>
+        )}
       </div>
     </div>
   ) : undefined;
@@ -110,7 +123,16 @@ export const BillingDetailModal: React.FC<Props> = ({
       title={billingDetail?.customer_name}
       subtitle={
         billingDetail
-          ? `${formatInvoiceNumber(billingDetail.invoice_number)} · ${billingDetail.customer_code} · ${billingDetail.customer_email}`
+          ? [
+              formatInvoiceNumber(billingDetail.invoice_number),
+              billingDetail.customer_code,
+              PAYMENT_STATUS_LABEL[
+                billingDetail.is_paid ? ConsolidationPaymentStatus.PAGADO : ConsolidationPaymentStatus.PENDIENTE_PAGO
+              ],
+              billingDetail.customer_email,
+            ]
+              .filter(Boolean)
+              .join(' · ')
           : undefined
       }
       onClose={onClose}
@@ -189,10 +211,15 @@ export const BillingDetailModal: React.FC<Props> = ({
 
           {/* Autoría y método de pago */}
           <div className="bg-slate-50 rounded-2xl p-5 space-y-3">
-            <BillingRow label="Emitida por" value={formatAuthor(billingDetail.created_by_name, billingDetail.created_by_backfilled)} />
+            {/* Una autoría atribuida por el backfill de la 033 no es de nadie en concreto: no se muestra. */}
+            {!billingDetail.created_by_backfilled && (
+              <BillingRow label="Emitida por" value={billingDetail.created_by_name || 'Sin registrar'} />
+            )}
             {billingDetail.is_paid && (
               <>
-                <BillingRow label="Marcada pagada por" value={formatAuthor(billingDetail.paid_by_name, billingDetail.paid_by_backfilled)} />
+                {!billingDetail.paid_by_backfilled && (
+                  <BillingRow label="Marcada pagada por" value={billingDetail.paid_by_name || 'Sin registrar'} />
+                )}
                 <BillingRow
                   label="Método de pago"
                   value={billingDetail.payment_method ? PAYMENT_METHOD_LABELS[billingDetail.payment_method] : 'Sin registrar'}
@@ -227,9 +254,6 @@ export const BillingDetailModal: React.FC<Props> = ({
     </Modal>
   );
 };
-
-const formatAuthor = (name: string | null, isBackfilled: boolean) =>
-  isBackfilled ? BACKFILLED_AUTHOR_LABEL : name || 'Sin registrar';
 
 const BillingRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center text-sm">

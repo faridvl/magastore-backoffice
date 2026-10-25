@@ -195,6 +195,11 @@ export const LogisticsRepository = {
         throw new Error('No se puede generar el estimado: la orden de envío ya fue despachada.');
       }
 
+      const [existingBill] = await sql`SELECT 1 AS found FROM billing WHERE consolidation_id = ${c.id} LIMIT 1`;
+      if (existingBill) {
+        throw new Error('No se puede recalcular: la orden ya tiene factura.');
+      }
+
       // El peso sale de los paquetes asignados: el guardado en la orden puede estar desactualizado.
       const [packageTotals] = await sql`
         SELECT COUNT(*) AS total, COALESCE(SUM(weight_lb), 0) AS weight_lb FROM packages WHERE consolidation_id = ${c.id}

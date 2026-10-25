@@ -296,11 +296,12 @@ export interface BillingListItem {
   // Correlativo legible (F-0001) para identificar la factura al hablar con
   // el cliente — el uuid no es práctico para eso.
   invoice_number: number;
-  consolidation_uuid: string;
-  consolidation_status: ConsolidationStatus;
-  consolidation_step: ShipmentOrderStep;
+  // Una factura vieja puede no tener orden o cliente (LEFT JOIN).
+  consolidation_uuid: string | null;
+  consolidation_status: ConsolidationStatus | null;
+  consolidation_step: ShipmentOrderStep | null;
   customer_name: string;
-  customer_code: string;
+  customer_code: string | null;
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
@@ -308,8 +309,15 @@ export interface BillingListItem {
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
+  payment_method: PaymentMethod | null;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
+}
+
+/** Totales de TODO lo que cumple los filtros (no solo la página): salen del mismo WHERE que las filas. */
+export interface BillingListSummary {
+  total_amount_crc: number;
+  pending_amount_crc: number;
 }
 
 export interface BillingPackageLine {

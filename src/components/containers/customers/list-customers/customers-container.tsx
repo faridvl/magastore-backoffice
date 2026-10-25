@@ -54,6 +54,7 @@ export const CustomersContainer: React.FC = () => {
         totalCustomers,
         totalPages,
         isLoading,
+        isError,
         navigation,
         handleInviteToComeBack,
         invitingCustomerId,
@@ -194,7 +195,7 @@ export const CustomersContainer: React.FC = () => {
                     }
                     fields={filterFields}
                     onClearExtra={clearFilters}
-                    resultCount={isLoading ? undefined : totalRows}
+                    resultCount={isLoading || isError ? undefined : totalRows}
                 />
                 {!isLoading && (
                     <span className="text-sm font-semibold text-slate-500">

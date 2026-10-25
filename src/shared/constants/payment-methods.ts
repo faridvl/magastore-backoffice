@@ -9,6 +9,3 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 export const PAYMENT_METHOD_OPTIONS = Object.values(PaymentMethod);
-
-// Etiqueta para autoría atribuida por el backfill de la migración 033.
-export const BACKFILLED_AUTHOR_LABEL = 'Admin (histórico)';

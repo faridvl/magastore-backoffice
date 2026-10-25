@@ -184,7 +184,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   const canNotifyDispatch = isDispatched && !!detail.tracking_code && !!deliveryMethodEntity?.tracking_url;
   // "Agregar paquetes": en Confirmación y en Cobro (recalcula el estimado); no en
   // Despacho, donde el proveedor ya tiene la solicitud con la lista original.
-  const canAssignPackages = detail.current_step === ShipmentOrderStep.CONFIRMACION || detail.current_step === ShipmentOrderStep.COBRO;
+  const canAssignPackages = !hasBilling && (detail.current_step === ShipmentOrderStep.CONFIRMACION || detail.current_step === ShipmentOrderStep.COBRO);
   const confirmCopy = confirmAction ? CONFIRM_COPY[confirmAction] : null;
   const isActualFeeValid = actualFeeDraft.trim() !== '' && Number(actualFeeDraft) >= 0;
 
