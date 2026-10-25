@@ -1,3 +1,4 @@
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import sql from '@/lib/db';
 import {
   PackageStatus,
@@ -115,6 +116,12 @@ const ORPHAN_IN_TRANSIT_MESSAGE =
  * Repository para el sistema de logística de couriers.
  * Maneja transacciones manuales compatibles con Neon HTTP Client.
  */
+/** La búsqueda de backoffice encontró 2 o más paquetes con un número parecido. */
+export const AMBIGUOUS_TRACKING = { ambiguous: true } as const;
+
+/** Se rechaza con `No se puede…` para que el handler responda 409. */
+const ALREADY_BILLED_MESSAGE = 'No se puede confirmar: la orden ya tiene una factura generada.';
+
 export const LogisticsRepository = {
   /**
    * 1. CREATE PACKAGE: Registro de entrada de mercancía en Miami.
@@ -188,6 +195,14 @@ export const LogisticsRepository = {
         throw new Error('No se puede generar el estimado: la orden de envío ya fue despachada.');
       }
 
+      // El peso sale de los paquetes asignados: el guardado en la orden puede estar desactualizado.
+      const [packageTotals] = await sql`
+        SELECT COUNT(*) AS total, COALESCE(SUM(weight_lb), 0) AS weight_lb FROM packages WHERE consolidation_id = ${c.id}
+      `;
+      if (Number(packageTotals.total) === 0) {
+        throw new EmptyOrderError('La orden no tiene paquetes. Agrega al menos uno antes de generar el estimado.');
+      }
+
       // El método se eligió al crear la orden (junto con la dirección); solo se
       // pide explícito como fallback para órdenes viejas que no lo tienen guardado.
       const deliveryMethod = deliveryMethodOverride ?? (c.delivery_method as DeliveryMethod | null);
@@ -195,7 +210,7 @@ export const LogisticsRepository = {
         throw new Error('Esta orden de envío no tiene un método de entrega. Indícalo para generar el estimado.');
       }
 
-      const actualWeight  = Number(c.total_weight_lb);
+      const actualWeight  = Number(packageTotals.weight_lb);
       const chargedWeight = Math.max(actualWeight, min_lb);
 
       // Regla de cobro del cliente. Solo afecta el flete internacional: la
@@ -286,15 +301,14 @@ export const LogisticsRepository = {
 
       const estimatedCrc = flete + deliveryFee;
 
-      const [existing] = await sql`
-        SELECT uuid FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
-      `;
-
-      let result: Partial<PreBilling>;
-      if (existing) {
-        const [updated] = await sql`
+      // Un solo estimado por orden aunque el botón se toque dos veces o haya dos pestañas: primero se
+      // actualiza el que exista y solo si no hay ninguno se inserta, en una sentencia condicional.
+      // Si el monto cambia, el cliente no vio la cifra nueva: el estimado vuelve a "sin avisar".
+      const updatePreBilling = async () => {
+        const [row] = await sql`
           UPDATE pre_billing
-          SET estimated_amount_crc = ${estimatedCrc},
+          SET notified_at          = CASE WHEN estimated_amount_crc IS DISTINCT FROM ${estimatedCrc} THEN NULL ELSE notified_at END,
+              estimated_amount_crc = ${estimatedCrc},
               delivery_method      = ${deliveryMethod},
               delivery_fee_crc     = ${deliveryFee},
               delivery_cost_crc    = ${deliveryCost},
@@ -307,22 +321,28 @@ export const LogisticsRepository = {
           WHERE consolidation_id = ${c.id}
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
         `;
-        result = updated;
-      } else {
+        return row as Partial<PreBilling> | undefined;
+      };
+
+      let result = await updatePreBilling();
+      if (!result) {
         const [pre] = await sql`
           INSERT INTO pre_billing (
             consolidation_id, estimated_amount_crc, delivery_method,
             delivery_fee_crc, delivery_cost_crc, applied_rate_usd, applied_exchange, total_weight_charged,
             applied_billing_mode, applied_discount_percent
-          ) VALUES (
+          )
+          SELECT
             ${c.id}, ${estimatedCrc}, ${deliveryMethod},
             ${deliveryFee}, ${deliveryCost}, ${price_lb}, ${exchange}, ${chargedWeight},
             ${billingMode}, ${discountPercent}
-          )
+          WHERE NOT EXISTS (SELECT 1 FROM pre_billing WHERE consolidation_id = ${c.id})
           RETURNING uuid, estimated_amount_crc, delivery_method, is_confirmed, created_at
         `;
-        result = pre;
+        // Otra solicitud lo creó entre medio: se actualiza ese en vez de duplicarlo.
+        result = (pre as Partial<PreBilling> | undefined) ?? (await updatePreBilling());
       }
+      if (!result) throw new Error('No se pudo generar el estimado. Intenta de nuevo.');
 
       // Participación de Farid sobre la ganancia proyectada de este estimado.
       // Se registra ya (status ESTIMADO) para que la ganancia quede asentada por
@@ -381,12 +401,17 @@ export const LogisticsRepository = {
         SELECT * FROM pre_billing WHERE consolidation_id = ${c.id} LIMIT 1
       `;
       if (!pre) throw new Error('No existe prefactura para esta orden de envío.');
-      if (pre.is_confirmed) throw new Error('La prefactura ya fue confirmada.');
+      if (pre.is_confirmed) throw new Error('No se puede confirmar: la prefactura ya fue confirmada.');
+
+      const [packageCount] = await sql`SELECT COUNT(*) AS total FROM packages WHERE consolidation_id = ${c.id}`;
+      if (Number(packageCount.total) === 0) {
+        throw new EmptyOrderError('La orden no tiene paquetes. Agrega al menos uno antes de confirmar el estimado.');
+      }
 
       const [existingBill] = await sql`
         SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
       `;
-      if (existingBill) throw new Error('Esta orden de envío ya tiene una factura generada.');
+      if (existingBill) throw new Error(ALREADY_BILLED_MESSAGE);
 
       const [methodRow] = pre.delivery_method
         ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${pre.delivery_method}`
@@ -446,16 +471,19 @@ export const LogisticsRepository = {
           courier_cost_crc, delivery_cost_crc, profit_crc, has_unknown_cost,
           applied_billing_mode, applied_discount_percent,
           created_by_id, created_by_name
-        ) VALUES (
+        )
+        SELECT
           ${c.id}, ${pre.applied_rate_usd}, ${pre.applied_exchange}, ${pre.delivery_fee_crc},
           ${pre.total_weight_charged}, ${pre.estimated_amount_crc}, ${pre.delivery_method},
           ${pre.delivery_fee_crc}, ${addressSnapshot},
           ${courierCostCrc}, ${deliveryCostCrc}, ${profitCrc}, ${hasUnknownCost},
           ${pre.applied_billing_mode}, ${pre.applied_discount_percent},
           ${actor.id}, ${actor.name}
-        )
+        WHERE NOT EXISTS (SELECT 1 FROM billing WHERE consolidation_id = ${c.id})
         RETURNING id, uuid, invoice_number
       `;
+      // Dos confirmaciones a la vez: la segunda no crea otra factura.
+      if (!bill) throw new Error(ALREADY_BILLED_MESSAGE);
 
       // Recongelar la participación de Farid con las cifras definitivas y pasarla
       // a FACTURADO. El período se recalcula a la fecha de la factura: un envío
@@ -521,6 +549,7 @@ export const LogisticsRepository = {
         p.evidence_url,
         p.tc_banco,
         con.uuid AS consolidation_uuid,
+        con.current_step AS consolidation_step,
         c.first_name,
         c.last_name,
         c.customer_code,
@@ -565,7 +594,9 @@ export const LogisticsRepository = {
    * 2b. GET PACKAGE DETAIL BY TRACKING: Consulta admin completa por tracking_number (con billing).
    */
   getPackageDetailByTracking: async (trackingNumber: string): Promise<any> => {
-    const rows = await sql`
+    const normalized = trackingNumber.replace(/\s+/g, '').toUpperCase();
+
+    const exact = await sql`
       SELECT
         p.uuid,
         p.tracking_number,
@@ -597,8 +628,47 @@ export const LogisticsRepository = {
         LIMIT 1
       ) b ON true
       WHERE p.tracking_number = ${trackingNumber}
+      LIMIT 2
     `;
-    return rows[0] || null;
+    if (exact.length === 1) return exact[0];
+    if (exact.length > 1) return AMBIGUOUS_TRACKING;
+
+    const loose = await sql`
+      SELECT
+        p.uuid,
+        p.tracking_number,
+        p.status,
+        p.weight_lb,
+        p.internal_notes,
+        p.evidence_url,
+        c.first_name,
+        c.last_name,
+        c.customer_code,
+        b.is_paid,
+        b.paid_at,
+        b.total_amount_crc,
+        b.delivery_method,
+        b.delivery_fee_crc,
+        COALESCE(
+          (SELECT json_agg(ev.* ORDER BY ev.created_at DESC)
+           FROM package_events ev WHERE ev.package_id = p.id),
+          '[]'::json
+        ) AS events
+      FROM packages p
+      LEFT JOIN customers c ON p.customer_id = c.id
+      LEFT JOIN consolidations con ON p.consolidation_id = con.id
+      LEFT JOIN LATERAL (
+        SELECT is_paid, paid_at, total_amount_crc, delivery_method, delivery_fee_crc
+        FROM billing
+        WHERE consolidation_id = con.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) b ON true
+      WHERE UPPER(REPLACE(p.tracking_number, ' ', '')) = ${normalized}
+      LIMIT 2
+    `;
+    if (loose.length > 1) return AMBIGUOUS_TRACKING;
+    return loose[0] ?? null;
   },
 
   /**
@@ -677,7 +747,7 @@ export const LogisticsRepository = {
     const [packages, countResult] = await Promise.all([
       sql`
       SELECT p.*, c.first_name, c.last_name, c.customer_code,
-        con.uuid AS consolidation_uuid, con.status AS consolidation_status
+        con.uuid AS consolidation_uuid, con.status AS consolidation_status, con.current_step AS consolidation_step
       FROM packages p
       LEFT JOIN customers c ON p.customer_id = c.id
       LEFT JOIN consolidations con ON p.consolidation_id = con.id
@@ -774,14 +844,36 @@ export const LogisticsRepository = {
     packageUuid: string,
     weight_lb: number,
   ): Promise<Partial<Package>> => {
-    const rows = await sql`
-      UPDATE packages
-      SET weight_lb = ${weight_lb}
-      WHERE uuid = ${packageUuid}
-      RETURNING uuid, weight_lb;
+    const [target] = await sql`
+      SELECT p.id, p.consolidation_id, (b.uuid IS NOT NULL) AS has_billing
+      FROM packages p
+      LEFT JOIN billing b ON b.consolidation_id = p.consolidation_id
+      WHERE p.uuid = ${packageUuid}
+      LIMIT 1
     `;
-    if (rows.length === 0) throw new Error('Paquete no encontrado.');
-    return rows[0];
+    if (!target) throw new Error('Paquete no encontrado.');
+    // Con factura el peso cobrado ya está congelado: cambiarlo dejaría factura y paquete en desacuerdo.
+    if (target.has_billing) throw new Error('No se puede cambiar el peso: la orden ya tiene factura.');
+
+    // Paquete y peso de su orden en una sola sentencia; con solo estimado se permite (se recalcula aparte).
+    const [row] = await sql`
+      WITH updated AS (
+        UPDATE packages
+        SET weight_lb = ${weight_lb}
+        WHERE id = ${target.id}
+          AND NOT EXISTS (SELECT 1 FROM billing WHERE consolidation_id = packages.consolidation_id)
+        RETURNING uuid, weight_lb, consolidation_id
+      ), synced AS (
+        UPDATE consolidations c
+        SET total_weight_lb = COALESCE((SELECT SUM(p.weight_lb) FROM packages p WHERE p.consolidation_id = c.id AND p.id <> ${target.id}), 0) + ${weight_lb},
+            updated_at = NOW()
+        FROM updated u
+        WHERE c.id = u.consolidation_id
+      )
+      SELECT uuid, weight_lb FROM updated
+    `;
+    if (!row) throw new Error('No se puede cambiar el peso: la orden ya tiene factura.');
+    return row;
   },
 
   /**

@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { LogisticsService, MissingWarehouseCodeError } from '@/shared/api/services/logistics.service';
+import { LogisticsService, MissingWarehouseCodeError, PackageNotFoundError, PackageAmbiguousError } from '@/shared/api/services/logistics.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { getActor } from '@/shared/api/get-actor';
 import { isUuid } from '@/shared/utils/is-uuid';
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,6 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             const { tracking } = req.query;
+            if (Array.isArray(tracking)) {
+                return res.status(400).json({ message: 'El número de rastreo no es válido.' });
+            }
             if (tracking) {
                 const pkg = await LogisticsService.lookupPackageByTracking(tracking as string);
                 return res.status(200).json(pkg);
@@ -75,6 +79,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const { consolidationUuid: preUuid, deliveryMethod: preDm } = req.body;
                     if (!preUuid) {
                         return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+                    }
+                    if (!isUuid(preUuid)) {
+                        return res.status(400).json({ message: 'consolidationUuid no es válido.' });
                     }
                     const preBill = await LogisticsService.generatePreBilling(preUuid, preDm);
                     return res.status(201).json(preBill);
@@ -157,9 +164,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 rateName: error.rateName,
             });
         }
+        if (error instanceof PackageAmbiguousError) {
+            return res.status(409).json({ message: error.message });
+        }
+        if (error instanceof PackageNotFoundError) {
+            return res.status(404).json({ message: error.message });
+        }
         console.error('[Logistics Controller Error]:', error);
         // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
-        const isBusinessRule = /^(solo|no) se puede/i.test(error?.message ?? '');
+        const isBusinessRule = error instanceof EmptyOrderError || /^(solo|no) se puede/i.test(error?.message ?? '');
         return res.status(isBusinessRule ? 409 : 500).json({ message: error.message || 'Error interno' });
     }
 }

@@ -1,12 +1,13 @@
 import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { CheckCircle2, FileText } from 'lucide-react';
-import { ConsolidationDetail, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
+import { ConsolidationDetail, ConsolidationPaymentStatus, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
 import { formatCrc } from '@/shared/utils/format-crc';
 import { formatBusinessDateTime } from '@/shared/utils/timezone';
+import { PAYMENT_STATUS_LABEL } from '@/shared/constants/status-labels';
 
 const Fact: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="min-w-0">
@@ -29,11 +30,16 @@ export const FinalizedSummary: React.FC<{
     ? `F-${String(detail.billing_invoice_number).padStart(4, '0')}`
     : null;
 
+  // Un autor atribuido por el backfill de la 033 no es quien pagó: no se muestra como si lo fuera.
+  const paidByLabel = detail.billing_paid_by_name && !detail.billing_paid_by_backfilled
+    ? ` · por ${detail.billing_paid_by_name}`
+    : '';
+
   const history = [
     { label: 'Orden creada', date: detail.created_at },
     { label: 'Estimado confirmado y factura emitida', date: detail.pre_billing_confirmed_at },
     {
-      label: `Pago registrado${detail.billing_payment_method ? ` · ${PAYMENT_METHOD_LABELS[detail.billing_payment_method]}` : ''}${detail.billing_paid_by_name ? ` · por ${detail.billing_paid_by_name}` : ''}`,
+      label: `Pago registrado${detail.billing_payment_method ? ` · ${PAYMENT_METHOD_LABELS[detail.billing_payment_method]}` : ''}${paidByLabel}`,
       date: detail.billing_paid_at,
     },
     { label: 'Envío solicitado al proveedor', date: detail.shipment_requested_at },
@@ -58,7 +64,7 @@ export const FinalizedSummary: React.FC<{
           <button
             type="button"
             onClick={onOpenBilling}
-            className="inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors flex-shrink-0"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors flex-shrink-0"
           >
             <FileText size={14} /> {invoiceLabel ?? 'Factura'}
           </button>
@@ -73,7 +79,7 @@ export const FinalizedSummary: React.FC<{
           <p className={detail.billing_is_paid ? 'text-emerald-700' : 'text-amber-700'}>
             {detail.billing_is_paid
               ? ['Pagada', detail.billing_payment_method && PAYMENT_METHOD_LABELS[detail.billing_payment_method]].filter(Boolean).join(' · ')
-              : 'Pendiente de pago'}
+              : PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO]}
           </p>
         </Fact>
         <Fact label="Paquetes">

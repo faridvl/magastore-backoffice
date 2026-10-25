@@ -82,3 +82,28 @@ export const currentMonthKey = (): string => {
   const month = parts.find((p) => p.type === 'month')?.value ?? '';
   return `${year}-${month}`;
 };
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/** Día calendario de Costa Rica como milisegundos UTC a medianoche, comparable entre fechas. */
+const businessDayStart = (date: Date): number => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BUSINESS_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const read = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return Date.UTC(read('year'), read('month') - 1, read('day'));
+};
+
+/**
+ * Días de calendario (hora de Costa Rica) entre una fecha y hoy: algo de ayer a las 11 p. m. ya
+ * es "hace 1 día", aunque hayan pasado menos de 24 horas. Null si la fecha no existe o no es válida.
+ */
+export const businessDaysSince = (value: string | Date | null | undefined): number | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return Math.max(0, Math.round((businessDayStart(new Date()) - businessDayStart(date)) / MS_PER_DAY));
+};

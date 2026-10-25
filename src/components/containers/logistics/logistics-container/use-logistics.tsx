@@ -93,7 +93,7 @@ export const usePackages = (pageSize = 7) => {
     const resolvedStatus = viewMode === 'historial' ? 'ENTREGADO' : 'ACTIVOS';
     const resolvedConsolidationFilter = viewMode === 'activos' ? consolidationFilter : undefined;
 
-    const { data, isLoading } = useLogisticsQuery(
+    const { data, isLoading, isError, refetch } = useLogisticsQuery(
         page, pageSize, debouncedSearch, resolvedStatus,
         dateFrom || undefined, dateTo || undefined,
         resolvedConsolidationFilter, customerUuid || undefined,
@@ -232,6 +232,8 @@ export const usePackages = (pageSize = 7) => {
         isFromOperations,
         packages,
         isLoading,
+        isError,
+        refetch,
         meta: {
             total: data?.meta.total || 0,
             page: page,

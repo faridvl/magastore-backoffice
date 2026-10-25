@@ -14,8 +14,7 @@ import {
 } from '@/shared/constants/whatsapp-templates';
 import { FOLLOW_UP_DELAY_DAYS } from '@/shared/constants/post-delivery';
 import { ConsolidationDetail } from '@/types/logistics/logistics.types';
-
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+import { businessDaysSince } from '@/shared/utils/timezone';
 
 export const usePostDelivery = (detail: ConsolidationDetail) => {
   const [isSendingFollowUp, setIsSendingFollowUp] = useState(false);
@@ -26,9 +25,8 @@ export const usePostDelivery = (detail: ConsolidationDetail) => {
   const reviewTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.REVIEW_REQUEST);
 
   const firstName = detail.customer_name.split(' ')[0] || detail.customer_name;
-  const daysSinceDispatch = detail.dispatched_at
-    ? Math.floor((Date.now() - new Date(detail.dispatched_at).getTime()) / MS_PER_DAY)
-    : null;
+  // Días de calendario de Costa Rica: un despacho de ayer por la noche ya no es "hoy".
+  const daysSinceDispatch = businessDaysSince(detail.dispatched_at);
   // Aviso suave, no bloquea: puede haber llegado antes de lo normal.
   const isFollowUpEarly = daysSinceDispatch != null && daysSinceDispatch < FOLLOW_UP_DELAY_DAYS;
   const canRequestReview = !!detail.follow_up_sent_at;

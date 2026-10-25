@@ -3,25 +3,19 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import {
   ChevronLeft,
-  Package,
   X,
-  FileText,
   CheckCircle,
   RotateCcw,
-  SendHorizonal,
-  MapPin,
   Square,
   CheckSquare,
   TrendingUp,
-  Copy,
-  Truck,
-  Lock,
-  Wallet,
-  Banknote,
-  Plus,
   Settings2,
 } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { Modal } from '@/components/common/modal/modal';
+import { Button, ButtonVariant } from '@/components/common/button/button';
+import { EmptyState } from '@/components/common/empty-state/empty-state';
+import { PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
@@ -43,20 +37,6 @@ import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-deliv
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { formatCrc } from '@/shared/utils/format-crc';
 import { packageStatusLabel, packageTypeLabel } from '@/shared/constants/package-labels';
-
-const STATUS_LABELS: Record<ConsolidationStatus, string> = {
-  ABIERTO: 'Abierto',
-  CERRADO: 'Cerrado',
-  DESPACHADO: 'En camino',
-  ENTREGADO: 'Entregado',
-};
-
-const STATUS_COLORS: Record<ConsolidationStatus, string> = {
-  ABIERTO: 'bg-amber-50 text-amber-600 border-amber-100',
-  CERRADO: 'bg-blue-50 text-blue-600 border-blue-100',
-  DESPACHADO: 'bg-violet-50 text-violet-600 border-violet-100',
-  ENTREGADO: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-};
 
 const formatCRC = formatCrc;
 
@@ -81,6 +61,7 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   const {
     detail,
     isLoadingDetail,
+    retryDetail,
     handleBack,
     backLabel,
 
@@ -185,9 +166,10 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
       <div className="flex flex-col items-center py-16 gap-3">
         <X size={32} className="text-red-400" />
         <p className="text-slate-500 text-sm">No se pudo cargar la orden de envío.</p>
-        <button onClick={handleBack} className="mt-2 px-6 py-2 bg-slate-100 rounded-xl text-sm font-bold">
-          Volver al listado
-        </button>
+        <div className="mt-2 flex gap-3">
+          <Button variant={ButtonVariant.PRIMARY} text="Reintentar" onClick={retryDetail} />
+          <Button variant={ButtonVariant.CANCEL} text="Volver al listado" onClick={handleBack} />
+        </div>
       </div>
     );
   }
@@ -204,46 +186,31 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
   // Despacho, donde el proveedor ya tiene la solicitud con la lista original.
   const canAssignPackages = detail.current_step === ShipmentOrderStep.CONFIRMACION || detail.current_step === ShipmentOrderStep.COBRO;
   const confirmCopy = confirmAction ? CONFIRM_COPY[confirmAction] : null;
+  const isActualFeeValid = actualFeeDraft.trim() !== '' && Number(actualFeeDraft) >= 0;
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 pb-20">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col min-w-0 w-full md:w-auto">
-          {/* En móvil la flecha del header ya vuelve atrás. */}
-          <button onClick={handleBack} className="hidden sm:flex items-center gap-1.5 min-h-[32px] text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold mb-2">
-            <ChevronLeft size={16} /> {backLabel}
-          </button>
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <Typography variant={TypographyVariant.HEADER} className="tracking-tighter break-words">
-              {detail.customer_name}
-            </Typography>
-            {detail.customer_type_name && detail.customer_type_billing_mode !== 'NORMAL' && (
-              <CustomerTypeBadge
-                name={detail.customer_type_name}
-                mode={detail.customer_type_billing_mode as CustomerBillingMode}
-                discount={detail.customer_type_discount_percent}
-              />
-            )}
-          </div>
-          <p className="text-slate-500 text-sm font-medium mt-1 break-words">
-            {detail.customer_code} · {detail.customer_email.toLowerCase()}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${STATUS_COLORS[detail.status]}`}>
-            {isPickup && detail.status === ConsolidationStatus.DESPACHADO ? 'Listo para retiro' : STATUS_LABELS[detail.status]}
-          </span>
-          {hasBilling && (
-            <button
-              onClick={() => setShowBillingModal(true)}
-              className="inline-flex items-center justify-center gap-1.5 min-h-[40px] px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
-            >
-              <FileText size={14} />
-              Ver factura
-            </button>
+      <div className="flex flex-col min-w-0">
+        {/* En móvil la flecha del header ya vuelve atrás. */}
+        <button onClick={handleBack} className="hidden sm:flex items-center gap-1.5 min-h-[44px] self-start text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold">
+          <ChevronLeft size={16} /> {backLabel}
+        </button>
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <Typography variant={TypographyVariant.HEADER} className="tracking-tighter break-words">
+            {detail.customer_name}
+          </Typography>
+          {detail.customer_type_name && detail.customer_type_billing_mode !== 'NORMAL' && (
+            <CustomerTypeBadge
+              name={detail.customer_type_name}
+              mode={detail.customer_type_billing_mode as CustomerBillingMode}
+              discount={detail.customer_type_discount_percent}
+            />
           )}
         </div>
+        <p className="text-slate-500 text-sm font-medium mt-1 break-words">
+          {detail.customer_code} · {detail.customer_email.toLowerCase()}
+        </p>
       </div>
 
       <WizardStepsSection
@@ -306,60 +273,36 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
       {/* MODAL: QUIÉN RECIBE */}
       {showRecipientModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center sm:p-4"
-          onClick={() => setShowRecipientModal(false)}
+        <Modal
+          title="¿Quién recibe?"
+          subtitle="Elige quién recibe este envío."
+          onClose={() => setShowRecipientModal(false)}
+          footer={<Button variant={ButtonVariant.CANCEL} text="Cerrar" onClick={() => setShowRecipientModal(false)} className="w-full" />}
         >
-          <div
-            className="bg-white w-full sm:max-w-md rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="text-lg font-bold text-slate-900">¿Quién recibe?</p>
-            <p className="text-sm text-slate-500 mt-1 mb-4">Elige al cliente o a otra persona. Se usa en la solicitud al proveedor, la confirmación y la factura.</p>
-            <CustomerRecipientsList
-              customerId={detail.customer_id}
-              customerName={detail.customer_name}
-              selectedId={detail.recipient_id}
-              onSelect={handleSetRecipient}
-            />
-            <button
-              onClick={() => setShowRecipientModal(false)}
-              className="w-full mt-4 min-h-[44px] rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
+          <CustomerRecipientsList
+            customerId={detail.customer_id}
+            customerName={detail.customer_name}
+            selectedId={detail.recipient_id}
+            onSelect={handleSetRecipient}
+          />
+        </Modal>
       )}
 
       {/* MODAL: CONFIRMAR UNA ACCIÓN QUE DESCARTA TRABAJO */}
       {confirmCopy && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setConfirmAction(null)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="font-bold text-slate-900 text-base">{confirmCopy.title}</p>
-            <p className="text-sm text-slate-500 mt-2 leading-relaxed">{confirmCopy.body}</p>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setConfirmAction(null)}
-                className="flex-1 min-h-[44px] rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmAction}
-                className="flex-1 min-h-[44px] rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 transition-colors"
-              >
-                {confirmCopy.confirmLabel}
-              </button>
+        <Modal
+          title={confirmCopy.title}
+          onClose={() => setConfirmAction(null)}
+          className="sm:max-w-sm"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setConfirmAction(null)} className="flex-1" />
+              <Button variant={ButtonVariant.PRIMARY} text={confirmCopy.confirmLabel} onClick={handleConfirmAction} className="flex-1" />
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p className="text-sm leading-relaxed text-slate-500">{confirmCopy.body}</p>
+        </Modal>
       )}
 
       {/* MODAL: DETALLE DE FACTURA (mismo modal que Facturación) */}
@@ -379,257 +322,157 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
 
       {/* MODAL: ¿ESTÁ PAGADA? — salto paso 2 → paso 3. No bloquea: hay
           clientes a los que se les despacha sin haber pagado (caso confirmado
-          por el dueño), así que "No" avanza igual y la orden queda visible en
-          el filtro "Sin pagar" del listado. */}
+          por el dueño), así que "Todavía no" avanza igual y la orden queda
+          visible en el filtro "Sin pagar" del listado. */}
       {showPaymentCheckModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowPaymentCheckModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-4 mb-5">
-              <div className="p-2.5 rounded-xl bg-amber-50 flex-shrink-0">
-                <Wallet size={18} className="text-amber-600" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 text-sm">¿Esta orden ya está pagada?</p>
-                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  Antes de despachar, confirma si el cliente ya pagó. Si todavía no pagó, la orden
-                  igual se puede despachar — quedará marcada como pendiente de pago.
-                </p>
-              </div>
-            </div>
-            <div className="mb-5">
-              <PaymentMethodPicker
-                value={paymentCheckMethod}
-                onChange={setPaymentCheckMethod}
-                disabled={isAdvancingToDispatch}
-              />
-            </div>
+        <Modal
+          title="¿Esta orden ya está pagada?"
+          subtitle="Si todavía no pagó, la orden igual se puede despachar y queda como por cobrar."
+          onClose={() => setShowPaymentCheckModal(false)}
+          className="sm:max-w-md"
+          footer={
             <div className="flex gap-3">
-              <button
+              <Button
+                variant={ButtonVariant.CANCEL}
+                text="Todavía no"
                 onClick={() => handleConfirmPaymentCheck(false)}
                 disabled={isAdvancingToDispatch}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-40"
-              >
-                Todavía no
-              </button>
-              <button
+                className="flex-1"
+              />
+              <Button
+                variant={ButtonVariant.SUCCESS}
                 onClick={() => handleConfirmPaymentCheck(true)}
                 disabled={isAdvancingToDispatch || !paymentCheckMethod}
-                title={paymentCheckMethod ? undefined : 'Elige el método de pago'}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+                className="flex-1"
               >
-                <CheckCircle size={14} /> Sí, ya pagó
-              </button>
+                <CheckCircle size={16} /> Sí, ya pagó
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <PaymentMethodPicker
+            value={paymentCheckMethod}
+            onChange={setPaymentCheckMethod}
+            disabled={isAdvancingToDispatch}
+            label={paymentCheckMethod ? `Pagó con ${PAYMENT_METHOD_LABELS[paymentCheckMethod]}` : 'Elige cómo pagó para marcarla pagada'}
+          />
+        </Modal>
       )}
 
       {/* MODAL: REABRIR — único disparador hoy es el botón "Reabrir" del
           modal de "edición bloqueada" (Cambiar dirección/método con estimado
-          ya generado, visto desde el paso 1). El salto 2→3 (antes también
-          pasaba por acá, con "¿Marcar como despachada?") ya no usa ningún
+          ya generado, visto desde el paso 1). El salto 2→3 no usa ningún
           modal: es directo y en silencio, pedido explícito del dueño — ver
           handleAdvanceToDispatchDirect en el hook. */}
       {quickActionTarget === 'reopen' && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setQuickActionTarget(null)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-4 mb-5">
-              <div className="p-2.5 rounded-xl flex-shrink-0 bg-amber-50">
-                <RotateCcw size={18} className="text-amber-500" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 text-sm">
-                  ¿Volver a abrir esta orden de envío?
-                </p>
-                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  {hasBilling
-                    ? 'Se descarta la factura sin pagar. Después de editar, tendrás que generar y confirmar el estimado de nuevo.'
-                    : hasPreBilling
-                      ? 'Se descarta el estimado. Después de editar, tendrás que generarlo de nuevo.'
-                      : 'Podrás seguir editándola.'}
-                </p>
-              </div>
-            </div>
-
+        <Modal
+          title="¿Volver a abrir esta orden?"
+          onClose={() => setQuickActionTarget(null)}
+          className="sm:max-w-sm"
+          footer={
             <div className="flex gap-3">
-              <button
-                onClick={() => setQuickActionTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmQuickAction}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-colors flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600"
-              >
-                <RotateCcw size={14} /> Reabrir
-              </button>
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setQuickActionTarget(null)} className="flex-1" />
+              <Button variant={ButtonVariant.ALERT} onClick={handleConfirmQuickAction} className="flex-1">
+                <RotateCcw size={16} /> Reabrir
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p className="text-sm leading-relaxed text-slate-500">
+            {hasBilling
+              ? 'Se descarta la factura sin pagar. Después de editar, tendrás que generar y confirmar el estimado de nuevo.'
+              : hasPreBilling
+                ? 'Se descarta el estimado. Después de editar, tendrás que generarlo de nuevo.'
+                : 'Podrás seguir editándola.'}
+          </p>
+        </Modal>
       )}
 
-      {/* MODAL: GENERAR PREFACTURA */}
+      {/* MODAL: GENERAR ESTIMADO */}
       {showPreBillingModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowPreBillingModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <FileText size={18} className="text-slate-600" />
-              </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Generar estimado
-              </Typography>
-            </div>
-
-            <div className="mb-6">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                Método de entrega
-              </label>
-              <div className="space-y-2">
-                {activeDeliveryMethods.map((dm) => (
-                  <button
-                    key={dm.code}
-                    onClick={() => setPreBillingDeliveryMethod(dm.code)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                      preBillingDeliveryMethod === dm.code
-                        ? 'bg-slate-900 text-white border-slate-900'
-                        : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    <span className="font-bold text-sm">{dm.name}</span>
-                    {preBillingDeliveryMethod === dm.code && (
-                      <CheckCircle size={16} className="text-amber-400" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowPreBillingModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
+        <Modal
+          title="Generar estimado"
+          onClose={() => setShowPreBillingModal(false)}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowPreBillingModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isGeneratingPreBilling ? 'Generando…' : 'Generar estimado'}
                 onClick={handleGeneratePreBilling}
-                disabled={isGeneratingPreBilling}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isGeneratingPreBilling ? 'Generando…' : 'Generar estimado'}
-              </button>
+                disabled={isGeneratingPreBilling || !preBillingDeliveryMethod}
+                className="flex-1"
+              />
             </div>
+          }
+        >
+          <p className="mb-2 text-xs font-bold text-slate-500">Método de entrega</p>
+          <div className="space-y-2">
+            {activeDeliveryMethods.map((dm) => (
+              <ChoiceRow key={dm.code} isSelected={preBillingDeliveryMethod === dm.code} onClick={() => setPreBillingDeliveryMethod(dm.code)}>
+                <span className="font-bold text-sm">{dm.name}</span>
+              </ChoiceRow>
+            ))}
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* MODAL: CAMBIAR DIRECCIÓN DE ENTREGA */}
       {showAddressModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowAddressModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-3 mb-6">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2 bg-slate-100 rounded-xl flex-shrink-0">
-                  <MapPin size={18} className="text-slate-600" />
-                </div>
-                <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                  Dirección
-                </Typography>
-              </div>
-              {addressOptions.length > 0 && (
-                <button
-                  onClick={() => setShowManageAddressesModal(true)}
-                  className="flex items-center gap-1 px-3 min-h-[38px] bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[11px] hover:bg-slate-100 transition-all flex-shrink-0"
-                >
-                  <Settings2 size={12} />
-                  Gestionar
-                </button>
-              )}
+        <Modal
+          title="Dirección de entrega"
+          onClose={() => setShowAddressModal(false)}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowAddressModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isSavingAddress ? 'Guardando…' : 'Guardar'}
+                onClick={handleConfirmAddressChange}
+                disabled={!selectedAddressId || isSavingAddress}
+                className="flex-1"
+              />
             </div>
-
-            {addressOptions.length === 0 ? (
-              <div className="text-center py-6 mb-6">
-                <p className="text-slate-400 text-sm mb-4">Este cliente no tiene direcciones registradas.</p>
+          }
+        >
+          {addressOptions.length === 0 ? (
+            <EmptyState
+              title="Aún no tiene direcciones"
+              actionLabel="Agregar dirección"
+              onAction={() => setShowManageAddressesModal(true)}
+              className="py-6"
+            />
+          ) : (
+            <>
+              <div className="mb-3 flex justify-end">
                 <button
+                  type="button"
                   onClick={() => setShowManageAddressesModal(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 px-1 text-sm font-semibold text-teal-700 underline underline-offset-4 hover:text-teal-800"
                 >
-                  <Plus size={14} />
-                  Agregar dirección
+                  <Settings2 size={14} /> Gestionar direcciones
                 </button>
               </div>
-            ) : (
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2">
                 {addressOptions.map((addr) => (
-                  <button
-                    key={addr.id}
-                    onClick={() => setSelectedAddressId(addr.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                      selectedAddressId === addr.id
-                        ? 'bg-slate-900 text-white border-slate-900'
-                        : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    <div>
+                  <ChoiceRow key={addr.id} isSelected={selectedAddressId === addr.id} onClick={() => setSelectedAddressId(addr.id)}>
+                    <div className="min-w-0">
                       <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
-                      <p className={`text-[11px] mt-0.5 ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                      <p className={`mt-0.5 break-words text-xs ${selectedAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
                         {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
                       </p>
                     </div>
-                    {selectedAddressId === addr.id && (
-                      <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
-                    )}
-                  </button>
+                  </ChoiceRow>
                 ))}
               </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowAddressModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmAddressChange}
-                disabled={!selectedAddressId || isSavingAddress}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isSavingAddress ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </div>
-        </div>
+            </>
+          )}
+        </Modal>
       )}
 
-      {/* Anidado sobre el selector de dirección, que ocupa z-[60]. */}
+      {/* Anidado sobre el selector de dirección: el Modal común apila el último encima. */}
       {showManageAddressesModal && (
         <CustomerAddressesModal
           customerId={detail.customer_id}
@@ -640,379 +483,268 @@ export const ShipmentOrderDetailContainer: React.FC = () => {
         />
       )}
 
-      {/* MODAL: CAMBIAR MÉTODO DE ENVÍO */}
+      {/* MODAL: CAMBIAR MÉTODO DE ENTREGA */}
       {showMethodModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowMethodModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <SendHorizonal size={18} className="text-slate-600" />
-              </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Cambiar método de envío
-              </Typography>
-            </div>
-
-            <div className="space-y-2 mb-6">
-              {activeDeliveryMethods.map((dm) => (
-                <button
-                  key={dm.code}
-                  onClick={() => setSelectedMethod(dm.code)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                    selectedMethod === dm.code
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
-                  }`}
-                >
-                  <span className="font-bold text-sm">{dm.name}</span>
-                  {selectedMethod === dm.code && (
-                    <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowMethodModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
+        <Modal
+          title="Cambiar método de entrega"
+          onClose={() => setShowMethodModal(false)}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowMethodModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isSavingMethod ? 'Guardando…' : 'Guardar'}
                 onClick={handleConfirmMethodChange}
                 disabled={!selectedMethod || isSavingMethod}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isSavingMethod ? 'Guardando...' : 'Guardar'}
-              </button>
+                className="flex-1"
+              />
             </div>
+          }
+        >
+          <div className="space-y-2">
+            {activeDeliveryMethods.map((dm) => (
+              <ChoiceRow key={dm.code} isSelected={selectedMethod === dm.code} onClick={() => setSelectedMethod(dm.code)}>
+                <span className="font-bold text-sm">{dm.name}</span>
+              </ChoiceRow>
+            ))}
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* MODAL: SOLICITUD AL PROVEEDOR — permite corregir a quién se entrega
           antes de copiar, para los envíos que van a un tercero. Los datos no se
           guardan: viven solo mientras el modal está abierto. */}
       {showShipmentRequestModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowShipmentRequestModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <Copy size={18} className="text-slate-600" />
-              </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Solicitud al proveedor
-              </Typography>
-            </div>
-            <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              Datos de quien recibe, tomados de la dirección de entrega. Corrígelos si hace falta.
-            </p>
-
-            <div className="space-y-3 mb-6">
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Nombre de quien recibe</label>
-                <input
-                  value={receiverName}
-                  onChange={(e) => setReceiverName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Teléfono</label>
-                <input
-                  value={receiverPhone}
-                  onChange={(e) => setReceiverPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Cédula</label>
-                <input
-                  value={receiverIdCard}
-                  onChange={(e) => setReceiverIdCard(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-base outline-none focus:ring-2 focus:ring-amber-500 transition-all font-medium text-slate-700"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowShipmentRequestModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
+        <Modal
+          title="Solicitud al proveedor"
+          subtitle="Datos de quien recibe, tomados de la dirección de entrega. Corrígelos si hace falta."
+          onClose={() => setShowShipmentRequestModal(false)}
+          closeOnOverlayClick={false}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowShipmentRequestModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isCopyingRequest ? 'Copiando…' : 'Copiar solicitud'}
                 onClick={handleCopyShipmentRequest}
                 disabled={isCopyingRequest}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isCopyingRequest ? 'Copiando...' : 'Copiar solicitud'}
-              </button>
+                className="flex-1"
+              />
             </div>
+          }
+        >
+          <div className="space-y-3">
+            <label className="block">
+              <span className="ml-1 text-xs font-bold text-slate-500">Nombre de quien recibe</span>
+              <input value={receiverName} onChange={(e) => setReceiverName(e.target.value)} className={MODAL_INPUT_CLASS} />
+            </label>
+            <label className="block">
+              <span className="ml-1 text-xs font-bold text-slate-500">Teléfono</span>
+              <input value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} className={MODAL_INPUT_CLASS} />
+            </label>
+            <label className="block">
+              <span className="ml-1 text-xs font-bold text-slate-500">Cédula</span>
+              <input value={receiverIdCard} onChange={(e) => setReceiverIdCard(e.target.value)} className={MODAL_INPUT_CLASS} />
+            </label>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* MODAL: GUÍA DE RASTREO (registrar o corregir tras el despacho) */}
       {showTrackingModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowTrackingModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <Truck size={18} className="text-slate-600" />
-              </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Guía de rastreo
-              </Typography>
-            </div>
-
-            <input
-              type="text"
-              value={trackingDraft}
-              onChange={(e) => setTrackingDraft(e.target.value)}
-              placeholder="Ej. EZ292332205CR"
-              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-base font-medium text-slate-700 outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 mb-2"
-            />
-            <p className="text-[11px] text-slate-400 mb-6">
-              {deliveryMethodEntity?.tracking_url
-                ? 'Con la guía cargada puedes enviarle al cliente el aviso de despacho.'
-                : 'Este método no tiene enlace de rastreo. Agrégalo en Ajustes → Métodos de entrega para poder avisar al cliente.'}
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowTrackingModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
+        <Modal
+          title="Guía de rastreo"
+          onClose={() => setShowTrackingModal(false)}
+          closeOnOverlayClick={false}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowTrackingModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isSavingTracking ? 'Guardando…' : 'Guardar'}
                 onClick={handleSaveTrackingCode}
                 disabled={isSavingTracking || !trackingDraft.trim()}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isSavingTracking ? 'Guardando...' : 'Guardar'}
-              </button>
+                className="flex-1"
+              />
             </div>
-          </div>
-        </div>
+          }
+        >
+          <input
+            type="text"
+            value={trackingDraft}
+            onChange={(e) => setTrackingDraft(e.target.value)}
+            placeholder="Ej. EZ292332205CR"
+            className={MODAL_INPUT_CLASS}
+          />
+          <p className="mt-2 text-xs text-slate-500">
+            {deliveryMethodEntity?.tracking_url
+              ? 'Con la guía cargada puedes enviarle al cliente el aviso de despacho.'
+              : 'Este método no tiene enlace de rastreo. Agrégalo en Ajustes → Métodos de entrega para poder avisar al cliente.'}
+          </p>
+        </Modal>
       )}
 
       {/* MODAL: COSTO REAL DE ENVÍO (paso 4) — ajusta solo lo cobrado al
           cliente (delivery_fee_crc/total_amount_crc), NO la ganancia
           registrada. Ver ConsolidationsRepository.setActualDeliveryFee. */}
       {showActualFeeModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowActualFeeModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-violet-50 rounded-xl">
-                <Banknote size={18} className="text-violet-600" />
-              </div>
-              <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                Costo real de envío
-              </Typography>
+        <Modal
+          title="Costo real del envío"
+          subtitle="Lo que cobró el transportista. Si es menos, se indica el vuelto."
+          onClose={() => setShowActualFeeModal(false)}
+          closeOnOverlayClick={false}
+          className="sm:max-w-md"
+          footer={
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowActualFeeModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isSavingActualFee ? 'Guardando…' : 'Guardar'}
+                onClick={handleSaveActualFee}
+                disabled={isSavingActualFee || !isActualFeeValid}
+                className="flex-1"
+              />
             </div>
-
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-              Monto que cobró el transportista (₡)
-            </label>
+          }
+        >
+          <label className="block">
+            <span className="ml-1 text-xs font-bold text-slate-500">Monto que cobró el transportista (₡)</span>
             <input
               type="number"
+              inputMode="numeric"
               min="0"
               step="1"
               value={actualFeeDraft}
               onChange={(e) => setActualFeeDraft(e.target.value)}
               placeholder="Ej. 4200"
-              className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-base font-medium text-slate-700 outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 mb-2"
+              className={MODAL_INPUT_CLASS}
             />
-            <p className="text-[11px] text-slate-400 mb-6">
-              Esto corrige lo que se le cobró al cliente por el envío. Si se le cobró de más,
-              se indicará un vuelto. No afecta la ganancia ya registrada de esta orden.
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowActualFeeModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveActualFee}
-                disabled={isSavingActualFee}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isSavingActualFee ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </div>
-        </div>
+          </label>
+          <p className="mt-2 text-xs text-slate-500">La ganancia ya registrada de esta orden no cambia.</p>
+        </Modal>
       )}
 
       {/* MODAL: EDICIÓN BLOQUEADA — explica por qué hay que reabrir en vez de
           dejar el botón inerte o escondido. */}
       {lockedEditTarget && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setLockedEditTarget(null)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-4 mb-5">
-              <div className="p-2.5 rounded-xl bg-amber-50 flex-shrink-0">
-                <Lock size={18} className="text-amber-500" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 text-sm">
-                  {lockedEditTarget === 'address' ? 'La dirección ya no se puede cambiar' : 'El método de envío ya no se puede cambiar'}
-                </p>
-                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  {hasBilling
-                    ? 'La factura ya tiene la dirección y la tarifa de entrega. Para cambiarlas, vuelve a abrir la orden: se descarta la factura y tendrás que generar el estimado de nuevo.'
-                    : 'El estimado ya se calculó con estos datos. Para cambiarlos, vuelve a abrir la orden: se descarta el estimado y tendrás que generarlo de nuevo.'}
-                </p>
-              </div>
-            </div>
+        <Modal
+          title={lockedEditTarget === 'address' ? 'La dirección ya no se puede cambiar' : 'El método de entrega ya no se puede cambiar'}
+          onClose={() => setLockedEditTarget(null)}
+          className="sm:max-w-sm"
+          footer={
             <div className="flex gap-3">
-              <button
-                onClick={() => setLockedEditTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
-              >
-                Entendido
-              </button>
+              <Button variant={ButtonVariant.CANCEL} text="Entendido" onClick={() => setLockedEditTarget(null)} className="flex-1" />
               {detail.status === ConsolidationStatus.CERRADO && !isPaid && (
-                <button
+                <Button
+                  variant={ButtonVariant.ALERT}
                   onClick={() => {
                     setLockedEditTarget(null);
                     setQuickActionTarget('reopen');
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1"
                 >
-                  <RotateCcw size={14} /> Reabrir
-                </button>
+                  <RotateCcw size={16} /> Reabrir
+                </Button>
               )}
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p className="text-sm leading-relaxed text-slate-500">
+            {hasBilling
+              ? 'La factura ya tiene la dirección y la tarifa de entrega. Para cambiarlas, vuelve a abrir la orden: se descarta la factura y tendrás que generar el estimado de nuevo.'
+              : 'El estimado ya se calculó con estos datos. Para cambiarlos, vuelve a abrir la orden: se descarta el estimado y tendrás que generarlo de nuevo.'}
+          </p>
+        </Modal>
       )}
 
       {/* MODAL: AGREGAR PAQUETES */}
       {showAssignModal && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-          onClick={() => setShowAssignModal(false)}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-100 rounded-xl">
-                  <Package size={18} className="text-slate-600" />
-                </div>
-                <Typography variant={TypographyVariant.BODY_BOLD} className="text-slate-800 uppercase tracking-wider text-xs">
-                  Agregar paquetes
-                </Typography>
-              </div>
-              {selectedPackageUuids.length > 0 && (
-                <span className="bg-amber-600 text-white text-xs font-black px-3 py-1 rounded-full">
-                  {formatCount(selectedPackageUuids.length, 'seleccionado', 'seleccionados')}
-                </span>
-              )}
-            </div>
-
-            {isLoadingAvailable ? (
-              <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
-              </div>
-            ) : availablePackages.length === 0 ? (
-              <div className="text-center py-8">
-                <Package size={32} className="text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 text-sm">No hay paquetes disponibles para este cliente.</p>
-                <p className="text-slate-400 text-xs mt-1">Los paquetes que ya están en otra orden no aparecen aquí.</p>
-              </div>
+        <Modal
+          title="Agregar paquetes"
+          subtitle={selectedPackageUuids.length > 0 ? formatCount(selectedPackageUuids.length, 'seleccionado', 'seleccionados') : undefined}
+          onClose={() => setShowAssignModal(false)}
+          footer={
+            !isLoadingAvailable && availablePackages.length === 0 ? (
+              <Button variant={ButtonVariant.CANCEL} text="Cerrar" onClick={() => setShowAssignModal(false)} className="w-full" />
             ) : (
-              <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
-                {availablePackages.map((pkg: AvailablePackage) => {
-                  const selected = selectedPackageUuids.includes(pkg.uuid);
-                  return (
-                    <button
-                      key={pkg.uuid}
-                      onClick={() => handleTogglePackage(pkg.uuid)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
-                        selected
-                          ? 'bg-amber-50 border-amber-200'
-                          : 'bg-slate-50 border-transparent hover:border-slate-200'
-                      }`}
-                    >
-                      {selected
-                        ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
-                        : <Square size={18} className="text-slate-300 flex-shrink-0" />
-                      }
-                      <div className="flex-1 min-w-0">
-                        <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>
-                          {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
-                        </p>
-                        <p className="text-[10px] text-slate-400 truncate">
-                          {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setShowAssignModal(false)}
-                className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
+            <div className="flex gap-3">
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setShowAssignModal(false)} className="flex-1" />
+              <Button
+                variant={ButtonVariant.PRIMARY}
+                text={isAssigning ? 'Agregando…' : `Agregar${selectedPackageUuids.length > 0 ? ` ${selectedPackageUuids.length}` : ''}`}
                 onClick={handleConfirmAssign}
                 disabled={selectedPackageUuids.length === 0 || isAssigning}
-                className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-              >
-                {isAssigning ? 'Agregando...' : `Agregar ${selectedPackageUuids.length || ''}`}
-              </button>
+                className="flex-1"
+              />
             </div>
-          </div>
-        </div>
+            )
+          }
+        >
+          {isLoadingAvailable ? (
+            <div className="flex justify-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
+            </div>
+          ) : availablePackages.length === 0 ? (
+            <div>
+              <EmptyState title="No hay paquetes disponibles" className="pb-2 pt-6" />
+              <p className="pb-4 text-center text-xs text-slate-500">Los paquetes que ya están en otra orden no aparecen aquí.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {availablePackages.map((pkg: AvailablePackage) => {
+                const selected = selectedPackageUuids.includes(pkg.uuid);
+                return (
+                  <button
+                    key={pkg.uuid}
+                    type="button"
+                    onClick={() => handleTogglePackage(pkg.uuid)}
+                    className={`flex min-h-[44px] w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+                      selected ? 'border-amber-200 bg-amber-50' : 'border-transparent bg-slate-50 hover:border-slate-200'
+                    }`}
+                  >
+                    {selected
+                      ? <CheckSquare size={18} className="flex-shrink-0 text-amber-600" />
+                      : <Square size={18} className="flex-shrink-0 text-slate-300" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-sm font-bold text-slate-800 [overflow-wrap:anywhere]">
+                        {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </Modal>
       )}
     </div>
   );
 };
+
+const MODAL_INPUT_CLASS =
+  'mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-700 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20';
+
+/** Opción elegible de una lista dentro de un modal (dirección, método de entrega). */
+const ChoiceRow: React.FC<{ isSelected: boolean; onClick: () => void; children: React.ReactNode }> = ({ isSelected, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`flex min-h-[44px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+      isSelected
+        ? 'border-slate-900 bg-slate-900 text-white'
+        : 'border-transparent bg-slate-50 text-slate-700 hover:border-slate-200'
+    }`}
+  >
+    {children}
+    {isSelected && <CheckCircle size={16} className="flex-shrink-0 text-amber-400" />}
+  </button>
+);
 
 const ProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail }) => (
   detail.billing_uuid ? <BilledProfitCard detail={detail} /> : <EstimatedProfitCard detail={detail} />
@@ -1039,22 +771,22 @@ const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail })
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp size={14} className="text-slate-400" />
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            Rentabilidad · Solo interno
+          <p className="text-xs font-bold text-slate-500">
+            Rentabilidad · solo interno
           </p>
         </div>
-        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">
-          Ganancia final (facturada)
+        <span className="text-xs font-semibold text-emerald-700">
+          Ganancia facturada
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="px-4 py-3 bg-slate-50 rounded-2xl">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo courier</p>
+          <p className="text-xs font-bold text-slate-500">Costo courier</p>
           <p className="text-xs font-bold text-slate-700">{courierCost != null ? formatCRC(courierCost) : '—'}</p>
         </div>
         <div className="px-4 py-3 bg-slate-50 rounded-2xl">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo entrega</p>
+          <p className="text-xs font-bold text-slate-500">Costo entrega</p>
           <p className="text-xs font-bold text-slate-700">
             {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Sin dato al facturar</span>}
           </p>
@@ -1063,20 +795,20 @@ const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail })
 
       <div className="bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro total</p>
+          <p className="text-xs font-bold text-slate-400">Cobro total</p>
           <p className="text-sm font-black text-white">{formatCRC(cobroTotal)}</p>
         </div>
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
+          <p className="text-xs font-bold text-slate-400">Costo total</p>
           <p className="text-sm font-black text-white">
             {formatCRC((courierCost ?? 0) + (deliveryCost ?? 0))}{hasUnknownCost ? ' *' : ''}
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+          <p className="text-xs font-bold text-slate-400">Ganancia</p>
           <p className={`text-sm font-black ${gananciaTotal != null && gananciaTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {gananciaTotal != null ? formatCRC(gananciaTotal) : '—'}
-            {margen != null && <span className="text-[10px] font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>}
+            {margen != null && <span className="text-xs font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>}
           </p>
         </div>
       </div>
@@ -1084,7 +816,7 @@ const BilledProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail })
       <ProfitShareRow detail={detail} />
 
       {hasUnknownCost && (
-        <p className="mt-3 text-[10px] text-amber-600">
+        <p className="mt-3 text-xs text-amber-700">
           * El costo real de la entrega no estaba confirmado al momento de facturar — la ganancia mostrada no lo descuenta.
         </p>
       )}
@@ -1116,7 +848,7 @@ const ProfitShareRow: React.FC<{
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-violet-50 rounded-2xl">
       <div>
-        <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+        <p className="text-xs font-bold text-violet-700">
           Farid{percent != null ? ` · ${percent}%` : ''}
           {isEstimated && <span className="ml-1 text-slate-400">(provisional)</span>}
         </p>
@@ -1124,7 +856,7 @@ const ProfitShareRow: React.FC<{
       </div>
       {neto != null && (
         <div className="text-right">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Neto Magastore</p>
+          <p className="text-xs font-bold text-slate-500">Neto Magastore</p>
           <p className={`text-sm font-black ${neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
             {formatCRC(neto)}
           </p>
@@ -1195,8 +927,8 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp size={14} className="text-slate-400" />
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            Rentabilidad · Solo interno
+          <p className="text-xs font-bold text-slate-500">
+            Rentabilidad · solo interno
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1208,7 +940,7 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
               discount={discountPercent}
             />
           )}
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-slate-500">
             {usingSnapshot ? 'Tarifas del estimado' : 'Tarifas vigentes (sin estimado aún)'}
           </span>
         </div>
@@ -1218,22 +950,22 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
         {rows.map(({ pkg, cobro, costo, ganancia }) => (
           <div key={pkg.uuid} className="px-4 py-3 bg-slate-50 rounded-2xl min-w-0">
             <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>{pkg.tracking_number}</p>
-            <p className="text-[10px] text-slate-400 mb-2 truncate">
+            <p className="text-xs text-slate-500 mb-2 truncate">
               {formatWeight(pkg.weight_lb)}{pkg.store_name ? ` · ${pkg.store_name}` : ''}
             </p>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro</p>
+                <p className="text-xs font-bold text-slate-500">Cobro</p>
                 <p className="text-xs font-bold text-slate-700">{formatCRC(cobro)}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo real</p>
+                <p className="text-xs font-bold text-slate-500">Costo real</p>
                 <p className="text-xs font-bold text-slate-700">
                   {costo != null ? formatCRC(costo) : <span className="text-slate-400 italic font-medium">Sin datos</span>}
                 </p>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+                <p className="text-xs font-bold text-slate-500">Ganancia</p>
                 <p className={`text-xs font-black ${ganancia == null ? 'text-slate-400' : ganancia >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                   {ganancia != null ? formatCRC(ganancia) : '—'}
                 </p>
@@ -1245,22 +977,22 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
         {hasDelivery && (
           <div className="px-4 py-3 bg-slate-50 rounded-2xl">
             <p className="text-sm font-bold text-slate-800">Entrega · {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)}</p>
-            <p className="text-[10px] text-slate-400 mb-2">
+            <p className="text-xs text-slate-500 mb-2">
               {detail.pre_billing_fee_crc != null ? 'Cobro del estimado' : 'Cobro con tarifa vigente'}
             </p>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro</p>
+                <p className="text-xs font-bold text-slate-500">Cobro</p>
                 <p className="text-xs font-bold text-slate-700">{formatCRC(deliveryFee)}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo real</p>
+                <p className="text-xs font-bold text-slate-500">Costo real</p>
                 <p className="text-xs font-bold text-slate-700">
                   {deliveryCost != null ? formatCRC(deliveryCost) : <span className="text-slate-400 italic font-medium">Por confirmar</span>}
                 </p>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+                <p className="text-xs font-bold text-slate-500">Ganancia</p>
                 <p className={`text-xs font-black ${deliveryCost == null ? 'text-slate-400' : deliveryFee - deliveryCost >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                   {deliveryCost != null ? formatCRC(deliveryFee - deliveryCost) : '—'}
                 </p>
@@ -1272,20 +1004,20 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
 
       <div className="mt-3 bg-slate-900 rounded-2xl px-5 py-4 grid grid-cols-3 gap-2">
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Cobro total</p>
+          <p className="text-xs font-bold text-slate-400">Cobro total</p>
           <p className="text-sm font-black text-white">{formatCRC(cobroTotal)}</p>
         </div>
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Costo total</p>
+          <p className="text-xs font-bold text-slate-400">Costo total</p>
           <p className="text-sm font-black text-white">
             {formatCRC(costoTotal)}{missingCost || missingDeliveryCost ? ' *' : ''}
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ganancia</p>
+          <p className="text-xs font-bold text-slate-400">Ganancia</p>
           <p className={`text-sm font-black ${gananciaTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {formatCRC(gananciaTotal)}
-            <span className="text-[10px] font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>
+            <span className="text-xs font-bold text-slate-400 ml-1.5">{margen.toFixed(0)}%</span>
           </p>
         </div>
       </div>
@@ -1294,21 +1026,21 @@ const EstimatedProfitCard: React.FC<{ detail: ConsolidationDetail }> = ({ detail
 
       <div className="mt-3 space-y-0.5">
         {missingCost && (
-          <p className="text-[10px] text-amber-600">
+          <p className="text-xs text-amber-700">
             * Ganancia parcial: hay paquetes registrados sin costo de courier o sin tipo de cambio del banco.
           </p>
         )}
         {missingDeliveryCost && (
-          <p className="text-[10px] text-amber-600">
+          <p className="text-xs text-amber-700">
             * El costo real de la entrega está por confirmar en la tarifa de {resolveDeliveryMethodLabel(deliveryMethod, deliveryMethodsData?.data)} — no se incluye en el costo total.
           </p>
         )}
         {minApplied && (
-          <p className="text-[10px] text-slate-400">
+          <p className="text-xs text-slate-500">
             El cobro total incluye el ajuste por peso mínimo ({Number(detail.current_min_weight)} lb), por eso puede superar la suma por paquete.
           </p>
         )}
-        <p className="text-[10px] text-slate-400">
+        <p className="text-xs text-slate-500">
           No incluye el fee de entrega (Correos/Tracopa), que es un traslado de costo. Este cálculo no aparece en el estimado ni en la factura del cliente.
         </p>
       </div>

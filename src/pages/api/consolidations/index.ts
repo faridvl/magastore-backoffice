@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ConsolidationsService } from '@/shared/api/services/consolidations.service';
 import { StaleOrderError } from '@/shared/api/stale-order-error';
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
 import { isUuid } from '@/shared/utils/is-uuid';
 
+const INVALID_CUSTOMER_MESSAGE = 'El identificador del cliente es inválido.';
 const INVALID_UUID_MESSAGE = 'El identificador de la orden de envío es inválido.';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -23,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { uuid, page, limit, search, step, paid, notified, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
 
       if (action === 'check-open' && customerUuid) {
+        if (!isUuid(customerUuid)) return res.status(400).json({ message: INVALID_CUSTOMER_MESSAGE });
         const existing = await ConsolidationsService.getOpenConsolidationForCustomer(customerUuid as string);
         return res.status(200).json(
           existing
@@ -38,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (availablePackages) {
+        if (!isUuid(availablePackages)) return res.status(400).json({ message: INVALID_CUSTOMER_MESSAGE });
         const packages = await ConsolidationsService.getAvailablePackages(availablePackages as string);
         return res.status(200).json({ data: packages });
       }
@@ -83,6 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!consolidationUuid || !addressId) {
           return res.status(400).json({ message: 'consolidationUuid y addressId son requeridos.' });
         }
+        if (!isUuid(addressId)) return res.status(400).json({ message: 'El identificador de la dirección es inválido.' });
         await ConsolidationsService.setDeliveryAddress(consolidationUuid, addressId);
         return res.status(200).json({ data: { updated: true } });
       }
@@ -209,6 +214,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (action === 'unassign-package') {
         if (!packageUuid) return res.status(400).json({ message: 'packageUuid es requerido.' });
+        if (!isUuid(packageUuid)) return res.status(400).json({ message: 'El identificador del paquete es inválido.' });
         await ConsolidationsService.unassignPackage(packageUuid);
         return res.status(200).json({ data: { unassigned: true } });
       }
@@ -223,7 +229,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
     // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
-    const status = error instanceof StaleOrderError ? 409
+    const status = error instanceof StaleOrderError || error instanceof EmptyOrderError ? 409
       : message.includes('no encontrad') ? 404
       : message.includes('inválid') || message.includes('requerid') ? 400
       : /^(solo|no) se puede/i.test(message) ? 409

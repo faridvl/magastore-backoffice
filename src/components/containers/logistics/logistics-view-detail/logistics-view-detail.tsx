@@ -2,17 +2,23 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { ChevronLeft, History, MapPin, Edit3, Save, DollarSign, AlertCircle, RefreshCw, X, Check } from 'lucide-react';
 import { Typography, TypographyVariant } from '@/components/common/typography/typography';
+import { Badge } from '@/components/common/badge/badge';
+import { Button, ButtonVariant } from '@/components/common/button/button';
 import { usePackageDetailContainer } from './use-logistics-detail';
 import { PackageStatus } from '@/types/logistics/logistics.types';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { formatCrc } from '@/shared/utils/format-crc';
+import { formatWeight, formatUsd } from '@/shared/utils/format';
+import { describeOrder, describePackageStatus } from '../logistics-labels';
 
-const STATUS_LABELS: Record<PackageStatus, string> = {
-    [PackageStatus.PANAMA]:     'En Bodega Panamá',
-    [PackageStatus.EN_TRAMITE]: 'En Trámite de Envío',
-    [PackageStatus.ENTREGADO]:  'Entregado',
+const FIELD_LABEL = 'text-xs font-semibold text-slate-500 block mb-1';
+const FIELD_INPUT = 'w-full min-h-[44px] bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-medium text-base transition-all outline-none';
+
+const PackageStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    const { label, tone } = describePackageStatus(status);
+    return <Badge tone={tone}>{label}</Badge>;
 };
 
 export const PackageDetailContainer: React.FC = () => {
@@ -20,11 +26,12 @@ export const PackageDetailContainer: React.FC = () => {
     const { id } = router.query;
     const uuid = router.isReady ? (id as string) : undefined;
     const {
-        data, bitacora, calculos, tieneFactura, statusOptions, isLoading, isError, error, refetch,
+        data, orderStep, bitacora, calculos, tieneFactura, statusOptions, isLoading, isError, error, refetch,
         isEditingFinancial, isSavingWeight, setIsEditingFinancial, handleSaveFinancial, updateField,
         statusPanel, setStatusPanel, isSavingStatus, handleToggleStatusPanel, handleUpdateStatus,
     } = usePackageDetailContainer(uuid as string);
     const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+    const orderInfo = describeOrder(orderStep, null);
 
     // Desglose de la factura con la regla de cobro del cliente. Sin paquetes:
     // esta vista muestra totales, no el detalle línea por línea.
@@ -44,8 +51,8 @@ export const PackageDetailContainer: React.FC = () => {
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <Typography variant={TypographyVariant.BODY_BOLD} className="animate-pulse text-slate-400 uppercase tracking-widest">
-                Obteniendo Información...
+            <Typography variant={TypographyVariant.BODY_BOLD} className="animate-pulse text-slate-400">
+                Cargando paquete...
             </Typography>
         </div>
     );
@@ -67,19 +74,13 @@ export const PackageDetailContainer: React.FC = () => {
                     {detalle}
                 </Typography>
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                        onClick={() => router.back()}
-                        className="px-6 py-3 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-black text-xs uppercase tracking-widest hover:border-slate-300 transition-all"
-                    >
+                    <Button variant={ButtonVariant.GHOST} onClick={() => router.back()}>
                         Volver
-                    </button>
+                    </Button>
                     {status !== 401 && (
-                        <button
-                            onClick={() => refetch()}
-                            className="px-6 py-3 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
-                        >
+                        <Button variant={ButtonVariant.PRIMARY} onClick={() => refetch()}>
                             Reintentar
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -91,103 +92,106 @@ export const PackageDetailContainer: React.FC = () => {
             {/* HEADER */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                 <div className="flex flex-col min-w-0 w-full xl:w-auto">
-                    <button onClick={() => router.back()} className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors text-[10px] font-black uppercase tracking-widest mb-2">
-                        <ChevronLeft size={14} /> Volver a logística
+                    <button onClick={() => router.back()} className="flex items-center gap-2 min-h-[44px] self-start text-slate-500 hover:text-primary transition-colors text-sm font-semibold">
+                        <ChevronLeft size={16} /> Volver a paquetes
                     </button>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">
-                        Tracking Number Oficial
-                    </label>
-                    <span className="font-mono font-black text-primary text-lg sm:text-2xl md:text-3xl tracking-tight break-all leading-tight">
-                        {data.tracking}
+                    <span className="text-xs font-semibold text-slate-500 block mb-1">
+                        Número de rastreo
                     </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="font-mono font-black text-primary text-lg sm:text-2xl md:text-3xl tracking-tight break-all leading-tight">
+                            {data.tracking}
+                        </span>
+                        <PackageStatusBadge status={data.estadoPaquete} />
+                    </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row w-full xl:w-auto items-stretch sm:items-center gap-3 shrink-0">
-                    <button
+                    <Button
+                        variant={ButtonVariant.GHOST}
                         onClick={handleToggleStatusPanel}
                         disabled={isSavingStatus}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 xl:px-8 py-3 xl:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusPanel.isOpen
-                            ? 'bg-slate-500 text-white hover:bg-slate-600'
-                            : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                            }`}
+                        className="w-full sm:w-auto whitespace-nowrap"
                     >
-                        {statusPanel.isOpen ? <><X size={16} /> Cancelar</> : <><RefreshCw size={16} /> Cambiar Estado</>}
-                    </button>
-                    <button
+                        {statusPanel.isOpen ? <><X size={16} /> Cancelar</> : <><RefreshCw size={16} /> Cambiar estado</>}
+                    </Button>
+                    <Button
+                        variant={ButtonVariant.PRIMARY}
                         onClick={isEditingFinancial ? handleSaveFinancial : () => setIsEditingFinancial(true)}
                         disabled={isSavingWeight}
-                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 xl:px-8 py-3 xl:py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed ${isEditingFinancial
-                            ? 'bg-slate-900 text-white shadow-lg scale-105'
-                            : 'bg-slate-900 text-white hover:bg-slate-800'
-                            }`}
+                        className="w-full sm:w-auto whitespace-nowrap"
                     >
                         {isSavingWeight
                             ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
                             : isEditingFinancial
-                                ? <><Save size={16} /> Confirmar Cambios</>
-                                : <><Edit3 size={16} /> Editar Peso</>
+                                ? <><Save size={16} /> Guardar peso</>
+                                : <><Edit3 size={16} /> Editar peso</>
                         }
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* PANEL DE CAMBIO DE ESTADO */}
             {statusPanel.isOpen && (
                 <div className="bg-white border border-amber-100 rounded-[2rem] p-4 md:p-8 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-sm mb-6 flex items-center gap-2">
                         <RefreshCw size={16} className="text-amber-600" /> Registrar cambio de estado
                     </Typography>
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Nuevo Estado</label>
+                            <label htmlFor="package-new-status" className={FIELD_LABEL}>Nuevo estado</label>
                             <select
+                                id="package-new-status"
                                 value={statusPanel.nuevoEstado}
                                 onChange={(e) => setStatusPanel((p) => ({ ...p, nuevoEstado: e.target.value as PackageStatus }))}
-                                className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-black text-xs text-amber-700 uppercase tracking-widest transition-all outline-none"
+                                className={`${FIELD_INPUT} p-3 font-semibold text-amber-700`}
                             >
                                 <option value="">— Seleccionar —</option>
                                 {statusOptions.map((s) => (
-                                    <option key={s} value={s}>{STATUS_LABELS[s as PackageStatus] ?? s}</option>
+                                    <option key={s} value={s}>{describePackageStatus(s).label}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block">Ubicación (Opcional)</label>
+                            <label htmlFor="package-status-location" className={FIELD_LABEL}>Ubicación (opcional)</label>
                             <div className="relative">
                                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
+                                    id="package-status-location"
                                     type="text"
                                     placeholder="Ej: Bodega Central, San José"
                                     value={statusPanel.ubicacion}
                                     onChange={(e) => setStatusPanel((p) => ({ ...p, ubicacion: e.target.value }))}
-                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                                    className={`${FIELD_INPUT} pl-11 pr-4 py-3`}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] block flex justify-between">
-                                <span>Comentario <span className="text-amber-500 normal-case tracking-normal ml-1">Obligatorio</span></span>
+                            <label htmlFor="package-status-note" className={FIELD_LABEL}>
+                                Comentario <span className="text-amber-600 ml-1">Obligatorio</span>
                             </label>
                             <input
+                                id="package-status-note"
                                 type="text"
                                 placeholder="Motivo del cambio..."
                                 value={statusPanel.nota}
                                 onChange={(e) => setStatusPanel((p) => ({ ...p, nota: e.target.value }))}
-                                className="w-full px-4 py-4 bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white rounded-2xl font-medium text-sm transition-all outline-none"
+                                className={`${FIELD_INPUT} px-4 py-3`}
                             />
                         </div>
                     </div>
                     <div className="mt-6 flex justify-end">
-                        <button
+                        <Button
+                            variant={ButtonVariant.PRIMARY}
                             onClick={handleUpdateStatus}
                             disabled={isSavingStatus || !statusPanel.nuevoEstado || !statusPanel.nota.trim()}
-                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-10"
                         >
                             {isSavingStatus
                                 ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Guardando...</>
-                                : <><Check size={16} /> Confirmar Cambio</>
+                                : <><Check size={16} /> Confirmar cambio</>
                             }
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
@@ -196,22 +200,25 @@ export const PackageDetailContainer: React.FC = () => {
                 bitácora y la card de logística aplastadas a media pantalla. */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
                 {/* COLUMNA IZQUIERDA: Info y Bitácora */}
-                <div className="xl:col-span-2 space-y-6 md:space-y-8 order-last xl:order-none min-w-0">
+                {/* `contents` bajo xl: las tarjetas pasan a ser hijas directas de la grilla y se ordenan
+                    Peso/Estado/Notas, Cobro, Cliente, Historial; desde xl vuelven a dos columnas. */}
+                <div className="contents xl:block xl:col-span-2 xl:space-y-8">
 
                     {/* CARD PRINCIPAL LOGÍSTICA */}
-                    <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    <div className="order-1 min-w-0 bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
                         {/* Peso, estado y notas comparten un solo grid: al subir el
                             tracking al header la columna izquierda quedó con una
                             sola tarjeta y se veía desbalanceada. */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 gap-4 md:gap-6">
                             <div className="p-4 rounded-2xl border border-slate-100 bg-white">
-                                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Peso Registrado</label>
+                                <span className={FIELD_LABEL}>Peso registrado</span>
                                 {isEditingFinancial ? (
                                     <div className="flex items-center gap-1 border-b-2 border-primary">
                                         <input
                                             type="number"
                                             min="1"
                                             step="1"
+                                            aria-label="Peso en libras"
                                             value={data.peso}
                                             onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                                             onPaste={(e) => {
@@ -220,39 +227,28 @@ export const PackageDetailContainer: React.FC = () => {
                                             }}
                                             onWheel={(e) => e.currentTarget.blur()}
                                             onChange={(e) => updateField('peso', e.target.value === '' ? '' : Math.floor(Number(e.target.value)))}
-                                            className="w-full font-black text-xl text-primary bg-transparent outline-none"
+                                            className="w-full min-h-[44px] font-black text-xl text-primary bg-transparent outline-none"
                                         />
-                                        <span className="text-xs font-bold text-primary">LB</span>
+                                        <span className="text-sm font-bold text-primary">lb</span>
                                     </div>
                                 ) : (
-                                    <span className="text-2xl font-black text-slate-800">{data.peso} <small className="text-xs text-slate-400 uppercase">Lbs</small></span>
+                                    <span className="text-2xl font-black text-slate-800 whitespace-nowrap">{formatWeight(data.peso)}</span>
                                 )}
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-slate-900 flex flex-col justify-center">
-                                <label className="text-[9px] font-black text-slate-500 uppercase block mb-1">Estado Actual</label>
-                                <span className="text-white font-black text-sm tracking-tighter uppercase flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    {data.estadoPaquete}
-                                </span>
-                            </div>
-
-                            <div className="sm:col-span-2 xl:col-span-1 bg-amber-50/50 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-amber-100/50 flex flex-col">
-                                <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-3">Notas del Almacén</label>
-                                <p className="text-sm font-medium text-amber-900 italic leading-relaxed flex-grow">
-                                    &quot;{data.observaciones}&quot;
+                            <div className="bg-amber-50/50 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-amber-100/50 flex flex-col">
+                                <span className="text-sm font-semibold text-amber-700 block mb-3">Notas internas</span>
+                                <p className={`text-sm font-medium leading-relaxed flex-grow ${data.observaciones ? 'text-amber-900' : 'text-slate-500'}`}>
+                                    {data.observaciones || 'Sin notas internas.'}
                                 </p>
-                                <div className="mt-4 pt-4 border-t border-amber-200/30 flex items-center gap-2 text-[10px] font-bold text-amber-700/50">
-                                    <AlertCircle size={14} /> Solo visible para personal autorizado
-                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* LÍNEA DE TIEMPO */}
-                    <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
-                        <Typography variant={TypographyVariant.BODY_BOLD} className="mb-6 md:mb-10 flex items-center gap-2 uppercase tracking-widest text-xs">
-                            <History size={18} className="text-primary" /> Historial de Movimientos
+                    <div className="order-4 min-w-0 bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
+                        <Typography variant={TypographyVariant.BODY_BOLD} className="mb-6 md:mb-10 flex items-center gap-2 text-sm">
+                            <History size={18} className="text-primary" /> Historial de movimientos
                         </Typography>
 
                         <div className="space-y-8 md:space-y-10 ml-1 md:ml-4 border-l-2 border-slate-100 pl-5 md:pl-8">
@@ -261,26 +257,28 @@ export const PackageDetailContainer: React.FC = () => {
                                     {/* Centrado sobre la línea: el offset sigue al padding del riel. */}
                                     <div className="absolute -left-[26px] md:-left-[41px] top-0 w-4 h-4 rounded-full bg-white border-4 border-primary shadow-sm" />
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                                        <span className="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-600 uppercase tracking-tighter w-fit">
-                                            {event.estado}
+                                        <span className="w-fit">
+                                            <PackageStatusBadge status={event.estado} />
                                         </span>
-                                        <span className="text-[10px] font-bold text-slate-400">{event.fecha}</span>
+                                        <span className="text-xs font-semibold text-slate-500">{event.fecha}</span>
                                     </div>
                                     <p className="text-sm text-slate-700 font-semibold mb-2">{event.nota}</p>
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase">
-                                        <MapPin size={12} /> {event.location}
-                                    </div>
+                                    {event.location && (
+                                        <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+                                            <MapPin size={12} /> {event.location}
+                                        </div>
+                                    )}
                                 </div>
                             )) : (
-                                <p className="text-slate-400 italic text-sm">No hay eventos registrados para este paquete.</p>
+                                <p className="text-slate-500 text-sm">No hay movimientos registrados para este paquete.</p>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* COLUMNA DERECHA: Resumen Financiero */}
-                <div className="space-y-6 order-first xl:order-none min-w-0">
-                    <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden">
+                <div className="contents xl:block xl:space-y-6">
+                    <div className="order-2 min-w-0 bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 text-white shadow-2xl relative overflow-hidden">
                         {/* Decoración de fondo */}
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
 
@@ -290,11 +288,11 @@ export const PackageDetailContainer: React.FC = () => {
                                     <div className="p-2 bg-primary/20 rounded-lg text-primary">
                                         <DollarSign size={20} />
                                     </div>
-                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-white uppercase text-[10px] tracking-widest">
-                                        Detalle de Cobro
+                                    <Typography variant={TypographyVariant.BODY_BOLD} className="text-white text-sm whitespace-nowrap">
+                                        Detalle de cobro
                                     </Typography>
                                 </div>
-                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${tieneFactura ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+                                <span className={`whitespace-nowrap text-xs font-semibold px-2.5 py-1 rounded-full ${tieneFactura ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-300'}`}>
                                     {tieneFactura ? 'Facturado' : 'Estimado'}
                                 </span>
                             </div>
@@ -305,10 +303,10 @@ export const PackageDetailContainer: React.FC = () => {
                                         {data.courierRateName && (
                                             <FinanceRow label="Courier" value={data.courierRateName} />
                                         )}
-                                        <FinanceRow label="Peso Cobrado" value={`${data.totalWeightCharged ?? data.peso} Lbs`} />
+                                        <FinanceRow label="Peso cobrado" value={formatWeight(data.totalWeightCharged ?? data.peso)} />
                                         <FinanceRow
-                                            label={facturaBreakdown && !facturaBreakdown.isNormal ? 'Tarifa de Lista' : 'Tarifa Aplicada'}
-                                            value={`$${Number(data.appliedRateUsd ?? 0).toFixed(2)}/lb`}
+                                            label={facturaBreakdown && !facturaBreakdown.isNormal ? 'Tarifa de lista' : 'Tarifa aplicada'}
+                                            value={`${formatUsd(Number(data.appliedRateUsd ?? 0))}/lb`}
                                         />
                                         {/* El flete sale del monto facturado (ya con la regla de cobro),
                                             no de peso × tarifa: para un cliente al costo o con descuento
@@ -317,28 +315,28 @@ export const PackageDetailContainer: React.FC = () => {
                                             <FinanceRow label={facturaBreakdown.ruleLabel ?? 'Ajuste'} value={`- ${formatCrc(facturaBreakdown.descuento)}`} />
                                         )}
                                         <FinanceRow
-                                            label="Flete Internacional"
+                                            label="Flete internacional"
                                             value={facturaBreakdown ? formatCrc(facturaBreakdown.flete) : '—'}
                                             isHighlight
                                         />
 
                                         <div className="h-px bg-white/5" />
 
-                                        <FinanceRow label="Tipo de Cambio" value={`₡${Number(data.appliedExchange ?? 0).toLocaleString()}`} />
+                                        <FinanceRow label="Tipo de cambio" value={formatCrc(Number(data.appliedExchange ?? 0))} />
                                         {data.deliveryMethod && (
-                                            <FinanceRow label="Método de Entrega" value={resolveDeliveryMethodLabel(data.deliveryMethod, deliveryMethodsData?.data)} />
+                                            <FinanceRow label="Método de entrega" value={resolveDeliveryMethodLabel(data.deliveryMethod, deliveryMethodsData?.data)} />
                                         )}
                                         {data.deliveryFeeCrc !== null && data.deliveryFeeCrc > 0 && (
-                                            <FinanceRow label="Costo de Entrega" value={formatCrc(Number(data.deliveryFeeCrc))} />
+                                            <FinanceRow label="Costo de entrega" value={formatCrc(Number(data.deliveryFeeCrc))} />
                                         )}
 
                                         <div className="pt-6 border-t border-white/10">
-                                            <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Total Facturado</label>
-                                            <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-emerald-400">
+                                            <span className="text-xs font-semibold text-slate-400 block mb-2">Total facturado</span>
+                                            <span className="block whitespace-nowrap text-2xl md:text-3xl font-black tracking-tight text-emerald-400">
                                                 {formatCrc(Number(data.totalFacturado))}
                                             </span>
                                             <div className="mt-3 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg w-fit">
-                                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-tighter">{data.estadoPago}</span>
+                                                <span className="whitespace-nowrap text-xs font-semibold text-emerald-400">{data.estadoPago}</span>
                                             </div>
                                         </div>
                                     </>
@@ -347,24 +345,24 @@ export const PackageDetailContainer: React.FC = () => {
                                         {data.courierRateName && (
                                             <FinanceRow label="Courier" value={data.courierRateName} />
                                         )}
-                                        <FinanceRow label="Peso Registrado" value={`${data.peso} Lbs`} />
-                                        <FinanceRow label="Tarifa por Libra" value={`$${calculos.tarifa.toFixed(2)}/lb`} />
+                                        <FinanceRow label="Peso registrado" value={formatWeight(data.peso)} />
+                                        <FinanceRow label="Tarifa por libra" value={`${formatUsd(calculos.tarifa)}/lb`} />
                                         {calculos.seguro > 0 && (
-                                            <FinanceRow label="Seguro" value={`$${calculos.seguro.toFixed(2)}`} />
+                                            <FinanceRow label="Seguro" value={formatUsd(calculos.seguro)} />
                                         )}
-                                        <FinanceRow label="Flete Internacional" value={`$${calculos.fleteUSD.toFixed(2)}`} isHighlight />
+                                        <FinanceRow label="Flete internacional" value={formatUsd(calculos.fleteUSD)} isHighlight />
 
                                         <div className="h-px bg-white/5" />
 
-                                        <FinanceRow label="Tipo de Cambio" value={`₡${calculos.tc.toLocaleString()}`} />
+                                        <FinanceRow label="Tipo de cambio" value={formatCrc(calculos.tc)} />
 
                                         <div className="pt-6 border-t border-white/10">
-                                            <label className="text-[9px] font-black text-slate-500 uppercase block mb-2 tracking-widest">Estimado a Pagar</label>
-                                            <span className="text-2xl md:text-4xl font-black italic tracking-tighter text-slate-300">
+                                            <span className="text-xs font-semibold text-slate-400 block mb-2">Estimado a cobrar</span>
+                                            <span className="block whitespace-nowrap text-2xl md:text-3xl font-black tracking-tight text-slate-300">
                                                 {formatCrc(calculos.totalPagar)}
                                             </span>
                                             <div className="mt-3 px-3 py-1 bg-slate-700/50 border border-slate-600/30 rounded-lg w-fit">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Sin Factura</span>
+                                                <span className="whitespace-nowrap text-xs font-semibold text-slate-300">Sin factura</span>
                                             </div>
                                         </div>
                                     </>
@@ -373,18 +371,33 @@ export const PackageDetailContainer: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Datos del Cliente (Mocks) */}
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 border border-slate-100 shadow-sm">
-                        <Typography variant={TypographyVariant.BODY_BOLD} className="text-xs uppercase tracking-widest mb-6">Información del Cliente</Typography>
+                    {/* Datos del cliente */}
+                    <div className="order-3 min-w-0 bg-white rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 border border-slate-100 shadow-sm">
+                        <Typography variant={TypographyVariant.BODY_BOLD} className="text-sm mb-6">Cliente</Typography>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-[9px] font-black text-slate-400 uppercase block">Nombre</label>
+                                <span className="text-xs font-semibold text-slate-500 block">Nombre</span>
                                 <span className="text-sm font-bold text-slate-700 break-words">{data.cliente}</span>
                             </div>
                             <div>
-                                <label className="text-[9px] font-black text-slate-400 uppercase block">Casillero</label>
+                                <span className="text-xs font-semibold text-slate-500 block">Casillero</span>
                                 <span className="text-sm font-mono font-bold text-primary break-all">{data.casillero}</span>
                             </div>
+                            {data.consolidationUuid && (
+                                <div>
+                                    <span className="text-xs font-semibold text-slate-500 block">Orden de envío</span>
+                                    {orderInfo && (
+                                        <div className="mt-1"><Badge tone={orderInfo.tone}>{orderInfo.label}</Badge></div>
+                                    )}
+                                    <Button
+                                        variant={ButtonVariant.GHOST}
+                                        onClick={() => router.push(`/admin/shipment-orders/${data.consolidationUuid}`)}
+                                        className="mt-1"
+                                    >
+                                        Ver orden
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -393,10 +406,15 @@ export const PackageDetailContainer: React.FC = () => {
     );
 };
 
-// Componente Interno para filas
-const FinanceRow = ({ label, value, isHighlight }: { label: string, value: string, isHighlight?: boolean }) => (
-    <div className="flex justify-between items-center gap-3">
-        <span className={`text-xs shrink-0 ${isHighlight ? 'text-slate-300 font-bold' : 'text-slate-500 font-medium'} italic`}>{label}</span>
-        <span className={`text-sm font-bold text-right break-words min-w-0 ${isHighlight ? 'text-primary' : 'text-slate-200'}`}>{value}</span>
+interface FinanceRowProps {
+    label: string;
+    value: string;
+    isHighlight?: boolean;
+}
+
+const FinanceRow = ({ label, value, isHighlight }: FinanceRowProps) => (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className={`text-sm shrink-0 ${isHighlight ? 'text-slate-300 font-bold' : 'text-slate-400 font-medium'}`}>{label}</span>
+        <span className={`text-sm font-bold text-right ml-auto whitespace-nowrap ${isHighlight ? 'text-primary' : 'text-slate-200'}`}>{value}</span>
     </div>
 );

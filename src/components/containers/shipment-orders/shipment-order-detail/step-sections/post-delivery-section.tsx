@@ -12,7 +12,7 @@ const SentChip: React.FC<{ label: string; sentAt: string | null }> = ({ label, s
   <div className={`flex items-center justify-between gap-2 rounded-2xl px-4 py-3 border ${
     sentAt ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100'
   }`}>
-    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+    <p className="text-xs font-bold text-slate-500">{label}</p>
     <p className={`text-xs font-bold ${sentAt ? 'text-emerald-700' : 'text-slate-500'}`}>
       {sentAt ? formatDate(sentAt) : 'Pendiente'}
     </p>
@@ -32,7 +32,7 @@ export const PostDeliverySection: React.FC<{ detail: ConsolidationDetail }> = ({
     <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-6 space-y-4">
       <div className="flex items-center gap-2">
         <HeartHandshake size={14} className="text-slate-400" />
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Postventa</p>
+        <p className="text-xs font-bold text-slate-500">Postventa</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -45,7 +45,7 @@ export const PostDeliverySection: React.FC<{ detail: ConsolidationDetail }> = ({
           {daysSinceDispatch === 0
             ? 'Se despachó hoy.'
             : `Se despachó hace ${daysSinceDispatch} día${daysSinceDispatch === 1 ? '' : 's'}.`}{' '}
-          El seguimiento suele hacerse a partir del día {FOLLOW_UP_DELAY_DAYS}, cuando el pedido ya llegó.
+          Haz el seguimiento desde el día {FOLLOW_UP_DELAY_DAYS}.
         </p>
       )}
 
@@ -54,7 +54,7 @@ export const PostDeliverySection: React.FC<{ detail: ConsolidationDetail }> = ({
           onClick={handleSendFollowUp}
           disabled={isSendingFollowUp}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 min-h-[44px] rounded-2xl font-bold text-sm transition-all disabled:opacity-40 ${
-            detail.follow_up_sent_at
+            detail.follow_up_sent_at || isFollowUpEarly
               ? 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
               : 'bg-slate-900 text-white hover:bg-slate-800'
           }`}

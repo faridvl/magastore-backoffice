@@ -4,11 +4,9 @@ import {
   Search,
   ChevronRight,
   ChevronLeft,
-  Boxes,
   Trash2,
   Loader2,
   Plus,
-  Package,
   MapPin,
   CheckCircle,
   CheckSquare,
@@ -20,6 +18,8 @@ import { formatCrc } from '@/shared/utils/format-crc';
 import { formatBusinessDate } from '@/shared/utils/timezone';
 import { packageStatusLabel, packageTypeLabel } from '@/shared/constants/package-labels';
 import { Badge } from '@/components/common/badge/badge';
+import { Modal } from '@/components/common/modal/modal';
+import { Button, ButtonVariant } from '@/components/common/button/button';
 import {
   ORDER_STEP_LABEL,
   ORDER_STEP_TONE,
@@ -51,10 +51,21 @@ const getRowPaymentStatus = (row: ConsolidationListItem): ConsolidationPaymentSt
     preBillingNotifiedAt: row.pre_billing_notified_at,
   });
 
-const getAmountKindLabel = (row: ConsolidationListItem): string => {
-  if (row.is_billing_amount) return 'Factura';
-  return row.pre_billing_notified_at ? 'Estimado' : 'Estimado sin enviar';
-};
+const LOAD_ERROR_TITLE = 'No se pudo cargar. Revisa tu conexión.';
+
+// Origen del monto, sin repetir el estado de pago (eso lo dice la columna Pago).
+const getAmountSourceLabel = (row: ConsolidationListItem): string => (row.is_billing_amount ? 'Factura' : 'Estimado');
+
+// Con "Sin estimado" no se muestra monto aunque exista un borrador: Monto y Pago usan el mismo criterio.
+const AmountCell: React.FC<{ row: ConsolidationListItem; align?: 'start' | 'center' }> = ({ row, align = 'start' }) =>
+  row.display_amount_crc != null && getRowPaymentStatus(row) !== ConsolidationPaymentStatus.SIN_ESTIMADO ? (
+    <div className={`flex flex-col ${align === 'center' ? 'items-center' : 'items-start'}`}>
+      <span className="font-black text-slate-700 text-sm whitespace-nowrap">{formatCRC(row.display_amount_crc)}</span>
+      <span className="text-xs text-slate-500 font-semibold">{getAmountSourceLabel(row)}</span>
+    </div>
+  ) : (
+    <span className="text-slate-400 text-sm">—</span>
+  );
 
 const formatCRC = formatCrc;
 
@@ -67,10 +78,14 @@ const STEP_FILTERS: { value: ShipmentOrderStepFilter; label: string }[] = [
   { value: ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE, label: 'Seguimiento pendiente' },
 ];
 
+const PAID_FILTER_LABEL = 'Pago';
+
+// Los cuatro nombres del badge de pago, en el orden del flujo.
 const PAID_FILTERS: { value: ShipmentOrderPaidFilter; label: string }[] = [
-  { value: ShipmentOrderPaidFilter.PAGADA, label: 'Pagadas' },
-  { value: ShipmentOrderPaidFilter.SIN_PAGAR, label: 'Sin pagar (con estimados)' },
-  { value: ShipmentOrderPaidFilter.FACTURADA_SIN_PAGAR, label: 'Con factura sin pagar' },
+  { value: ShipmentOrderPaidFilter.SIN_ESTIMADO, label: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.SIN_ESTIMADO] },
+  { value: ShipmentOrderPaidFilter.ESTIMADO_ENVIADO, label: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.ESTIMADO_PENDIENTE] },
+  { value: ShipmentOrderPaidFilter.POR_COBRAR, label: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO] },
+  { value: ShipmentOrderPaidFilter.PAGADA, label: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PAGADO] },
 ];
 
 // Avisada = se le mandó el estimado o el aviso del paso 3; es el mismo criterio de "Cobros" del Operativo.
@@ -91,7 +106,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
     clearDates,
     dateFrom, setDateFrom,
     dateTo, setDateTo,
-    shipmentOrders, listMeta, isLoadingList,
+    shipmentOrders, listMeta, isLoadingList, isErrorList, handleRetryList,
 
     handleSelectRow,
 
@@ -151,7 +166,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
     },
     {
       key: 'paid',
-      label: 'Pago',
+      label: PAID_FILTER_LABEL,
+      chipPrefix: PAID_FILTER_LABEL,
       emptyLabel: 'Todas',
       options: PAID_FILTERS,
       value: paidFilter === ShipmentOrderPaidFilter.ALL ? null : paidFilter,
@@ -168,27 +184,56 @@ export const ShipmentOrdersContainer: React.FC = () => {
     },
   ];
 
+  const areAllCreatePackagesSelected =
+    createPackages.length > 0 && createSelectedPackageUuids.length === createPackages.length;
+
+  const renderCreateFooter = () => {
+    if (createStep === 'customer') {
+      return <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={closeCreateModal} className="w-full" />;
+    }
+    if (createStep === 'packages') {
+      return (
+        <div className="flex gap-3">
+          <Button variant={ButtonVariant.CANCEL} onClick={() => setCreateStep('customer')} className="flex-1">
+            <ChevronLeft size={16} /> Atrás
+          </Button>
+          <Button
+            variant={ButtonVariant.PRIMARY}
+            text={`Continuar${createSelectedPackageUuids.length > 0 ? ` (${createSelectedPackageUuids.length})` : ''}`}
+            onClick={handleGoToAddressStep}
+            disabled={createSelectedPackageUuids.length === 0}
+            className="flex-1"
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="flex gap-3">
+        <Button variant={ButtonVariant.CANCEL} onClick={() => setCreateStep('packages')} className="flex-1">
+          <ChevronLeft size={16} /> Atrás
+        </Button>
+        <Button
+          variant={ButtonVariant.PRIMARY}
+          text={isCreatingOrder ? 'Creando…' : 'Crear orden'}
+          onClick={() => handleConfirmCreate(isCreatePickup)}
+          disabled={(!createAddressId && !isCreatePickup) || !createDeliveryMethod || isCreatingOrder}
+          className="flex-1"
+        />
+      </div>
+    );
+  };
+
   const listColumns: Column<ConsolidationListItem>[] = [
-    {
-      header: '#ID',
-      accessor: '_id',
-      className: 'hidden 2xl:table-cell',
-      render: (row) => (
-        <span className="font-mono text-[11px] font-black text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg tracking-widest">
-          #{row.uuid.slice(-5).toUpperCase()}
-        </span>
-      ),
-    },
     {
       header: 'Cliente',
       accessor: 'customer_name',
       minWidth: 220,
       render: (row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-800 text-sm leading-none mb-1">{row.customer_name}</span>
-          <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">{row.customer_code}</span>
-          {/* En pantallas angostas (iPad) las columnas Peso/Paquetes/Fecha se ocultan — se resumen aquí */}
-          <span className="text-[10px] text-slate-400 mt-1 2xl:hidden">
+          <span className="font-bold text-slate-800 text-sm break-words">{row.customer_name}</span>
+          <span className="text-xs font-mono font-bold text-amber-600">{row.customer_code}</span>
+          {/* Bajo 2xl las columnas Peso/Paquetes/Fecha se ocultan: se resumen aquí */}
+          <span className="text-xs text-slate-500 mt-1 2xl:hidden">
             {formatWeight(row.total_weight_lb)} · {formatCount(row.package_count, 'paquete', 'paquetes')} · {formatBusinessDate(row.created_at)}
           </span>
         </div>
@@ -209,16 +254,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
       header: 'Monto',
       accessor: 'display_amount_crc',
       align: 'center',
-      render: (row) => (
-        row.display_amount_crc != null ? (
-          <div className="flex flex-col items-center">
-            <span className="font-black text-slate-700 text-sm whitespace-nowrap">{formatCRC(row.display_amount_crc)}</span>
-            <span className="text-xs text-slate-500 font-semibold text-center">{getAmountKindLabel(row)}</span>
-          </div>
-        ) : (
-          <span className="text-slate-300 text-xs">—</span>
-        )
-      ),
+      noWrap: true,
+      render: (row) => <AmountCell row={row} align="center" />,
     },
     {
       header: 'Pago',
@@ -260,7 +297,7 @@ export const ShipmentOrdersContainer: React.FC = () => {
       className: 'hidden 2xl:table-cell',
       noWrap: true,
       render: (row) => (
-        <span className="text-xs text-slate-400 font-medium">
+        <span className="text-xs text-slate-500 font-medium">
           {formatBusinessDate(row.created_at)}
         </span>
       ),
@@ -276,7 +313,8 @@ export const ShipmentOrdersContainer: React.FC = () => {
           {row.status === ConsolidationStatus.ABIERTO && (
             <button
               onClick={(e) => { e.stopPropagation(); setDeleteUuid(row.uuid); }}
-              className="p-2.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+              aria-label="Eliminar orden de envío"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="Eliminar orden de envío"
             >
               <Trash2 size={16} />
@@ -307,13 +345,10 @@ export const ShipmentOrdersContainer: React.FC = () => {
             </div>
           }
           trailing={
-            <button
-              onClick={openCreateModal}
-              className="flex flex-1 sm:flex-none items-center justify-center gap-2 min-h-[44px] px-5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors"
-            >
+            <Button variant={ButtonVariant.PRIMARY} onClick={openCreateModal} className="flex-1 sm:flex-none">
               <Plus size={16} strokeWidth={2.5} />
               Nueva orden
-            </button>
+            </Button>
           }
           fields={filterFields}
           extraPanelContent={
@@ -334,12 +369,18 @@ export const ShipmentOrdersContainer: React.FC = () => {
         />
       </div>
 
-      {/* CARDS (mobile) */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {isLoadingList ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
-          ))
+      {/* TARJETAS (celular, iPad vertical y horizontal con el menú abierto) */}
+      <div className="flex flex-col gap-3 xl:hidden">
+        {isErrorList ? (
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm">
+            <EmptyState title={LOAD_ERROR_TITLE} actionLabel="Reintentar" onAction={handleRetryList} />
+          </div>
+        ) : isLoadingList ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-36" />
+            ))}
+          </div>
         ) : shipmentOrders.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm">
             <EmptyState
@@ -348,64 +389,64 @@ export const ShipmentOrdersContainer: React.FC = () => {
               onAction={hasActiveFilters ? clearAllFilters : undefined}
             />
           </div>
-        ) : shipmentOrders.map((row) => (
-          <button
-            key={row.uuid}
-            onClick={() => handleSelectRow(row)}
-            className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
-          >
-            <div className="flex-1 min-w-0">
-              {/* Mismo identificador que la columna de la tabla en escritorio:
-                  es como se referencia la orden al buscarla o al consultarla. */}
-              <p className="text-[10px] font-mono font-black text-slate-400 uppercase tracking-wider">
-                #{row.uuid.slice(-5).toUpperCase()}
-              </p>
-              <p className="font-bold text-slate-800 text-sm truncate">{row.customer_name}</p>
-              <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5">{row.customer_code}</p>
-              <p className="text-xs text-slate-400 mt-1">
-                {formatWeight(row.total_weight_lb)} · {formatCount(row.package_count, 'paquete', 'paquetes')}
-              </p>
-              {row.display_amount_crc != null && (
-                <p className="text-xs font-bold text-slate-600 mt-1">
-                  {formatCRC(row.display_amount_crc)}
-                  <span className="text-xs text-slate-500 font-semibold block">
-                    {getAmountKindLabel(row)}
-                  </span>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {shipmentOrders.map((row) => (
+              <button
+                key={row.uuid}
+                onClick={() => handleSelectRow(row)}
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex flex-col gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-800 text-sm break-words">{row.customer_name}</p>
+                    <p className="text-xs font-mono font-bold text-amber-600 mt-0.5">{row.customer_code}</p>
+                  </div>
+                  <Badge tone={ORDER_STEP_TONE[row.current_step]}>{ORDER_STEP_LABEL[row.current_step]}</Badge>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {formatWeight(row.total_weight_lb)} · {formatCount(row.package_count, 'paquete', 'paquetes')} · {formatBusinessDate(row.created_at)}
                 </p>
-              )}
-            </div>
-            <div className="flex flex-col items-end gap-2 flex-shrink-0">
-              <Badge tone={ORDER_STEP_TONE[row.current_step]}>{ORDER_STEP_LABEL[row.current_step]}</Badge>
-              <Badge tone={PAYMENT_STATUS_TONE[getRowPaymentStatus(row)]}>
-                {PAYMENT_STATUS_LABEL[getRowPaymentStatus(row)]}
-              </Badge>
-              <span className="text-[10px] text-slate-400">{formatBusinessDate(row.created_at)}</span>
-            </div>
-          </button>
-        ))}
-        {listMeta.totalPages > 1 && (
-          <div className="flex items-center justify-between px-2 pt-2">
-            <button
+                <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                  <AmountCell row={row} />
+                  <Badge tone={PAYMENT_STATUS_TONE[getRowPaymentStatus(row)]}>
+                    {PAYMENT_STATUS_LABEL[getRowPaymentStatus(row)]}
+                  </Badge>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+        {!isErrorList && listMeta.totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 px-2 pt-2">
+            <Button
+              variant={ButtonVariant.CANCEL}
+              text="Anterior"
               onClick={() => setPage(Math.max(1, listMeta.page - 1))}
               disabled={listMeta.page === 1}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <span className="text-xs text-slate-400 font-bold">{listMeta.page} / {listMeta.totalPages}</span>
-            <button
+            />
+            <span className="text-sm text-slate-500 font-bold">{listMeta.page} / {listMeta.totalPages}</span>
+            <Button
+              variant={ButtonVariant.CANCEL}
+              text="Siguiente"
               onClick={() => setPage(Math.min(listMeta.totalPages, listMeta.page + 1))}
               disabled={listMeta.page === listMeta.totalPages}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
-            >
-              Siguiente
-            </button>
+            />
           </div>
         )}
       </div>
 
-      {/* TABLE (tablet+) */}
-      <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      {/* TABLA (desde xl: con el menú abierto ya cabe sin scroll lateral) */}
+      <div className="hidden xl:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        {isErrorList ? (
+          <EmptyState title={LOAD_ERROR_TITLE} actionLabel="Reintentar" onAction={handleRetryList} />
+        ) : isLoadingList ? (
+          <div className="space-y-3 p-6" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-slate-100" />
+            ))}
+          </div>
+        ) : (
         <NewTable
           data={shipmentOrders}
           columns={listColumns}
@@ -422,289 +463,207 @@ export const ShipmentOrdersContainer: React.FC = () => {
           emptyActionLabel={hasActiveFilters ? 'Limpiar filtros' : undefined}
           onEmptyAction={hasActiveFilters ? clearAllFilters : undefined}
         />
+        )}
       </div>
 
       {/* MODAL: CONFIRMAR ELIMINACIÓN */}
       {deleteUuid && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setDeleteUuid(null)}
-        >
-          <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start gap-4 mb-5">
-              <div className="p-2.5 bg-red-50 rounded-xl flex-shrink-0">
-                <Trash2 size={18} className="text-red-500" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-800 text-sm">¿Eliminar orden de envío?</p>
-                <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">
-                  Los paquetes asignados quedarán disponibles nuevamente. Esta acción no se puede deshacer.
-                </p>
-              </div>
-            </div>
+        <Modal
+          title="¿Eliminar orden de envío?"
+          onClose={() => setDeleteUuid(null)}
+          className="sm:max-w-sm"
+          footer={
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteUuid(null)}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
-              </button>
+              <Button variant={ButtonVariant.CANCEL} text="Cancelar" onClick={() => setDeleteUuid(null)} disabled={isDeleting} className="flex-1" />
+              <Button variant={ButtonVariant.DANGER} onClick={handleConfirmDelete} disabled={isDeleting} className="flex-1">
+                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                {isDeleting ? 'Eliminando…' : 'Eliminar'}
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        >
+          <p className="text-sm leading-relaxed text-slate-500">
+            Los paquetes asignados quedarán disponibles nuevamente. Esta acción no se puede deshacer.
+          </p>
+        </Modal>
       )}
 
-      {/* MODAL: NUEVA ORDEN (cliente → paquetes → dirección/método, mismo flujo que Logística) */}
+      {/* MODAL: NUEVA ORDEN (cliente → paquetes → dirección/método, mismo flujo que Paquetes) */}
       {createStep && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={closeCreateModal}
-        >
-          <div
-            className="bg-white rounded-[2.5rem] p-6 md:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-slate-100 rounded-xl">
-                <Boxes size={18} className="text-slate-600" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-900 text-base">Nueva orden de envío</p>
-                {createCustomer && createStep !== 'customer' && (
-                  <p className="text-[11px] text-slate-400 mt-0.5">{createCustomer.first_name} {createCustomer.last_name}</p>
-                )}
-              </div>
-            </div>
-            <p className="text-sm text-slate-500 mb-6">
+        <Modal
+          title="Nueva orden de envío"
+          subtitle={
+            <>
               {createStep === 'customer' && 'Paso 1 de 3: elige el cliente'}
               {createStep === 'packages' && 'Paso 2 de 3: elige los paquetes'}
-              {createStep === 'address' && 'Paso 3 de 3: dirección y método de envío'}
-            </p>
-
-            {isLoadingCreateData ? (
-              <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+              {createStep === 'address' && 'Paso 3 de 3: dirección y método de entrega'}
+              {createCustomer && createStep !== 'customer' && (
+                <span className="mt-0.5 block font-semibold text-slate-700">{createCustomer.first_name} {createCustomer.last_name}</span>
+              )}
+            </>
+          }
+          onClose={closeCreateModal}
+          closeOnOverlayClick={false}
+          footer={isLoadingCreateData ? undefined : renderCreateFooter()}
+        >
+          {isLoadingCreateData ? (
+            <div className="flex justify-center py-10">
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+            </div>
+          ) : createStep === 'customer' ? (
+            createCustomers.length === 0 ? (
+              <div>
+                <EmptyState title="No hay clientes con paquetes disponibles" className="pb-2 pt-6" />
+                <p className="pb-4 text-center text-xs text-slate-500">Los paquetes que ya están en una orden no aparecen aquí.</p>
               </div>
-            ) : createStep === 'customer' ? (
-              <>
-                {createCustomers.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Package size={32} className="text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500 text-sm">No hay clientes con paquetes disponibles sin orden de envío.</p>
-                  </div>
-                ) : (
-                  <div className="max-h-80 overflow-y-auto space-y-2 mb-6">
-                    {createCustomers.map((c) => (
-                      <button
-                        key={c.customer_id}
-                        onClick={() => handleSelectCreateCustomer(c)}
-                        className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border bg-slate-50 border-transparent hover:border-slate-200"
-                      >
-                        <div className="min-w-0">
-                          <p className="font-bold text-sm text-slate-800 truncate">{c.first_name} {c.last_name}</p>
-                          <p className="text-[11px] text-slate-400">
-                            {formatCount(c.package_count, 'paquete disponible', 'paquetes disponibles')} · {formatWeight(c.total_weight_lb)}
-                          </p>
-                        </div>
-                        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={closeCreateModal}
-                  className="w-full py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all"
-                >
-                  Cancelar
-                </button>
-              </>
-            ) : createStep === 'packages' ? (
-              <>
-                {createPackages.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Package size={32} className="text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500 text-sm">Este cliente ya no tiene paquetes disponibles.</p>
-                  </div>
-                ) : (
-                  <>
-                    {(() => {
-                      const allSelected =
-                        createPackages.length > 0 &&
-                        createSelectedPackageUuids.length === createPackages.length;
-                      return (
-                        <button
-                          onClick={toggleAllCreatePackages}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-2xl text-left transition-all hover:bg-slate-50"
-                        >
-                          {allSelected
-                            ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
-                            : <Square size={18} className="text-slate-300 flex-shrink-0" />
-                          }
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            {allSelected ? 'Quitar todos' : `Seleccionar todos (${createPackages.length})`}
-                          </span>
-                        </button>
-                      );
-                    })()}
-                  <div className="max-h-72 overflow-y-auto space-y-2 mb-6">
-                    {createPackages.map((pkg: AvailablePackage) => {
-                      const selected = createSelectedPackageUuids.includes(pkg.uuid);
-                      return (
-                        <button
-                          key={pkg.uuid}
-                          onClick={() => toggleCreatePackage(pkg.uuid)}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
-                            selected
-                              ? 'bg-amber-50 border-amber-200'
-                              : 'bg-slate-50 border-transparent hover:border-slate-200'
-                          }`}
-                        >
-                          {selected
-                            ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
-                            : <Square size={18} className="text-slate-300 flex-shrink-0" />
-                          }
-                          <div className="flex-1 min-w-0">
-                            <p className="font-mono text-sm font-bold text-slate-800 truncate" title={pkg.tracking_number}>
-                              {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
-                            </p>
-                            <p className="text-[10px] text-slate-400 truncate">
-                              {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
-                            </p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  </>
-                )}
-                <div className="grid grid-cols-2 gap-3">
+            ) : (
+              <div className="space-y-2">
+                {createCustomers.map((c) => (
                   <button
-                    onClick={() => setCreateStep('customer')}
-                    className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5"
+                    key={c.customer_id}
+                    onClick={() => handleSelectCreateCustomer(c)}
+                    className="w-full min-h-[44px] flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-left transition-all border bg-slate-50 border-transparent hover:border-slate-200"
                   >
-                    <ChevronLeft size={14} /> Atrás
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-slate-800 break-words">{c.first_name} {c.last_name}</p>
+                      <p className="text-xs text-slate-500">
+                        {formatCount(c.package_count, 'paquete disponible', 'paquetes disponibles')} · {formatWeight(c.total_weight_lb)}
+                      </p>
+                    </div>
+                    <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                   </button>
-                  <button
-                    onClick={handleGoToAddressStep}
-                    disabled={createSelectedPackageUuids.length === 0}
-                    className="py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-                  >
-                    Continuar {createSelectedPackageUuids.length > 0 ? `(${createSelectedPackageUuids.length})` : ''}
-                  </button>
-                </div>
-              </>
+                ))}
+              </div>
+            )
+          ) : createStep === 'packages' ? (
+            createPackages.length === 0 ? (
+              <EmptyState title="Este cliente no tiene paquetes disponibles" className="py-8" />
             ) : (
               <>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <MapPin size={12} /> Dirección de entrega
-                  </p>
-                  {/* Alta de direcciones sin salir del asistente: si el cliente
-                      no tiene ninguna, la orden no se puede crear y antes había
-                      que cancelar e ir a la ficha del cliente. */}
-                  <button
-                    onClick={() => setShowCreateAddressesModal(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-[10px] hover:bg-slate-100 transition-all"
-                  >
-                    <Plus size={11} />
-                    {createAddresses.length === 0 ? 'Agregar' : 'Gestionar'}
-                  </button>
-                </div>
-                {isCreatePickup ? (
-                  <p className="text-slate-500 text-sm py-3 mb-4">No hace falta: el cliente retira en oficina.</p>
-                ) : createAddresses.length === 0 ? (
-                  <p className="text-slate-500 text-sm py-3 mb-4">Este cliente no tiene direcciones. Agrega una, o elige retiro en oficina.</p>
-                ) : (
-                  <div className="space-y-2 mb-6">
-                    {createAddresses.map((addr) => (
+                <button
+                  onClick={toggleAllCreatePackages}
+                  className="w-full min-h-[44px] flex items-center gap-3 px-4 mb-2 rounded-2xl text-left transition-all hover:bg-slate-50"
+                >
+                  {areAllCreatePackagesSelected
+                    ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
+                    : <Square size={18} className="text-slate-300 flex-shrink-0" />
+                  }
+                  <span className="text-sm font-semibold text-slate-600">
+                    {areAllCreatePackagesSelected ? 'Quitar todos' : `Seleccionar todos (${createPackages.length})`}
+                  </span>
+                </button>
+                <div className="space-y-2">
+                  {createPackages.map((pkg: AvailablePackage) => {
+                    const selected = createSelectedPackageUuids.includes(pkg.uuid);
+                    return (
                       <button
-                        key={addr.id}
-                        onClick={() => setCreateAddressId(addr.id)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                          createAddressId === addr.id
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                        key={pkg.uuid}
+                        onClick={() => toggleCreatePackage(pkg.uuid)}
+                        className={`w-full min-h-[44px] flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
+                          selected
+                            ? 'bg-amber-50 border-amber-200'
+                            : 'bg-slate-50 border-transparent hover:border-slate-200'
                         }`}
                       >
-                        <div>
-                          <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
-                          <p className={`text-[11px] mt-0.5 ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-400'}`}>
-                            {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                        {selected
+                          ? <CheckSquare size={18} className="text-amber-600 flex-shrink-0" />
+                          : <Square size={18} className="text-slate-300 flex-shrink-0" />
+                        }
+                        <div className="flex-1 min-w-0">
+                          <p className="font-mono text-sm font-bold text-slate-800 [overflow-wrap:anywhere]">
+                            {pkg.tracking_number}{pkg.store_name ? ` — ${pkg.store_name}` : ''}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatWeight(pkg.weight_lb)} · {packageTypeLabel(pkg.package_type)} · {packageStatusLabel(pkg.status)}
                           </p>
                         </div>
-                        {createAddressId === addr.id && (
-                          <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
-                        )}
                       </button>
-                    ))}
-                  </div>
-                )}
-
-                {!isCreatePickup && createCustomer && (
-                  <div className="mb-6">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">¿Quién recibe?</p>
-                    <CustomerRecipientsList
-                      customerId={createCustomer.customer_id}
-                      customerName={`${createCustomer.first_name} ${createCustomer.last_name}`}
-                      selectedId={createRecipientId}
-                      onSelect={setCreateRecipientId}
-                    />
-                  </div>
-                )}
-
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Método de envío
+                    );
+                  })}
+                </div>
+              </>
+            )
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                  <MapPin size={14} /> Dirección de entrega
                 </p>
+                {/* Alta de direcciones sin salir del asistente: si el cliente
+                    no tiene ninguna, la orden no se puede crear y antes había
+                    que cancelar e ir a la ficha del cliente. */}
+                <button
+                  onClick={() => setShowCreateAddressesModal(true)}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 px-1 text-sm font-semibold text-teal-700 underline underline-offset-4 hover:text-teal-800"
+                >
+                  <Plus size={14} />
+                  {createAddresses.length === 0 ? 'Agregar' : 'Gestionar'}
+                </button>
+              </div>
+              {isCreatePickup ? (
+                <p className="text-slate-500 text-sm py-3 mb-4">No hace falta: el cliente retira en oficina.</p>
+              ) : createAddresses.length === 0 ? (
+                <p className="text-slate-500 text-sm py-3 mb-4">Este cliente no tiene direcciones. Agrega una, o elige retiro en oficina.</p>
+              ) : (
                 <div className="space-y-2 mb-6">
-                  {activeDeliveryMethods.map((dm) => (
+                  {createAddresses.map((addr) => (
                     <button
-                      key={dm.code}
-                      onClick={() => setCreateDeliveryMethod(dm.code)}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all border ${
-                        createDeliveryMethod === dm.code
+                      key={addr.id}
+                      onClick={() => setCreateAddressId(addr.id)}
+                      className={`w-full min-h-[44px] flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
+                        createAddressId === addr.id
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
                       }`}
                     >
-                      <span className="font-bold text-sm">{dm.name}</span>
-                      {createDeliveryMethod === dm.code && (
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm">{addr.address_label || 'Dirección'}{addr.is_default ? ' · Principal' : ''}</p>
+                        <p className={`text-xs mt-0.5 break-words ${createAddressId === addr.id ? 'text-slate-300' : 'text-slate-500'}`}>
+                          {addr.exact_address}, {addr.district}, {addr.canton}, {addr.province}
+                        </p>
+                      </div>
+                      {createAddressId === addr.id && (
                         <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
                       )}
                     </button>
                   ))}
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setCreateStep('packages')}
-                    className="py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <ChevronLeft size={14} /> Atrás
-                  </button>
-                  <button
-                    onClick={() => handleConfirmCreate(isCreatePickup)}
-                    disabled={(!createAddressId && !isCreatePickup) || !createDeliveryMethod || isCreatingOrder}
-                    className="py-3.5 px-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg disabled:opacity-40"
-                  >
-                    {isCreatingOrder ? 'Creando…' : 'Crear orden'}
-                  </button>
+              {!isCreatePickup && createCustomer && (
+                <div className="mb-6">
+                  <p className="text-sm font-bold text-slate-700 mb-2">¿Quién recibe?</p>
+                  <CustomerRecipientsList
+                    customerId={createCustomer.customer_id}
+                    customerName={`${createCustomer.first_name} ${createCustomer.last_name}`}
+                    selectedId={createRecipientId}
+                    onSelect={setCreateRecipientId}
+                  />
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              )}
+
+              <p className="text-sm font-bold text-slate-700 mb-2">Método de entrega</p>
+              <div className="space-y-2">
+                {activeDeliveryMethods.map((dm) => (
+                  <button
+                    key={dm.code}
+                    onClick={() => setCreateDeliveryMethod(dm.code)}
+                    className={`w-full min-h-[44px] flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-left transition-all border ${
+                      createDeliveryMethod === dm.code
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">{dm.name}</span>
+                    {createDeliveryMethod === dm.code && (
+                      <CheckCircle size={16} className="text-amber-400 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </Modal>
       )}
 
       {/* Direcciones del cliente, anidado sobre el asistente. */}

@@ -1,11 +1,13 @@
 import { formatWeight, formatCount } from '@/shared/utils/format';
 import React from 'react';
 import { Check, Plus, AlertCircle } from 'lucide-react';
-import { ConsolidationStatus, ConsolidationDetail, ShipmentOrderStep, DeliveryMethod, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
+import { ConsolidationStatus, ConsolidationDetail, ConsolidationPaymentStatus, ShipmentOrderStep, DeliveryMethod, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { formatCrc } from '@/shared/utils/format-crc';
 import { formatBusinessDate } from '@/shared/utils/timezone';
+import { Badge } from '@/components/common/badge/badge';
+import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, getPaymentStatus } from '@/shared/constants/status-labels';
 import { PackageTable } from './package-table';
 import { OrderSummaryCard } from './order-summary-card';
 import { FinalizedSummary } from './finalized-summary';
@@ -20,6 +22,7 @@ const STEP_ITEMS: { step: ShipmentOrderStep; label: string }[] = [
   { step: ShipmentOrderStep.NOTIFICACION, label: 'Cierre' },
 ];
 const STEP_COUNT = STEP_ITEMS.length;
+const NO_PACKAGES_HINT = 'La orden no tiene paquetes: no se puede avanzar.';
 
 export interface WizardStepsSectionProps {
   detail: ConsolidationDetail;
@@ -83,9 +86,9 @@ export interface WizardStepsSectionProps {
 }
 
 const StatTile: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-3 py-3 sm:p-4 text-center min-w-0">
-    <p className="text-xs font-bold text-slate-400">{label}</p>
-    <div className="font-extrabold text-slate-800 text-base sm:text-lg mt-0.5 truncate">{children}</div>
+  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-2 py-3 sm:p-4 text-center min-w-0">
+    <p className="text-xs font-bold text-slate-500">{label}</p>
+    <div className="font-extrabold text-slate-800 text-base sm:text-lg mt-0.5 break-words">{children}</div>
   </div>
 );
 
@@ -138,6 +141,13 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
   const isFinalized = detail.current_step === ShipmentOrderStep.FINALIZADA;
   const hasAddress = !!detail.delivery_exact_address;
   const totalWeight = formatWeight(detail.total_weight_lb);
+  const hasNoPackages = detail.packages.length === 0;
+  const paymentStatus = getPaymentStatus({
+    isBilled: hasBilling,
+    isPaid,
+    hasPreBilling,
+    preBillingNotifiedAt: detail.pre_billing_notified_at,
+  });
 
   const hasActualFee = detail.billing_actual_delivery_fee_crc != null;
   const originalFeeCrc = detail.billing_original_delivery_fee_crc ?? detail.billing_delivery_fee_crc;
@@ -154,7 +164,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       description={isPickup ? 'El cliente retira en oficina.' : undefined}
       footer={
         <StepFooter
-          hint={props.step1BlockedReason}
+          hint={hasNoPackages ? NO_PACKAGES_HINT : props.step1BlockedReason}
           next={
             <StepAction
               variant={StepActionVariant.PRIMARY}
@@ -217,7 +227,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         </ChecklistRow>
       )}
       <ChecklistRow
-        title="Método de envío"
+        title="Método de entrega"
         isDone={!!detail.delivery_method}
         action={<StepAction onClick={props.handleOpenMethodModal}>Cambiar</StepAction>}
       >
@@ -235,7 +245,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
     const notifyRow = (
       <ChecklistRow
         id={ESTIMATE_ROW_ANCHOR}
-        title="Estimado enviado al cliente"
+        title="Estimado al cliente"
         isDone={!!detail.pre_billing_notified_at}
         action={
           <StepAction onClick={props.handleNotifyPreBilling} disabled={props.isNotifyingPreBilling}>
@@ -254,7 +264,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       </StepAction>
     );
     const backLink = (
-      <StepAction variant={StepActionVariant.LINK} onClick={props.requestGoBackToConfirmation} disabled={props.isUpdating}>
+      <StepAction variant={StepActionVariant.LINK} className="min-w-[44px]" onClick={props.requestGoBackToConfirmation} disabled={props.isUpdating}>
         Atrás
       </StepAction>
     );
@@ -267,12 +277,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           footer={
             <StepFooter
               back={!isPaid ? backLink : undefined}
-              hint={!isPaid ? 'Sin pago, se despacha como pendiente.' : null}
+              hint={hasNoPackages ? NO_PACKAGES_HINT : !isPaid ? 'Sin pago, se despacha como por cobrar.' : null}
               next={
                 <StepAction
                   variant={StepActionVariant.PRIMARY}
                   onClick={props.handleAdvanceToDispatchClick}
-                  disabled={props.isUpdating || props.isAdvancingToDispatch}
+                  disabled={props.isUpdating || props.isAdvancingToDispatch || hasNoPackages}
                 >
                   {props.isAdvancingToDispatch ? 'Pasando…' : 'Pasar a despacho'}
                 </StepAction>
@@ -291,7 +301,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
             }
           >
             <span className="text-lg font-extrabold text-slate-900">{formatCrc(Number(detail.billing_total_amount_crc ?? 0))}</span>
-            <span className={`ml-2 ${isPaid ? 'text-emerald-700' : 'text-amber-700'}`}>{isPaid ? 'Pagada' : 'Pendiente de pago'}</span>
+            <span className={`ml-2 ${isPaid ? 'text-emerald-700' : 'text-amber-700'}`}>{PAYMENT_STATUS_LABEL[paymentStatus]}</span>
           </ChecklistRow>
           {detail.pre_billing_uuid && notifyRow}
         </StepCard>
@@ -324,12 +334,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         footer={
           <StepFooter
             back={backLink}
-            hint="Si cambiaron tarifas, recalcula antes."
+            hint={hasNoPackages ? NO_PACKAGES_HINT : 'Si cambiaron tarifas, recalcula antes.'}
             next={
               <StepAction
                 variant={StepActionVariant.PRIMARY}
                 onClick={props.handleConfirmPreBilling}
-                disabled={props.isConfirmingPreBilling}
+                disabled={props.isConfirmingPreBilling || hasNoPackages}
               >
                 {props.isConfirmingPreBilling ? 'Confirmando…' : 'Confirmar estimado'}
               </StepAction>
@@ -381,7 +391,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           ? detail.billing_payment_notified_at
             ? `Pagada · aviso enviado el ${formatBusinessDate(detail.billing_payment_notified_at)}`
             : 'Pagada · falta avisarle al cliente'
-          : isPickup ? 'Pendiente: se cobra al retirar' : 'Pendiente de pago'}
+          : isPickup ? 'Por cobrar: se cobra al retirar' : PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO]}
       </ChecklistRow>
     );
 
@@ -392,8 +402,9 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           title="Listo para retiro"
           footer={
             <StepFooter
+              hint={hasNoPackages ? NO_PACKAGES_HINT : null}
               next={
-                <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleAdvanceToClosing} disabled={props.isAdvancingToClosing}>
+                <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleAdvanceToClosing} disabled={props.isAdvancingToClosing || hasNoPackages}>
                   {props.isAdvancingToClosing ? 'Pasando…' : 'Pasar a cierre'}
                 </StepAction>
               }
@@ -411,12 +422,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         title="Despacho"
         footer={
           <StepFooter
-            hint={!detail.tracking_code ? 'Carga la guía para pasar al cierre.' : null}
+            hint={hasNoPackages ? NO_PACKAGES_HINT : !detail.tracking_code ? 'Carga la guía para pasar al cierre.' : null}
             next={
               <StepAction
                 variant={StepActionVariant.PRIMARY}
                 onClick={props.handleAdvanceToClosing}
-                disabled={props.isAdvancingToClosing || !detail.tracking_code}
+                disabled={props.isAdvancingToClosing || !detail.tracking_code || hasNoPackages}
               >
                 {props.isAdvancingToClosing ? 'Pasando…' : 'Pasar a cierre'}
               </StepAction>
@@ -439,7 +450,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
             : 'Pendiente'}
         </ChecklistRow>
         <ChecklistRow
-          title="Aviso al cliente"
+          title="Aviso de despacho"
           isDone={!!detail.customer_notified_shipment_at}
           action={
             <StepAction onClick={props.handleNotifyCustomerShipmentRequested} disabled={props.isNotifyingShipmentRequested}>
@@ -466,11 +477,11 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         </ChecklistRow>
         {detail.tracking_code && (
           <ChecklistRow
-            title="Aviso de despacho"
+            title="Guía y rastreo al cliente"
             isDone={null}
             action={props.canNotifyDispatch ? (
               <StepAction onClick={props.handleNotifyDispatch} disabled={props.isNotifyingDispatch}>
-                Avisar despacho
+                Enviar guía
               </StepAction>
             ) : undefined}
           >
@@ -490,9 +501,9 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       description={isPickup ? 'Finaliza cuando el cliente retire.' : undefined}
       footer={
         <StepFooter
-          hint="La orden queda como entregada."
+          hint={hasNoPackages ? NO_PACKAGES_HINT : 'La orden queda como entregada.'}
           next={
-            <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleFinalizeOrder} disabled={props.isFinalizing}>
+            <StepAction variant={StepActionVariant.PRIMARY} onClick={props.handleFinalizeOrder} disabled={props.isFinalizing || hasNoPackages}>
               {props.isFinalizing ? 'Finalizando…' : 'Finalizar orden'}
             </StepAction>
           }
@@ -505,7 +516,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           isDone
           action={props.canNotifyDispatch ? (
             <StepAction variant={StepActionVariant.LINK} onClick={props.handleNotifyDispatch} disabled={props.isNotifyingDispatch}>
-              Reenviar aviso de despacho
+              Reenviar la guía
             </StepAction>
           ) : undefined}
         >
@@ -546,7 +557,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
           isDone={false}
           action={<StepAction onClick={() => props.setShowBillingModal(true)}>Registrar pago</StepAction>}
         >
-          Pendiente
+          {PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO]}
         </ChecklistRow>
       )}
     </StepCard>
@@ -566,12 +577,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile label="Peso">{totalWeight}</StatTile>
         <StatTile label="Monto">
-          {amountToShow != null ? formatCrc(Number(amountToShow)) : <span className="text-slate-300">—</span>}
+          {amountToShow != null && paymentStatus !== ConsolidationPaymentStatus.SIN_ESTIMADO
+            ? formatCrc(Number(amountToShow))
+            : <span className="text-slate-400">—</span>}
         </StatTile>
         <StatTile label="Pago">
-          {hasBilling
-            ? <span className={isPaid ? 'text-emerald-700' : 'text-amber-700'}>{isPaid ? 'Pagada' : 'Pendiente'}</span>
-            : <span className="text-slate-400 text-sm">Sin factura</span>}
+          <Badge tone={PAYMENT_STATUS_TONE[paymentStatus]}>{PAYMENT_STATUS_LABEL[paymentStatus]}</Badge>
         </StatTile>
       </div>
 
@@ -605,7 +616,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
               )}
             </div>
             {detail.packages.length === 0 ? (
-              <p className="text-center py-6 text-slate-400 text-sm">Esta orden no tiene paquetes.</p>
+              <p className="text-center py-6 text-slate-500 text-sm">Esta orden no tiene paquetes.</p>
             ) : (
               <>
                 <PackageTable
@@ -616,7 +627,7 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
                 />
                 {detail.status === ConsolidationStatus.ABIERTO && !hasBilling && detail.packages.length === 1 && (
                   <p className="text-xs text-slate-500 mt-3 text-center">
-                    Es el único paquete de la orden: no se puede quitar. Para vaciarla, elimina la orden desde el listado.
+                    Una orden necesita al menos un paquete.
                   </p>
                 )}
               </>
@@ -627,7 +638,12 @@ export const WizardStepsSection: React.FC<WizardStepsSectionProps> = (props) => 
         {/* En la finalizada la ficha ya trae todo el resumen. */}
         {!isFinalized && (
           <aside className="xl:sticky xl:top-24">
-            <OrderSummaryCard detail={detail} deliveryMethods={deliveryMethodsData} isPickup={isPickup} />
+            <OrderSummaryCard
+              detail={detail}
+              deliveryMethods={deliveryMethodsData}
+              isPickup={isPickup}
+              onOpenBilling={hasBilling && detail.current_step !== ShipmentOrderStep.COBRO ? () => props.setShowBillingModal(true) : undefined}
+            />
           </aside>
         )}
       </div>

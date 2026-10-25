@@ -36,6 +36,9 @@ import { ConsolidationStatus, DeliveryMethod, AvailablePackage, PaymentMethod } 
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { CustomerAddress } from '@/types/customer/customer.types';
 
+const ESTIMATE_HIGHLIGHT_MS = 2500;
+const ESTIMATE_HIGHLIGHT_CLASSES = ['bg-amber-100', 'ring-8', 'ring-amber-100', 'rounded-xl'];
+
 /** Acciones que descartan trabajo y por eso piden confirmación antes de ejecutarse. */
 export enum DetailConfirmAction {
   GO_BACK = 'GO_BACK',
@@ -165,16 +168,19 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const handleBack = () =>
     router.push(isFromOperations ? routesPrivate.admin.operations : routesPrivate.admin.shipmentOrders.index);
 
-  // Desde "Enviar estimado" del Operativo se llega con #estimado: se baja a esa fila una sola vez,
-  // cuando ya hay datos y la fila existe (solo aparece en el paso de cobro).
-  const hasScrolledToEstimate = useRef(false);
+  // Desde "Enviar estimado" del Operativo se llega con #estimado: la fila se resalta un momento y solo
+  // se hace el scroll justo si no se ve, para no sacar de vista el encabezado y los pasos.
+  const hasHighlightedEstimate = useRef(false);
   useEffect(() => {
-    if (!detail || hasScrolledToEstimate.current) return;
+    if (!detail || hasHighlightedEstimate.current) return;
     if (window.location.hash !== `#${ESTIMATE_ROW_ANCHOR}`) return;
     const row = document.getElementById(ESTIMATE_ROW_ANCHOR);
     if (!row) return;
-    hasScrolledToEstimate.current = true;
-    row.scrollIntoView({ block: 'center' });
+    hasHighlightedEstimate.current = true;
+    row.scrollIntoView({ block: 'nearest' });
+    row.classList.add(...ESTIMATE_HIGHLIGHT_CLASSES);
+    const timeout = window.setTimeout(() => row.classList.remove(...ESTIMATE_HIGHLIGHT_CLASSES), ESTIMATE_HIGHLIGHT_MS);
+    return () => window.clearTimeout(timeout);
   }, [detail]);
 
   const requestUnassignPackage = (packageUuid: string) => {
@@ -527,10 +533,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         deliveryMethod: selectedMethod,
       });
       await detailQuery.invalidate();
-      toast.success('Método de envío actualizado');
+      toast.success('Método de entrega actualizado');
       setShowMethodModal(false);
     } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo actualizar el método de envío.');
+      toast.error(err?.message ?? 'No se pudo actualizar el método de entrega.');
     } finally {
       setIsSavingMethod(false);
     }
@@ -927,7 +933,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         })),
         amountCrc: detail.pre_billing_amount ?? 0,
         deliveryFeeCrc,
-        totalWeightCharged: detail.total_weight_lb,
+        // El monto está congelado en el estimado: el desglose usa el peso cobrado de ese momento, no el actual.
+        totalWeightCharged: detail.pre_billing_weight_charged ?? detail.total_weight_lb,
         appliedRateUsd: detail.pre_billing_rate_usd ?? detail.current_price_per_lb,
         appliedExchange: detail.pre_billing_exchange ?? detail.current_exchange_rate,
         billingMode: detail.customer_type_billing_mode,
@@ -947,8 +954,9 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         weightLb: Number(detail.total_weight_lb),
         deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
-        // Con regla especial va el precio de lista y debajo el descuento, igual que el PDF.
-        shippingCrc: breakdown.isNormal ? breakdown.flete : breakdown.fleteLista,
+        // Con regla especial va el flete a lista y debajo el descuento; sumados dan siempre el flete cobrado,
+        // también con peso bajo el mínimo o en AL_COSTO.
+        shippingCrc: breakdown.isNormal ? breakdown.flete : breakdown.flete + breakdown.descuento,
         deliveryFeeCrc,
         discountCrc: breakdown.descuento,
         discountLabel: breakdown.ruleLabel,
@@ -992,12 +1000,13 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     : !detail.delivery_exact_address && !isPickup
       ? 'Registra la dirección de entrega antes de generar el estimado.'
       : !detail.delivery_method
-        ? 'Elige un método de envío antes de generar el estimado.'
+        ? 'Elige un método de entrega antes de generar el estimado.'
         : null;
 
   return {
     detail,
     isLoadingDetail,
+    retryDetail: detailQuery.invalidate,
     handleBack,
     backLabel,
 

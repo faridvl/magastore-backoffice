@@ -1,10 +1,11 @@
 import React from 'react';
-import { ConsolidationDetail, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
+import { ConsolidationDetail, ConsolidationPaymentStatus, DeliveryMethodEntity } from '@/types/logistics/logistics.types';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
 import { resolveZone } from '@/shared/constants/costa-rica-locations';
 import { PAYMENT_METHOD_LABELS } from '@/shared/constants/payment-methods';
 import { formatCrc } from '@/shared/utils/format-crc';
 import { formatBusinessDate } from '@/shared/utils/timezone';
+import { PAYMENT_STATUS_LABEL } from '@/shared/constants/status-labels';
 
 const SummaryItem: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="py-3 first:pt-0 last:pb-0">
@@ -21,7 +22,9 @@ export const OrderSummaryCard: React.FC<{
   detail: ConsolidationDetail;
   deliveryMethods: DeliveryMethodEntity[] | undefined;
   isPickup: boolean;
-}> = ({ detail, deliveryMethods, isPickup }) => {
+  // Solo cuando el paso en pantalla no ofrece ya "Ver factura": cada pantalla la muestra una vez.
+  onOpenBilling?: () => void;
+}> = ({ detail, deliveryMethods, isPickup, onOpenBilling }) => {
   const amount = detail.billing_total_amount_crc ?? detail.pre_billing_amount;
   const hasBilling = !!detail.billing_uuid;
 
@@ -66,6 +69,15 @@ export const OrderSummaryCard: React.FC<{
           {amount != null ? (
             <>
               <p className="font-semibold text-slate-800">{formatCrc(Number(amount))}</p>
+              {hasBilling && onOpenBilling && (
+                <button
+                  type="button"
+                  onClick={onOpenBilling}
+                  className="min-h-[44px] text-sm font-semibold text-teal-700 underline underline-offset-4 hover:text-teal-800"
+                >
+                  Ver factura
+                </button>
+              )}
               {hasBilling && (
                 <p className={detail.billing_is_paid ? 'text-emerald-700' : 'text-amber-700'}>
                   {detail.billing_is_paid
@@ -74,7 +86,7 @@ export const OrderSummaryCard: React.FC<{
                         detail.billing_payment_method && PAYMENT_METHOD_LABELS[detail.billing_payment_method],
                         detail.billing_paid_at && formatBusinessDate(detail.billing_paid_at),
                       ].filter(Boolean).join(' · ')
-                    : 'Pendiente de pago'}
+                    : PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO]}
                 </p>
               )}
             </>

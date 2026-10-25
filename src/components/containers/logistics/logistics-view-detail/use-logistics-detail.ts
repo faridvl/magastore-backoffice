@@ -5,7 +5,8 @@ import { useUpdatePackageStatusMutation } from '@/shared/api/mutations/logistics
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { PackageStatus } from '@/types/logistics/logistics.types';
+import { ConsolidationPaymentStatus, PackageStatus } from '@/types/logistics/logistics.types';
+import { PAYMENT_STATUS_LABEL } from '@/shared/constants/status-labels';
 
 export const usePackageDetailContainer = (uuid?: string) => {
   const [isEditingFinancial, setIsEditingFinancial] = useState(false);
@@ -30,12 +31,13 @@ export const usePackageDetailContainer = (uuid?: string) => {
     peso: 0,
     estadoPaquete: '---',
     observaciones: '',
+    consolidationUuid: null as string | null,
     cliente: '—',
     casillero: '—',
     tarifaXLibre: 6,
     tipoCambio: 480,
     costoEnvioCorreos: 4500,
-    estadoPago: 'PENDIENTE',
+    estadoPago: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO],
     totalFacturado: null as number | null,
     deliveryMethod: null as string | null,
     deliveryFeeCrc: null as number | null,
@@ -63,12 +65,15 @@ export const usePackageDetailContainer = (uuid?: string) => {
         tracking:       apiData.tracking_number || '(Sin tracking)',
         peso:           apiData.weight_lb ? parseFloat(apiData.weight_lb) : prev.peso,
         estadoPaquete:  apiData.status || prev.estadoPaquete,
-        observaciones:  apiData.internal_notes || 'Sin notas internas.',
+        observaciones:  apiData.internal_notes ?? '',
+        consolidationUuid: apiData.consolidation_uuid ?? null,
         cliente:        apiData.first_name && apiData.last_name
                           ? `${apiData.first_name} ${apiData.last_name}`
                           : prev.cliente,
         casillero:      apiData.customer_code || prev.casillero,
-        estadoPago:          apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
+        estadoPago:          apiData.is_paid === true
+                          ? PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PAGADO]
+                          : PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO],
         totalFacturado:      apiData.total_amount_crc ?? null,
         deliveryMethod:      apiData.delivery_method ?? null,
         deliveryFeeCrc:      apiData.delivery_fee_crc ?? null,
@@ -105,7 +110,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
       fecha: formatBusinessDateTime(e.created_at),
       estado:   e.status,
       nota:     e.description,
-      location: e.location || 'No especificada',
+      location: e.location ?? '',
     }));
   }, [apiData]);
 
@@ -184,6 +189,7 @@ export const usePackageDetailContainer = (uuid?: string) => {
 
   return {
     data,
+    orderStep: apiData?.consolidation_step ?? null,
     bitacora,
     calculos,
     tieneFactura,

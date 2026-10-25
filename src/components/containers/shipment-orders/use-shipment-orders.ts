@@ -42,18 +42,24 @@ const STEP_FILTER_URL_KEYS = [
 ] as const;
 type StepFilterUrlKey = (typeof STEP_FILTER_URL_KEYS)[number];
 
-const PAID_FILTER_URL_KEYS = ['ALL', 'PAGADA', 'SIN_PAGAR', 'FACTURADA_SIN_PAGAR'] as const;
+const PAID_FILTER_URL_KEYS = ['ALL', 'SIN_ESTIMADO', 'ESTIMADO_ENVIADO', 'POR_COBRAR', 'PAGADA'] as const;
+// Nombres viejos que todavía pueden venir en enlaces: valen lo mismo que el nuevo.
+const PAID_FILTER_URL_ALIASES: Record<string, (typeof PAID_FILTER_URL_KEYS)[number]> = {
+  FACTURADA_SIN_PAGAR: 'POR_COBRAR',
+  SIN_PAGAR: 'POR_COBRAR',
+};
 const NOTIFIED_FILTER_URL_KEYS = ['ALL', 'NOTIFICADA', 'SIN_NOTIFICAR'] as const;
 
 const isStepFilterUrlKey = (name: string): name is StepFilterUrlKey =>
   (STEP_FILTER_URL_KEYS as readonly string[]).includes(name);
 
+// Cuatro nombres del badge de pago; cada uno filtra con la misma regla que `getPaymentStatus`.
 export enum ShipmentOrderPaidFilter {
   ALL = 'ALL',
+  SIN_ESTIMADO = 'SIN_ESTIMADO',
+  ESTIMADO_ENVIADO = 'ESTIMADO_ENVIADO',
+  POR_COBRAR = 'POR_COBRAR',
   PAGADA = 'PAGADA',
-  SIN_PAGAR = 'SIN_PAGAR',
-  // Solo con factura emitida y sin pagar; no incluye estimados sin confirmar.
-  FACTURADA_SIN_PAGAR = 'FACTURADA_SIN_PAGAR',
 }
 
 export enum ShipmentOrderNotifiedFilter {
@@ -69,13 +75,12 @@ export const useShipmentOrders = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  // Default: "sin pagar" en todos los pasos — es lo que el operador revisa a
-  // diario. El panel Operativo enlaza acá con ?payment=... (valores del enum
-  // viejo, ver el useEffect de abajo) o, desde otros lugares nuevos, con
-  // ?step=/?paid=/?notified= directos.
+  // Sin filtros al entrar: un filtro preaplicado escondía órdenes sin que el operador lo notara.
+  // El panel Operativo enlaza acá con ?payment=... (valores del enum viejo, ver el useEffect de
+  // abajo) o con ?step=/?paid=/?notified= directos.
   // Varios pasos a la vez: el operador revisa, por ejemplo, Cobro y Despacho juntos.
   const [stepFilters, setStepFilters] = useState<ShipmentOrderStepFilter[]>([]);
-  const [paidFilter, setPaidFilter] = useState<ShipmentOrderPaidFilter>(ShipmentOrderPaidFilter.SIN_PAGAR);
+  const [paidFilter, setPaidFilter] = useState<ShipmentOrderPaidFilter>(ShipmentOrderPaidFilter.ALL);
   const [notifiedFilter, setNotifiedFilter] = useState<ShipmentOrderNotifiedFilter>(ShipmentOrderNotifiedFilter.ALL);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -136,7 +141,7 @@ export const useShipmentOrders = () => {
       setNotifiedFilter(ShipmentOrderNotifiedFilter.SIN_NOTIFICAR);
       touched = true;
     } else if (legacyPayment === 'PENDIENTE_PAGO') {
-      setPaidFilter(ShipmentOrderPaidFilter.SIN_PAGAR);
+      setPaidFilter(ShipmentOrderPaidFilter.POR_COBRAR);
       setStepFilters([]);
       touched = true;
     } else if (legacyPayment === 'PAGADO') {
@@ -161,8 +166,9 @@ export const useShipmentOrders = () => {
       if (stepsFromUrl.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE) && !paidParam) setPaidFilter(ShipmentOrderPaidFilter.ALL);
       touched = true;
     }
-    if (paidParam && (PAID_FILTER_URL_KEYS as readonly string[]).includes(paidParam)) {
-      setPaidFilter(ShipmentOrderPaidFilter[paidParam as (typeof PAID_FILTER_URL_KEYS)[number]]);
+    const paidKey = paidParam ? PAID_FILTER_URL_ALIASES[paidParam] ?? paidParam : undefined;
+    if (paidKey && (PAID_FILTER_URL_KEYS as readonly string[]).includes(paidKey)) {
+      setPaidFilter(ShipmentOrderPaidFilter[paidKey as (typeof PAID_FILTER_URL_KEYS)[number]]);
       touched = true;
     }
     if (notifiedParam && (NOTIFIED_FILTER_URL_KEYS as readonly string[]).includes(notifiedParam)) {
@@ -185,7 +191,10 @@ export const useShipmentOrders = () => {
     dateFrom || undefined,
     dateTo || undefined,
   );
-  const { data: listData, isLoading: isLoadingList } = listQuery.useQuery();
+  const { data: listData, isLoading: isLoadingList, isError, refetch } = listQuery.useQuery();
+  // Con datos ya cargados, un fallo de refresco no tapa la lista.
+  const isErrorList = isError && !listData;
+  const handleRetryList = () => { void refetch(); };
 
   const { deleteShipmentOrder, isPending: isDeleting } = useDeleteShipmentOrderMutation();
   const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
@@ -300,10 +309,10 @@ export const useShipmentOrders = () => {
       });
       toast.success('Orden de envío creada correctamente');
       setCreateStep(null);
-      const uuid = (result as any)?.data?.uuid;
+      const uuid = (result as { data?: { uuid?: string } } | undefined)?.data?.uuid;
       router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
-    } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo crear la orden de envío.');
     }
   };
 
@@ -313,13 +322,13 @@ export const useShipmentOrders = () => {
       await deleteShipmentOrder({ uuid: deleteUuid });
       setDeleteUuid(null);
       toast.success('Orden de envío eliminada');
-    } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo eliminar la orden de envío.');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo eliminar la orden de envío.');
     }
   };
 
   const handleStepFiltersChange = (values: ShipmentOrderStepFilter[]) => {
-    // El default "Sin pagar" escondería casi todo el seguimiento: la mayoría ya pagó.
+    // Con "Sin pagar" quedaría casi vacío el seguimiento: la mayoría ya pagó.
     const addsFollowUp = values.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE)
       && !stepFilters.includes(ShipmentOrderStepFilter.SEGUIMIENTO_PENDIENTE);
     if (addsFollowUp) setPaidFilter(ShipmentOrderPaidFilter.ALL);
@@ -360,6 +369,7 @@ export const useShipmentOrders = () => {
     shipmentOrders: listData?.data ?? [],
     listMeta: listData?.meta ?? { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 1 },
     isLoadingList,
+    isErrorList, handleRetryList,
 
     // Row click
     handleSelectRow,

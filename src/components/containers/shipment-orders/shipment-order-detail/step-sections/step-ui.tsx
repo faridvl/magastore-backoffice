@@ -45,7 +45,7 @@ export const ChecklistRow: React.FC<{
   action?: React.ReactNode;
   id?: string;
 }> = ({ title, isDone = false, children, action, id }) => (
-  <li id={id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+  <li id={id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0 transition-all duration-1000">
     {isDone === null
       ? <span className="w-5 flex-shrink-0" />
       : isDone

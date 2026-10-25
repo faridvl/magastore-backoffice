@@ -1,3 +1,4 @@
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { LogisticsRepository } from '../repositories/logistics.repo';
 import {
   PackageStatus,
@@ -108,6 +109,12 @@ function toPublicTracking(row: {
     events,
   };
 }
+
+const PACKAGE_NOT_FOUND_MESSAGE = 'No encontramos ese número. Revisa que esté bien escrito.';
+const PACKAGE_AMBIGUOUS_MESSAGE = 'Hay varios paquetes con un número parecido. Escríbelo exacto.';
+
+export class PackageNotFoundError extends Error {}
+export class PackageAmbiguousError extends Error {}
 
 /**
  * El cliente no tiene casillero en la ruta del courier elegido. Se distingue de
@@ -279,12 +286,15 @@ export const LogisticsService = {
    */
   lookupPackageByTracking: async (trackingNumber: string): Promise<any> => {
     const clean = trackingNumber?.trim();
-    if (!clean) throw new Error('El número de tracking es requerido.');
+    if (!clean) throw new PackageNotFoundError(PACKAGE_NOT_FOUND_MESSAGE);
 
     const packageData = await LogisticsRepository.getPackageDetailByTracking(clean);
 
     if (!packageData) {
-      throw new Error('No se encontró ningún paquete con ese número de tracking.');
+      throw new PackageNotFoundError(PACKAGE_NOT_FOUND_MESSAGE);
+    }
+    if ('ambiguous' in packageData) {
+      throw new PackageAmbiguousError(PACKAGE_AMBIGUOUS_MESSAGE);
     }
 
     return packageData;
@@ -348,6 +358,7 @@ export const LogisticsService = {
     try {
       return await LogisticsRepository.generatePreBilling(consolidationUuid, deliveryMethod);
     } catch (error: any) {
+      if (error instanceof EmptyOrderError) throw error;
       console.error('[LogisticsService.generatePreBilling]:', error);
       throw new Error(error.message || 'Error al generar la prefactura.');
     }
@@ -371,6 +382,7 @@ export const LogisticsService = {
       }
       return result;
     } catch (error: any) {
+      if (error instanceof EmptyOrderError) throw error;
       console.error('[LogisticsService.confirmPreBilling]:', error);
       throw new Error(error.message || 'Error al confirmar la prefactura.');
     }

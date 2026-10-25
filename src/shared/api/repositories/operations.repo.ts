@@ -144,8 +144,7 @@ const getTasks = async (): Promise<OperationsTask[]> => {
     FROM consolidations con, today t
     WHERE con.current_step = ${ShipmentOrderStep.FINALIZADA}
       AND con.follow_up_sent_at IS NULL
-      AND con.dispatched_at <= NOW() - make_interval(days => ${FOLLOW_UP_DELAY_DAYS})
-      AND con.dispatched_at >= NOW() - make_interval(days => ${FOLLOW_UP_WINDOW_DAYS})
+      AND ((NOW() AT TIME ZONE 'America/Costa_Rica')::date - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date) BETWEEN ${FOLLOW_UP_DELAY_DAYS} AND ${FOLLOW_UP_WINDOW_DAYS}
   `,
     getConfirmAndCollectTask(),
   ]);

@@ -68,9 +68,8 @@ respaldo. Para el paso 4 no existe fecha de entrada: se cuenta desde el despacho
 
 ## Filtro de pago "Con factura sin pagar" (2026-10-24)
 
-`FACTURADA_SIN_PAGAR` exige factura emitida y sin pagar; "Sin pagar (con estimados)" sigue
-incluyendo órdenes sin factura. Cobros del Operativo usa el primero para que "Ver todas" muestre
-exactamente las mismas facturas.
+`FACTURADA_SIN_PAGAR` (hoy alias de "Por cobrar") exige factura emitida y sin pagar. Cobros del
+Operativo lo usa para que "Ver todas" muestre exactamente las mismas facturas.
 
 ## Cobros: "Enviar estimado" solo en el paso Cobro (2026-10-24)
 
@@ -231,3 +230,45 @@ pantalla ya no lo ofrece). Quitar un paquete de su orden o borrar la orden lo de
 Cambiar el estado de una orden ya no confía en el `currentStatus` del cuerpo: se lee de la base y
 si difiere responde 409 "La orden cambió. Recarga la página.". Si la orden vuelve a ABIERTO o
 CERRADO, sus paquetes en trámite vuelven a Panamá en la misma sentencia. Rastreo público (regla exacta): ENTREGADO es entregado; EN_TRAMITE o DESPACHADO sin orden va en camino y con orden solo si la orden está despachada o entregada, si no "preparando"; PANAMA sin orden es recibido y con orden "preparando", salvo orden despachada con guía o en el paso 4 o más (en camino); cualquier otro estado con orden "preparando" y sin orden recibido. Los eventos EN_TRAMITE/DESPACHADO se ocultan si el estado público es recibido o preparando. El cambio de estado de la orden exige el estado esperado en el `WHERE` del UPDATE; si no devuelve fila, 409.
+
+## Órdenes: listado sin filtro por defecto, Monto sin estado y orden sin paquetes bloqueada (2026-10-24)
+
+El listado entra sin filtros: "Sin pagar" preaplicado escondía órdenes sin que el operador lo notara. Monto dice solo la cifra y su origen ("Estimado" o "Factura"); el estado de pago lo dice únicamente la columna Pago, con los cuatro nombres. Peso y paquetes del listado y del detalle salen de la suma de los paquetes asignados, no del peso guardado en la orden. El servidor rechaza generar o confirmar el estimado, pasar a Cierre, despachar y finalizar una orden sin paquetes ("La orden no tiene paquetes..."). Autoría de la 033: el detalle trae `billing_paid_by_backfilled` y no se muestra "por ..." si el autor es el del backfill. Los días desde el despacho se cuentan por fecha de negocio de Costa Rica (`businessDaysSince`). Se quitó el badge de estado del encabezado del detalle (el stepper ya dice el paso; un status heredado ENTREGADO contradecía el paso 4) y "Ver factura" aparece una sola vez por pantalla. En el paso 3, "Aviso al cliente" pasa a "Aviso de despacho" y la fila que envía la guía a "Guía y rastreo al cliente".
+
+## Estimado: el peso sale de los paquetes asignados (2026-10-24)
+
+`generatePreBilling` calcula el peso con la suma de `packages.weight_lb` de la orden, no con `consolidations.total_weight_lb`, que puede quedar desactualizado (una orden con 0 guardado y 3 lb reales se estimaba con el mínimo). El mínimo de `system_settings` y el resto de la fórmula no cambian. Confirmar la factura ya usa el snapshot `pre_billing.total_weight_charged`, así que hereda el peso correcto. Desde el Operativo, el detalle resalta la fila del estimado 2,5 s y solo hace scroll si no se ve (`block: nearest`).
+
+## Órdenes: filtro de pago con los cuatro nombres y Monto "—" sin estimado (2026-10-24)
+
+El filtro "Pago" ofrece exactamente Sin estimado, Estimado enviado, Por cobrar y Pagada, con las mismas reglas SQL que `getPaymentStatus` (un estimado sin `notified_at` cuenta como Sin estimado), así que cada fila filtrada lleva el badge elegido. `paid=FACTURADA_SIN_PAGAR` (Operativo) y `SIN_PAGAR` quedan como alias de POR_COBRAR; la regla de Por cobrar es la de antes, así que los números del Operativo no cambian. Con "Sin estimado" el Monto muestra "—" aunque haya un borrador: el monto del estimado se ve en el detalle. Las órdenes sin paquetes se rechazan con `EmptyOrderError` y responden 409.
+
+## Órdenes: seguimiento por día de calendario, estimado y factura sin duplicados, peso bloqueado con factura (2026-10-24)
+
+"Seguimiento pendiente" (listado y Operativo) cuenta días de calendario de Costa Rica entre 3 y 30 desde el despacho, con la misma expresión que la ficha (`businessDaysSince`). `generatePreBilling` actualiza el estimado existente y solo inserta con `INSERT … SELECT … WHERE NOT EXISTS`; `confirmPreBilling` inserta la factura igual y, si ya existe, responde 409. Si el monto de un estimado ya avisado cambia al recalcular o al agregar paquetes, `notified_at` vuelve a nulo en la misma sentencia (el cliente no vio la cifra nueva). Cambiar el peso de un paquete se rechaza con 409 si la orden ya tiene factura; con solo estimado se permite y el peso de la orden se actualiza en la misma sentencia. El mensaje de WhatsApp del estimado usa el peso cobrado congelado en `pre_billing.total_weight_charged`.
+
+## Casillero: "Copiar mensaje" copia la bienvenida completa (pedido del dueño, 2026-10-24)
+
+"Copiar" ya no copia solo el código: copia el mismo mensaje de bienvenida que abre WhatsApp, armado
+por una sola función para los dos botones (ruta neutra, sin courier ni Panamá). Las acciones son
+discretas ("WhatsApp", "Copiar mensaje") y "Quitar" va aparte, arriba, con confirmación.
+
+## Clientes: filtros como Órdenes, sin Importar y búsqueda fuera de la URL (pedido del dueño, 2026-10-24)
+
+El listado usa el mismo `FilterBar` que Órdenes (estado y tipo, chips y "Limpiar"), con estado, tipo y
+página en la URL para que atrás los conserve. La búsqueda se guarda en `sessionStorage` y no en la
+URL: puede ser una cédula o un teléfono y no debe quedar en historial ni logs. Se quitó la
+importación desde Excel completa (pantalla, API, servicio) y la librería `xlsx`, que nadie más usaba.
+
+## Paquetes: el paso de la orden en vez de su estado y búsqueda de rastreo tolerante (2026-10-24)
+
+Las tarjetas, la columna Orden y el detalle del paquete muestran el paso ("Orden en Cobro") y no el
+estado interno ("Orden cerrada"), igual que el detalle de la orden. Rastrear paquete del backoffice
+usa el criterio del rastreo público: exacto, luego sin mayúsculas ni espacios; con dos coincidencias
+pide escribirlo exacto (409) en vez de elegir uno.
+
+## Configuración, menú e Inicio fuera de esta entrega (decisión del dueño, 2026-10-24)
+
+"Configuración no se integra". El trabajo de esa fase (Tarifas, Couriers, Tipos, Métodos, Plantillas,
+menú, nombres del header, Inicio y el botón principal en teal-700) quedó como parche fuera del repo,
+revisado por UX, para retomarlo cuando el dueño lo pida.

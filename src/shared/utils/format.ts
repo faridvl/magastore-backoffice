@@ -26,3 +26,10 @@ export const formatCount = (count: number | string, singular: string, plural: st
   const value = Number(count);
   return `${value} ${value === 1 ? singular : plural}`;
 };
+
+/** Monto en dólares con coma decimal: "$6,00", "$1.250,50". */
+export const formatUsd = (amount: number): string => {
+  const [integerPart, decimalPart] = Math.abs(amount).toFixed(2).split('.');
+  const integerWithSeparators = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, THOUSANDS_SEPARATOR);
+  return `${amount < 0 ? '-' : ''}$${integerWithSeparators}${DECIMAL_SEPARATOR}${decimalPart}`;
+};

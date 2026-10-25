@@ -1,12 +1,22 @@
 import { formatBusinessDate } from '@/shared/utils/timezone';
+import { formatWeight, formatUsd } from '@/shared/utils/format';
 import React from 'react';
 import Link from 'next/link';
-import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Info, Loader2, MapPin, AlertTriangle } from 'lucide-react';
+import { Package, Search, ChevronDown, Check, Save, Calculator, Settings, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { usePackageCalculator } from './use-package-calculator';
 import { routesPrivate } from '@/shared/navigation/routes';
 import { CustomerBillingMode } from '@/types/customer/customer.types';
 import { CustomerTypeBadge } from '@/components/common/customer-type-badge/customer-type-badge';
+import { Button, ButtonVariant } from '@/components/common/button/button';
+import { Modal } from '@/components/common/modal/modal';
 import { formatCrc } from '@/shared/utils/format-crc';
+
+const EMPTY_AMOUNT = '—';
+
+// Los inputs van a 16 px (text-base): con menos, iOS hace zoom al enfocarlos.
+const FIELD_LABEL = 'text-sm font-semibold text-slate-600 mb-1 block ml-1';
+const FIELD_BASE = 'w-full min-h-[44px] p-3 bg-slate-50 border border-slate-100 rounded-2xl text-base outline-none transition-all';
+const CONFIG_LABEL = 'text-xs text-slate-500 font-semibold';
 
 export const CreatePackageContainer: React.FC = () => {
     const {
@@ -23,29 +33,33 @@ export const CreatePackageContainer: React.FC = () => {
 
     if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-amber-500" /></div>;
 
+    const customerName = selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : null;
+    const hasLiveAmount = calculations.cobroTotalCRC > 0;
+
     return (
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 p-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 p-4">
 
             {/* COLUMNA IZQUIERDA: FORMULARIO */}
-            <div className="md:col-span-7 xl:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-8">
+            <div className="xl:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-amber-600 text-white rounded-xl"><Package size={20} /></div>
-                    <h2 className="text-lg font-bold text-slate-800">Nuevo Ingreso</h2>
+                    <h2 className="text-lg font-bold text-slate-800">Registrar paquete</h2>
                 </div>
 
                 <div className="space-y-6">
                     {/* CLIENTE */}
                     <div className="relative">
-                        <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Cliente</label>
-                        <div
+                        <span className={FIELD_LABEL}>Cliente</span>
+                        <button
+                            type="button"
                             onClick={() => setIsOpen(!isOpen)}
-                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-all"
+                            className="w-full min-h-[44px] p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between gap-3 text-left cursor-pointer hover:bg-slate-100 transition-all"
                         >
-                            <span className={`text-sm ${selectedCustomer ? 'font-bold text-slate-900' : 'text-slate-400'}`}>
-                                {selectedCustomer ? `${selectedCustomer.customer_code} | ${selectedCustomer.first_name} ${selectedCustomer.last_name}` : "Seleccionar cliente..."}
+                            <span className={`text-base ${selectedCustomer ? 'font-bold text-slate-900' : 'text-slate-500'}`}>
+                                {selectedCustomer ? `${selectedCustomer.customer_code} | ${customerName}` : "Seleccionar cliente..."}
                             </span>
-                            <ChevronDown size={16} className={isOpen ? 'rotate-180 transition-all' : ''} />
-                        </div>
+                            <ChevronDown size={16} className={`flex-shrink-0 ${isOpen ? 'rotate-180 transition-all' : ''}`} />
+                        </button>
 
                         {isOpen && (
                             <div className="absolute z-50 w-full mt-2 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden">
@@ -54,7 +68,8 @@ export const CreatePackageContainer: React.FC = () => {
                                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input
                                             autoFocus
-                                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none"
+                                            aria-label="Buscar cliente"
+                                            className="w-full min-h-[44px] pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-base outline-none"
                                             placeholder="Buscar cliente..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -63,14 +78,15 @@ export const CreatePackageContainer: React.FC = () => {
                                 </div>
                                 <div className="max-h-60 overflow-y-auto">
                                     {customers.map(c => (
-                                        <div
+                                        <button
+                                            type="button"
                                             key={c.id}
                                             onClick={() => { setFormData({ ...formData, customer_id: c.id }); setIsOpen(false); }}
-                                            className="p-4 hover:bg-amber-50 cursor-pointer flex justify-between items-center transition-colors"
+                                            className="w-full min-h-[44px] p-3 hover:bg-amber-50 cursor-pointer flex justify-between items-center gap-3 text-left transition-colors"
                                         >
                                             <span className="text-sm font-medium">{c.customer_code} — {c.first_name} {c.last_name}</span>
-                                            {formData.customer_id === c.id && <Check size={14} className="text-amber-600" />}
-                                        </div>
+                                            {formData.customer_id === c.id && <Check size={14} className="text-amber-600 flex-shrink-0" />}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -80,15 +96,16 @@ export const CreatePackageContainer: React.FC = () => {
                     {/* DIRECCIÓN DE ENTREGA */}
                     {formData.customer_id && (
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Dirección de Entrega</label>
+                            <label htmlFor="package-address" className={FIELD_LABEL}>Dirección de entrega</label>
                             {customerAddresses.length === 0 ? (
-                                <div className="flex items-center gap-2 p-4 bg-orange-50 rounded-2xl border border-orange-100 text-xs text-orange-700">
+                                <div className="flex items-center gap-2 p-4 bg-orange-50 rounded-2xl border border-orange-100 text-sm text-orange-700">
                                     <MapPin size={14} />
                                     <span>Este cliente no tiene direcciones registradas.</span>
                                 </div>
                             ) : (
                                 <select
-                                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-amber-200 transition-all"
+                                    id="package-address"
+                                    className={`${FIELD_BASE} font-medium focus:border-amber-200`}
                                     value={formData.address_id ?? ''}
                                     onChange={(e) => setFormData({ ...formData, address_id: e.target.value || null })}
                                 >
@@ -105,69 +122,78 @@ export const CreatePackageContainer: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Tracking</label>
+                            <label htmlFor="package-tracking" className={FIELD_LABEL}>Número de rastreo</label>
                             <input
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-mono uppercase focus:bg-white focus:border-amber-200 transition-all outline-none"
+                                id="package-tracking"
+                                className={`${FIELD_BASE} font-mono uppercase focus:bg-white focus:border-amber-200`}
                                 placeholder="0000000000"
                                 value={formData.tracking_number}
                                 onChange={(e) => setFormData({ ...formData, tracking_number: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Peso (Lbs)</label>
+                            <label htmlFor="package-weight" className={FIELD_LABEL}>Peso (lb)</label>
                             <input
+                                id="package-weight"
                                 type="number"
                                 min="1"
                                 step="1"
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white outline-none"
+                                className={`${FIELD_BASE} font-bold focus:bg-white`}
                                 value={formData.weight_lb || ''}
                                 onKeyDown={(e) => ['.', ',', 'e', 'E', '+', '-'].includes(e.key) && e.preventDefault()}
                                 onChange={(e) => setFormData({ ...formData, weight_lb: Math.max(1, Math.floor(Number(e.target.value))) })}
                             />
+                            {settings?.min_weight && (
+                                <p className="mt-1 ml-1 text-sm text-slate-500">
+                                    Menos de {formatWeight(settings.min_weight)} se cobra como {formatWeight(settings.min_weight)}.
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     {/* COURIER RATE + TC BANCO */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Tarifa Courier</label>
+                            <label htmlFor="package-courier-rate" className={FIELD_LABEL}>Tarifa del courier</label>
                             {courierRates.length === 0 ? (
                                 <div className="p-4 bg-red-50 rounded-2xl border border-red-100 space-y-2">
-                                    <p className="text-xs text-red-600 font-semibold">
+                                    <p className="text-sm text-red-700 font-semibold">
                                         {formData.customer_id
                                             ? 'Este cliente no tiene casillero en ningún courier activo. Asígnale uno desde su ficha.'
                                             : 'No hay tarifas de courier activas. Todo paquete debe registrar su costo real.'}
                                     </p>
                                     <Link
                                         href={routesPrivate.admin.courierRates}
-                                        className="inline-flex items-center gap-1 text-xs font-bold text-red-700 underline underline-offset-2"
+                                        className="inline-flex items-center gap-1 min-h-[44px] text-sm font-bold text-red-700 underline underline-offset-2"
                                     >
                                         Configurar tarifa de courier
                                     </Link>
                                 </div>
                             ) : (
                                 <select
-                                    className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-amber-200 transition-all"
+                                    id="package-courier-rate"
+                                    className={`${FIELD_BASE} font-medium focus:border-amber-200`}
                                     value={formData.courier_rate_id ?? ''}
                                     onChange={(e) => setFormData({ ...formData, courier_rate_id: e.target.value || null })}
                                 >
                                     <option value="">Selecciona una tarifa...</option>
                                     {courierRates.map((r) => (
                                         <option key={r.uuid} value={r.uuid}>
-                                            {r.name} — ${Number(r.rate_usd).toFixed(2)}/lb
+                                            {r.name} — {formatUsd(Number(r.rate_usd))}/lb
                                         </option>
                                     ))}
                                 </select>
                             )}
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">TC Banco (₡ por $)</label>
+                            <label htmlFor="package-bank-exchange" className={FIELD_LABEL}>Tipo de cambio del banco</label>
                             <input
+                                id="package-bank-exchange"
                                 type="number"
                                 min="0"
                                 step="0.01"
                                 placeholder="Ej: 518.50"
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:bg-white outline-none"
+                                className={`${FIELD_BASE} font-bold focus:bg-white`}
                                 value={formData.tc_banco || ''}
                                 onChange={(e) => setFormData({ ...formData, tc_banco: Number(e.target.value) })}
                             />
@@ -175,33 +201,34 @@ export const CreatePackageContainer: React.FC = () => {
                     </div>
 
                     {selectedCourierRate && (
-                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                        <label className="flex items-center gap-3 min-h-[44px] cursor-pointer select-none">
                             <input
                                 type="checkbox"
                                 checked={formData.insurance_applied}
                                 onChange={(e) => setFormData({ ...formData, insurance_applied: e.target.checked })}
-                                className="w-4 h-4 accent-amber-500"
+                                className="w-5 h-5 accent-amber-500"
                             />
-                            <span className="text-xs font-semibold text-slate-600">
-                                Seguro courier cobrado
-                                {selectedCourierRate.insurance_usd ? ` ($${Number(selectedCourierRate.insurance_usd).toFixed(2)})` : ''}
+                            <span className="text-sm font-semibold text-slate-600">
+                                Seguro del courier cobrado
+                                {selectedCourierRate.insurance_usd ? ` (${formatUsd(Number(selectedCourierRate.insurance_usd))})` : ''}
                             </span>
                         </label>
                     )}
 
-                    <button
+                    <Button
+                        variant={ButtonVariant.PRIMARY}
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="w-full bg-slate-900 text-white p-5 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex justify-center items-center gap-2"
+                        className="w-full p-4"
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                        Guardar Paquete
-                    </button>
+                        Guardar paquete
+                    </Button>
                 </div>
             </div>
 
             {/* COLUMNA DERECHA: CONFIG Y TOTALES */}
-            <div className="md:col-span-5 xl:col-span-4 space-y-6">
+            <div className="xl:col-span-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6 content-start">
 
                 {/* CARD DE TOTALES */}
                 <div className="bg-slate-900 p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
@@ -212,12 +239,14 @@ export const CreatePackageContainer: React.FC = () => {
                             <div className="p-1.5 bg-amber-500/20 rounded-lg">
                                 <Calculator size={14} className="text-amber-400" />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cálculo en vivo</span>
+                            <span className="text-sm font-semibold text-slate-300">Cálculo en vivo</span>
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Cobro al Cliente</p>
-                                <h3 className="text-2xl md:text-4xl font-black italic text-white">{formatCrc(calculations.cobroTotalCRC)}</h3>
+                                <p className="text-sm font-semibold text-slate-400 mb-1">Cobro al cliente</p>
+                                <h3 className="whitespace-nowrap text-2xl md:text-3xl font-black text-white">
+                                    {hasLiveAmount ? formatCrc(calculations.cobroTotalCRC) : EMPTY_AMOUNT}
+                                </h3>
                                 {/* El monto ya no es el de lista: se dice de dónde sale para que
                                     el operador no lo lea como un error de cálculo. */}
                                 {calculations.billingMode !== CustomerBillingMode.NORMAL && selectedCustomer && (
@@ -228,7 +257,7 @@ export const CreatePackageContainer: React.FC = () => {
                                             discount={calculations.discountPercent}
                                         />
                                         {calculations.listaCRC > 0 && (
-                                            <span className="text-[10px] font-bold text-slate-500 line-through">
+                                            <span className="whitespace-nowrap text-xs font-bold text-slate-400 line-through">
                                                 {formatCrc(calculations.listaCRC)}
                                             </span>
                                         )}
@@ -237,15 +266,15 @@ export const CreatePackageContainer: React.FC = () => {
                             </div>
                             {calculations.courierCostCRC > 0 && (
                                 <div className="pt-4 border-t border-white/5 space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-[10px] uppercase font-bold text-slate-500">Costo Courier</p>
-                                        <p className="text-sm font-bold text-slate-300">
-                                            ${calculations.courierCostUSD.toFixed(2)} · {formatCrc(calculations.courierCostCRC)}
+                                    <div className="flex justify-between items-center gap-3">
+                                        <p className="text-sm font-semibold text-slate-400">Costo del courier</p>
+                                        <p className="whitespace-nowrap text-sm font-bold text-slate-300">
+                                            {formatUsd(calculations.courierCostUSD)} · {formatCrc(calculations.courierCostCRC)}
                                         </p>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-[10px] uppercase font-bold text-slate-500">Ganancia Est.</p>
-                                        <p className={`text-sm font-bold ${calculations.ganancia >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                    <div className="flex justify-between items-center gap-3">
+                                        <p className="text-sm font-semibold text-slate-400">Ganancia estimada</p>
+                                        <p className={`whitespace-nowrap text-sm font-bold ${calculations.ganancia >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
                                             {formatCrc(calculations.ganancia)}
                                         </p>
                                     </div>
@@ -259,127 +288,128 @@ export const CreatePackageContainer: React.FC = () => {
                 <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-2 mb-4 text-slate-800">
                         <Settings size={16} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Configuración Actual</span>
+                        <span className="text-sm font-bold">Configuración actual</span>
                     </div>
                     <div className="grid grid-cols-2 gap-y-4">
                         <div>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">Precio/Lb</p>
-                            <p className="text-sm font-black text-slate-700">${settings?.price_per_lb}</p>
+                            <p className={CONFIG_LABEL}>Precio por lb</p>
+                            <p className="whitespace-nowrap text-sm font-black text-slate-700">{formatUsd(Number(settings?.price_per_lb ?? 0))}</p>
                         </div>
                         <div>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">Tipo Cambio</p>
-                            <p className="text-sm font-black text-slate-700">₡{settings?.exchange_rate}</p>
+                            <p className={CONFIG_LABEL}>Tipo de cambio</p>
+                            <p className="whitespace-nowrap text-sm font-black text-slate-700">{formatCrc(Number(settings?.exchange_rate ?? 0))}</p>
                         </div>
                         <div>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">Mínimo</p>
-                            <p className="text-sm font-black text-slate-700">{settings?.min_weight} Lbs</p>
+                            <p className={CONFIG_LABEL}>Mínimo</p>
+                            <p className="whitespace-nowrap text-sm font-black text-slate-700">{formatWeight(settings?.min_weight)}</p>
                         </div>
                         <div>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">Última Act.</p>
-                            <p className="text-[10px] font-medium text-slate-500">{formatBusinessDate(settings?.updated_at || '')}</p>
+                            <p className={CONFIG_LABEL}>Última actualización</p>
+                            <p className="text-sm font-medium text-slate-600">{formatBusinessDate(settings?.updated_at || '')}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100">
-                    <Info size={16} className="text-orange-500 mt-1" />
-                    <p className="text-[10px] text-orange-700 leading-snug font-medium">
-                        Si el peso es menor a <strong>{settings?.min_weight}lb</strong>, el sistema cobrará automáticamente el peso mínimo configurado.
-                    </p>
-                </div>
             </div>
 
             {/* El cliente no tiene NINGÚN casillero: se avisa al elegirlo, antes
                 de que el operador cargue tracking y peso para nada. */}
             {hasNoWarehouse && !missingWarehouse && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
-                        <div className="flex items-start gap-3">
-                            <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
-                                <AlertTriangle size={20} className="text-amber-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold text-slate-800">Este cliente no tiene casilleros</h3>
-                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                                    {selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : 'El cliente'} no
-                                    tiene ningún courier configurado, así que no hay dirección a la que su mercancía haya podido llegar.
-                                    Asígnale uno para poder registrar paquetes.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 block ml-1">Courier</label>
-                            <select
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium outline-none"
-                                value={routeToAssign}
-                                onChange={(e) => setRouteToAssign(e.target.value)}
-                            >
-                                <option value="">Selecciona un courier...</option>
-                                {allCourierRates.map((r) => (
-                                    <option key={r.uuid} value={r.uuid}>{r.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
+                <Modal
+                    title="Este cliente no tiene casilleros"
+                    onClose={() => setFormData({ ...formData, customer_id: '' })}
+                    closeOnOverlayClick={false}
+                    closeOnEscape={false}
+                    showCloseButton={false}
+                    footer={
                         <div className="flex flex-col sm:flex-row gap-2">
-                            <button
+                            <Button
+                                variant={ButtonVariant.PRIMARY}
+                                className="flex-1"
                                 onClick={async () => {
                                     await handleAssignWarehouseCode(routeToAssign);
                                     setRouteToAssign('');
                                 }}
                                 disabled={isAssigningCode || !routeToAssign}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
                             >
                                 {isAssigningCode ? <><Loader2 size={14} className="animate-spin" /> Asignando...</> : 'Asignar casillero'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={ButtonVariant.GHOST}
                                 onClick={() => setFormData({ ...formData, customer_id: '' })}
                                 disabled={isAssigningCode}
-                                className="px-4 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
                             >
                                 Elegir otro cliente
-                            </button>
+                            </Button>
                         </div>
+                    }
+                >
+                    <div className="flex items-start gap-3">
+                        <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
+                            <AlertTriangle size={20} className="text-amber-500" />
+                        </div>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            {customerName ?? 'El cliente'} no
+                            tiene ningún courier configurado, así que no hay dirección a la que su mercancía haya podido llegar.
+                            Asígnale uno para poder registrar paquetes.
+                        </p>
                     </div>
-                </div>
+
+                    <div className="mt-5">
+                        <label htmlFor="package-assign-courier" className={FIELD_LABEL}>Courier</label>
+                        <select
+                            id="package-assign-courier"
+                            className={`${FIELD_BASE} font-medium`}
+                            value={routeToAssign}
+                            onChange={(e) => setRouteToAssign(e.target.value)}
+                        >
+                            <option value="">Selecciona un courier...</option>
+                            {allCourierRates.map((r) => (
+                                <option key={r.uuid} value={r.uuid}>{r.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </Modal>
             )}
 
             {missingWarehouse && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full p-7 space-y-5">
-                        <div className="flex items-start gap-3">
-                            <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
-                                <AlertTriangle size={20} className="text-amber-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold text-slate-800">Falta el casillero del cliente</h3>
-                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                                    {selectedCustomer ? `${selectedCustomer.first_name} ${selectedCustomer.last_name}` : 'Este cliente'} no
-                                    tiene código asignado para <strong>{missingWarehouse.rateName}</strong>. Sin casillero en esa ruta el
-                                    paquete no puede registrarse, porque no hay dirección a la que esa mercancía haya podido llegar.
-                                </p>
-                            </div>
-                        </div>
-
+                <Modal
+                    title="Falta el casillero del cliente"
+                    onClose={dismissMissingWarehouse}
+                    closeOnOverlayClick={false}
+                    closeOnEscape={false}
+                    showCloseButton={false}
+                    footer={
                         <div className="flex flex-col sm:flex-row gap-2">
-                            <button
+                            <Button
+                                variant={ButtonVariant.PRIMARY}
+                                className="flex-1"
                                 onClick={() => handleAssignWarehouseCode()}
                                 disabled={isAssigningCode}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 text-white rounded-2xl text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50"
                             >
                                 {isAssigningCode ? <><Loader2 size={14} className="animate-spin" /> Asignando...</> : 'Asignar casillero y registrar'}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={ButtonVariant.GHOST}
                                 onClick={dismissMissingWarehouse}
                                 disabled={isAssigningCode}
-                                className="px-4 py-3 border border-slate-200 text-slate-500 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
                             >
                                 Cancelar
-                            </button>
+                            </Button>
                         </div>
+                    }
+                >
+                    <div className="flex items-start gap-3">
+                        <div className="p-2.5 bg-amber-50 rounded-2xl flex-shrink-0">
+                            <AlertTriangle size={20} className="text-amber-500" />
+                        </div>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            {customerName ?? 'Este cliente'} no
+                            tiene código asignado para <strong>{missingWarehouse.rateName}</strong>. Sin casillero en esa ruta el
+                            paquete no puede registrarse, porque no hay dirección a la que esa mercancía haya podido llegar.
+                        </p>
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

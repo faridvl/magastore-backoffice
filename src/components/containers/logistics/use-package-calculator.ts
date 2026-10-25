@@ -185,7 +185,7 @@ export const usePackageCalculator = () => {
 
   const handleSave = async () => {
     if (!formData.customer_id || !formData.tracking_number) {
-      toast.error('Selecciona un cliente e ingresa el número de tracking antes de continuar.');
+      toast.error('Elige el cliente y escribe el número de rastreo.');
       return;
     }
     if (!formData.tc_banco || formData.tc_banco <= 0) {

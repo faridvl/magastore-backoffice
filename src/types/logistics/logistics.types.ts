@@ -254,6 +254,7 @@ export interface LogisticsPackage {
   // Campos del Join con Órdenes de Envío
   consolidation_uuid: string | null;
   consolidation_status: ConsolidationStatus | null;
+  consolidation_step: ShipmentOrderStep | null;
 }
 
 export type PackageDetail = {
@@ -266,6 +267,7 @@ export type PackageDetail = {
   events: PackageEvent[];
   /** Orden a la que pertenece; null si el paquete sigue suelto. */
   consolidation_uuid: string | null;
+  consolidation_step?: ShipmentOrderStep | null;
   first_name: string | null;
   last_name: string | null;
   customer_code: string | null;
@@ -296,6 +298,7 @@ export interface BillingListItem {
   invoice_number: number;
   consolidation_uuid: string;
   consolidation_status: ConsolidationStatus;
+  consolidation_step: ShipmentOrderStep;
   customer_name: string;
   customer_code: string;
   total_weight_charged: number;
@@ -549,6 +552,8 @@ export interface ConsolidationDetail {
   packages: ConsolidationPackage[];
   pre_billing_uuid: string | null;
   pre_billing_amount: number | null;
+  // Peso cobrado congelado en el estimado (con el mínimo ya aplicado).
+  pre_billing_weight_charged: number | null;
   pre_billing_fee_crc: number | null;
   // Snapshot del costo real de entrega al generar el estimado (migración 014).
   // Null en pre-billings viejos o si el cost_crc estaba "por confirmar".
@@ -595,6 +600,8 @@ export interface ConsolidationDetail {
   billing_paid_at: string | null;
   billing_invoice_number: number | null;
   billing_paid_by_name: string | null;
+  // true = el autor del pago lo atribuyó el backfill de la migración 033, no se registró.
+  billing_paid_by_backfilled: boolean | null;
   // Participación de Farid sobre la ganancia de esta orden (migración 023).
   // Null mientras no se haya generado el estimado — se crea recién ahí.
   profit_share_crc: number | null;
