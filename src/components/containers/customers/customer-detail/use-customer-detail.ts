@@ -1,3 +1,4 @@
+import { formatBusinessDate } from '@/shared/utils/timezone';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import { useCustomerPackagesQuery } from '@/shared/api/querys/customers/use-cust
 import { useCustomerTypesQuery } from '@/shared/api/querys/customers/use-customer-types-query';
 import { useCreateShipmentOrderWithPackagesMutation } from '@/shared/api/mutations/shipment-orders/use-create-shipment-order-with-packages-mutation';
 import { useNotifyPackagesAvailable } from '@/hooks/use-notify-packages-available';
+import { useCustomerWinBack } from '@/hooks/use-customer-win-back';
 import { ApiServiceClient } from '@/shared/api/api-service-client';
 import { env } from '@/shared/api/config';
 import { CustomerUpdateInput, CustomerAddressUpdateInput, CustomerAddress } from '@/types/customer/customer.types';
@@ -52,13 +54,15 @@ export const useCustomerDetail = (customerId: string) => {
   const { updateCustomer, isPending: isSaving } = useUpdateCustomerMutation(customerId);
   const { data: packagesRes, isLoading: loadingPackages } = useCustomerPackagesQuery(customerId);
   const { notify: notifyPackagesAvailable, isNotifying } = useNotifyPackagesAvailable();
+  const { invite: inviteToComeBack, invitingCustomerId } = useCustomerWinBack();
   const { createShipmentOrderWithPackages, isPending: isCreatingOrder } = useCreateShipmentOrderWithPackagesMutation();
 
   const [editForm, setEditForm] = useState<CustomerUpdateInput | null>(null);
 
   const allPackages = packagesRes?.data ?? [];
   const activePackages = allPackages.filter((p) => p.status !== 'ENTREGADO');
-  const unassignedPackages = activePackages.filter((p) => !p.consolidation_uuid);
+  // Misma bandeja que Logística, el Operativo y el modal de aviso: solo lo que sigue en Panamá.
+  const unassignedPackages = allPackages.filter((p) => p.status === 'PANAMA' && !p.consolidation_uuid);
   const assignedPackages = activePackages.filter((p) => !!p.consolidation_uuid);
   // Historial = registro completo del cliente, sin filtrar por estado. Antes
   // exigía status === 'ENTREGADO' y quedaba vacío: en el flujo v2 la orden se
@@ -160,7 +164,7 @@ export const useCustomerDetail = (customerId: string) => {
   const metrics = useMemo(() => {
     if (!rawMetrics) return null;
     const fmtDate = (d: string | null) =>
-      d ? new Date(d).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' }) : '—';
+      d ? formatBusinessDate(d) : '—';
     return {
       packageCount: Number(rawMetrics.package_count),
       totalLbs: Number(rawMetrics.total_weight_lb),
@@ -187,6 +191,11 @@ export const useCustomerDetail = (customerId: string) => {
     await notifyPackagesAvailable(customer.id, customer.first_name, customer.phone);
   };
 
+  const handleInviteToComeBack = async () => {
+    if (!customer) return;
+    await inviteToComeBack(customer.id, customer.first_name.split(' ')[0] || customer.first_name, customer.phone);
+  };
+
   const handleTogglePackage = (packageUuid: string) => {
     setSelectedPackageUuids((prev) =>
       prev.includes(packageUuid) ? prev.filter((u) => u !== packageUuid) : [...prev, packageUuid],
@@ -195,15 +204,17 @@ export const useCustomerDetail = (customerId: string) => {
 
   const clearSelection = () => setSelectedPackageUuids([]);
 
-  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
+  const createOrderAndRedirect = async (packageUuids: string[], deliveryAddressId: string | undefined, deliveryMethod: DeliveryMethod): Promise<boolean> => {
     try {
       const result = await createShipmentOrderWithPackages({ customerUuid: customerId, packageUuids, deliveryAddressId, deliveryMethod });
       toast.success('Orden de envío creada correctamente');
       setSelectedPackageUuids([]);
       const uuid = (result as any)?.data?.uuid;
       router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
+      return true;
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+      return false;
     }
   };
 
@@ -277,7 +288,7 @@ export const useCustomerDetail = (customerId: string) => {
    * paquetes registrados: el motivo llega en el mensaje de error y se muestra
    * tal cual, porque es accionable para el operador.
    */
-  const removeWarehouseCode = async (warehouseRouteId: number) => {
+  const removeWarehouseCode = async (warehouseRouteId: number): Promise<boolean> => {
     setRemovingRouteId(warehouseRouteId);
     try {
       await ApiServiceClient(env.API.BASE_URL).delete(
@@ -289,19 +300,43 @@ export const useCustomerDetail = (customerId: string) => {
       // listado lo muestra.
       await queryClient.invalidateQueries({ queryKey: ['customers'] });
       toast.success('Casillero eliminado');
+      return true;
     } catch (err: any) {
       toast.error(err?.message ?? 'No se pudo eliminar el casillero.');
+      return false;
     } finally {
       setRemovingRouteId(null);
     }
   };
 
-  const handleConfirmCreateOrderWithAddress = async () => {
-    if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
-    await createOrderAndRedirect(addressModalTarget.packageUuids, selectedAddressId, selectedDeliveryMethod);
+  // En retiro en oficina no hay entrega: la orden se crea sin dirección.
+  const handleConfirmCreateOrderWithAddress = async (isPickup: boolean) => {
+    if (!addressModalTarget || !selectedDeliveryMethod) return;
+    if (!isPickup && !selectedAddressId) return;
+    const wasCreated = await createOrderAndRedirect(
+      addressModalTarget.packageUuids,
+      isPickup ? undefined : selectedAddressId,
+      selectedDeliveryMethod,
+    );
+    // Si falla, el modal queda como estaba para reintentar.
+    if (!wasCreated) return;
     setAddressModalTarget(null);
     setSelectedAddressId('');
     setSelectedDeliveryMethod(null);
+  };
+
+  // Lista ya actualizada tras agregar una dirección desde el modal de la orden:
+  // la nueva queda elegida.
+  const handleOrderAddressesSaved = (addresses: CustomerAddress[]) => {
+    const previousIds = new Set((addressModalTarget?.addresses ?? []).map((a) => a.id));
+    const created = addresses.find((a) => !previousIds.has(a.id));
+    setAddressModalTarget((prev) => (prev ? { ...prev, addresses } : prev));
+    setSelectedAddressId((prev) => {
+      if (created) return created.id;
+      // Si la elegida se borró, no puede quedar una dirección que ya no existe.
+      if (prev && addresses.some((a) => a.id === prev)) return prev;
+      return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+    });
   };
 
   return {
@@ -318,6 +353,8 @@ export const useCustomerDetail = (customerId: string) => {
     setSearchTerm,
     handleNotifyWhatsApp,
     isNotifying,
+    handleInviteToComeBack,
+    isInvitingToComeBack: invitingCustomerId === customerId,
     selectedPackageUuids,
     handleTogglePackage,
     clearSelection,
@@ -330,6 +367,7 @@ export const useCustomerDetail = (customerId: string) => {
     selectedDeliveryMethod,
     setSelectedDeliveryMethod,
     handleConfirmCreateOrderWithAddress,
+    handleOrderAddressesSaved,
     availableCourierRates,
     couriersWithoutWarehouse,
     isAssignCodeModalOpen,

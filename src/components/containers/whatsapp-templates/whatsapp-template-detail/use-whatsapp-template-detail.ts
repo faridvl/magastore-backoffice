@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useWhatsAppTemplatesQuery } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { useUpdateWhatsAppTemplateMutation } from '@/shared/api/mutations/settings/use-whatsapp-template-mutations';
-import { findUnknownPlaceholders, TEMPLATE_VARIABLES, TemplateVarSpec } from '@/shared/constants/whatsapp-template-vars';
+import { findUnknownPlaceholders, mentionsHiddenLocation, TEMPLATE_VARIABLES, TemplateVarSpec } from '@/shared/constants/whatsapp-template-vars';
 import { routesPrivate } from '@/shared/navigation/routes';
 
 export type TemplateDetailDraft = {
@@ -37,6 +37,7 @@ export const useWhatsAppTemplateDetail = (uuid?: string) => {
 
   const variables: TemplateVarSpec[] = template ? (TEMPLATE_VARIABLES[template.code] ?? []) : [];
   const unknownVars = template ? findUnknownPlaceholders(template.code, draft.body) : [];
+  const hasHiddenLocation = template ? mentionsHiddenLocation(template.code, draft.body) : false;
   const canSave = isDirty && unknownVars.length > 0 === false && draft.name.trim().length > 0;
 
   const updateDraft = (field: keyof TemplateDetailDraft, value: string) => {
@@ -88,6 +89,7 @@ export const useWhatsAppTemplateDetail = (uuid?: string) => {
     draft,
     variables,
     unknownVars,
+    hasHiddenLocation,
     isDirty,
     canSave,
     isSaving,

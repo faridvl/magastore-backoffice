@@ -6,6 +6,7 @@ import { env } from '@/shared/api/config';
 import { useNotifyMultipleCustomers } from '@/hooks/use-notify-multiple-customers';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import { OPERATIONS_ORIGIN_PARAM, OPERATIONS_ORIGIN_VALUE } from '@/shared/constants/operations';
 import { toast } from 'sonner';
 import { LogisticsPackage, DeliveryMethod } from '@/types/logistics/logistics.types';
 import { CustomerAddress } from '@/types/customer/customer.types';
@@ -46,7 +47,14 @@ export const usePackages = (pageSize = 7) => {
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-    const [selection, setSelection] = useState<StoredSelection>(readStoredSelection);
+    // Se lee de sessionStorage después de montar: leerla en el primer render hacía
+    // que el servidor y el navegador dibujaran distinto (error de hidratación).
+    const [selection, setSelection] = useState<StoredSelection>(EMPTY_SELECTION);
+    const [hasRestoredSelection, setHasRestoredSelection] = useState(false);
+    useEffect(() => {
+        setSelection(readStoredSelection());
+        setHasRestoredSelection(true);
+    }, []);
     const selectedUuids = selection.uuids;
     const selectedCustomerId = selection.customerId;
 
@@ -60,17 +68,19 @@ export const usePackages = (pageSize = 7) => {
     } | null>(null);
     const [selectedAddressId, setSelectedAddressId] = useState('');
     const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<DeliveryMethod | null>(null);
+    // null = recibe el propio cliente.
+    const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(null);
 
     // Persiste la selección en sessionStorage — sobrevive a un "back" del navegador
     // tras entrar al detalle de un paquete, o a un refresh accidental de la pestaña.
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || !hasRestoredSelection) return;
         if (selection.uuids.length === 0) {
             window.sessionStorage.removeItem(SELECTION_STORAGE_KEY);
         } else {
             window.sessionStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(selection));
         }
-    }, [selection]);
+    }, [selection, hasRestoredSelection]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -83,7 +93,7 @@ export const usePackages = (pageSize = 7) => {
     const resolvedStatus = viewMode === 'historial' ? 'ENTREGADO' : 'ACTIVOS';
     const resolvedConsolidationFilter = viewMode === 'activos' ? consolidationFilter : undefined;
 
-    const { data, isLoading } = useLogisticsQuery(
+    const { data, isLoading, isError, refetch } = useLogisticsQuery(
         page, pageSize, debouncedSearch, resolvedStatus,
         dateFrom || undefined, dateTo || undefined,
         resolvedConsolidationFilter, customerUuid || undefined,
@@ -143,20 +153,29 @@ export const usePackages = (pageSize = 7) => {
         }
     };
 
-    const createOrderAndRedirect = async (packageUuids: string[], customerUuid: string, deliveryAddressId: string, deliveryMethod: DeliveryMethod) => {
+    const createOrderAndRedirect = async (
+        packageUuids: string[],
+        customerUuid: string,
+        deliveryAddressId: string | undefined,
+        deliveryMethod: DeliveryMethod,
+        recipientId: string | null,
+    ): Promise<boolean> => {
         try {
             const result = await createShipmentOrderWithPackages({
                 customerUuid,
                 packageUuids,
                 deliveryAddressId,
+                recipientId,
                 deliveryMethod,
             });
             toast.success('Orden de envío creada correctamente');
             setSelection(EMPTY_SELECTION);
             const uuid = (result as any)?.data?.uuid;
             router.push(uuid ? `/admin/shipment-orders/${uuid}` : '/admin/shipment-orders');
+            return true;
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
+            return false;
         }
     };
 
@@ -168,23 +187,53 @@ export const usePackages = (pageSize = 7) => {
 
             setSelectedAddressId(addresses.find((a: CustomerAddress) => a.is_default)?.id ?? addresses[0]?.id ?? '');
             setSelectedDeliveryMethod(null);
+            setSelectedRecipientId(null);
             setAddressModalTarget({ customerUuid: selectedCustomerId, packageUuids: selectedUuids, addresses });
         } catch (err: any) {
             toast.error(err?.message ?? 'No se pudo crear la orden de envío.');
         }
     };
 
-    const handleConfirmCreateOrderWithAddress = async () => {
-        if (!addressModalTarget || !selectedAddressId || !selectedDeliveryMethod) return;
-        await createOrderAndRedirect(addressModalTarget.packageUuids, addressModalTarget.customerUuid, selectedAddressId, selectedDeliveryMethod);
+    // Una dirección recién agregada desde el modal se elige de una vez: el
+    // operador la creó justo para esta orden.
+    const handleAddressesSaved = (addresses: CustomerAddress[]) => {
+        const previousIds = new Set((addressModalTarget?.addresses ?? []).map((a) => a.id));
+        const created = addresses.find((a) => !previousIds.has(a.id));
+        setAddressModalTarget((prev) => (prev ? { ...prev, addresses } : prev));
+        setSelectedAddressId((prev) => {
+            if (created) return created.id;
+            // Si la elegida se borró, no puede quedar una dirección que ya no existe.
+            if (prev && addresses.some((a) => a.id === prev)) return prev;
+            return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+        });
+    };
+
+    // En retiro en oficina no hay entrega: la orden se crea sin dirección.
+    const handleConfirmCreateOrderWithAddress = async (isPickup: boolean) => {
+        if (!addressModalTarget || !selectedDeliveryMethod) return;
+        if (!isPickup && !selectedAddressId) return;
+        const wasCreated = await createOrderAndRedirect(
+            addressModalTarget.packageUuids,
+            addressModalTarget.customerUuid,
+            isPickup ? undefined : selectedAddressId,
+            selectedDeliveryMethod,
+            isPickup ? null : selectedRecipientId,
+        );
+        // Si falla, el modal queda como estaba para reintentar.
+        if (!wasCreated) return;
         setAddressModalTarget(null);
         setSelectedAddressId('');
         setSelectedDeliveryMethod(null);
     };
 
+    const isFromOperations = router.query[OPERATIONS_ORIGIN_PARAM] === OPERATIONS_ORIGIN_VALUE;
+
     return {
+        isFromOperations,
         packages,
         isLoading,
+        isError,
+        refetch,
         meta: {
             total: data?.meta.total || 0,
             page: page,
@@ -212,12 +261,15 @@ export const usePackages = (pageSize = 7) => {
         notifyMultiple,
 
         // Modal: elegir dirección de entrega + método de envío al crear la orden
+        handleAddressesSaved,
         addressModalTarget,
         setAddressModalTarget,
         selectedAddressId,
         setSelectedAddressId,
         selectedDeliveryMethod,
         setSelectedDeliveryMethod,
+        selectedRecipientId,
+        setSelectedRecipientId,
         handleConfirmCreateOrderWithAddress,
     };
 };

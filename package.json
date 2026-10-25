@@ -10,6 +10,14 @@
     "build": "next build",
     "vercel-build": "next build",
     "lint": "next lint",
+    "dev:docker": "node docker/scripts/dev.mjs",
+    "docker:up": "docker compose -p magastore-local -f docker/compose.yml up -d --wait",
+    "docker:down": "docker compose -p magastore-local -f docker/compose.yml down",
+    "docker:reset": "node docker/scripts/reset.mjs",
+    "docker:reset:027": "node docker/scripts/reset.mjs --to-027",
+    "docker:migrate:plan": "node docker/scripts/migrate.mjs --plan",
+    "docker:migrate": "node docker/scripts/migrate.mjs",
+    "docker:seed": "node docker/scripts/seed.mjs",
     "build:styles": "postcss styles/global.scss -o public/styles.css",
     "watch:styles": "postcss styles/global.scss -o public/styles.css --watch"
   },
@@ -48,7 +56,6 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "xlsx": "^0.18.5",
     "yup": "^1.4.0"
   },
   "devDependencies": {

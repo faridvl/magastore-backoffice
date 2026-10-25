@@ -1,9 +1,40 @@
-import React, { useState } from 'react';
-import { Search, Plus, ChevronRight, Upload, X } from 'lucide-react';
+import React from 'react';
+import { Search, Plus, ChevronRight, X } from 'lucide-react';
 import { NewTable, Column } from '@/components/common/new-table/new-table';
-import { useCustomers } from './use-customers';
+import { Badge } from '@/components/common/badge/badge';
+import { Button, ButtonVariant } from '@/components/common/button/button';
+import { FilterBar, FilterBarField } from '@/components/common/filter-bar/filter-bar';
+import { EmptyState } from '@/components/common/empty-state/empty-state';
+import { BadgeTone } from '@/shared/constants/status-labels';
+import { formatCount } from '@/shared/utils/format';
+import { applyPhoneMask, idDocumentLabel } from '@/shared/utils/customer-masks';
+import { useCustomers, CustomerStatusFilter } from './use-customers';
 import { Customer } from '@/types/customer/customer.types';
-import { ImportCustomersModal } from '../import/import-customers-modal';
+import { WinBackButton } from './win-back-button';
+
+const STATUS_FILTER_OPTIONS = [
+    { value: CustomerStatusFilter.ACTIVE, label: 'Activos' },
+    { value: CustomerStatusFilter.INACTIVE, label: 'Inactivos' },
+    { value: CustomerStatusFilter.WIN_BACK, label: 'Por invitar' },
+];
+
+const PAGINATION_BUTTON_CLASSNAME =
+    'min-h-[44px] px-4 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 disabled:opacity-40';
+
+// Permite cortar el correo justo después de la @ antes que a media palabra.
+const renderEmail = (email: string): React.ReactNode => {
+    const [local, ...domainParts] = email.split('@');
+    if (domainParts.length === 0) return email;
+    return (
+        <>
+            {local}@<wbr />{domainParts.join('@')}
+        </>
+    );
+};
+
+const CustomerStatusBadge: React.FC<{ isActive: boolean }> = ({ isActive }) => (
+    <Badge tone={isActive ? BadgeTone.SUCCESS : BadgeTone.NEUTRAL}>{isActive ? 'Activo' : 'Inactivo'}</Badge>
+);
 
 export const CustomersContainer: React.FC = () => {
     const {
@@ -11,6 +42,11 @@ export const CustomersContainer: React.FC = () => {
         setSearch,
         statusFilter,
         setStatusFilter,
+        typeFilter,
+        setTypeFilter,
+        customerTypeOptions,
+        hasActiveFilters,
+        clearFilters,
         currentPage,
         setCurrentPage,
         customers,
@@ -18,10 +54,35 @@ export const CustomersContainer: React.FC = () => {
         totalCustomers,
         totalPages,
         isLoading,
+        isError,
         navigation,
+        handleInviteToComeBack,
+        invitingCustomerId,
     } = useCustomers();
 
-    const [showImportModal, setShowImportModal] = useState(false);
+    const emptyTitle = hasActiveFilters ? 'No hay clientes con esos filtros' : 'Aún no hay clientes';
+    const emptyActionLabel = hasActiveFilters ? 'Limpiar filtros' : 'Nuevo cliente';
+    const handleEmptyAction = hasActiveFilters ? clearFilters : () => navigation.admin.customers.create();
+
+    const filterFields: FilterBarField[] = [
+        {
+            key: 'status',
+            label: 'Estado',
+            emptyLabel: 'Todos',
+            options: STATUS_FILTER_OPTIONS,
+            value: statusFilter === CustomerStatusFilter.ALL ? null : statusFilter,
+            onChange: (value) => setStatusFilter((value as CustomerStatusFilter | null) ?? CustomerStatusFilter.ALL),
+        },
+        {
+            key: 'type',
+            label: 'Tipo de cliente',
+            chipPrefix: 'Tipo',
+            emptyLabel: 'Todos',
+            options: customerTypeOptions.map((option) => ({ value: String(option.id), label: option.name })),
+            value: typeFilter === null ? null : String(typeFilter),
+            onChange: (value) => setTypeFilter(value === null ? null : Number(value)),
+        },
+    ];
 
     const columns: Column<Customer>[] = [
         {
@@ -29,16 +90,16 @@ export const CustomersContainer: React.FC = () => {
             accessor: 'first_name',
             render: (row) => (
                 <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-slate-800 text-sm leading-none mb-1 truncate">
+                    <span className="font-bold text-slate-800 text-sm leading-tight mb-1 break-words">
                         {row.first_name} {row.last_name}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-amber-400 uppercase truncate">
+                    <span className="text-xs font-mono font-bold text-amber-600 uppercase break-all">
                         {row.customer_code}
                     </span>
                     {/* El tipo de cliente decide cómo se le cobra el flete: verlo en
                         el listado evita entrar a la ficha para confirmarlo. */}
                     {row.customer_type_name && (
-                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 mt-1">
+                        <span className="text-xs font-semibold text-slate-500 mt-1">
                             {row.customer_type_name}
                         </span>
                     )}
@@ -48,13 +109,13 @@ export const CustomersContainer: React.FC = () => {
         {
             header: 'Identificación',
             accessor: 'id_card',
-            // Oculta bajo lg (iPad vertical): con 6 columnas el nombre y el
-            // correo quedaban ilegibles. El dato sigue en la ficha del cliente.
-            className: 'hidden lg:table-cell',
+            // Solo desde 2xl: con el menú abierto el contenido de un iPad horizontal
+            // no alcanza para esta columna sin scroll lateral. El dato sigue en la ficha.
+            className: 'hidden 2xl:table-cell',
             render: (row) => (
                 <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-700 whitespace-nowrap">{row.id_card}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">{row.id_type}</span>
+                    <span className="text-xs font-semibold text-slate-500">{idDocumentLabel(row.id_type)}</span>
                 </div>
             ),
         },
@@ -64,9 +125,9 @@ export const CustomersContainer: React.FC = () => {
             // Correo y teléfono en una sola columna: son el mismo dato operativo
             // (cómo contactar) y por separado desperdiciaban ancho en tablet.
             render: (row) => (
-                <div className="flex flex-col min-w-0 max-w-[220px] xl:max-w-none">
-                    <span className="text-sm text-slate-600 font-medium truncate" title={row.email}>{row.email}</span>
-                    <span className="text-[11px] text-slate-400 font-medium whitespace-nowrap">{row.phone}</span>
+                <div className="flex flex-col min-w-0">
+                    <span className="text-sm text-slate-600 font-medium break-all">{row.email}</span>
+                    <span className="text-xs text-slate-500 font-medium whitespace-nowrap">{applyPhoneMask(row.phone)}</span>
                 </div>
             ),
         },
@@ -74,13 +135,15 @@ export const CustomersContainer: React.FC = () => {
             header: 'Estado',
             accessor: 'is_active',
             render: (row) => (
-                <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border whitespace-nowrap ${
-                    row.is_active
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                        : 'bg-slate-50 text-slate-500 border-slate-200'
-                }`}>
-                    {row.is_active ? 'Activo' : 'Inactivo'}
-                </span>
+                <div className="flex flex-col items-start gap-2">
+                    <CustomerStatusBadge isActive={row.is_active} />
+                    {row.win_back_pending && (
+                        <WinBackButton
+                            onClick={() => handleInviteToComeBack(row)}
+                            isLoading={invitingCustomerId === row.id}
+                        />
+                    )}
+                </div>
             ),
         },
         {
@@ -92,152 +155,125 @@ export const CustomersContainer: React.FC = () => {
     ];
 
     return (
-        <>
         <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
 
             {/* TOOLBAR */}
             <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
-                {/* Búsqueda */}
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre, cédula, casillero, correo o teléfono..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-slate-50 pl-10 pr-10 py-3 rounded-2xl border-none outline-none focus:ring-2 focus:ring-amber-100 font-medium text-sm"
-                    />
-                    {search && (
-                        <button
-                            onClick={() => setSearch('')}
-                            title="Limpiar búsqueda"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
-                        >
-                            <X size={15} />
-                        </button>
-                    )}
-                </div>
-
-                {/* Filtro por estado + conteo de resultados */}
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex gap-1.5">
-                        {([
-                            { key: 'all', label: 'Todos' },
-                            { key: 'active', label: 'Activos' },
-                            { key: 'inactive', label: 'Inactivos' },
-                        ] as const).map((opt) => (
-                            <button
-                                key={opt.key}
-                                onClick={() => setStatusFilter(opt.key)}
-                                className={`px-3.5 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all ${
-                                    statusFilter === opt.key
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                                }`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                    {!isLoading && (
-                        <span className="text-[11px] font-bold text-slate-400">
-                            {totalRows === totalCustomers
-                                ? `${totalRows} cliente${totalRows !== 1 ? 's' : ''}`
-                                : `${totalRows} de ${totalCustomers}`}
-                        </span>
-                    )}
-                </div>
-
-                {/* Dos acciones, no tres: el template se descarga desde el modal
-                    de importación, que es donde tiene sentido (es su paso previo).
-                    En mobile "Nuevo Cliente" ocupa el ancho por ser la principal. */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center sm:justify-end">
-                    <button
-                        onClick={() => setShowImportModal(true)}
-                        className="flex items-center justify-center gap-2 px-4 py-3 min-h-[44px] bg-white border border-slate-200 text-slate-600 rounded-2xl font-semibold text-sm hover:bg-slate-50 transition-all shadow-sm order-2 sm:order-1"
-                    >
-                        <Upload size={15} />
-                        Importar
-                    </button>
-                    <button
-                        onClick={() => navigation.admin.customers.create()}
-                        className="flex items-center justify-center gap-2 px-5 py-3 min-h-[44px] bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm order-1 sm:order-2"
-                    >
-                        <Plus size={16} />
-                        Nuevo Cliente
-                    </button>
-                </div>
-            </div>
-
-            {/* CARDS (mobile) */}
-            <div className="flex flex-col gap-3 md:hidden">
-                {isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-20" />
-                    ))
-                ) : customers.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center py-16 gap-3">
-                        <div className="h-14 w-14 bg-slate-100 rounded-2xl flex items-center justify-center">
-                            <Search size={24} className="text-slate-300" />
-                        </div>
-                        <p className="font-black text-slate-400 text-sm">Sin clientes</p>
-                        <p className="text-slate-300 text-xs font-bold uppercase tracking-widest text-center px-8">
-                            {search || statusFilter !== 'all'
-                                ? 'No hay clientes que coincidan con los filtros'
-                                : 'Aún no hay clientes registrados'}
-                        </p>
-                        {(search || statusFilter !== 'all') && (
-                            <button
-                                onClick={() => { setSearch(''); setStatusFilter('all'); }}
-                                className="mt-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-slate-200 transition-all"
-                            >
-                                Limpiar filtros
-                            </button>
-                        )}
-                    </div>
-                ) : customers.map((customer) => (
-                    <button
-                        key={customer.id}
-                        onClick={() => navigation.admin.customers.detail(customer.id)}
-                        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-left flex items-center justify-between gap-3 hover:border-amber-100 transition-all active:scale-[0.99]"
-                    >
-                        <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-800 text-sm truncate">{customer.first_name} {customer.last_name}</p>
-                            <p className="text-[10px] font-mono font-bold text-amber-400 uppercase mt-0.5 truncate">{customer.customer_code}</p>
-                            <p className="text-xs text-slate-400 mt-1 truncate">{customer.email}</p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">{customer.phone}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border whitespace-nowrap ${
-                                customer.is_active
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                    : 'bg-slate-50 text-slate-500 border-slate-200'
-                            }`}>
-                                {customer.is_active ? 'Activo' : 'Inactivo'}
-                            </span>
-                            {customer.customer_type_name && (
-                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 text-right">
-                                    {customer.customer_type_name}
-                                </span>
+                <FilterBar
+                    leading={
+                        <div className="relative">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Buscar nombre, cédula o casillero"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full min-h-[44px] bg-slate-50 pl-10 pr-12 rounded-full border border-slate-100 outline-none focus:ring-2 focus:ring-slate-200 text-base"
+                            />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    title="Limpiar búsqueda"
+                                    aria-label="Limpiar búsqueda"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-slate-400 hover:text-slate-600 rounded-full transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
                             )}
                         </div>
-                    </button>
-                ))}
-                {/* Paginación mobile */}
+                    }
+                    trailing={
+                        <Button
+                            variant={ButtonVariant.PRIMARY}
+                            onClick={() => navigation.admin.customers.create()}
+                            className="flex-1 sm:flex-none"
+                        >
+                            <Plus size={16} strokeWidth={2.5} />
+                            Nuevo cliente
+                        </Button>
+                    }
+                    fields={filterFields}
+                    onClearExtra={clearFilters}
+                    resultCount={isLoading || isError ? undefined : totalRows}
+                />
+                {!isLoading && (
+                    <span className="text-sm font-semibold text-slate-500">
+                        {totalRows === totalCustomers
+                            ? formatCount(totalRows, 'cliente', 'clientes')
+                            : `${totalRows} de ${totalCustomers} clientes`}
+                    </span>
+                )}
+            </div>
+
+            {/* TARJETAS (celular y iPad, también con el menú abierto) */}
+            <div className="flex flex-col gap-3 xl:hidden">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 animate-pulse h-28" />
+                        ))}
+                    </div>
+                ) : customers.length === 0 ? (
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm">
+                        <EmptyState
+                            title={emptyTitle}
+                            actionLabel={emptyActionLabel}
+                            onAction={handleEmptyAction}
+                            className="py-12"
+                        />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {customers.map((customer) => (
+                            <div key={customer.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:border-amber-100 transition-all min-w-0">
+                                <button
+                                    onClick={() => navigation.admin.customers.detail(customer.id)}
+                                    className="w-full p-4 text-left flex items-start justify-between gap-3 active:scale-[0.99]"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-slate-800 text-base leading-tight break-words">{customer.first_name} {customer.last_name}</p>
+                                        <p className="text-xs font-mono font-bold text-amber-600 uppercase mt-1 break-all">{customer.customer_code}</p>
+                                        <p className="text-sm text-slate-600 mt-1.5 break-words [overflow-wrap:anywhere]">{renderEmail(customer.email)}</p>
+                                        <p className="text-sm text-slate-500 mt-0.5 whitespace-nowrap">{applyPhoneMask(customer.phone)}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                        <CustomerStatusBadge isActive={customer.is_active} />
+                                        {customer.customer_type_name && (
+                                            <span className="text-xs font-semibold text-slate-500 text-right">
+                                                {customer.customer_type_name}
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                                {/* Fuera del botón de la tarjeta: un botón no puede ir dentro de otro. */}
+                                {customer.win_back_pending && (
+                                    <div className="px-4 pb-4 -mt-1 flex justify-end">
+                                        <WinBackButton
+                                            onClick={() => handleInviteToComeBack(customer)}
+                                            isLoading={invitingCustomerId === customer.id}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {/* Paginación de tarjetas */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-2 pt-2">
                         <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                            className={PAGINATION_BUTTON_CLASSNAME}
                         >
                             Anterior
                         </button>
-                        <span className="text-xs text-slate-400 font-bold">{currentPage} / {totalPages}</span>
+                        <span className="text-sm text-slate-500 font-semibold">{currentPage} / {totalPages}</span>
                         <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 disabled:opacity-40"
+                            className={PAGINATION_BUTTON_CLASSNAME}
                         >
                             Siguiente
                         </button>
@@ -245,8 +281,8 @@ export const CustomersContainer: React.FC = () => {
                 )}
             </div>
 
-            {/* TABLE (tablet+) */}
-            <div className="hidden md:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            {/* TABLA (escritorio) */}
+            <div className="hidden xl:block bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                 <NewTable
                     data={customers}
                     columns={columns}
@@ -257,14 +293,14 @@ export const CustomersContainer: React.FC = () => {
                     onPageChange={setCurrentPage}
                     onRowClick={(customer) => navigation.admin.customers.detail(customer.id)}
                     itemsPerPage={10}
+                    itemSingular="cliente"
+                    itemPlural="clientes"
+                    emptyTitle={emptyTitle}
+                    emptyActionLabel={emptyActionLabel}
+                    onEmptyAction={handleEmptyAction}
                 />
             </div>
         </div>
 
-        {showImportModal && (
-            <ImportCustomersModal onClose={() => setShowImportModal(false)} />
-        )}
-        </>
     );
 };
-

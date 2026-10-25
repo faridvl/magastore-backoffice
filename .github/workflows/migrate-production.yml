@@ -1,0 +1,89 @@
+name: Migraciones de producción
+
+# Un push a main solo calcula y muestra el plan. Aplicar es manual (Run workflow)
+# con "aplicar" y "confirmar" = el texto versión@commit que muestra el resumen del plan.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      aplicar:
+        description: 'Aplicar las migraciones pendientes (si no, solo se muestra el plan)'
+        type: boolean
+        default: false
+      confirmar:
+        description: 'Texto que muestra el resumen del plan: versión@commit (ej. 036@1a2b3c4)'
+        type: string
+        required: false
+
+# Nunca dos corridas a la vez contra la misma base. GitHub deja una sola pendiente por
+# grupo y cancela la anterior si llega otra: si un Run workflow sale cancelado, se relanza.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # El secreto y las variables viven en el environment "db-production" (rama
+    # permitida: solo main), no en el repo, para que ningún otro workflow los lea.
+    environment: db-production
+    timeout-minutes: 10
+    outputs:
+      pending: ${{ steps.plan.outputs.pending }}
+      last: ${{ steps.plan.outputs.last }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Solo se necesita el driver de Neon: sin scripts de instalación.
+      - run: npm ci --ignore-scripts
+
+      - name: Plan de migraciones
+        id: plan
+        run: node .github/scripts/migrate.mjs --plan --env prod
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EXPECTED_DATABASE_HOST: ${{ vars.EXPECTED_DATABASE_HOST }}
+          EXPECTED_DATABASE_NAME: ${{ vars.EXPECTED_DATABASE_NAME }}
+          TARGET_ENVIRONMENT: db-production
+          COMMIT_SHA: ${{ github.sha }}
+
+  apply:
+    needs: plan
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.aplicar &&
+      github.ref == 'refs/heads/main' &&
+      needs.plan.outputs.pending != ''
+    runs-on: ubuntu-latest
+    environment: db-production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Aplicar migraciones
+        run: node .github/scripts/migrate.mjs --apply --env prod --confirm "$CONFIRMAR" --expect-pending "$PENDIENTES"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EXPECTED_DATABASE_HOST: ${{ vars.EXPECTED_DATABASE_HOST }}
+          EXPECTED_DATABASE_NAME: ${{ vars.EXPECTED_DATABASE_NAME }}
+          TARGET_ENVIRONMENT: db-production
+          COMMIT_SHA: ${{ github.sha }}
+          CONFIRMAR: ${{ inputs.confirmar }}
+          PENDIENTES: ${{ needs.plan.outputs.pending }}

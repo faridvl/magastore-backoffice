@@ -1,76 +1,65 @@
-# Email — Setup y Configuracion
+# Email: setup y configuración
 
-Proveedor: **Resend** (resend.com)
-Implementado en: Etapa 13 — 2026-06-25
+Proveedor: **Resend** (resend.com). Hay un solo correo al cliente, el **comprobante de factura
+pagada**, y hoy está **apagado** hasta verificar el dominio.
 
 ---
 
-## Variables de entorno (.env.local)
+## Variables de entorno
 
 ```env
-RESEND_API_KEY="re_..."           # API key de Resend (ya configurada)
-EMAIL_FROM="onboarding@resend.dev" # Sender durante testing
-EMAIL_LOGO_URL=""                  # URL publica del logo (dejar vacio para fallback de texto)
+RESEND_API_KEY="re_..."                 # API key de Resend
+EMAIL_FROM="onboarding@resend.dev"      # remitente; por defecto el de pruebas
+EMAIL_NOTIFICATIONS_ENABLED="true"      # solo con el valor exacto true se envía
+EMAIL_LOGO_URL=""                       # opcional; por defecto magastorecr.com/logo/magastore-logo-2026.png
 ```
 
-## Para produccion
+Sin `EMAIL_NOTIFICATIONS_ENABLED=true` (falta, vacío u otro valor) no se llama a Resend: el botón
+queda deshabilitado con "El envío de correos aún no está activado" y el endpoint responde 409.
+Sin `RESEND_API_KEY` tampoco se envía (409, "El envío de correos no está configurado").
 
-1. Verificar el dominio `magastore.com` (o el dominio real) en Resend > Domains.
-2. Cambiar `EMAIL_FROM` a `noreply@magastore.com` (o similar).
-3. Subir el logo a CDN o al directorio `public/` del proyecto y exponer una URL publica.
-4. Configurar `EMAIL_LOGO_URL` con esa URL publica.
+## Cómo activarlo (en este orden)
+
+1. Resend > Domains > agregar `magastorecr.com`, cargar en el DNS los registros SPF y DKIM que
+   indica y esperar a que quede verificado.
+2. En Vercel (Production): `EMAIL_FROM="Magastore <notifications@magastorecr.com>"` y `RESEND_API_KEY`.
+3. En Vercel (Production): `EMAIL_NOTIFICATIONS_ENABLED=true`.
+4. Redeploy para que tome las variables.
+
+> Con `onboarding@resend.dev` Resend solo entrega al dueño de la cuenta: antes de verificar el
+> dominio los correos no llegan a los clientes aunque estén encendidos.
 
 ---
 
-## Eventos que disparan email
+## El correo y cuándo sale
 
-| Evento | Funcion | Archivo |
-|---|---|---|
-| Paquete marcado como `ENTREGADO` | `sendDeliveryNotification` | `src/lib/email.ts` |
-| Factura generada | `sendInvoiceNotification` | `src/lib/email.ts` |
+No sale solo: el operador lo manda con el botón **Enviar por correo** del modal de la factura
+(`billing-detail-modal`), que solo aparece si la factura está **pagada**.
 
-Los emails se envian de forma **no bloqueante** — un fallo en el envio no cancela la operacion principal (status update o facturacion). Los errores se loguean en consola con el prefijo `[Email]`.
+- Endpoint: `POST /api/billing/send-email` con `{ billingUuid }`. Exige sesión verificada
+  (`getActor`) y uuid válido. Responde 200 con `sent_to`; 409 si la factura no está pagada, el
+  cliente no tiene correo o el envío está apagado; 502 si Resend falla o no responde en 5 s.
+- Contenido: "¡Gracias por tu pago!", total pagado, método y fecha de pago (hora de Costa Rica),
+  envío #código (el mismo de WhatsApp) y botón de WhatsApp del negocio.
+- `sendInvoiceNotification` (`src/lib/email.ts`) usa `idempotencyKey` `factura/<uuid>`: dos clics
+  seguidos mandan un solo correo; reenviar el mismo día no entrega otro. El log lleva el nombre y el
+  código del error, nunca el correo ni el nombre del cliente.
+- No hay endpoint de prueba: se quitó `/api/email/test` (cualquier sesión podía mandar correos).
 
----
+## Logo
 
-## Test de template
-
-Endpoint: `POST /api/email/test` (requiere sesion activa)
-
-```json
-// Body
-{ "type": "delivery", "to": "tu@email.com" }
-{ "type": "invoice",  "to": "tu@email.com" }
-```
-
-Ejemplo con curl:
-```bash
-curl -X POST http://localhost:3000/api/email/test \
-  -H "Content-Type: application/json" \
-  -H "Cookie: SESSION_ACCESS_TOKEN=<tu-token>" \
-  -d '{"type":"delivery","to":"tu@email.com"}'
-```
-
----
-
-## Logo en el template
-
-El template usa `EMAIL_LOGO_URL` si esta definida y no vacia.
-Si no hay logo, el header muestra el texto **MAGASTORE** en blanco sobre fondo azul oscuro.
-
-Para agregar el logo real:
-1. Colocar el archivo en `public/logo.png` (recomendado: 400x120px, fondo transparente o blanco).
-2. En produccion: `EMAIL_LOGO_URL=https://tu-dominio.com/logo.png`
-3. En local: `EMAIL_LOGO_URL=http://localhost:3000/logo.png`
+La plantilla usa `EMAIL_LOGO_URL`; si no está, `https://magastorecr.com/logo/magastore-logo-2026.png`
+(responde 200 hoy; `magastore-logo-principal-transparente.png` aún da 404 en producción). Siempre
+URL absoluta: Gmail no muestra imágenes en base64.
 
 ---
 
 ## Archivos relevantes
 
-| Archivo | Descripcion |
+| Archivo | Descripción |
 |---|---|
-| `src/lib/email.ts` | Cliente Resend + funciones de envio |
-| `src/lib/email-templates.ts` | Templates HTML con estilos inline |
-| `src/pages/api/email/test.ts` | Endpoint de prueba |
-| `src/shared/api/repositories/logistics.repo.ts` | `getPackageCustomerInfo`, `getConsolidationCustomerInfo` |
-| `src/shared/api/services/logistics.service.ts` | Llamadas a email en `updateStatus` y `createInvoice` |
+| `src/lib/email.ts` | Cliente Resend (perezoso), interruptor, tope de 5 s y envío |
+| `src/lib/email-templates.ts` | Plantilla HTML del comprobante, estilos en línea |
+| `src/pages/api/billing/send-email.ts` | Endpoint del botón |
+| `src/shared/api/services/billing.service.ts` | `sendInvoiceEmail` (reglas y errores) |
+| `src/components/common/billing-detail-modal/billing-detail-modal.tsx` | Botón "Enviar por correo" |

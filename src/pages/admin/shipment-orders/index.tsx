@@ -9,9 +9,9 @@ const ShipmentOrdersPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Órdenes de Envío | Magastore</title>
+        <title>Órdenes de envío | Magastore</title>
       </Head>
-      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Gestión de Órdenes de Envío">
+      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Órdenes de envío">
         <ShipmentOrdersContainer />
       </DashboardLayout>
     </>

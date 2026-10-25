@@ -4,6 +4,7 @@ import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { SHIPMENT_ORDERS_LIST_KEY } from '../../querys/shipment-orders/use-shipment-orders-query';
 import { SHIPMENT_ORDER_DETAIL_KEY } from '../../querys/shipment-orders/use-shipment-order-detail-query';
+import { OPERATIONS_STATS_KEY } from '../../querys/dashboard/use-operations-query';
 
 type AssignPackagesToOrderInput = {
   consolidationUuid: string;
@@ -29,6 +30,7 @@ export function useAssignPackagesToOrderMutation() {
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDERS_LIST_KEY] });
       queryClient.invalidateQueries({ queryKey: [SHIPMENT_ORDER_DETAIL_KEY] });
       queryClient.invalidateQueries({ queryKey: ['logistics'] });
+      queryClient.invalidateQueries({ queryKey: [OPERATIONS_STATS_KEY] });
     },
   });
 

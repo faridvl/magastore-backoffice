@@ -11,13 +11,17 @@ async function fetchShipmentOrders(
   page: number,
   limit: number,
   search?: string,
-  status?: string,
+  step?: string,
+  paid?: string,
+  notified?: string,
   dateFrom?: string,
   dateTo?: string,
 ): Promise<PaginatedResponse<ConsolidationListItem>> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (search) params.set('search', search);
-  if (status && status !== 'ALL') params.set('status', status);
+  if (step && step !== 'ALL') params.set('step', step);
+  if (paid && paid !== 'ALL') params.set('paid', paid);
+  if (notified && notified !== 'ALL') params.set('notified', notified);
   if (dateFrom) params.set('dateFrom', dateFrom);
   if (dateTo) params.set('dateTo', dateTo);
   return ApiServiceClient(env.API.BASE_URL).get(`/consolidations?${params.toString()}`);
@@ -27,7 +31,9 @@ export function useShipmentOrdersQuery(
   page: number,
   limit: number,
   search?: string,
-  status?: string,
+  step?: string,
+  paid?: string,
+  notified?: string,
   dateFrom?: string,
   dateTo?: string,
 ) {
@@ -37,8 +43,12 @@ export function useShipmentOrdersQuery(
     options?: UseAPIQueryOptions,
   ): UseAPIQueryResult<PaginatedResponse<ConsolidationListItem>> => {
     return useApiQuery({
-      queryKey: [SHIPMENT_ORDERS_LIST_KEY, page, limit, search ?? '', status ?? 'ALL', dateFrom ?? '', dateTo ?? ''],
-      queryFn: () => fetchShipmentOrders(page, limit, search, status, dateFrom, dateTo),
+      queryKey: [
+        SHIPMENT_ORDERS_LIST_KEY, page, limit, search ?? '',
+        step ?? 'ALL', paid ?? 'ALL', notified ?? 'ALL',
+        dateFrom ?? '', dateTo ?? '',
+      ],
+      queryFn: () => fetchShipmentOrders(page, limit, search, step, paid, notified, dateFrom, dateTo),
       staleTime: 1000 * 60 * 5,
       placeholderData: (prev: unknown) => prev,
       ...options,

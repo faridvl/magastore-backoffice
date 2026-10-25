@@ -28,10 +28,10 @@ export const LoginContainer: React.FC = () => {
                         <div className="flex flex-col items-center mb-10">
                             <div className="bg-neutral-900 rounded-3xl px-8 py-6 w-full flex justify-center">
                                 <Image
-                                    src="/logo/magastore-logo-2026.png"
+                                    src="/logo/magastore-logo-principal-transparente.png"
                                     alt="Magastore — Compras por Internet"
-                                    width={1126}
-                                    height={718}
+                                    width={600}
+                                    height={355}
                                     className="h-24 w-auto object-contain"
                                     priority
                                 />

@@ -1,3 +1,4 @@
+import { formatBusinessDateTime } from '@/shared/utils/timezone';
 import React, { useState } from 'react';
 import { Save, Calculator, History, Loader2, ArrowRight, ShieldCheck, Info, Truck, Package, Plus, Pencil, Check, X, Power, Trash2, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import { useDeliveryRates, DeliveryRateDraft } from './use-delivery-rates';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { SettingsHistory } from '@/types/settings/settings.types';
 import { DeliveryRate, DeliveryZone } from '@/types/logistics/logistics.types';
+import { formatCrc } from '@/shared/utils/format-crc';
 
 const ZONE_OPTIONS: { value: DeliveryZone | ''; label: string }[] = [
     { value: '', label: 'Sin zona' },
@@ -106,10 +108,7 @@ export const SettingsContainer: React.FC = () => {
             accessor: 'changed_at',
             render: (row) => (
                 <span className="text-[11px] text-slate-500 font-medium tabular-nums">
-                    {new Date(row.changed_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
-                        day: '2-digit', month: '2-digit', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
-                    })}
+                    {formatBusinessDateTime(row.changed_at)}
                 </span>
             ),
         },
@@ -145,9 +144,7 @@ export const SettingsContainer: React.FC = () => {
     const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.max(1, Math.ceil(history.length / itemsPerPage));
 
-    const formatDate = (d: string) => new Date(d).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica',
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
+    const formatDate = formatBusinessDateTime;
 
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -157,9 +154,9 @@ export const SettingsContainer: React.FC = () => {
     );
 
     return (
-        <div className="flex flex-col lg:flex-row gap-5 items-start animate-in fade-in duration-500 pb-8">
+        <div className="flex flex-col xl:flex-row gap-5 items-start animate-in fade-in duration-500 pb-8">
             {/* Botón guardar + aviso — siempre primero en mobile */}
-            <div className="w-full order-1 lg:hidden">
+            <div className="w-full order-1 xl:hidden">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                         <Info size={13} className="text-amber-500 flex-shrink-0" />
@@ -177,10 +174,10 @@ export const SettingsContainer: React.FC = () => {
             </div>
 
             {/* ÁREA PRINCIPAL */}
-            <div className="flex-1 space-y-4 w-full min-w-0 order-3 lg:order-1">
+            <div className="flex-1 space-y-4 w-full min-w-0 order-3 xl:order-1">
 
                 {/* Botón guardar + aviso — solo desktop */}
-                <div className="hidden lg:flex items-center justify-between gap-3">
+                <div className="hidden xl:flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <Info size={13} className="text-amber-500 flex-shrink-0" />
                         <p className="text-[11px] text-slate-500">Los cambios aplican de forma inmediata a nuevos registros.</p>
@@ -373,9 +370,9 @@ export const SettingsContainer: React.FC = () => {
                                             <p className="text-[11px] text-slate-500 font-mono mt-0.5">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</p>
                                         </div>
                                         <div className="text-right flex-shrink-0">
-                                            <p className="text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</p>
+                                            <p className="text-xs font-bold text-slate-800">{formatCrc(Number(rate.fee_crc))}</p>
                                             <p className="text-[11px] text-slate-500">
-                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `Costo ₡${Number(rate.cost_crc).toLocaleString()}`}
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `Costo ${formatCrc(Number(rate.cost_crc))}`}
                                             </p>
                                         </div>
                                     </div>
@@ -444,9 +441,9 @@ export const SettingsContainer: React.FC = () => {
                                             </td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">{rate.zone ?? '—'}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{Number(rate.min_weight_kg)}–{Number(rate.max_weight_kg)} kg</td>
-                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-800">₡{Number(rate.fee_crc).toLocaleString()}</td>
+                                            <td className="px-4 py-2.5 text-xs font-bold text-slate-800">{formatCrc(Number(rate.fee_crc))}</td>
                                             <td className="px-4 py-2.5 text-xs text-slate-500">
-                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : `₡${Number(rate.cost_crc).toLocaleString()}`}
+                                                {rate.cost_crc == null ? <span className="italic text-amber-600">Por confirmar</span> : formatCrc(Number(rate.cost_crc))}
                                             </td>
                                             <td className="px-4 py-2.5">
                                                 <button
@@ -558,13 +555,16 @@ export const SettingsContainer: React.FC = () => {
                             totalPages={totalPages}
                             onPageChange={setCurrentPage}
                             itemsPerPage={itemsPerPage}
+                            itemSingular="cambio"
+                            itemPlural="cambios"
+                            emptyTitle="Aún no hay cambios"
                         />
                     </div>
                 </div>
             </div>
 
             {/* SIDEBAR */}
-            <div className="w-full lg:w-64 space-y-4 flex-shrink-0 order-2 lg:order-2">
+            <div className="w-full xl:w-64 space-y-4 flex-shrink-0 order-2 xl:order-2">
                 {/* Simulación */}
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
@@ -575,7 +575,7 @@ export const SettingsContainer: React.FC = () => {
                         <div>
                             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Cobro x libra</p>
                             <div className="flex items-baseline gap-1.5">
-                                <span className="text-2xl font-black text-slate-800 leading-none">₡{priceInCRC.toLocaleString()}</span>
+                                <span className="text-2xl font-black text-slate-800 leading-none">{formatCrc(priceInCRC)}</span>
                                 <span className="text-[10px] font-bold text-slate-400">CRC</span>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-1">

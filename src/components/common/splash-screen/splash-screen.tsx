@@ -45,10 +45,10 @@ export function SplashScreen() {
     >
       <div className="animate-splash-logo flex flex-col items-center px-10">
         <Image
-          src="/logo/magastore-logo-2026.png"
+          src="/logo/magastore-logo-principal-transparente.png"
           alt="Magastore — Compras por Internet"
-          width={560}
-          height={348}
+          width={600}
+          height={355}
           priority
           className="w-64 sm:w-80 h-auto object-contain"
         />

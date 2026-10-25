@@ -8,10 +8,10 @@ import { CustomerTypesContainer } from '@/components/containers/customer-types/c
 const CustomerTypesPage: React.FC = () => {
     return (
         <>
-            <Head><title>Tipos de Cliente | Magastore</title></Head>
+            <Head><title>Tipos de cliente | Magastore</title></Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Tipos de Cliente"
+                title="Tipos de cliente"
             >
                 <CustomerTypesContainer />
             </DashboardLayout>

@@ -1,505 +1,263 @@
 import React from 'react';
 import Link from 'next/link';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
-import {
-  AlertTriangle, PackagePlus, MessageCircle, Wallet, Check, Receipt,
-  ArrowRight, TrendingUp, TrendingDown, Package,
+  AlertCircle, Check, ChevronDown, ChevronRight, RotateCcw, RefreshCw,
 } from 'lucide-react';
 import { useOperations } from './use-operations';
+import { OperationsTaskRowView } from './operations-task-row';
+import { OperationsCollectionCard } from './operations-collection-card';
 import { BillingDetailModal } from '@/components/common/billing-detail-modal/billing-detail-modal';
 import { NotifyPackagesModal } from '@/components/common/notify-packages-modal/notify-packages-modal';
-import { PendingReceivable } from '@/types/dashboard/operations.types';
-import { routesPrivate } from '@/shared/navigation/routes';
 
-const formatCRC = (amount: number) =>
-  `₡${Math.round(amount).toLocaleString('es-CR')}`;
+const CARD = 'bg-white rounded-3xl border border-neutral-200/70 shadow-sm';
+const SKELETON_ROWS = 3;
 
-/**
- * Colores de las dos series del gráfico. El par ámbar/azul está validado para
- * daltonismo (ΔE 32 en protanopia) — no sustituir por ámbar/verde, que cae al
- * límite de separación.
- */
-const SERIES_INVOICED = '#d97706';
-const SERIES_PAID = '#2563eb';
+function Shimmer({ className }: { className: string }) {
+  return <div className={`bg-neutral-100 rounded-lg animate-pulse ${className}`} />;
+}
 
-/** A partir de cuántos días un cobro pendiente se marca como atrasado. */
-const OVERDUE_DAYS = 15;
-
-const ORDERS_ROUTE = routesPrivate.admin.shipmentOrders.index;
-
-function InboxCardSkeleton() {
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-pulse">
-      <div className="h-10 w-10 bg-slate-100 rounded-xl mb-4" />
-      <div className="h-3 w-24 bg-slate-100 rounded mb-3" />
-      <div className="h-7 w-16 bg-slate-100 rounded" />
+    <div>
+      <h2 className="font-black text-neutral-900 tracking-tight">{title}</h2>
+      <p className="text-neutral-500 text-xs font-semibold mt-0.5">{subtitle}</p>
     </div>
   );
 }
 
-interface InboxCardProps {
-  label: string;
-  value: string;
-  hint: string;
-  /** Destino de la tarjeta. Se ignora si se pasa `onClick`. */
-  href?: string;
-  /** Acción en la misma página (abrir un modal) en vez de navegar. */
-  onClick?: () => void;
-  icon: React.ComponentType<{ size?: number | string; className?: string }>;
-  tone: 'amber' | 'blue' | 'violet' | 'rose';
-  /** En cero la tarjeta se apaga: no hay nada que hacer ahí. */
-  isEmpty: boolean;
-}
-
-const TONE_CLASSES: Record<InboxCardProps['tone'], { bg: string; text: string }> = {
-  amber: { bg: 'bg-amber-50', text: 'text-amber-600' },
-  blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
-  violet: { bg: 'bg-violet-50', text: 'text-violet-600' },
-  rose: { bg: 'bg-rose-50', text: 'text-rose-600' },
-};
-
-const InboxCard: React.FC<InboxCardProps> = ({
-  label, value, hint, href, onClick, icon: Icon, tone, isEmpty,
-}) => {
-  const toneClass = isEmpty
-    ? { bg: 'bg-slate-50', text: 'text-slate-300' }
-    : TONE_CLASSES[tone];
-
-  const cardClass =
-    'group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all text-left w-full';
-
-  const body = (
-    <>
-      <div className="flex items-start justify-between">
-        <div
-          className={`h-10 w-10 ${toneClass.bg} ${toneClass.text} rounded-xl flex items-center justify-center mb-4`}
-        >
-          <Icon size={18} />
-        </div>
-        <ArrowRight
-          size={16}
-          className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
-        />
-      </div>
-      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-        {label}
-      </p>
-      <h3
-        className={`text-2xl font-black mt-1 ${isEmpty ? 'text-slate-300' : 'text-slate-900'}`}
-      >
-        {value}
-      </h3>
-      <p className="text-slate-400 text-xs font-semibold mt-1">{hint}</p>
-    </>
-  );
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className={cardClass}>
-        {body}
-      </button>
-    );
-  }
-
-  return (
-    <Link href={href ?? '#'} className={cardClass}>
-      {body}
-    </Link>
-  );
-};
-
-/** Chip que distingue plata exigible de proyección. */
-const KindChip: React.FC<{ kind: PendingReceivable['kind'] }> = ({ kind }) => (
-  <span
-    className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
-      kind === 'FACTURA'
-        ? 'bg-blue-50 text-blue-700'
-        : 'bg-slate-100 text-slate-500'
-    }`}
-  >
-    {kind === 'FACTURA' ? 'Facturada' : 'Estimado'}
-  </span>
-);
-
-interface ReceivablesTableProps {
-  rows: PendingReceivable[];
-  total: number;
-  isLoading: boolean;
-  emptyLabel: string;
-  /** Filtro con el que se abre Órdenes al pedir "ver todas". */
-  seeAllFilter: string;
-  /** Abre el modal de detalle de factura, con su desglose y el pago. */
-  onOpenBilling: (billingUuid: string) => void;
-  onOpenOrder: (uuid: string) => void;
-  /** Muestra el botón de notificar en vez del de ver la factura. */
-  variant: 'follow-up' | 'to-notify';
-}
-
-const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
-  rows, total, isLoading, emptyLabel, seeAllFilter,
-  onOpenBilling, onOpenOrder, variant,
-}) => {
-  const totalAmount = rows.reduce((sum, r) => sum + r.amountCRC, 0);
-
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  if (rows.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
-          <Check size={20} className="text-emerald-500" />
-        </div>
-        <p className="font-black text-slate-400 text-sm">{emptyLabel}</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-[11px] font-black text-slate-400 uppercase">
-            <tr>
-              <th className="px-4 py-3 md:px-6">Cliente</th>
-              <th className="px-4 py-3 md:px-6">Tipo</th>
-              <th className="px-4 py-3 md:px-6">Monto</th>
-              <th className="px-4 py-3 md:px-6">Antigüedad</th>
-              <th className="px-4 py-3 md:px-6 text-right">Acción</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {rows.map((row) => {
-              const isOverdue = row.ageDays >= OVERDUE_DAYS;
-              return (
-                <tr
-                  key={`${row.kind}-${row.consolidationUuid}`}
-                  className="hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="px-4 py-3 md:px-6">
-                    <button
-                      onClick={() => onOpenOrder(row.consolidationUuid)}
-                      className="text-left font-bold text-slate-700 text-sm hover:text-amber-600 transition-colors"
-                    >
-                      {row.customerName}
-                    </button>
-                    {row.customerCode && (
-                      <p className="font-mono text-[11px] text-slate-400">
-                        {row.customerCode}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 md:px-6">
-                    <KindChip kind={row.kind} />
-                  </td>
-                  <td className="px-4 py-3 md:px-6 font-black text-slate-900 text-sm">
-                    {formatCRC(row.amountCRC)}
-                  </td>
-                  <td className="px-4 py-3 md:px-6">
-                    <span
-                      className={`text-sm font-bold ${
-                        isOverdue ? 'text-rose-600' : 'text-slate-500'
-                      }`}
-                    >
-                      {row.ageDays === 0 ? 'Hoy' : `${row.ageDays} d`}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 md:px-6 text-right">
-                    {row.billingUuid ? (
-                      <button
-                        onClick={() => onOpenBilling(row.billingUuid as string)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-black hover:bg-slate-800 transition-colors"
-                      >
-                        <Receipt size={14} />
-                        Ver factura
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onOpenOrder(row.consolidationUuid)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-black hover:bg-slate-200 transition-colors"
-                      >
-                        {variant === 'to-notify' ? (
-                          <>
-                            <MessageCircle size={14} />
-                            Avisar cobro
-                          </>
-                        ) : (
-                          'Ver orden'
-                        )}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3 md:px-6 border-t border-slate-50 bg-slate-50/50">
-        <p className="text-xs font-bold text-slate-500">
-          {rows.length === total
-            ? `${total} pendiente${total !== 1 ? 's' : ''} · ${formatCRC(totalAmount)}`
-            : `Mostrando ${rows.length} de ${total}`}
-        </p>
-        {rows.length < total && (
-          <Link
-            href={`${ORDERS_ROUTE}?payment=${seeAllFilter}`}
-            className="text-xs font-black text-amber-600 hover:text-amber-700 inline-flex items-center gap-1"
-          >
-            Ver todas <ArrowRight size={13} />
-          </Link>
-        )}
-      </div>
-    </>
-  );
-};
-
 export const OperationsContainer: React.FC = () => {
   const {
-    stats, isLoading, isError, goToOrder,
+    isLoading, isErrorWithoutData, hasRefreshError, isRefreshing, updatedLabel, handleRefresh,
+    pendingTasks, doneTasks, taskSkeletonRows, handleTaskAction,
+    collectionsTab, setCollectionsTab, collectionTabs, activeCollectionsTabId,
+    collectionsPanelId, collectionsSummaryLabel, activeCollections, isToNotifyTab, seeAllCollectionsHref, collectionOverdueDays,
+    goToOrder,
     selectedBillingUuid, setSelectedBillingUuid,
-    billingDetail, isLoadingDetail,
+    billingDetail, isLoadingDetail, isFetchingDetail, retryDetail,
     handleMarkAsPaid, isMarkingPaid,
     handleDownloadPdf, isDownloadingPdf,
     notifyMultiple, closeNotifyModal,
   } = useOperations();
 
-  const { inbox, monthly } = stats;
-
-  const packageDelta = monthly.packageCount - monthly.packageCountPreviousMonth;
-  const collectionRate = monthly.invoicedCRC > 0
-    ? Math.round((monthly.paidCRC / monthly.invoicedCRC) * 100)
-    : 0;
-
-  if (isError) {
+  if (isErrorWithoutData) {
     return (
-      <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center">
-        <p className="text-sm text-red-500 font-bold">
-          No se pudo cargar el panel operativo. Recarga la página.
-        </p>
+      <div className={`${CARD} p-8 flex flex-col items-center text-center gap-3`}>
+        <div className="h-12 w-12 rounded-full bg-danger/10 text-danger flex items-center justify-center">
+          <AlertCircle size={22} />
+        </div>
+        <p className="font-black text-neutral-900">No pudimos cargar tu día</p>
+        <p className="text-sm text-neutral-500">Revisa tu conexión e intenta de nuevo.</p>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="mt-2 min-h-[44px] px-5 rounded-xl bg-neutral-900 text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60"
+        >
+          <RotateCcw size={16} className={isRefreshing ? 'animate-spin' : undefined} />
+          Reintentar
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="pb-8 space-y-6 md:space-y-8">
-      {/* Bandeja de pendientes — lo que hay que hacer hoy */}
-      <section>
-        <h2 className="font-black text-slate-800 tracking-tight mb-1">Pendientes</h2>
-        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">
-          Cada tarjeta abre su pantalla filtrada
-        </p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="pb-8 space-y-4 sm:space-y-6">
+      {hasRefreshError && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl border border-danger/20 bg-danger/10 px-4 py-2"
+        >
+          <p className="flex items-center gap-2 text-sm font-bold text-danger-dark">
+            <AlertCircle size={16} className="shrink-0" aria-hidden />
+            No se pudo actualizar
+          </p>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="min-h-[44px] px-4 rounded-xl border border-danger/30 bg-white text-danger-dark text-sm font-bold inline-flex items-center gap-2 disabled:opacity-60"
+          >
+            <RotateCcw size={16} className={isRefreshing ? 'animate-spin' : undefined} aria-hidden />
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold text-neutral-500">{updatedLabel ?? 'Cargando…'}</p>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="min-h-[44px] px-4 rounded-xl border border-neutral-200 bg-white text-neutral-800 text-sm font-bold inline-flex items-center gap-2 disabled:opacity-60 active:bg-neutral-100"
+        >
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : undefined} aria-hidden />
+          Actualizar
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-5 gap-4 sm:gap-6 items-start">
+        {/* Tu día */}
+        <section className={`${CARD} xl:col-span-3`}>
+          <div className="p-5 sm:p-6 pb-3 sm:pb-4">
+            <SectionTitle title="Tu día" subtitle="En el orden en que conviene hacerlo" />
+          </div>
+
           {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <InboxCardSkeleton key={i} />)
-          ) : (
-            <>
-              <InboxCard
-                label="Sin avisar al cliente"
-                value={String(inbox.packagesNotNotified)}
-                hint={`${inbox.customersWithPackagesNotNotified} cliente${
-                  inbox.customersWithPackagesNotNotified !== 1 ? 's' : ''
-                } por notificar`}
-                onClick={notifyMultiple.open}
-                icon={MessageCircle}
-                tone="violet"
-                isEmpty={inbox.packagesNotNotified === 0}
-              />
-              <InboxCard
-                label="Sin costo cargado"
-                value={String(inbox.packagesWithoutCost)}
-                hint="Bloquean el cálculo de ganancia"
-                href={routesPrivate.admin.logistics.index}
-                icon={AlertTriangle}
-                tone="rose"
-                isEmpty={inbox.packagesWithoutCost === 0}
-              />
-              <InboxCard
-                label="Sin orden de envío"
-                value={String(inbox.packagesWithoutOrder)}
-                hint={`${inbox.customersWithPackagesWithoutOrder} cliente${
-                  inbox.customersWithPackagesWithoutOrder !== 1 ? 's' : ''
-                } por agrupar`}
-                href={ORDERS_ROUTE}
-                icon={PackagePlus}
-                tone="blue"
-                isEmpty={inbox.packagesWithoutOrder === 0}
-              />
-              <InboxCard
-                label="Por cobrar"
-                value={formatCRC(inbox.pendingPaymentCRC)}
-                hint={`${inbox.ordersPendingPayment} factura${
-                  inbox.ordersPendingPayment !== 1 ? 's' : ''
-                } sin pagar`}
-                href={`${ORDERS_ROUTE}?payment=PENDIENTE_PAGO`}
-                icon={Wallet}
-                tone="amber"
-                isEmpty={inbox.ordersPendingPayment === 0}
-              />
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* Cobros por avisar — todavía no saben que deben */}
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-5 md:p-6 border-b border-slate-50">
-          <h3 className="font-black text-slate-800 tracking-tight">Falta avisar el cobro</h3>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-            El cliente todavía no sabe cuánto debe · más antiguo primero
-          </p>
-        </div>
-        <ReceivablesTable
-          rows={stats.awaitingNotification}
-          total={stats.awaitingNotificationTotal}
-          isLoading={isLoading}
-          emptyLabel="Todo avisado"
-          seeAllFilter="SIN_NOTIFICAR"
-          onOpenBilling={setSelectedBillingUuid}
-          onOpenOrder={goToOrder}
-          variant="to-notify"
-        />
-      </section>
-
-      {/* Cobros notificados sin pagar — seguimiento */}
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-5 md:p-6 border-b border-slate-50">
-          <h3 className="font-black text-slate-800 tracking-tight">Esperando pago</h3>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-            Ya avisados · más antiguo primero
-          </p>
-        </div>
-        <ReceivablesTable
-          rows={stats.pendingReceivables}
-          total={stats.pendingReceivablesTotal}
-          isLoading={isLoading}
-          emptyLabel="Sin cobros pendientes"
-          seeAllFilter="PENDIENTE_PAGO"
-          onOpenBilling={setSelectedBillingUuid}
-          onOpenOrder={goToOrder}
-          variant="follow-up"
-        />
-      </section>
-
-      {/* KPIs del mes */}
-      <section>
-        <h2 className="font-black text-slate-800 tracking-tight mb-4">Este mes</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MonthlyFigure
-            label="Facturado"
-            value={isLoading ? '—' : formatCRC(monthly.invoicedCRC)}
-            hint="Mes calendario en curso"
-          />
-          <MonthlyFigure
-            label="Cobrado"
-            value={isLoading ? '—' : formatCRC(monthly.paidCRC)}
-            hint={isLoading ? '' : `${collectionRate}% de lo facturado`}
-            valueClass="text-blue-600"
-          />
-          <MonthlyFigure
-            label="Ganancia"
-            value={isLoading ? '—' : formatCRC(monthly.profitCRC)}
-            hint={
-              monthly.unknownCostCount > 0
-                ? `${monthly.unknownCostCount} factura${
-                    monthly.unknownCostCount !== 1 ? 's' : ''
-                  } sin costo — cifra incompleta`
-                : 'Facturado − costo courier − entrega'
-            }
-            hintClass={monthly.unknownCostCount > 0 ? 'text-orange-600' : undefined}
-            valueClass="text-emerald-600"
-          />
-          <MonthlyFigure
-            label="Paquetes"
-            value={isLoading ? '—' : String(monthly.packageCount)}
-            hint={
-              isLoading
-                ? ''
-                : `${packageDelta >= 0 ? '+' : ''}${packageDelta} vs. mes anterior`
-            }
-            hintClass={packageDelta >= 0 ? 'text-emerald-600' : 'text-rose-600'}
-            icon={packageDelta >= 0 ? TrendingUp : TrendingDown}
-          />
-        </div>
-      </section>
-
-      {/* Facturado vs. cobrado */}
-      <section className="bg-white p-5 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
-        <div className="mb-6">
-          <h3 className="font-black text-slate-800 tracking-tight">Facturado vs. Cobrado</h3>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-            Últimos 6 meses · por mes de emisión
-          </p>
-        </div>
-        <div className="h-[300px] w-full">
-          {isLoading ? (
-            <div className="h-full w-full bg-slate-50 rounded-2xl animate-pulse" />
-          ) : stats.revenueByMonth.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-400 text-sm font-bold">
-              Sin facturación todavía
+            <div className="px-5 sm:px-6 pb-5 space-y-3">
+              {Array.from({ length: taskSkeletonRows }).map((_, i) => (
+                <Shimmer key={i} className="h-20 w-full" />
+              ))}
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.revenueByMonth} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fontWeight: 700, fill: '#a3a3a3' }}
-                  dy={8}
-                />
-                <YAxis hide />
-                <Tooltip
-                  cursor={{ fill: '#f8fafc' }}
-                  formatter={(value, name) => [formatCRC((value as number) ?? 0), name]}
-                  contentStyle={{
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                  }}
-                />
-                <Legend
-                  iconType="circle"
-                  iconSize={9}
-                  wrapperStyle={{ fontSize: 12, fontWeight: 700, paddingTop: 12 }}
-                />
-                <Bar
-                  dataKey="invoiced"
-                  name="Facturado"
-                  fill={SERIES_INVOICED}
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={28}
-                />
-                <Bar
-                  dataKey="paid"
-                  name="Cobrado"
-                  fill={SERIES_PAID}
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={28}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </section>
+            <>
+              {pendingTasks.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 px-5 pb-8 pt-4 text-center">
+                  <span className="h-12 w-12 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center">
+                    <Check size={22} aria-hidden />
+                  </span>
+                  <p className="font-black text-neutral-900">Todo al día</p>
+                  <p className="text-sm text-neutral-500">No tienes nada pendiente por ahora.</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+                  {pendingTasks.map((task) => (
+                    <OperationsTaskRowView
+                      key={task.key}
+                      task={task}
+                      onAction={() => handleTaskAction(task.key)}
+                    />
+                  ))}
+                </ul>
+              )}
 
-      {/* MODAL: DETALLE DE FACTURA — el mismo de Facturación, con desglose,
-          PDF y "Marcar como Pagado". */}
+              {doneTasks.length > 0 && pendingTasks.length > 0 && (
+                <details className="group border-t border-neutral-100">
+                  <summary className="min-h-[44px] flex items-center justify-between gap-3 px-5 sm:px-6 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <span className="flex items-center gap-2 text-sm font-bold text-neutral-600">
+                      <Check size={16} className="text-primary-dark" aria-hidden />
+                      Al día ({doneTasks.length})
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className="text-neutral-400 transition-transform group-open:rotate-180"
+                      aria-hidden
+                    />
+                  </summary>
+                  <ul className="px-5 sm:px-6 pb-4 space-y-2">
+                    {doneTasks.map((task) => (
+                      <li key={task.key} className="flex items-center gap-2 text-sm text-neutral-500">
+                        <Check size={14} className="shrink-0 text-primary-dark" aria-hidden />
+                        {task.title}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </>
+          )}
+        </section>
+
+        {/* Cobros */}
+        <section className={`${CARD} p-5 sm:p-6 xl:col-span-2`}>
+          <SectionTitle title="Cobros" subtitle="Facturas que todavía no se pagan" />
+
+          <div
+            role="tablist"
+            aria-label="Tipo de cobro"
+            className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-neutral-100 p-1"
+          >
+            {collectionTabs.map((tab) => {
+              const isActive = collectionsTab === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  role="tab"
+                  id={tab.id}
+                  aria-controls={collectionsPanelId}
+                  aria-selected={isActive}
+                  onClick={() => setCollectionsTab(tab.value)}
+                  className={`min-h-[44px] rounded-xl px-2 text-sm font-bold whitespace-nowrap inline-flex items-center justify-center gap-1.5 transition-colors ${
+                    isActive ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'
+                  }`}
+                >
+                  {tab.label}
+                  {!isLoading && (
+                    <span
+                      className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs tabular-nums inline-flex items-center justify-center ${
+                        isActive ? 'bg-neutral-900 text-white' : 'bg-neutral-200 text-neutral-600'
+                      }`}
+                    >
+                      {tab.total}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            role="tabpanel"
+            id={collectionsPanelId}
+            aria-labelledby={activeCollectionsTabId}
+            className="mt-4"
+          >
+            {isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                  <Shimmer key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : activeCollections.items.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center">
+                <span className="h-12 w-12 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center">
+                  <Check size={22} aria-hidden />
+                </span>
+                <p className="font-black text-neutral-900">
+                  {isToNotifyTab ? 'Todo avisado' : 'Nadie te debe por ahora'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <ul className="space-y-3">
+                  {activeCollections.items.map((collection) => (
+                    <OperationsCollectionCard
+                      key={collection.billingUuid}
+                      collection={collection}
+                      overdueDays={collectionOverdueDays}
+                      onNotify={goToOrder}
+                      onOpenBilling={setSelectedBillingUuid}
+                    />
+                  ))}
+                </ul>
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3">
+                  <p className="text-xs font-semibold text-neutral-500">
+                    {collectionsSummaryLabel}
+                  </p>
+                  {activeCollections.total > activeCollections.items.length && (
+                    <Link
+                      href={seeAllCollectionsHref}
+                      className="min-h-[44px] inline-flex items-center gap-1 px-2 text-sm font-bold text-primary-dark"
+                    >
+                      Ver todas ({activeCollections.total})
+                      <ChevronRight size={16} aria-hidden />
+                    </Link>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </div>
+
       {selectedBillingUuid && (
         <BillingDetailModal
           billingDetail={billingDetail}
           isLoading={isLoadingDetail}
+          isRetrying={isFetchingDetail}
+          onRetry={retryDetail}
           onClose={() => setSelectedBillingUuid(null)}
           onMarkAsPaid={handleMarkAsPaid}
           isMarkingPaid={isMarkingPaid}
@@ -508,7 +266,6 @@ export const OperationsContainer: React.FC = () => {
         />
       )}
 
-      {/* MODAL: NOTIFICAR PAQUETES DISPONIBLES — el mismo de Logística. */}
       {notifyMultiple.isOpen && (
         <NotifyPackagesModal
           customers={notifyMultiple.customers}
@@ -522,31 +279,3 @@ export const OperationsContainer: React.FC = () => {
     </div>
   );
 };
-
-interface MonthlyFigureProps {
-  label: string;
-  value: string;
-  hint: string;
-  hintClass?: string;
-  valueClass?: string;
-  icon?: React.ComponentType<{ size?: number | string; className?: string }>;
-}
-
-const MonthlyFigure: React.FC<MonthlyFigureProps> = ({
-  label, value, hint, hintClass, valueClass, icon: Icon = Package,
-}) => (
-  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-    <div className="flex items-center gap-2 mb-3">
-      <Icon size={14} className="text-slate-300" />
-      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-        {label}
-      </p>
-    </div>
-    <h3 className={`text-xl md:text-2xl font-black ${valueClass ?? 'text-slate-900'}`}>
-      {value}
-    </h3>
-    <p className={`text-xs font-semibold mt-1 ${hintClass ?? 'text-slate-400'}`}>
-      {hint}
-    </p>
-  </div>
-);

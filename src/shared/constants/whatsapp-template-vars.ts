@@ -8,7 +8,15 @@ export const WHATSAPP_TEMPLATE_CODES = {
   PREBILLING_READY: 'PREBILLING_READY',
   WAREHOUSE_WELCOME: 'WAREHOUSE_WELCOME',
   SHIPMENT_REQUEST: 'SHIPMENT_REQUEST',
+  SHIPMENT_REQUESTED_CUSTOMER: 'SHIPMENT_REQUESTED_CUSTOMER',
+  SHIPMENT_REQUESTED_CUSTOMER_UNPAID: 'SHIPMENT_REQUESTED_CUSTOMER_UNPAID',
   SHIPMENT_DISPATCHED: 'SHIPMENT_DISPATCHED',
+  ADDRESS_CONFIRMATION: 'ADDRESS_CONFIRMATION',
+  ADDRESS_REQUEST: 'ADDRESS_REQUEST',
+  PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  POST_DELIVERY_FOLLOW_UP: 'POST_DELIVERY_FOLLOW_UP',
+  REVIEW_REQUEST: 'REVIEW_REQUEST',
+  CUSTOMER_WIN_BACK: 'CUSTOMER_WIN_BACK',
 } as const;
 
 export type WhatsAppTemplateCode = (typeof WHATSAPP_TEMPLATE_CODES)[keyof typeof WHATSAPP_TEMPLATE_CODES];
@@ -22,20 +30,21 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
   PACKAGES_AVAILABLE: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'lista_paquetes', label: 'Lista con cada paquete y su peso, uno por línea' },
+    { key: 'cantidad_paquetes', label: 'Cuántos paquetes hay disponibles — ej. 3' },
     { key: 'peso_total', label: 'Suma del peso de todos los paquetes — ej. 12.50' },
   ],
   PREBILLING_READY: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
     { key: 'lista_paquetes', label: 'Lista con cada paquete de la orden y su peso, uno por línea' },
-    { key: 'desglose_paquetes', label: 'Cada paquete con su peso y su cobro, uno por línea — ej. * Amazon – 3.00 lb – ₡8,730' },
+    { key: 'desglose_paquetes', label: 'Cada paquete con su peso y su cobro, uno por línea — ej. * Amazon – 3.00 lb – ₡8.730' },
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
     { key: 'metodo_entrega', label: 'Cómo se entrega — ej. Correos de Costa Rica' },
-    { key: 'monto_envio', label: 'Cobro del envío sin la entrega — ej. ₡8,730' },
-    { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6,900 (o "Sin cargo" si es retiro)' },
-    { key: 'descuento', label: 'Línea de descuento si el cliente tiene tarifa especial — ej. Descuento cliente (10%): -₡900. Vacío si no aplica' },
-    { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24,500' },
+    { key: 'monto_envio', label: 'Cobro del envío internacional a precio de lista, antes del descuento — ej. ₡8.730' },
+    { key: 'monto_entrega', label: 'Cobro de la entrega local — ej. ₡6.900 (o "Sin cargo" si es retiro)' },
+    { key: 'descuento', label: 'Renglón de descuento si el cliente tiene tarifa especial — ej. Descuento cliente (10%): -₡900. Si no aplica, el renglón no aparece' },
+    { key: 'monto', label: 'Total a pagar del estimado — ej. ₡24.500' },
   ],
   // Va al PROVEEDOR, no al cliente: es el texto que se copia para pedirle el
   // despacho. De ahí que no incluya montos ni tarifas — el proveedor no factura
@@ -54,6 +63,24 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva la orden — ej. 3' },
     { key: 'peso_total', label: 'Peso total de la orden en libras — ej. 12.50' },
   ],
+  // Va AL CLIENTE al solicitar el envío al proveedor (paso 3), antes de tener
+  // guía confirmada — por eso no lleva numero_guia ni link_rastreo, a
+  // diferencia de SHIPMENT_DISPATCHED.
+  SHIPMENT_REQUESTED_CUSTOMER: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  SHIPMENT_REQUESTED_CUSTOMER_UNPAID: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+    { key: 'monto', label: 'Total pendiente de pago — ej. ₡24.500' },
+  ],
+  // Va AL CLIENTE al registrar el pago de su factura (paso de cobro).
+  PAYMENT_CONFIRMED: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+    { key: 'monto', label: 'Monto pagado de la factura — ej. ₡24.500' },
+  ],
   // Va AL CLIENTE al marcar la orden como despachada. metodo_entrega y
   // link_rastreo salen del catálogo de métodos, no del texto: escribirlos a mano
   // haría que despachar por otro transportista enviara datos equivocados.
@@ -65,11 +92,42 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
     { key: 'cantidad_paquetes', label: 'Cuántos paquetes lleva el envío — ej. 3' },
   ],
+  // Va AL CLIENTE, para que confirme la dirección antes de generar el estimado.
+  // Los datos de quien recibe se toman hoy del cliente dueño de la orden; si más
+  // adelante se guarda un receptor distinto, cambia el builder y no la plantilla.
+  ADDRESS_CONFIRMATION: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'nombre_recibe', label: 'Nombre completo de quien recibe — ej. MARÍA RODRÍGUEZ SOTO' },
+    { key: 'telefono_recibe', label: 'Teléfono de quien recibe — ej. 62048869' },
+    { key: 'cedula', label: 'Cédula de quien recibe — ej. 117210411' },
+    { key: 'provincia', label: 'Provincia de la dirección de entrega — ej. SAN JOSE' },
+    { key: 'canton', label: 'Cantón de la dirección de entrega — ej. CENTRAL' },
+    { key: 'distrito', label: 'Distrito de la dirección de entrega — ej. EL CARMEN' },
+    { key: 'direccion', label: 'Dirección exacta de entrega' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  // Hermana de ADDRESS_CONFIRMATION, para cuando el cliente todavía no tiene
+  // dirección. Solo lleva el nombre: los datos de entrega son justo lo que se
+  // está pidiendo, así que no hay nada más que interpolar.
+  ADDRESS_REQUEST: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  POST_DELIVERY_FOLLOW_UP: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+    { key: 'id_orden', label: 'Código corto de la orden — ej. A1B2C3D4' },
+  ],
+  REVIEW_REQUEST: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+  ],
+  CUSTOMER_WIN_BACK: [
+    { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
+  ],
   WAREHOUSE_WELCOME: [
     { key: 'nombre', label: 'Solo el nombre del cliente — ej. María' },
     { key: 'nombre_completo', label: 'Nombre y apellidos — ej. María Rodríguez' },
     { key: 'codigo', label: 'Código de casillero del cliente — ej. MGA-2453-C-11' },
-    { key: 'ruta_label', label: 'Nombre de la ruta — ej. USA Aéreo' },
+    { key: 'ruta_label', label: 'Ruta del casillero — ej. Estados Unidos · Aéreo' },
     { key: 'direccion', label: 'Dirección del casillero — ej. 2610 NW 89TH CT' },
     { key: 'ciudad', label: 'Ciudad del casillero — ej. Doral' },
     { key: 'estado', label: 'Estado o provincia — ej. Florida' },
@@ -77,6 +135,20 @@ export const TEMPLATE_VARIABLES: Record<string, TemplateVarSpec[]> = {
     { key: 'telefono', label: 'Teléfono del casillero — ej. +1 786-360-2816' },
   ],
 };
+
+/** Plantillas que no van al cliente: es el único destino donde sí se puede nombrar la bodega. */
+const NON_CUSTOMER_TEMPLATE_CODES: string[] = [WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST];
+
+const HIDDEN_LOCATION_PATTERN = /panam|\bpty\b/i;
+
+/**
+ * El cliente no debe saber que sus paquetes pasan por Panamá. Se compara sin tildes
+ * ni mayúsculas para atrapar "Panamá", "PANAMA" y "PTY".
+ */
+export function mentionsHiddenLocation(code: string, body: string): boolean {
+  if (NON_CUSTOMER_TEMPLATE_CODES.includes(code)) return false;
+  return HIDDEN_LOCATION_PATTERN.test(body.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+}
 
 /** Placeholders {{...}} presentes en un texto. */
 export function extractPlaceholders(body: string): string[] {

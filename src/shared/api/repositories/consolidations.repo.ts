@@ -1,4 +1,6 @@
 import sql from '@/lib/db';
+import { StaleOrderError } from '@/shared/api/stale-order-error';
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import {
   ConsolidationListItem,
   ConsolidationDetail,
@@ -6,8 +8,19 @@ import {
   AvailablePackage,
   DeliveryMethod,
   CustomerWithAvailablePackages,
+  ShipmentOrderStep,
 } from '@/types/logistics/logistics.types';
 import { PaginatedResponse } from '@/types/paginate.types';
+import {
+  FOLLOW_UP_DELAY_DAYS,
+  FOLLOW_UP_PENDING_STEP_FILTER,
+  FOLLOW_UP_WINDOW_DAYS,
+} from '@/shared/constants/post-delivery';
+
+/** Una orden solo se arma con paquetes que siguen en Panamá y no tienen orden. */
+const NOT_ASSIGNABLE_PACKAGES_MESSAGE =
+  'Solo se pueden agregar a una orden los paquetes que están en Panamá y sin orden.';
+
 
 export const ConsolidationsRepository = {
   getOpenConsolidationForCustomer: async (
@@ -42,6 +55,7 @@ export const ConsolidationsRepository = {
     packageUuids: string[],
     deliveryAddressId?: string,
     deliveryMethod?: DeliveryMethod,
+    recipientId?: string | null,
   ): Promise<{ uuid: string; status: ConsolidationStatus; total_weight_lb: number }> => {
     await sql`BEGIN`;
     try {
@@ -59,23 +73,54 @@ export const ConsolidationsRepository = {
         throw new Error('Todos los paquetes seleccionados deben pertenecer al mismo cliente.');
       }
 
+      const [notAvailable] = await sql`
+        SELECT COUNT(*) AS unavailable
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND (status <> 'PANAMA' OR consolidation_id IS NOT NULL)
+      `;
+      if (parseInt(notAvailable.unavailable, 10) > 0) {
+        throw new Error(NOT_ASSIGNABLE_PACKAGES_MESSAGE);
+      }
+
       // Con una sola dirección registrada se asigna automáticamente. Con 2+ direcciones,
       // el operador debe elegir explícitamente (deliveryAddressId requerido en ese caso).
+      // En retiro en oficina no hay entrega: la orden puede quedar sin dirección.
+      const [method] = deliveryMethod
+        ? await sql`SELECT is_pickup FROM delivery_methods WHERE code = ${deliveryMethod}`
+        : [null];
       let resolvedAddressId = deliveryAddressId ?? null;
-      if (!resolvedAddressId) {
+      if (resolvedAddressId) {
+        const [address] = await sql`
+          SELECT id FROM customer_addresses WHERE id = ${resolvedAddressId} AND customer_id = ${customerUuid}
+        `;
+        if (!address) throw new Error('Dirección inválida: no pertenece a este cliente.');
+      }
+      if (!resolvedAddressId && !method?.is_pickup) {
         const addresses = await sql`
           SELECT id FROM customer_addresses WHERE customer_id = ${customerUuid}
         `;
         if (addresses.length === 1) {
           resolvedAddressId = addresses[0].id;
         } else if (addresses.length > 1) {
-          throw new Error('deliveryAddressId es requerido: el cliente tiene más de una dirección registrada.');
+          throw new Error('Dirección requerida: el cliente tiene más de una dirección, elige a cuál se entrega.');
         }
       }
 
+      // En retiro no hay entrega: ni dirección ni quién recibe, aunque vengan.
+      if (method?.is_pickup) {
+        resolvedAddressId = null;
+        recipientId = null;
+      }
+      if (recipientId) {
+        const [recipient] = await sql`
+          SELECT id FROM customer_recipients WHERE id = ${recipientId} AND customer_id = ${customerUuid}
+        `;
+        if (!recipient) throw new Error('Persona inválida: no pertenece a este cliente.');
+      }
+
       const [created] = await sql`
-        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id, delivery_method)
-        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId}, ${deliveryMethod ?? null})
+        INSERT INTO consolidations (customer_id, status, total_weight_lb, delivery_address_id, delivery_method, recipient_id)
+        VALUES (${customerUuid}, 'ABIERTO', 0, ${resolvedAddressId}, ${deliveryMethod ?? null}, ${recipientId ?? null})
         RETURNING id, uuid, status
       `;
 
@@ -104,31 +149,52 @@ export const ConsolidationsRepository = {
     page: number,
     limit: number,
     search?: string,
-    paymentFilter?: string,
+    // Tres ejes independientes y combinables (reemplazan el enum único
+    // ShipmentOrderPaymentFilter de 5 valores mutuamente excluyentes): el
+    // dueño pidió poder cruzar "paso 2" con "sin pagar" con "notificada", algo
+    // que un solo valor de filtro no puede expresar.
+    stepFilter?: string,
+    paidFilter?: string,
+    notifiedFilter?: string,
     dateFrom?: string,
     dateTo?: string,
   ): Promise<PaginatedResponse<ConsolidationListItem>> => {
     const offset = (page - 1) * limit;
     const searchTerm = search ? `%${search}%` : null;
-    const isPendienteDePago = paymentFilter === 'PENDIENTE_PAGO';
-    const isPagado = paymentFilter === 'PAGADO';
-    const isEntregado = paymentFilter === 'ENTREGADO';
-    const isSinNotificar = paymentFilter === 'SIN_NOTIFICAR';
+    // Eje 1: paso del wizard, varios a la vez separados por coma ("2,3"). Se
+    // combinan con O. "Seguimiento pendiente" es una opción más del eje porque
+    // implica Finalizada.
+    const stepTokens = (stepFilter ?? '').split(',').map((s) => s.trim()).filter((s) => s && s !== 'ALL');
+    const isFollowUpPending = stepTokens.includes(FOLLOW_UP_PENDING_STEP_FILTER);
+    const stepValues = stepTokens.map(Number).filter((n) => Number.isInteger(n) && n >= ShipmentOrderStep.CONFIRMACION && n <= ShipmentOrderStep.FINALIZADA);
+    const hasStepFilter = isFollowUpPending || stepValues.length > 0;
+    // Eje 2: pago. Independiente del paso — una orden en paso 3 (despacho) o
+    // ya finalizada puede seguir sin pagar (clientes a los que se les
+    // despacha sin haber cobrado, caso confirmado por el dueño).
+    // Mismas cuatro reglas que `getPaymentStatus` (status-labels.ts): cada fila filtrada lleva el badge
+    // elegido. Un estimado sin avisar (`pre_billing.notified_at` nulo) cuenta como "Sin estimado".
+    // FACTURADA_SIN_PAGAR (Operativo) y SIN_PAGAR son nombres viejos de POR_COBRAR.
+    const paid = paidFilter === 'FACTURADA_SIN_PAGAR' || paidFilter === 'SIN_PAGAR' ? 'POR_COBRAR' : paidFilter;
+    const isPagada = paid === 'PAGADA';
+    const isPorCobrar = paid === 'POR_COBRAR';
+    const isEstimadoEnviado = paid === 'ESTIMADO_ENVIADO';
+    const isSinEstimado = paid === 'SIN_ESTIMADO';
+    // Eje 3: aviso de cobro. Cuenta el estimado enviado (pre_billing.notified_at) o el aviso del
+    // paso 3 (customer_notified_shipment_at: a una orden sin pagar lleva el monto pendiente).
+    // El mismo criterio usa "Cobros" del Operativo (operations.repo.ts); cambiar uno es cambiar los dos.
+    const isNotificada = notifiedFilter === 'NOTIFICADA';
+    const isSinNotificar = notifiedFilter === 'SIN_NOTIFICAR';
     const fromDate = dateFrom || null;
     const toDate = dateTo || null;
 
-    // Filtro por pago (no por status logístico): "Pendientes de pago" agrupa todo lo que
-    // el operador todavía debe mover hacia el cobro — ABIERTO sin nada generado, CERRADO
-    // con estimado sin confirmar, o CERRADO con factura sin pagar. Cubre el caso de
-    // reabrir una orden con factura sin pagar: vuelve a ABIERTO pero sigue siendo
-    // "pendiente de pago" en el sentido operativo, solo que con chip "Sin estimado".
     const [rows, countResult] = await Promise.all([
       sql`
         SELECT
           con.uuid,
           con.customer_id,
           con.status,
-          con.total_weight_lb,
+          con.current_step,
+          COALESCE(SUM(p.weight_lb), 0) AS total_weight_lb,
           con.created_at,
           con.updated_at,
           c.first_name || ' ' || c.last_name AS customer_name,
@@ -138,6 +204,7 @@ export const ConsolidationsRepository = {
           b.is_paid AS billing_is_paid,
           b.total_amount_crc AS billing_amount_crc,
           pb.estimated_amount_crc AS pre_billing_amount_crc,
+          pb.notified_at AS pre_billing_notified_at,
           CASE
             WHEN b.uuid IS NOT NULL AND b.is_paid = true THEN 'PAGADO'
             WHEN b.uuid IS NOT NULL THEN 'PENDIENTE_PAGO'
@@ -157,14 +224,18 @@ export const ConsolidationsRepository = {
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
-          AND (NOT ${isPendienteDePago} OR (con.status != 'ENTREGADO' AND (b.uuid IS NULL OR b.is_paid = false)))
-          AND (NOT ${isPagado} OR (b.is_paid = true AND con.status != 'ENTREGADO'))
-          AND (NOT ${isEntregado} OR con.status = 'ENTREGADO')
-          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${hasStepFilter} OR con.current_step = ANY(${stepValues}::smallint[]) OR (${isFollowUpPending} AND con.current_step = ${ShipmentOrderStep.FINALIZADA} AND con.follow_up_sent_at IS NULL
+            AND ((NOW() AT TIME ZONE 'America/Costa_Rica')::date - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date) BETWEEN ${FOLLOW_UP_DELAY_DAYS} AND ${FOLLOW_UP_WINDOW_DAYS}))
+          AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
+          AND (NOT ${isPorCobrar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
+          AND (NOT ${isEstimadoEnviado} OR (b.uuid IS NULL AND pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
+          AND (NOT ${isSinEstimado} OR (b.uuid IS NULL AND (pb.uuid IS NULL OR pb.notified_at IS NULL)))
+          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND (pb.notified_at IS NOT NULL OR con.customer_notified_shipment_at IS NOT NULL)))
+          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL AND con.customer_notified_shipment_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
-        GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb, con.created_at, con.updated_at,
-                 c.first_name, c.last_name, c.customer_code, b.uuid, b.is_paid, b.total_amount_crc, pb.estimated_amount_crc, pb.uuid
+        GROUP BY con.uuid, con.customer_id, con.status, con.current_step, con.created_at, con.updated_at,
+                 c.first_name, c.last_name, c.customer_code, b.uuid, b.is_paid, b.total_amount_crc, pb.estimated_amount_crc, pb.uuid, pb.notified_at
         ORDER BY con.created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `,
@@ -180,10 +251,14 @@ export const ConsolidationsRepository = {
             OR c.last_name ILIKE ${searchTerm}
             OR c.customer_code ILIKE ${searchTerm}
             OR con.uuid::text ILIKE ${searchTerm})
-          AND (NOT ${isPendienteDePago} OR (con.status != 'ENTREGADO' AND (b.uuid IS NULL OR b.is_paid = false)))
-          AND (NOT ${isPagado} OR (b.is_paid = true AND con.status != 'ENTREGADO'))
-          AND (NOT ${isEntregado} OR con.status = 'ENTREGADO')
-          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL))
+          AND (NOT ${hasStepFilter} OR con.current_step = ANY(${stepValues}::smallint[]) OR (${isFollowUpPending} AND con.current_step = ${ShipmentOrderStep.FINALIZADA} AND con.follow_up_sent_at IS NULL
+            AND ((NOW() AT TIME ZONE 'America/Costa_Rica')::date - (con.dispatched_at AT TIME ZONE 'America/Costa_Rica')::date) BETWEEN ${FOLLOW_UP_DELAY_DAYS} AND ${FOLLOW_UP_WINDOW_DAYS}))
+          AND (NOT ${isPagada} OR (b.uuid IS NOT NULL AND b.is_paid = true))
+          AND (NOT ${isPorCobrar} OR (b.uuid IS NOT NULL AND b.is_paid = false))
+          AND (NOT ${isEstimadoEnviado} OR (b.uuid IS NULL AND pb.uuid IS NOT NULL AND pb.notified_at IS NOT NULL))
+          AND (NOT ${isSinEstimado} OR (b.uuid IS NULL AND (pb.uuid IS NULL OR pb.notified_at IS NULL)))
+          AND (NOT ${isNotificada} OR (pb.uuid IS NOT NULL AND (pb.notified_at IS NOT NULL OR con.customer_notified_shipment_at IS NOT NULL)))
+          AND (NOT ${isSinNotificar} OR (pb.uuid IS NOT NULL AND pb.notified_at IS NULL AND con.customer_notified_shipment_at IS NULL))
           AND (${fromDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date >= ${fromDate}::date)
           AND (${toDate}::date IS NULL OR (con.created_at AT TIME ZONE 'America/Costa_Rica')::date <= ${toDate}::date)
       `,
@@ -204,7 +279,8 @@ export const ConsolidationsRepository = {
         con.uuid,
         con.customer_id,
         con.status,
-        con.total_weight_lb,
+        con.current_step,
+        COALESCE(SUM(p.weight_lb), 0) AS total_weight_lb,
         con.created_at,
         con.updated_at,
         c.first_name || ' ' || c.last_name AS customer_name,
@@ -237,6 +313,7 @@ export const ConsolidationsRepository = {
         pb.delivery_cost_crc AS pre_billing_delivery_cost_crc,
         pb.delivery_method AS pre_billing_delivery_method,
         pb.is_confirmed AS pre_billing_confirmed,
+        pb.total_weight_charged AS pre_billing_weight_charged,
         pb.confirmed_at AS pre_billing_confirmed_at,
         pb.notified_at AS pre_billing_notified_at,
         pb.applied_rate_usd AS pre_billing_rate_usd,
@@ -251,6 +328,18 @@ export const ConsolidationsRepository = {
         b.delivery_cost_crc AS billing_delivery_cost_crc,
         b.profit_crc AS billing_profit_crc,
         b.has_unknown_cost AS billing_has_unknown_cost,
+        b.delivery_fee_crc AS billing_delivery_fee_crc,
+        b.original_delivery_fee_crc AS billing_original_delivery_fee_crc,
+        b.actual_delivery_fee_crc AS billing_actual_delivery_fee_crc,
+        b.change_returned AS billing_change_returned,
+        b.change_returned_at AS billing_change_returned_at,
+        b.payment_notified_at AS billing_payment_notified_at,
+        b.payment_method AS billing_payment_method,
+        b.paid_at AS billing_paid_at,
+        b.invoice_number AS billing_invoice_number,
+        b.paid_by_name AS billing_paid_by_name,
+        -- Misma regla que el detalle de la factura: sin método de pago, el autor vino del backfill de la 033.
+        (b.authorship_backfilled AND b.payment_method IS NULL) AS billing_paid_by_backfilled,
         ps.share_crc AS profit_share_crc,
         ps.share_percent AS profit_share_percent,
         ps.status AS profit_share_status,
@@ -258,11 +347,19 @@ export const ConsolidationsRepository = {
         con.delivery_address_id,
         con.tracking_code,
         con.dispatched_at,
+        con.shipment_requested_at,
+        con.customer_notified_shipment_at,
+        con.follow_up_sent_at,
+        con.review_requested_at,
         ca.address_label AS delivery_address_label,
         ca.exact_address AS delivery_exact_address,
         ca.district AS delivery_district,
         ca.canton AS delivery_canton,
         ca.province AS delivery_province,
+        con.recipient_id,
+        cr.full_name AS delivery_recipient_name,
+        cr.phone AS delivery_recipient_phone,
+        cr.id_card AS delivery_recipient_id_card,
         COALESCE(
           ca.canton,
           (SELECT canton FROM customer_addresses
@@ -277,18 +374,24 @@ export const ConsolidationsRepository = {
       LEFT JOIN billing b ON b.consolidation_id = con.id
       LEFT JOIN profit_shares ps ON ps.consolidation_id = con.id
       LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
+      LEFT JOIN customer_recipients cr ON cr.id = con.recipient_id
       CROSS JOIN system_settings ss
       WHERE con.uuid = ${uuid}
-      GROUP BY con.uuid, con.customer_id, con.status, con.total_weight_lb,
+      GROUP BY con.uuid, con.customer_id, con.status, con.current_step,
                con.created_at, con.updated_at, c.first_name, c.last_name, c.customer_code, c.email, c.phone, c.id_card,
                ct.name, ct.billing_mode, ct.discount_percent,
                pb.uuid, pb.estimated_amount_crc, pb.delivery_fee_crc, pb.delivery_cost_crc, pb.delivery_method, pb.is_confirmed, pb.confirmed_at, pb.notified_at,
-               pb.applied_rate_usd, pb.applied_exchange, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
+               pb.applied_rate_usd, pb.applied_exchange, pb.total_weight_charged, ss.price_per_lb, ss.exchange_rate, ss.min_weight,
                b.uuid, b.is_paid, b.total_amount_crc, b.courier_cost_crc, b.delivery_cost_crc, b.profit_crc, b.has_unknown_cost,
+               b.delivery_fee_crc, b.original_delivery_fee_crc, b.actual_delivery_fee_crc, b.change_returned, b.change_returned_at,
+               b.payment_notified_at, b.payment_method, b.paid_at, b.invoice_number, b.paid_by_name, b.authorship_backfilled,
                ps.share_crc, ps.share_percent, ps.status,
                con.delivery_method, con.delivery_address_id, con.tracking_code, con.dispatched_at,
+               con.shipment_requested_at, con.customer_notified_shipment_at,
+               con.follow_up_sent_at, con.review_requested_at,
                ca.address_label, ca.exact_address,
-               ca.district, ca.canton, ca.province
+               ca.district, ca.canton, ca.province,
+               con.recipient_id, cr.full_name, cr.phone, cr.id_card
     `;
     return row ? (row as ConsolidationDetail) : null;
   },
@@ -307,7 +410,7 @@ export const ConsolidationsRepository = {
     `;
     if (!row) throw new Error('Orden de envío no encontrada.');
     if (row.status !== 'ABIERTO') {
-      throw new Error('Transición inválida: solo se puede cambiar la dirección de entrega mientras la orden esté ABIERTO.');
+      throw new Error('Solo se puede cambiar la dirección antes de generar el estimado.');
     }
     if (!row.address_id) {
       throw new Error('Dirección inválida: no pertenece a este cliente.');
@@ -315,6 +418,30 @@ export const ConsolidationsRepository = {
 
     await sql`
       UPDATE consolidations SET delivery_address_id = ${addressId}, updated_at = NOW()
+      WHERE id = ${row.id}
+    `;
+  },
+
+  /**
+   * Elige quién recibe la orden (null = el propio cliente). Se puede cambiar
+   * mientras no haya factura: la factura guarda el nombre en su copia de la
+   * dirección, y cambiarlo después no se reflejaría ahí.
+   */
+  setRecipient: async (uuid: string, recipientId: string | null): Promise<void> => {
+    const [row] = await sql`
+      SELECT con.id, cr.id AS recipient_id, b.id AS billing_id
+      FROM consolidations con
+      LEFT JOIN customer_recipients cr ON cr.id = ${recipientId} AND cr.customer_id = con.customer_id
+      LEFT JOIN billing b ON b.consolidation_id = con.id
+      WHERE con.uuid = ${uuid}
+      LIMIT 1
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+    if (row.billing_id) throw new Error('No se puede cambiar quién recibe: la orden ya tiene factura.');
+    if (recipientId && !row.recipient_id) throw new Error('Persona inválida: no pertenece a este cliente.');
+
+    await sql`
+      UPDATE consolidations SET recipient_id = ${recipientId}, updated_at = NOW()
       WHERE id = ${row.id}
     `;
   },
@@ -330,13 +457,22 @@ export const ConsolidationsRepository = {
     `;
     if (!row) throw new Error('Orden de envío no encontrada.');
     if (row.status !== 'ABIERTO') {
-      throw new Error('Transición inválida: solo se puede cambiar el método de envío mientras la orden esté ABIERTO.');
+      throw new Error('Solo se puede cambiar el método de envío antes de generar el estimado.');
     }
 
-    await sql`
-      UPDATE consolidations SET delivery_method = ${deliveryMethod}, updated_at = NOW()
-      WHERE id = ${row.id}
+    // En retiro no hay entrega: se sueltan dirección y quién recibe para que la
+    // solicitud y el estimado no muestren una dirección que no aplica.
+    const [updated] = await sql`
+      UPDATE consolidations c
+      SET delivery_method = ${deliveryMethod},
+          delivery_address_id = CASE WHEN dm.is_pickup THEN NULL ELSE c.delivery_address_id END,
+          recipient_id = CASE WHEN dm.is_pickup THEN NULL ELSE c.recipient_id END,
+          updated_at = NOW()
+      FROM delivery_methods dm
+      WHERE c.id = ${row.id} AND dm.code = ${deliveryMethod}
+      RETURNING c.id
     `;
+    if (!updated) throw new Error('Método de entrega inválido.');
   },
 
   /**
@@ -357,11 +493,156 @@ export const ConsolidationsRepository = {
       throw new Error('Solo se puede registrar la guía en una orden ya despachada.');
     }
 
+    // Con la guía cargada el bulto ya salió: los paquetes dejan Panamá. Borrar la guía no los devuelve.
+    // Una sola sentencia: sobre HTTP de Neon dos sentencias sueltas no son una transacción.
     await sql`
-      UPDATE consolidations
-      SET tracking_code = ${trackingCode || null}, updated_at = NOW()
-      WHERE id = ${row.id}
+      WITH updated AS (
+        UPDATE consolidations
+        SET tracking_code = ${trackingCode || null}, updated_at = NOW()
+        WHERE id = ${row.id}
+        RETURNING id, tracking_code
+      )
+      UPDATE packages p
+      SET status = 'EN_TRAMITE'
+      FROM updated u
+      WHERE p.consolidation_id = u.id AND u.tracking_code IS NOT NULL AND p.status = 'PANAMA'
     `;
+  },
+
+  /**
+   * Ajuste del costo real de envío (paso 4, Cierre). El
+   * transportista confirma un costo que puede diferir del que se usó al
+   * generar el estimado — este método corrige lo que se le cobró al cliente.
+   *
+   * Alcance deliberadamente acotado (ver migración 030): actualiza
+   * delivery_fee_crc y total_amount_crc de la factura. NO toca
+   * delivery_cost_crc ni profit_crc — la ganancia registrada y la
+   * participación de Farid (profit_shares) quedan como se calcularon al
+   * confirmar la factura, decisión explícita del dueño.
+   *
+   * original_delivery_fee_crc se fija UNA SOLA VEZ, en el primer ajuste (con
+   * COALESCE): delivery_fee_crc se sobreescribe con el valor real, así que sin
+   * este snapshot la diferencia (para el vuelto) daría siempre 0 al releer la
+   * orden — se perdería contra qué comparar. Un segundo ajuste posterior sigue
+   * comparando contra lo que el cliente vio en la factura original, no contra
+   * el ajuste anterior.
+   *
+   * Solo sobre una orden ya facturada: sin factura no hay delivery_fee_crc
+   * que corregir.
+   */
+  setActualDeliveryFee: async (consolidationUuid: string, actualFeeCrc: number): Promise<{ billing_uuid: string; new_total_amount_crc: number }> => {
+    const [c] = await sql`SELECT id FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1`;
+    if (!c) throw new Error('Orden de envío no encontrada.');
+
+    const [bill] = await sql`
+      SELECT uuid, delivery_fee_crc, total_amount_crc FROM billing WHERE consolidation_id = ${c.id} LIMIT 1
+    `;
+    if (!bill) throw new Error('Esta orden de envío no tiene factura generada.');
+
+    // El fee viejo se resta del total y se suma el nuevo — no se recalcula
+    // total_amount_crc desde cero, para no arrastrar ningún otro cambio de
+    // tarifas que haya ocurrido después de confirmar la factura.
+    const oldFee = Number(bill.delivery_fee_crc);
+    const newTotal = Number(bill.total_amount_crc) - oldFee + actualFeeCrc;
+
+    const [updated] = await sql`
+      UPDATE billing
+      SET original_delivery_fee_crc = COALESCE(original_delivery_fee_crc, delivery_fee_crc),
+          actual_delivery_fee_crc = ${actualFeeCrc},
+          delivery_fee_crc = ${actualFeeCrc},
+          total_amount_crc = ${newTotal},
+          -- Un nuevo ajuste invalida un vuelto ya marcado como entregado con
+          -- el cálculo anterior — se resetea para que el operador lo revise.
+          change_returned = NULL,
+          change_returned_at = NULL
+      WHERE consolidation_id = ${c.id}
+      RETURNING uuid, total_amount_crc
+    `;
+
+    return { billing_uuid: updated.uuid, new_total_amount_crc: Number(updated.total_amount_crc) };
+  },
+
+  /** Marca que el vuelto calculado en el paso 4 ya se le entregó al cliente. */
+  markChangeReturned: async (consolidationUuid: string): Promise<void> => {
+    const [c] = await sql`SELECT id FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1`;
+    if (!c) throw new Error('Orden de envío no encontrada.');
+
+    const [bill] = await sql`SELECT uuid FROM billing WHERE consolidation_id = ${c.id} LIMIT 1`;
+    if (!bill) throw new Error('Esta orden de envío no tiene factura generada.');
+
+    await sql`
+      UPDATE billing SET change_returned = true, change_returned_at = NOW()
+      WHERE consolidation_id = ${c.id}
+    `;
+  },
+
+  /**
+   * Paso 3 (Despacho) → 4 (Cierre) sin tocar `status`: la orden sigue
+   * DESPACHADO porque el paquete va en camino. Marcarla ENTREGADO acá hacía
+   * que el rastreo público dijera "Entregado" antes de tiempo. Sin guía no se
+   * avanza, salvo en retiro en oficina, donde no hay nada que rastrear.
+   */
+  advanceToClosing: async (consolidationUuid: string): Promise<void> => {
+    const [current] = await sql`
+      SELECT c.id, c.current_step, c.tracking_code, COALESCE(dm.is_pickup, false) AS is_pickup,
+        (SELECT COUNT(*) FROM packages p WHERE p.consolidation_id = c.id) AS package_count
+      FROM consolidations c
+      LEFT JOIN delivery_methods dm ON dm.code = c.delivery_method
+      WHERE c.uuid = ${consolidationUuid}
+      LIMIT 1
+    `;
+    if (!current) throw new Error('Orden de envío no encontrada.');
+    if (Number(current.current_step) !== ShipmentOrderStep.DESPACHO) {
+      throw new Error('Solo se puede pasar al cierre una orden que esté en el paso de despacho.');
+    }
+    if (Number(current.package_count) === 0) throw new EmptyOrderError();
+    if (!current.tracking_code && !current.is_pickup) {
+      throw new Error('Solo se puede pasar al cierre con la guía del proveedor cargada.');
+    }
+    // Pasar al cierre es el despacho: los paquetes salen de Panamá (cubre también el retiro en
+    // oficina, que no tiene guía). Una sola sentencia para que no quede el paso sin los paquetes.
+    await sql`
+      WITH advanced AS (
+        UPDATE consolidations SET current_step = ${ShipmentOrderStep.NOTIFICACION}, updated_at = NOW()
+        WHERE id = ${current.id}
+        RETURNING id
+      )
+      UPDATE packages p
+      SET status = 'EN_TRAMITE'
+      FROM advanced a
+      WHERE p.consolidation_id = a.id AND p.status = 'PANAMA'
+    `;
+  },
+
+  /**
+   * Paso 4 (Cierre) → 5 (Finalizada). Es el momento en que la orden y sus
+   * paquetes pasan a ENTREGADO. Una sola sentencia para que no quede la orden
+   * finalizada con paquetes todavía en camino.
+   */
+  finalizeOrder: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      WITH finalized AS (
+        UPDATE consolidations
+        SET current_step = ${ShipmentOrderStep.FINALIZADA}, status = 'ENTREGADO', updated_at = NOW()
+        WHERE uuid = ${consolidationUuid} AND current_step = ${ShipmentOrderStep.NOTIFICACION}
+          AND EXISTS (SELECT 1 FROM packages p WHERE p.consolidation_id = consolidations.id)
+        RETURNING id
+      ), delivered AS (
+        UPDATE packages SET status = 'ENTREGADO'
+        WHERE consolidation_id IN (SELECT id FROM finalized) AND status != 'ENTREGADO'
+      )
+      SELECT id FROM finalized
+    `;
+    if (!row) {
+      const [current] = await sql`
+        SELECT current_step, (SELECT COUNT(*) FROM packages p WHERE p.consolidation_id = consolidations.id) AS package_count
+        FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1
+      `;
+      if (current && Number(current.current_step) === ShipmentOrderStep.NOTIFICACION && Number(current.package_count) === 0) {
+        throw new EmptyOrderError();
+      }
+      throw new Error('Solo se puede finalizar una orden que esté en el paso de cierre.');
+    }
   },
 
   /**
@@ -381,6 +662,70 @@ export const ConsolidationsRepository = {
     `;
   },
 
+  /**
+   * Estampa consolidations.shipment_requested_at al copiar la solicitud de
+   * envío al proveedor (paso 3) — marcador para el chip "Envío solicitado" del
+   * wizard. Distinto de markCustomerNotifiedShipment: este es el aviso al
+   * proveedor, aquel al cliente.
+   */
+  markShipmentRequested: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET shipment_requested_at = NOW()
+      WHERE uuid = ${consolidationUuid}
+      RETURNING id
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+  },
+
+  /**
+   * Estampa consolidations.customer_notified_shipment_at al avisarle al
+   * cliente (WhatsApp) que su envío fue solicitado — marcador para el chip
+   * "Cliente notificado / no notificado" del paso 3.
+   */
+  markCustomerNotifiedShipment: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET customer_notified_shipment_at = NOW()
+      WHERE uuid = ${consolidationUuid}
+      RETURNING id
+    `;
+    if (!row) throw new Error('Orden de envío no encontrada.');
+  },
+
+  /**
+   * Postventa: solo en órdenes finalizadas. Sin filas afectadas distingue
+   * "no existe" de "no está finalizada" para devolver 404 o 400.
+   */
+  markFollowUpSent: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET follow_up_sent_at = NOW()
+      WHERE uuid = ${consolidationUuid} AND current_step = ${ShipmentOrderStep.FINALIZADA}
+      RETURNING id
+    `;
+    if (!row) await ConsolidationsRepository.assertFinalizedForPostDelivery(consolidationUuid);
+  },
+
+  /** La reseña asume que el cliente ya respondió al seguimiento. */
+  markReviewRequested: async (consolidationUuid: string): Promise<void> => {
+    const [row] = await sql`
+      UPDATE consolidations SET review_requested_at = NOW()
+      WHERE uuid = ${consolidationUuid}
+        AND current_step = ${ShipmentOrderStep.FINALIZADA}
+        AND follow_up_sent_at IS NOT NULL
+      RETURNING id
+    `;
+    if (row) return;
+    await ConsolidationsRepository.assertFinalizedForPostDelivery(consolidationUuid);
+    throw new Error('Acción inválida: primero hay que hacer el seguimiento de la orden.');
+  },
+
+  assertFinalizedForPostDelivery: async (consolidationUuid: string): Promise<void> => {
+    const [c] = await sql`SELECT current_step FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1`;
+    if (!c) throw new Error('Orden de envío no encontrada.');
+    if (Number(c.current_step) !== ShipmentOrderStep.FINALIZADA) {
+      throw new Error('Acción inválida: la postventa solo aplica a órdenes finalizadas.');
+    }
+  },
+
   deleteConsolidation: async (uuid: string): Promise<void> => {
     await sql`BEGIN`;
     try {
@@ -391,7 +736,9 @@ export const ConsolidationsRepository = {
       if (row.status !== 'ABIERTO') throw new Error('Solo se pueden eliminar órdenes de envío en estado ABIERTO.');
 
       await sql`
-        UPDATE packages SET consolidation_id = NULL
+        UPDATE packages
+        SET consolidation_id = NULL,
+            status = CASE WHEN status = 'EN_TRAMITE' THEN 'PANAMA' ELSE status END
         WHERE consolidation_id = (SELECT id FROM consolidations WHERE uuid = ${uuid})
       `;
 
@@ -416,6 +763,8 @@ export const ConsolidationsRepository = {
     // setTrackingCode. Parámetro nuevo al final para no romper a los llamadores
     // existentes, que siguen invocando con dos argumentos.
     trackingCode?: string | null,
+    // Estado que se espera encontrar: la transición solo se aplica si la orden sigue así.
+    expectedStatus?: ConsolidationStatus,
   ): Promise<{ uuid: string; status: ConsolidationStatus }> => {
     await sql`BEGIN`;
     try {
@@ -423,6 +772,13 @@ export const ConsolidationsRepository = {
         SELECT id, status FROM consolidations WHERE uuid = ${uuid} LIMIT 1
       `;
       if (!current) throw new Error('Orden de envío no encontrada.');
+      // Antes de descartar estimado o factura al reabrir: si la orden ya cambió, no se toca nada.
+      if (expectedStatus && current.status !== expectedStatus) throw new StaleOrderError();
+
+      if (status === ConsolidationStatus.DESPACHADO) {
+        const [packages] = await sql`SELECT COUNT(*) AS total FROM packages WHERE consolidation_id = ${current.id}`;
+        if (Number(packages.total) === 0) throw new EmptyOrderError();
+      }
 
       // Reabrir (CERRADO → ABIERTO): el estimado/factura quedó ligado al peso/paquetes
       // de ese momento. Si la factura existe pero no ha sido pagada, se descarta junto
@@ -454,12 +810,29 @@ export const ConsolidationsRepository = {
       // el estimado y la factura, por el mismo motivo que ellos.
       const isReopening = status === ConsolidationStatus.ABIERTO;
 
+      // current_step sigue al status 1:1 en toda transición que pasa por acá
+      // (ABIERTO=1, CERRADO=2, DESPACHADO=3, ENTREGADO=4 — mismo mapeo del
+      // backfill de la migración 030). El paso 1→2 (CERRADO, generar estimado)
+      // no pasa por esta función: lo mueve generatePreBilling junto con el
+      // auto-cierre de la orden, en su propia transacción.
+      const cleanTrackingCode = trackingCode?.trim() || null;
+      // Orden y paquetes en una sola sentencia: sobre HTTP de Neon dos sentencias sueltas no son
+      // transacción. Con guía el bulto salió (PANAMA a EN_TRAMITE); si la orden vuelve a ABIERTO o
+      // CERRADO sus paquetes vuelven a Panamá; al entregar, todo pasa a ENTREGADO.
       const [row] = await sql`
+        WITH updated AS (
         UPDATE consolidations
         SET status = ${status},
+            current_step = CASE ${status}
+              WHEN 'ABIERTO' THEN 1
+              WHEN 'CERRADO' THEN 2
+              WHEN 'DESPACHADO' THEN 3
+              WHEN 'ENTREGADO' THEN 4
+              ELSE current_step
+            END,
             tracking_code = CASE
               WHEN ${isReopening}::boolean THEN NULL
-              WHEN ${status} = 'DESPACHADO' THEN ${trackingCode ?? null}
+              WHEN ${status} = 'DESPACHADO' THEN ${cleanTrackingCode}
               ELSE tracking_code
             END,
             dispatched_at = CASE
@@ -468,19 +841,27 @@ export const ConsolidationsRepository = {
               ELSE dispatched_at
             END,
             updated_at = NOW()
-        WHERE uuid = ${uuid}
-        RETURNING uuid, id, status
+        WHERE uuid = ${uuid} AND (${expectedStatus ?? null}::text IS NULL OR status = ${expectedStatus ?? null})
+        RETURNING uuid, id, status, current_step
+        ), moved AS (
+          UPDATE packages p
+          SET status = CASE u.status
+                WHEN 'DESPACHADO' THEN 'EN_TRAMITE'
+                WHEN 'ENTREGADO' THEN 'ENTREGADO'
+                ELSE 'PANAMA'
+              END
+          FROM updated u
+          WHERE p.consolidation_id = u.id
+            AND (
+              (u.status = 'DESPACHADO' AND ${cleanTrackingCode !== null}::boolean AND p.status = 'PANAMA')
+              OR (u.status IN ('ABIERTO', 'CERRADO') AND p.status = 'EN_TRAMITE')
+              OR (u.status = 'ENTREGADO' AND p.status <> 'ENTREGADO')
+            )
+        )
+        SELECT uuid, id, status, current_step FROM updated
       `;
-      if (!row) throw new Error('Orden de envío no encontrada.');
-
-      // Al marcar ENTREGADO, mover todos los paquetes a ENTREGADO también
-      if (status === ConsolidationStatus.ENTREGADO) {
-        await sql`
-          UPDATE packages SET status = 'ENTREGADO'
-          WHERE consolidation_id = ${row.id}
-            AND status != 'ENTREGADO'
-        `;
-      }
+      // La orden existe (se leyó arriba): sin fila es que otra pantalla la cambió entre medio.
+      if (!row) throw new StaleOrderError();
 
       await sql`COMMIT`;
       return { uuid: row.uuid, status: row.status };
@@ -508,6 +889,7 @@ export const ConsolidationsRepository = {
       FROM packages p
       JOIN customers c ON c.id = p.customer_id
       WHERE p.consolidation_id IS NULL
+        AND p.status = 'PANAMA'
       GROUP BY c.id, c.first_name, c.last_name, c.phone
       ORDER BY c.first_name ASC, c.last_name ASC
     `;
@@ -529,9 +911,16 @@ export const ConsolidationsRepository = {
       FROM packages p
       WHERE p.customer_id = ${customerUuid}
         AND p.consolidation_id IS NULL
+        AND p.status = 'PANAMA'
       ORDER BY p.created_at DESC
     `;
     return rows as AvailablePackage[];
+  },
+
+  /** Estado actual de la orden en la base; null si no existe. */
+  getStatusByUuid: async (uuid: string): Promise<ConsolidationStatus | null> => {
+    const [row] = await sql`SELECT status FROM consolidations WHERE uuid = ${uuid} LIMIT 1`;
+    return (row?.status as ConsolidationStatus | undefined) ?? null;
   },
 
   getConsolidationByPackageUuid: async (
@@ -553,8 +942,11 @@ export const ConsolidationsRepository = {
   unassignPackage: async (packageUuid: string, consolidationId: number): Promise<void> => {
     await sql`BEGIN`;
     try {
+      // Sin orden no hay envío en trámite: si ya había salido de Panamá, vuelve.
       await sql`
-        UPDATE packages SET consolidation_id = NULL
+        UPDATE packages
+        SET consolidation_id = NULL,
+            status = CASE WHEN status = 'EN_TRAMITE' THEN 'PANAMA' ELSE status END
         WHERE uuid = ${packageUuid}
       `;
 
@@ -583,19 +975,32 @@ export const ConsolidationsRepository = {
   },
 
   /**
-   * Agrega paquetes sueltos (sin orden) a una orden ya existente. Solo permitido en
-   * ABIERTO. Si existía una prefactura, se elimina — el peso cambia y el snapshot
-   * queda obsoleto (mismo criterio que unassignPackage).
+   * Agrega paquetes sueltos (sin orden) a una orden ya existente. Permitido en
+   * los pasos 1 (ABIERTO) y 2 (CERRADO, con estimado ya generado) — no en el
+   * paso 3 (DESPACHADO): el proveedor ya tiene el bulto solicitado con la
+   * lista de paquetes original, agregarle uno más ahí no tiene efecto real.
+   *
+   * En paso 1 no hay nada que invalidar (todavía no existe estimado). En paso
+   * 2 esta función solo actualiza el peso y devuelve `hadPreBilling`: es el
+   * service (ConsolidationsService.assignPackages) el que decide recalcular
+   * llamando a LogisticsService.generatePreBilling — generatePreBilling vive
+   * en el dominio de logistics.repo.ts, cruzar ese límite desde acá duplicaría
+   * la fórmula de cobro en vez de reusarla.
    */
-  assignPackages: async (consolidationUuid: string, packageUuids: string[]): Promise<void> => {
+  assignPackages: async (consolidationUuid: string, packageUuids: string[]): Promise<{ hadPreBilling: boolean }> => {
     await sql`BEGIN`;
     try {
       const [con] = await sql`
         SELECT id, customer_id, status FROM consolidations WHERE uuid = ${consolidationUuid} LIMIT 1
       `;
       if (!con) throw new Error('Orden de envío no encontrada.');
-      if (con.status !== 'ABIERTO') {
-        throw new Error('Solo se pueden agregar paquetes a una orden de envío en estado ABIERTO.');
+      if (con.status !== 'ABIERTO' && con.status !== 'CERRADO') {
+        throw new Error('Solo se pueden agregar paquetes en el paso de confirmación o de cobro de la orden de envío.');
+      }
+
+      const [existingBill] = await sql`SELECT 1 AS found FROM billing WHERE consolidation_id = ${con.id} LIMIT 1`;
+      if (existingBill) {
+        throw new Error('No se puede agregar paquetes: la orden ya tiene factura.');
       }
 
       const [mismatch] = await sql`
@@ -605,6 +1010,15 @@ export const ConsolidationsRepository = {
       `;
       if (parseInt(mismatch.mismatched, 10) > 0) {
         throw new Error('Todos los paquetes deben pertenecer al mismo cliente y no estar ya asignados a otra orden.');
+      }
+
+      const [notAvailable] = await sql`
+        SELECT COUNT(*) AS unavailable
+        FROM packages
+        WHERE uuid = ANY(${packageUuids}) AND status <> 'PANAMA'
+      `;
+      if (parseInt(notAvailable.unavailable, 10) > 0) {
+        throw new Error(NOT_ASSIGNABLE_PACKAGES_MESSAGE);
       }
 
       await sql`
@@ -619,9 +1033,16 @@ export const ConsolidationsRepository = {
         WHERE id = ${con.id}
       `;
 
-      await sql`
-        DELETE FROM pre_billing WHERE consolidation_id = ${con.id}
+      const [existingPreBilling] = await sql`
+        SELECT uuid FROM pre_billing WHERE consolidation_id = ${con.id} LIMIT 1
       `;
+      const hadPreBilling = !!existingPreBilling;
+
+      // Paso 1: nunca hay prefactura todavía, nada que borrar. Paso 2: NO se
+      // borra acá — el service recalcula en el lugar llamando a
+      // generatePreBilling, que hace el UPSERT con el peso nuevo dentro de su
+      // propia transacción. Borrarla acá dejaría una ventana sin prefactura si
+      // el recálculo del service fallara después de este COMMIT.
 
       // Mismo criterio que unassignPackage: cambió el peso, la participación
       // calculada sobre el estimado anterior deja de corresponder.
@@ -630,6 +1051,7 @@ export const ConsolidationsRepository = {
       `;
 
       await sql`COMMIT`;
+      return { hadPreBilling };
     } catch (error) {
       await sql`ROLLBACK`;
       throw error;

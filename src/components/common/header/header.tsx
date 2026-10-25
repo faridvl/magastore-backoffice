@@ -31,11 +31,11 @@ export function Header({
       <div className="h-full px-3 sm:px-6 flex items-center justify-between">
 
         {/* Sección Izquierda: Hamburger (mobile) + Título y Volver */}
-        <div className="flex items-center gap-3">
-          {onMenuToggle && (
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {onMenuToggle && !hasBackButton && (
             <button
               onClick={onMenuToggle}
-              className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="lg:hidden flex h-11 w-11 shrink-0 items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               <MenuIcon size={20} className="text-slate-500" />
             </button>
@@ -43,7 +43,7 @@ export function Header({
           {hasBackButton && (
             <button
               onClick={onBack}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
+              className="flex h-11 w-11 shrink-0 items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors group"
             >
               <ChevronLeft size={20} className="text-slate-500 group-hover:text-primary" />
             </button>
@@ -52,7 +52,7 @@ export function Header({
           {title && (
             <Typography
               variant={TypographyVariant.SUBTITLE}
-              className="text-slate-900 dark:text-white text-sm md:text-lg font-black truncate max-w-[120px] sm:max-w-[200px] md:max-w-none"
+              className="text-slate-900 dark:text-white min-w-0 flex-1 line-clamp-2 break-words leading-tight text-sm md:text-lg font-black"
             >
               {title}
             </Typography>
@@ -60,15 +60,15 @@ export function Header({
         </div>
 
         {/* Sección Derecha: Tracking y Usuario */}
-        <div className="flex items-center gap-1 sm:gap-3 md:gap-4">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3 md:gap-4">
 
           {/* BOTÓN DE TRACKING GLOBAL: Para consultas rápidas */}
           <button
             onClick={() => nav.admin.packages()} // O una ruta específica de búsqueda si la tienes
-            className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-600 dark:text-slate-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 p-2 sm:px-4 bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-600 dark:text-slate-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
           >
             <Search size={18} />
-            <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">Rastrear Paquete</span>
+            <span className="hidden md:inline text-sm font-semibold">Rastrear paquete</span>
           </button>
 
           {primaryAction && (
@@ -76,7 +76,7 @@ export function Header({
               variant={ButtonVariant.PRIMARY}
               text={primaryAction.label}
               onClick={primaryAction.onClick}
-              className="h-9 px-4 text-xs"
+              className="px-4 text-xs"
             />
           )}
 
@@ -84,23 +84,23 @@ export function Header({
 
           {/* User Dropdown Simplificado */}
           <Menu as="div" className="relative inline-block text-left">
-            <MenuButton className="flex items-center gap-3 outline-none group">
+            <MenuButton className="flex min-h-[44px] items-center gap-3 outline-none group">
               <div className="hidden md:flex flex-col items-end leading-tight">
                 <Typography variant={TypographyVariant.BODY_SEMIBOLD} className="text-[13px]">
                   {isLoading ? '...' : userName}
                 </Typography>
-                <Typography variant={TypographyVariant.CAPTION} className="text-primary uppercase font-black text-[9px]">
+                <Typography variant={TypographyVariant.CAPTION} className="text-primary font-semibold text-xs">
                   {userRole}
                 </Typography>
               </div>
               {/* Fondo oscuro: el isotipo es dorado y sobre el verde de
                   `bg-primary` perdía contraste. */}
-              <div className="h-10 w-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-md overflow-hidden shrink-0">
+              <div className="h-11 w-11 rounded-xl bg-neutral-900 flex items-center justify-center shadow-md overflow-hidden shrink-0">
                 <Image
-                  src="/logo/magastore-isotipo-2026.png"
+                  src="/logo/magastore-isotipo-transparente.png"
                   alt={userName}
-                  width={741}
-                  height={485}
+                  width={400}
+                  height={289}
                   className="h-full w-full object-contain p-1.5"
                 />
               </div>

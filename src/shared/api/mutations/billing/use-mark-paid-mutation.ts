@@ -4,6 +4,7 @@ import { useApiMutation } from '../use-api-mutation';
 import { env } from '../../config';
 import { MarkPaidInput, BillingListItem } from '@/types/logistics/logistics.types';
 import { BILLING_LIST_KEY } from '../../querys/billing/use-billing-list-query';
+import { OPERATIONS_STATS_KEY } from '../../querys/dashboard/use-operations-query';
 
 export function useMarkPaidMutation() {
   const queryClient = useQueryClient();
@@ -14,10 +15,11 @@ export function useMarkPaidMutation() {
     Error
   >({
     mutationKey: ['markBillingPaid'],
-    mutationFn: ({ billingUuid }: MarkPaidInput) =>
-      ApiServiceClient(env.API.BASE_URL).patch(`/billing?uuid=${billingUuid}`, {}),
+    mutationFn: ({ billingUuid, paymentMethod }: MarkPaidInput) =>
+      ApiServiceClient(env.API.BASE_URL).patch(`/billing?uuid=${billingUuid}`, { paymentMethod }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [BILLING_LIST_KEY] });
+      queryClient.invalidateQueries({ queryKey: [OPERATIONS_STATS_KEY] });
     },
   });
 

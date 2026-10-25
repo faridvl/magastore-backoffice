@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ConsolidationsService } from '@/shared/api/services/consolidations.service';
+import { StaleOrderError } from '@/shared/api/stale-order-error';
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
+import { isUuid } from '@/shared/utils/is-uuid';
+import { getActor } from '@/shared/api/get-actor';
+
+const INVALID_CUSTOMER_MESSAGE = 'El identificador del cliente es inválido.';
+const INVALID_UUID_MESSAGE = 'El identificador de la orden de envío es inválido.';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const context = { req, res } as any;
@@ -16,9 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      const { uuid, page, limit, search, status, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
+      const { uuid, page, limit, search, step, paid, notified, availablePackages, dateFrom, dateTo, action, customerUuid, customersWithAvailablePackages } = req.query;
 
       if (action === 'check-open' && customerUuid) {
+        if (!isUuid(customerUuid)) return res.status(400).json({ message: INVALID_CUSTOMER_MESSAGE });
         const existing = await ConsolidationsService.getOpenConsolidationForCustomer(customerUuid as string);
         return res.status(200).json(
           existing
@@ -28,11 +36,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (uuid) {
+        if (!isUuid(uuid)) return res.status(400).json({ message: INVALID_UUID_MESSAGE });
         const detail = await ConsolidationsService.getConsolidationDetail(uuid as string);
         return res.status(200).json({ data: detail });
       }
 
       if (availablePackages) {
+        if (!isUuid(availablePackages)) return res.status(400).json({ message: INVALID_CUSTOMER_MESSAGE });
         const packages = await ConsolidationsService.getAvailablePackages(availablePackages as string);
         return res.status(200).json({ data: packages });
       }
@@ -42,13 +52,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: customers });
       }
 
-      const p = parseInt(page as string) || 1;
-      const l = parseInt(limit as string) || 10;
+      const p = Math.max(parseInt(page as string) || 1, 1);
+      const l = Math.max(parseInt(limit as string) || 10, 1);
       const result = await ConsolidationsService.listConsolidations(
         p,
         l,
         search as string | undefined,
-        status as string | undefined,
+        step as string | undefined,
+        paid as string | undefined,
+        notified as string | undefined,
         dateFrom as string | undefined,
         dateTo as string | undefined,
       );
@@ -56,24 +68,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'POST') {
-      const { customerUuid, packageUuids, deliveryAddressId, deliveryMethod } = req.body;
+      const { customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId } = req.body;
       if (!customerUuid) {
         return res.status(400).json({ message: 'customerUuid es requerido.' });
       }
       const consolidation = packageUuids?.length
-        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod)
+        ? await ConsolidationsService.createConsolidationWithPackages(customerUuid, packageUuids, deliveryAddressId, deliveryMethod, recipientId ?? null)
         : await ConsolidationsService.createConsolidation(customerUuid);
       return res.status(201).json({ data: consolidation });
     }
 
     if (req.method === 'PATCH') {
-      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode } = req.body;
+      const { action, consolidationUuid, newStatus, currentStatus, addressId, packageUuids, deliveryMethod, trackingCode, actualDeliveryFeeCrc } = req.body;
+      if (consolidationUuid !== undefined && !isUuid(consolidationUuid)) {
+        return res.status(400).json({ message: INVALID_UUID_MESSAGE });
+      }
 
       if (action === 'set-delivery-address') {
         if (!consolidationUuid || !addressId) {
           return res.status(400).json({ message: 'consolidationUuid y addressId son requeridos.' });
         }
+        if (!isUuid(addressId)) return res.status(400).json({ message: 'El identificador de la dirección es inválido.' });
         await ConsolidationsService.setDeliveryAddress(consolidationUuid, addressId);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      // null o vacío = recibe el propio cliente.
+      if (action === 'set-recipient') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.setRecipient(consolidationUuid, req.body.recipientId || null);
         return res.status(200).json({ data: { updated: true } });
       }
 
@@ -101,6 +126,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { notified: true } });
       }
 
+      // Paso 3: solicitud de envío copiada al proveedor.
+      if (action === 'mark-shipment-requested') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markShipmentRequested(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      // Paso 3: aviso al cliente de que su envío fue solicitado.
+      if (action === 'mark-customer-notified-shipment') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markCustomerNotifiedShipment(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      // Postventa (orden finalizada): seguimiento y, después, reseña.
+      if (action === 'mark-follow-up-sent') {
+        await ConsolidationsService.markFollowUpSent(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'mark-review-requested') {
+        await ConsolidationsService.markReviewRequested(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
       // Registrar o corregir la guía después del despacho. Separado de la
       // transición de estado porque no siempre se conoce en ese momento.
       if (action === 'set-tracking-code') {
@@ -111,6 +165,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ data: { updated: true } });
       }
 
+      // Paso 4 (Cierre): ajuste del costo real de envío.
+      if (action === 'set-actual-delivery-fee') {
+        if (!consolidationUuid || actualDeliveryFeeCrc == null) {
+          return res.status(400).json({ message: 'consolidationUuid y actualDeliveryFeeCrc son requeridos.' });
+        }
+        const result = await ConsolidationsService.setActualDeliveryFee(consolidationUuid, Number(actualDeliveryFeeCrc));
+        return res.status(200).json({ data: result });
+      }
+
+      if (action === 'mark-change-returned') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.markChangeReturned(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'advance-to-closing') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        await ConsolidationsService.advanceToClosing(consolidationUuid);
+        return res.status(200).json({ data: { updated: true } });
+      }
+
+      if (action === 'finalize') {
+        if (!consolidationUuid) {
+          return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        // Finalizar le escribe al cliente: exige una sesión verificada, no solo que exista la cookie.
+        if (!(await getActor({ req, res }))) {
+          return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
+        }
+        await ConsolidationsService.finalizeOrder(consolidationUuid);
+        return res.status(200).json({ data: { finalized: true } });
+      }
+
       if (!consolidationUuid || !newStatus || !currentStatus) {
         return res.status(400).json({ message: 'consolidationUuid, newStatus y currentStatus son requeridos.' });
       }
@@ -118,7 +209,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         consolidationUuid,
         newStatus as ConsolidationStatus,
         currentStatus as ConsolidationStatus,
-        trackingCode ?? null,
+        typeof trackingCode === 'string' ? trackingCode.trim() || null : null,
       );
       return res.status(200).json({ data: updated });
     }
@@ -128,11 +219,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (action === 'unassign-package') {
         if (!packageUuid) return res.status(400).json({ message: 'packageUuid es requerido.' });
+        if (!isUuid(packageUuid)) return res.status(400).json({ message: 'El identificador del paquete es inválido.' });
         await ConsolidationsService.unassignPackage(packageUuid);
         return res.status(200).json({ data: { unassigned: true } });
       }
 
       if (!uuid) return res.status(400).json({ message: 'uuid es requerido.' });
+      if (!isUuid(uuid)) return res.status(400).json({ message: INVALID_UUID_MESSAGE });
       await ConsolidationsService.deleteConsolidation(uuid);
       return res.status(200).json({ data: { deleted: true } });
     }
@@ -140,8 +233,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Método no permitido.' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error interno del servidor.';
-    const status = message.includes('no encontrad') ? 404
-      : message.includes('inválida') || message.includes('requerido') ? 400
+    // Las reglas de negocio ("Solo se puede…", "No se puede…") son conflictos de estado, no fallas del servidor.
+    const status = error instanceof StaleOrderError || error instanceof EmptyOrderError ? 409
+      : message.includes('no encontrad') ? 404
+      : message.includes('inválid') || message.includes('requerid') ? 400
+      : /^(solo|no) se puede/i.test(message) ? 409
       : 500;
     return res.status(status).json({ message });
   }

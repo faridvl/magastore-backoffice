@@ -8,10 +8,10 @@ import { SettingsContainer } from '@/components/containers/settings-container/se
 const SettingsPage: React.FC = () => {
     return (
         <>
-            <Head><title>Configuración | Magastore</title></Head>
+            <Head><title>Tarifas | Magastore</title></Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Configuración del Sistema"
+                title="Tarifas"
             >
                 <SettingsContainer />
             </DashboardLayout>

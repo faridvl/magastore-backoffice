@@ -1,10 +1,12 @@
+import { formatBusinessDateTime } from '@/shared/utils/timezone';
 import { usePackageDetailQuery } from '@/shared/api/querys/logistics/find-one-package-query';
 import { useUpdatePackageWeightMutation } from '@/shared/api/mutations/logistics/use-update-package-weight-mutation';
 import { useUpdatePackageStatusMutation } from '@/shared/api/mutations/logistics/use-update-package-status-mutation';
 import { useSettingsQuery } from '@/shared/api/querys/settings/use-settings-query';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { PackageStatus } from '@/types/logistics/logistics.types';
+import { ConsolidationPaymentStatus, PackageStatus } from '@/types/logistics/logistics.types';
+import { PAYMENT_STATUS_LABEL } from '@/shared/constants/status-labels';
 
 export const usePackageDetailContainer = (uuid?: string) => {
   const [isEditingFinancial, setIsEditingFinancial] = useState(false);
@@ -29,12 +31,13 @@ export const usePackageDetailContainer = (uuid?: string) => {
     peso: 0,
     estadoPaquete: '---',
     observaciones: '',
+    consolidationUuid: null as string | null,
     cliente: '—',
     casillero: '—',
     tarifaXLibre: 6,
     tipoCambio: 480,
     costoEnvioCorreos: 4500,
-    estadoPago: 'PENDIENTE',
+    estadoPago: PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO],
     totalFacturado: null as number | null,
     deliveryMethod: null as string | null,
     deliveryFeeCrc: null as number | null,
@@ -62,12 +65,15 @@ export const usePackageDetailContainer = (uuid?: string) => {
         tracking:       apiData.tracking_number || '(Sin tracking)',
         peso:           apiData.weight_lb ? parseFloat(apiData.weight_lb) : prev.peso,
         estadoPaquete:  apiData.status || prev.estadoPaquete,
-        observaciones:  apiData.internal_notes || 'Sin notas internas.',
+        observaciones:  apiData.internal_notes ?? '',
+        consolidationUuid: apiData.consolidation_uuid ?? null,
         cliente:        apiData.first_name && apiData.last_name
                           ? `${apiData.first_name} ${apiData.last_name}`
                           : prev.cliente,
         casillero:      apiData.customer_code || prev.casillero,
-        estadoPago:          apiData.is_paid === true ? 'PAGADO' : apiData.is_paid === false ? 'PENDIENTE' : 'SIN FACTURA',
+        estadoPago:          apiData.is_paid === true
+                          ? PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PAGADO]
+                          : PAYMENT_STATUS_LABEL[ConsolidationPaymentStatus.PENDIENTE_PAGO],
         totalFacturado:      apiData.total_amount_crc ?? null,
         deliveryMethod:      apiData.delivery_method ?? null,
         deliveryFeeCrc:      apiData.delivery_fee_crc ?? null,
@@ -101,13 +107,10 @@ export const usePackageDetailContainer = (uuid?: string) => {
     if (!apiData?.events) return [];
     return apiData.events.map((e: any) => ({
       id: e.id,
-      fecha: new Date(e.created_at).toLocaleString('es-CR', { timeZone: 'America/Costa_Rica',
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      }),
+      fecha: formatBusinessDateTime(e.created_at),
       estado:   e.status,
       nota:     e.description,
-      location: e.location || 'No especificada',
+      location: e.location ?? '',
     }));
   }, [apiData]);
 
@@ -172,12 +175,25 @@ export const usePackageDetailContainer = (uuid?: string) => {
   };
 
   const tieneFactura = data.totalFacturado !== null;
+  // En trámite solo tiene sentido con una orden: sin ella el servidor lo rechaza.
+  const hasOrder = !!apiData?.consolidation_uuid;
+  const knownStatuses: string[] = Object.values(PackageStatus);
+  const isKnownStatus = knownStatuses.includes(data.estadoPaquete);
+  // Un estado viejo (fuera del enum) se muestra igual para que se vea qué tiene y se pueda corregir.
+  const statusOptions: string[] = [
+    ...(!isKnownStatus && data.estadoPaquete !== '---' ? [data.estadoPaquete] : []),
+    ...knownStatuses.filter(
+      (s) => s !== PackageStatus.EN_TRAMITE || hasOrder || data.estadoPaquete === PackageStatus.EN_TRAMITE,
+    ),
+  ];
 
   return {
     data,
+    orderStep: apiData?.consolidation_step ?? null,
     bitacora,
     calculos,
     tieneFactura,
+    statusOptions,
     isLoading: !uuid || isLoadingPackage,
     isError,
     error,

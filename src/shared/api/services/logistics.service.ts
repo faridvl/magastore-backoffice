@@ -1,6 +1,9 @@
+import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { LogisticsRepository } from '../repositories/logistics.repo';
 import {
   PackageStatus,
+  ConsolidationStatus,
+  ShipmentOrderStep,
   PackageInput,
   Package,
   Consolidation,
@@ -8,10 +11,109 @@ import {
   PreBilling,
   DeliveryMethod,
 } from '@/types/logistics/logistics.types';
+import {
+  PublicTrackingEvent,
+  PublicTrackingResult,
+  PublicTrackingStatus,
+} from '@/types/logistics/public-tracking.types';
 import { PaginatedResponse } from '@/types/paginate.types';
-import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
+import type { Actor } from '@/shared/api/get-actor';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
+
+// DESPACHADO existe en el check de la tabla pero no en el enum: se trata igual que EN_TRAMITE.
+const PACKAGE_STATUS_DISPATCHED = 'DESPACHADO';
+const IN_TRANSIT_PACKAGE_STATUSES: ReadonlySet<string> = new Set([
+  PackageStatus.EN_TRAMITE,
+  PACKAGE_STATUS_DISPATCHED,
+]);
+
+// Solo para los eventos de la bitácora; el estado del paquete se decide en toPublicTracking.
+const PUBLIC_TRACKING_STATUS: Record<string, PublicTrackingStatus> = {
+  [PackageStatus.PANAMA]: PublicTrackingStatus.RECEIVED,
+  [PackageStatus.EN_TRAMITE]: PublicTrackingStatus.EN_TRAMITE,
+  [PACKAGE_STATUS_DISPATCHED]: PublicTrackingStatus.EN_TRAMITE,
+  [PackageStatus.ENTREGADO]: PublicTrackingStatus.ENTREGADO,
+};
+
+/**
+ * Proyección del rastreo sin sesión: el cliente no debe enterarse de dónde está la
+ * bodega, y las notas, la evidencia y la ubicación de los eventos son del operador.
+ * Quien tenga el número ve solo el nombre y la inicial del apellido, sin uuid ni código.
+ */
+function toPublicTracking(row: {
+  tracking_number: string;
+  status: string;
+  weight_lb: number;
+  arrival_date: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  consolidation_id: number | string | null;
+  consolidation_status: string | null;
+  consolidation_tracking_code: string | null;
+  consolidation_step: number | string | null;
+  events: Array<{ status: string; created_at: string }> | null;
+}): PublicTrackingResult {
+  // Regla del estado público (sin migrar datos viejos; la orden manda sobre el paquete):
+  // - ENTREGADO: entregado.
+  // - EN_TRAMITE o DESPACHADO: sin orden, en camino; con orden, en camino solo si la orden ya salió
+  //   (despachada o entregada), si no "preparando" (antes los paquetes pasaban a EN_TRAMITE al pagar).
+  // - PANAMA: sin orden, recibido; con orden, "preparando", salvo que la orden esté despachada y
+  //   tenga guía o ya esté en el paso 4 o más (datos viejos: la orden salió sin mover el paquete).
+  // - Cualquier otro estado: con orden "preparando", sin orden recibido.
+  const hasOrder = row.consolidation_id != null;
+  const orderDispatched =
+    row.consolidation_status === ConsolidationStatus.DESPACHADO ||
+    row.consolidation_status === ConsolidationStatus.ENTREGADO;
+  const orderLeft =
+    orderDispatched &&
+    (!!row.consolidation_tracking_code || Number(row.consolidation_step) >= ShipmentOrderStep.NOTIFICACION);
+
+  let publicStatus: PublicTrackingStatus;
+  if (row.status === PackageStatus.ENTREGADO) {
+    publicStatus = PublicTrackingStatus.ENTREGADO;
+  } else if (IN_TRANSIT_PACKAGE_STATUSES.has(row.status)) {
+    publicStatus = !hasOrder || orderDispatched ? PublicTrackingStatus.EN_TRAMITE : PublicTrackingStatus.PREPARING;
+  } else if (!hasOrder) {
+    publicStatus = PublicTrackingStatus.RECEIVED;
+  } else {
+    publicStatus =
+      row.status === PackageStatus.PANAMA && orderLeft
+        ? PublicTrackingStatus.EN_TRAMITE
+        : PublicTrackingStatus.PREPARING;
+  }
+
+  // Si el paquete no va en camino (volvió a Panamá o su orden no salió), el historial público no
+  // muestra un "en camino" que ya no es cierto.
+  const hidesInTransitEvents =
+    publicStatus === PublicTrackingStatus.RECEIVED || publicStatus === PublicTrackingStatus.PREPARING;
+  const events: PublicTrackingEvent[] = [];
+  for (const event of row.events ?? []) {
+    if (hidesInTransitEvents && IN_TRANSIT_PACKAGE_STATUSES.has(event.status)) continue;
+    const status = PUBLIC_TRACKING_STATUS[event.status];
+    if (status) events.push({ status, created_at: event.created_at });
+  }
+
+  const lastInitial = row.last_name?.trim().charAt(0).toUpperCase();
+  const customerName = [row.first_name?.trim(), lastInitial ? `${lastInitial}.` : '']
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    tracking_number: row.tracking_number,
+    status: publicStatus,
+    weight_lb: row.weight_lb,
+    arrival_date: row.arrival_date,
+    customer_name: customerName || null,
+    events,
+  };
+}
+
+const PACKAGE_NOT_FOUND_MESSAGE = 'No encontramos ese número. Revisa que esté bien escrito.';
+const PACKAGE_AMBIGUOUS_MESSAGE = 'Hay varios paquetes con un número parecido. Escríbelo exacto.';
+
+export class PackageNotFoundError extends Error {}
+export class PackageAmbiguousError extends Error {}
 
 /**
  * El cliente no tiene casillero en la ruta del courier elegido. Se distingue de
@@ -165,7 +267,7 @@ export const LogisticsService = {
   /**
    * Búsqueda pública por tracking_number. Usada en /tracking sin autenticación.
    */
-  getPackageByTrackingNumber: async (trackingNumber: string): Promise<any> => {
+  getPackageByTrackingNumber: async (trackingNumber: string): Promise<PublicTrackingResult> => {
     const clean = trackingNumber?.trim();
     if (!clean) throw new Error('El número de tracking es requerido.');
 
@@ -175,7 +277,7 @@ export const LogisticsService = {
       throw new Error('No se encontró ningún paquete con ese número de tracking.');
     }
 
-    return packageData;
+    return toPublicTracking(packageData);
   },
 
   /**
@@ -183,12 +285,15 @@ export const LogisticsService = {
    */
   lookupPackageByTracking: async (trackingNumber: string): Promise<any> => {
     const clean = trackingNumber?.trim();
-    if (!clean) throw new Error('El número de tracking es requerido.');
+    if (!clean) throw new PackageNotFoundError(PACKAGE_NOT_FOUND_MESSAGE);
 
     const packageData = await LogisticsRepository.getPackageDetailByTracking(clean);
 
     if (!packageData) {
-      throw new Error('No se encontró ningún paquete con ese número de tracking.');
+      throw new PackageNotFoundError(PACKAGE_NOT_FOUND_MESSAGE);
+    }
+    if ('ambiguous' in packageData) {
+      throw new PackageAmbiguousError(PACKAGE_AMBIGUOUS_MESSAGE);
     }
 
     return packageData;
@@ -252,29 +357,17 @@ export const LogisticsService = {
     try {
       return await LogisticsRepository.generatePreBilling(consolidationUuid, deliveryMethod);
     } catch (error: any) {
+      if (error instanceof EmptyOrderError) throw error;
       console.error('[LogisticsService.generatePreBilling]:', error);
       throw new Error(error.message || 'Error al generar la prefactura.');
     }
   },
 
-  confirmPreBilling: async (consolidationUuid: string): Promise<{ billing_uuid: string }> => {
+  confirmPreBilling: async (consolidationUuid: string, actor: Actor): Promise<{ billing_uuid: string }> => {
     try {
-      const result = await LogisticsRepository.confirmPreBilling(consolidationUuid);
-      const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
-      if (customerInfo) {
-        const [billing] = await Promise.resolve([result]);
-        if (billing?.billing_uuid) {
-          const { sendInvoiceNotification } = await import('@/lib/email');
-          sendInvoiceNotification({
-            to: customerInfo.email,
-            firstName: customerInfo.first_name,
-            totalAmountCRC: 0,
-            billingUuid: billing.billing_uuid,
-          }).catch((err) => console.error('[Email] Error enviando notificación de factura:', err));
-        }
-      }
-      return result;
+      return await LogisticsRepository.confirmPreBilling(consolidationUuid, actor);
     } catch (error: any) {
+      if (error instanceof EmptyOrderError) throw error;
       console.error('[LogisticsService.confirmPreBilling]:', error);
       throw new Error(error.message || 'Error al confirmar la prefactura.');
     }
@@ -322,19 +415,6 @@ export const LogisticsService = {
         evidenceUrl,
         location,
       );
-
-      if (status === PackageStatus.ENTREGADO) {
-        const customerInfo = await LogisticsRepository.getPackageCustomerInfo(uuid);
-        if (customerInfo) {
-          sendDeliveryNotification({
-            to: customerInfo.email,
-            firstName: customerInfo.first_name,
-            trackingNumber: customerInfo.tracking_number,
-          }).catch((err) =>
-            console.error('[Email] Error enviando notificación de entrega:', err),
-          );
-        }
-      }
 
       return updatedPackage;
     } catch (error: any) {

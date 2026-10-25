@@ -1,46 +1,81 @@
-interface DeliveryEmailData {
+import { BUSINESS_WHATSAPP_HREF } from '@/shared/constants/contact';
+import { formatCrc } from '@/shared/utils/format-crc';
+
+export interface InvoiceEmailData {
   firstName: string;
-  trackingNumber: string;
+  orderCode: string;
+  totalAmountCRC: number;
+  invoiceNumber: number;
+  /** Cómo pagó, p. ej. "SINPE Móvil"; la fecha ya viene formateada en hora de Costa Rica. */
+  paymentMethodLabel?: string | null;
+  paidAtLabel?: string | null;
   logoUrl?: string;
 }
 
-interface InvoiceEmailData {
-  firstName: string;
-  totalAmountCRC: number;
-  billingUuid: string;
-  logoUrl?: string;
+// Los correos llevan estilos en línea (no hay Tailwind ahí). Paleta de la marca: negro, dorado y
+// el dorado legible sobre blanco.
+const COLOR = {
+  page: '#f7f7f7',
+  card: '#ffffff',
+  dark: '#111111',
+  onDark: '#f7f7f7',
+  gold: '#ffcd3c',
+  goldReadable: '#b58a00',
+  text: '#111111',
+  muted: '#475569',
+  line: '#e7e7e7',
+} as const;
+
+const FONT = "Montserrat,-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+const PUBLIC_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://magastorecr.com').replace(/\/+$/, '');
+// Logo dorado sobre negro (ya trae "Compras por internet"); es de los que responden hoy en producción.
+const DEFAULT_LOGO_URL = `${PUBLIC_SITE_URL}/logo/magastore-logo-2026.png`;
+const INVOICE_NUMBER_DIGITS = 4;
+const LOGO_WIDTH_PX = 160;
+const LOGO_HEIGHT_PX = 102;
+const BUTTON_HEIGHT_PX = 44;
+
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+export function formatInvoiceNumber(invoiceNumber: number): string {
+  return `F-${String(invoiceNumber).padStart(INVOICE_NUMBER_DIGITS, '0')}`;
+}
+
+export function buildInvoiceSubject(invoiceNumber: number): string {
+  return `Tu factura ${formatInvoiceNumber(invoiceNumber)} de Magastore está pagada`;
 }
 
 function buildHeader(logoUrl?: string): string {
-  const logo = logoUrl
-    ? `<img src="${logoUrl}" alt="Magastore" style="max-height:56px;max-width:200px;" />`
-    : `<span style="color:#ffffff;font-size:24px;font-weight:800;letter-spacing:3px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">MAGASTORE</span>`;
-
   return `
     <tr>
-      <td style="background:linear-gradient(135deg,#1a2744 0%,#1e3a5f 100%);padding:32px 40px;border-radius:12px 12px 0 0;text-align:center;">
-        ${logo}
-        <p style="margin:10px 0 0;color:#93c5fd;font-size:12px;letter-spacing:1px;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Courier &amp; Logistics</p>
+      <td style="background-color:${COLOR.dark};padding:24px;border-radius:12px 12px 0 0;border-bottom:4px solid ${COLOR.gold};text-align:center;">
+        <img src="${escapeHtml(logoUrl || DEFAULT_LOGO_URL)}" alt="Magastore" width="${LOGO_WIDTH_PX}" height="${LOGO_HEIGHT_PX}" style="display:block;margin:0 auto;width:100%;max-width:${LOGO_WIDTH_PX}px;height:auto;border:0;color:${COLOR.onDark};font-size:22px;font-weight:700;font-family:${FONT};" />
       </td>
     </tr>`;
 }
 
 function buildFooter(): string {
-  const year = new Date().getFullYear();
   return `
     <tr>
-      <td style="background-color:#f8fafc;padding:24px 40px;border-radius:0 0 12px 12px;border-top:1px solid #e2e8f0;text-align:center;">
-        <p style="margin:0;color:#94a3b8;font-size:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Este es un mensaje automático. Por favor no respondas a este correo.
-        </p>
-        <p style="margin:8px 0 0;color:#cbd5e1;font-size:11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          &copy; ${year} Magastore &middot; Todos los derechos reservados
+      <td style="background-color:${COLOR.card};padding:20px 24px 24px;border-radius:0 0 12px 12px;border-top:1px solid ${COLOR.line};text-align:center;">
+        <p style="margin:0;color:${COLOR.muted};font-size:13px;line-height:1.5;font-family:${FONT};">
+          Mensaje automático de Magastore.
         </p>
       </td>
     </tr>`;
 }
 
-function wrapInLayout(rows: string): string {
+function wrapInLayout(rows: string, preheader: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -48,8 +83,9 @@ function wrapInLayout(rows: string): string {
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Magastore</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f1f5f9;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:${COLOR.page};">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(preheader)}</div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:${COLOR.page};padding:24px 12px;">
     <tr>
       <td align="center">
         <table cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
@@ -62,104 +98,73 @@ function wrapInLayout(rows: string): string {
 </html>`;
 }
 
-export function renderDeliveryEmail(data: DeliveryEmailData): string {
-  const rows = `
-    ${buildHeader(data.logoUrl)}
-    <tr>
-      <td style="background-color:#ffffff;padding:48px 40px;">
-        <p style="margin:0 0 6px;color:#3b82f6;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Notificación de entrega
-        </p>
-        <h1 style="margin:0 0 24px;color:#0f172a;font-size:28px;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          ¡Tu paquete llegó!
-        </h1>
+function buildEyebrow(text: string): string {
+  return `<p style="margin:0 0 6px;color:${COLOR.goldReadable};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;font-family:${FONT};">${text}</p>`;
+}
 
-        <p style="margin:0 0 32px;color:#475569;font-size:16px;line-height:1.7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Hola <strong style="color:#0f172a;">${data.firstName}</strong>, tu paquete ha sido marcado como
-          <strong style="color:#16a34a;">entregado</strong> exitosamente.
-        </p>
+function buildTitle(text: string): string {
+  return `<h1 style="margin:0 0 16px;color:${COLOR.text};font-size:26px;line-height:1.25;font-weight:800;font-family:${FONT};">${text}</h1>`;
+}
 
-        <table cellpadding="0" cellspacing="0" style="width:100%;border-radius:10px;border:1px solid #dbeafe;background-color:#eff6ff;margin-bottom:36px;">
-          <tr>
-            <td style="padding:20px 24px;">
-              <p style="margin:0 0 6px;color:#60a5fa;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                Número de tracking
-              </p>
-              <p style="margin:0;color:#1e3a8a;font-size:22px;font-weight:800;font-family:ui-monospace,'Cascadia Code','Courier New',monospace;">
-                ${data.trackingNumber}
-              </p>
-            </td>
-          </tr>
-        </table>
-
-        <table cellpadding="0" cellspacing="0" style="width:100%;background-color:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;">
-          <tr>
-            <td style="padding:16px 24px;display:flex;align-items:center;">
-              <p style="margin:0;color:#15803d;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                ✓&nbsp;&nbsp;Entrega confirmada por el equipo de Magastore
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    ${buildFooter()}`;
-
-  return wrapInLayout(rows);
+function buildParagraph(html: string, bottomPx = 24): string {
+  return `<p style="margin:0 0 ${bottomPx}px;color:${COLOR.muted};font-size:16px;line-height:1.6;font-family:${FONT};">${html}</p>`;
 }
 
 export function renderInvoiceEmail(data: InvoiceEmailData): string {
-  const formatted = new Intl.NumberFormat('es-CR', {
-    style: 'currency',
-    currency: 'CRC',
-    minimumFractionDigits: 0,
-  }).format(data.totalAmountCRC);
+  const formatted = formatCrc(data.totalAmountCRC);
+  const invoiceLabel = formatInvoiceNumber(data.invoiceNumber);
+  const firstName = escapeHtml(data.firstName);
+  const orderCode = escapeHtml(data.orderCode);
+  const paymentLine = [data.paymentMethodLabel, data.paidAtLabel]
+    .filter((part): part is string => !!part && part !== '—')
+    .map(escapeHtml)
+    .join(' · ');
 
   const rows = `
     ${buildHeader(data.logoUrl)}
     <tr>
-      <td style="background-color:#ffffff;padding:48px 40px;">
-        <p style="margin:0 0 6px;color:#3b82f6;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Factura lista
-        </p>
-        <h1 style="margin:0 0 24px;color:#0f172a;font-size:28px;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Resumen de cobro
-        </h1>
+      <td style="background-color:${COLOR.card};padding:32px 24px;">
+        ${buildEyebrow(`Factura ${invoiceLabel}`)}
+        ${buildTitle('¡Gracias por tu pago!')}
+        ${buildParagraph(
+          `Hola <strong style="color:${COLOR.text};">${firstName}</strong>, recibimos el pago de tu envío #${orderCode}.`,
+          16,
+        )}
 
-        <p style="margin:0 0 32px;color:#475569;font-size:16px;line-height:1.7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Hola <strong style="color:#0f172a;">${data.firstName}</strong>, hemos generado tu factura.
-          Por favor coordina el pago con tu operador asignado.
-        </p>
-
-        <table cellpadding="0" cellspacing="0" style="width:100%;border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:32px;">
+        <table cellpadding="0" cellspacing="0" style="width:100%;border-radius:10px;background-color:${COLOR.dark};margin-bottom:12px;">
           <tr>
-            <td style="background-color:#1a2744;padding:24px;text-align:center;">
-              <p style="margin:0 0 4px;color:#93c5fd;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                Total a pagar
+            <td style="padding:20px 16px;text-align:center;">
+              <p style="margin:0 0 4px;color:${COLOR.gold};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:${FONT};">
+                Total pagado
               </p>
-              <p style="margin:0;color:#ffffff;font-size:36px;font-weight:800;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+              <p style="margin:0;color:${COLOR.gold};font-size:30px;font-weight:800;white-space:nowrap;font-family:${FONT};">
                 ${formatted}
               </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background-color:#f8fafc;padding:16px 24px;border-top:1px solid #e2e8f0;">
-              <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                Referencia de factura
-              </p>
-              <p style="margin:0;color:#475569;font-size:13px;font-family:ui-monospace,'Cascadia Code','Courier New',monospace;">
-                ${data.billingUuid}
-              </p>
+              ${
+                paymentLine
+                  ? `<p style="margin:8px 0 0;color:${COLOR.onDark};font-size:14px;line-height:1.5;font-family:${FONT};">${paymentLine}</p>`
+                  : ''
+              }
             </td>
           </tr>
         </table>
 
-        <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-          Si tienes alguna consulta sobre esta factura, comunícate con nuestro equipo de soporte.
+        <p style="margin:0 0 24px;color:${COLOR.muted};font-size:14px;line-height:1.5;font-family:${FONT};">
+          Envío #${orderCode} · Factura ${invoiceLabel}
         </p>
+
+        ${buildParagraph('¿Alguna duda?', 16)}
+
+        <table cellpadding="0" cellspacing="0" style="width:100%;">
+          <tr>
+            <td style="background-color:${COLOR.dark};border-radius:8px;text-align:center;">
+              <a href="${escapeHtml(BUSINESS_WHATSAPP_HREF)}" style="display:block;box-sizing:border-box;min-height:${BUTTON_HEIGHT_PX}px;padding:12px 16px;line-height:20px;color:${COLOR.onDark};font-size:16px;font-weight:700;text-decoration:none;font-family:${FONT};">Escríbenos por WhatsApp</a>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
     ${buildFooter()}`;
 
-  return wrapInLayout(rows);
+  return wrapInLayout(rows, `Total pagado ${formatted} · Envío #${data.orderCode}`);
 }

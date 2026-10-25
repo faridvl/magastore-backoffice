@@ -21,9 +21,10 @@ export const DashboardRepository = {
       recentPackagesResult,
       revenueByMonthResult,
       topCustomersResult,
+      monthlyProfitResult,
     ] = await Promise.all([
       sql`
-        SELECT COUNT(*)::int AS count
+        SELECT COUNT(*)::int AS count, COALESCE(SUM(weight_lb), 0)::numeric AS weight_lb
         FROM packages
         WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
             = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica')
@@ -48,11 +49,9 @@ export const DashboardRepository = {
           p.tracking_number,
           p.status,
           p.created_at,
-          c.first_name || ' ' || c.last_name AS customer_name,
-          b.total_amount_crc
+          TRIM(COALESCE(c.first_name,'') || ' ' || COALESCE(c.last_name,'')) AS customer_name
         FROM packages p
         LEFT JOIN customers c ON p.customer_id = c.id
-        LEFT JOIN billing b ON b.consolidation_id = p.consolidation_id
         ORDER BY p.created_at DESC
         LIMIT 5
       `,
@@ -70,7 +69,8 @@ export const DashboardRepository = {
       `,
       sql`
         SELECT
-          c.first_name || ' ' || c.last_name AS name,
+          c.id::text AS id,
+          TRIM(COALESCE(c.first_name,'') || ' ' || COALESCE(c.last_name,'')) AS name,
           SUM(b.total_amount_crc)::bigint AS total
         FROM billing b
         JOIN consolidations con ON b.consolidation_id = con.id
@@ -79,6 +79,27 @@ export const DashboardRepository = {
         GROUP BY c.id, c.first_name, c.last_name
         ORDER BY total DESC
         LIMIT 4
+      `,
+      // Misma fuente que Reportes: ganancia por fecha de emisión de la factura y
+      // participación solo FACTURADO (la de estimados todavía no es plata real).
+      sql`
+        SELECT
+          (SELECT COALESCE(SUM(profit_crc), 0) FROM billing
+            WHERE date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica'))::numeric AS profit_crc,
+          (SELECT COUNT(*) FROM billing
+            WHERE has_unknown_cost
+              AND date_trunc('month', created_at AT TIME ZONE 'America/Costa_Rica')
+                = date_trunc('month', NOW() AT TIME ZONE 'America/Costa_Rica'))::int AS unknown_cost_count,
+          (SELECT COALESCE(SUM(share_crc), 0) FROM profit_shares
+            WHERE status = 'FACTURADO'
+              AND period = TO_CHAR(NOW() AT TIME ZONE 'America/Costa_Rica', 'YYYY-MM'))::numeric AS farid_share_crc,
+          COALESCE(
+            (SELECT MAX(share_percent) FROM profit_shares
+              WHERE status = 'FACTURADO'
+                AND period = TO_CHAR(NOW() AT TIME ZONE 'America/Costa_Rica', 'YYYY-MM')),
+            (SELECT farid_share_percent FROM system_settings LIMIT 1)
+          )::numeric AS farid_share_percent
       `,
     ]);
 
@@ -102,6 +123,11 @@ export const DashboardRepository = {
 
     return {
       packagesThisMonth: packagesResult[0]?.count ?? 0,
+      weightLbThisMonth: Number(packagesResult[0]?.weight_lb ?? 0),
+      profitThisMonthCRC: Number(monthlyProfitResult[0]?.profit_crc ?? 0),
+      unknownCostCountThisMonth: monthlyProfitResult[0]?.unknown_cost_count ?? 0,
+      faridShareThisMonthCRC: Number(monthlyProfitResult[0]?.farid_share_crc ?? 0),
+      faridSharePercent: Number(monthlyProfitResult[0]?.farid_share_percent ?? 0),
       pendingBillingCRC: Number(pendingBillingResult[0]?.total ?? 0),
       activeCustomers: activeCustomersResult[0]?.active_count ?? 0,
       newCustomersThisMonth: activeCustomersResult[0]?.new_this_month ?? 0,
@@ -109,6 +135,7 @@ export const DashboardRepository = {
       recentPackages: recentPackagesResult as RecentPackage[],
       revenueByMonth,
       topCustomers: (topCustomersResult as any[]).map((r) => ({
+        id: r.id as string,
         name: r.name as string,
         total: Number(r.total),
       })) as TopCustomer[],

@@ -121,14 +121,16 @@ export default function DesktopSidebar({ onClose }: DesktopSidebarProps) {
       {/* Logo */}
       <div className="flex flex-col px-6 pt-4 pb-3 mb-1 shrink-0">
         <Link href={routesPrivate.admin.dashboard} className="flex items-center gap-2.5 group">
-          <Image
-            src="/logo/magastore-isotipo-2026.png"
-            alt="Magastore"
-            width={741}
-            height={485}
-            className="h-[48px] w-[48px] object-contain group-hover:animate-spin-once"
-            priority
-          />
+          <div className="h-12 w-12 rounded-xl bg-neutral-900 flex items-center justify-center overflow-hidden shrink-0">
+            <Image
+              src="/logo/magastore-isotipo-transparente.png"
+              alt="Magastore"
+              width={400}
+              height={289}
+              className="h-full w-full object-contain p-1.5 group-hover:animate-spin-once"
+              priority
+            />
+          </div>
           <div className="flex flex-col">
             <Typography
               variant={TypographyVariant.BODY_BOLD}

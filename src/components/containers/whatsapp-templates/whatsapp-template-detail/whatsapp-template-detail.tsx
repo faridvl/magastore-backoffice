@@ -8,14 +8,15 @@ import { useWhatsAppTemplateDetail } from './use-whatsapp-template-detail';
 /** Ejemplo de cómo se ve el mensaje ya con datos reales. */
 const PREVIEW_VALUES: Record<string, string> = {
     nombre: 'María',
+    descuento: 'Descuento cliente (10%): -₡900',
     nombre_completo: 'María Rodríguez',
     lista_paquetes: '* Amazon – 4.50 lb\n* SHEIN – 2.00 lb',
     peso_total: '6.50',
     id_orden: 'A1B2C3D4',
     metodo_entrega: 'Correos de Costa Rica',
-    monto: '₡24,500',
+    monto: '₡24.500',
     codigo: 'MGA-2453-C-11',
-    ruta_label: 'USA Aéreo',
+    ruta_label: 'Estados Unidos · Aéreo',
     direccion: '2610 NW 89TH CT',
     ciudad: 'Doral',
     estado: 'Florida',
@@ -42,7 +43,7 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
     const router = useRouter();
     const uuid = typeof router.query.uuid === 'string' ? router.query.uuid : undefined;
     const {
-        template, isLoading, draft, variables, unknownVars,
+        template, isLoading, draft, variables, unknownVars, hasHiddenLocation,
         isDirty, canSave, isSaving,
         updateDraft, insertVariable, resetDraft, save, handleBack,
     } = useWhatsAppTemplateDetail(uuid);
@@ -101,8 +102,8 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
 
             {/* En pantallas anchas el mensaje y las variables van lado a lado; en
                 iPad vertical y móvil se apilan, con las variables debajo. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+                <div className="xl:col-span-2 space-y-4">
                     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="flex flex-col gap-1.5">
@@ -136,6 +137,15 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
                                     <Eye size={12} /> {showPreview ? 'Editar' : 'Ver ejemplo'}
                                 </button>
                             </div>
+
+                            {hasHiddenLocation && (
+                                <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+                                    <AlertTriangle size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                        Este mensaje menciona Panamá. Quítalo: el cliente no debe saber por dónde pasan sus paquetes.
+                                    </p>
+                                </div>
+                            )}
 
                             {showPreview ? (
                                 <div className="bg-[#e5ddd5] rounded-xl p-3 sm:p-4">
@@ -171,12 +181,12 @@ export const WhatsAppTemplateDetailContainer: React.FC = () => {
                 </div>
 
                 {/* Variables */}
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-3 lg:sticky lg:top-4">
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-3 xl:sticky xl:top-4">
                     <div>
                         <p className="text-[11px] font-bold text-slate-700">Variables disponibles</p>
                         <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
                             Al enviar el mensaje, cada variable se reemplaza por el dato real del cliente.
-                            Tocá una para insertarla donde tenés el cursor.
+                            Toca una para insertarla donde tienes el cursor.
                         </p>
                     </div>
 

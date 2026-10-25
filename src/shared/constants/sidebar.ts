@@ -41,7 +41,7 @@ export const NAV_STANDALONE: NavItem[] = [
   {
     menuKey: 'dashboard',
     icon: LayoutDashboard,
-    labelKey: 'Dashboard',
+    labelKey: 'Inicio',
     route: routesPrivate.admin.dashboard,
     adminOnly: true,
   },
@@ -67,7 +67,7 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'shipment-orders',
         icon: Boxes,
-        labelKey: 'Órdenes de Envío',
+        labelKey: 'Órdenes de envío',
         route: routesPrivate.admin.shipmentOrders.index,
       },
     ],
@@ -101,7 +101,7 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'receivables',
         icon: ReceiptText,
-        labelKey: 'Cuentas por Cobrar',
+        labelKey: 'Cuentas por cobrar',
         route: '/admin/receivables',
         adminOnly: true,
         disabled: true,
@@ -117,7 +117,7 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'income-statement',
         icon: BarChart3,
-        labelKey: 'Estado de Resultados',
+        labelKey: 'Estado de resultados',
         route: '/admin/income-statement',
         adminOnly: true,
         disabled: true,
@@ -125,7 +125,7 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'finance-dashboard',
         icon: LayoutDashboard,
-        labelKey: 'Dashboard Financiero',
+        labelKey: 'Panel financiero',
         route: '/admin/finance-dashboard',
         adminOnly: true,
         disabled: true,
@@ -146,14 +146,14 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'courier-rates',
         icon: Truck,
-        labelKey: 'Proveedores',
+        labelKey: 'Couriers',
         route: routesPrivate.admin.courierRates,
         adminOnly: true,
       },
       {
         menuKey: 'customer-types',
         icon: Users,
-        labelKey: 'Tipos de Cliente',
+        labelKey: 'Tipos de cliente',
         route: routesPrivate.admin.customerTypes,
         adminOnly: true,
       },
@@ -167,7 +167,7 @@ const ALL_NAV_GROUPS: NavGroup[] = [
       {
         menuKey: 'delivery-methods',
         icon: Truck,
-        labelKey: 'Métodos de Entrega',
+        labelKey: 'Métodos de entrega',
         route: routesPrivate.admin.deliveryMethods,
         adminOnly: true,
       },

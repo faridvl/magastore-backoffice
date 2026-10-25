@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { BillingService } from '@/shared/api/services/billing.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
+import { currentMonthKey } from '@/shared/utils/timezone';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const context = { req, res } as any;
@@ -30,6 +31,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (typeof isPaid !== 'boolean') {
       return res.status(400).json({ message: 'isPaid debe ser un booleano.' });
+    }
+
+    // Un mes abierto todavía puede cambiar: se liquida cuando termina (hora de Costa Rica).
+    if (isPaid && /^\d{4}-\d{2}$/.test(period) && period >= currentMonthKey()) {
+      return res.status(409).json({ message: 'No se puede marcar como pagado un mes que aún no termina.' });
     }
 
     const userName = CookiesManager.getUserName(context) || 'Usuario API';

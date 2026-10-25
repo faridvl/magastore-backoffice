@@ -254,6 +254,7 @@ export interface LogisticsPackage {
   // Campos del Join con Órdenes de Envío
   consolidation_uuid: string | null;
   consolidation_status: ConsolidationStatus | null;
+  consolidation_step: ShipmentOrderStep | null;
 }
 
 export type PackageDetail = {
@@ -264,6 +265,9 @@ export type PackageDetail = {
   internal_notes: string | null;
   evidence_url: string | null;
   events: PackageEvent[];
+  /** Orden a la que pertenece; null si el paquete sigue suelto. */
+  consolidation_uuid: string | null;
+  consolidation_step?: ShipmentOrderStep | null;
   first_name: string | null;
   last_name: string | null;
   customer_code: string | null;
@@ -292,10 +296,12 @@ export interface BillingListItem {
   // Correlativo legible (F-0001) para identificar la factura al hablar con
   // el cliente — el uuid no es práctico para eso.
   invoice_number: number;
-  consolidation_uuid: string;
-  consolidation_status: ConsolidationStatus;
+  // Una factura vieja puede no tener orden o cliente (LEFT JOIN).
+  consolidation_uuid: string | null;
+  consolidation_status: ConsolidationStatus | null;
+  consolidation_step: ShipmentOrderStep | null;
   customer_name: string;
-  customer_code: string;
+  customer_code: string | null;
   total_weight_charged: number;
   applied_rate_usd: number;
   applied_exchange: number;
@@ -303,8 +309,15 @@ export interface BillingListItem {
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
+  payment_method: PaymentMethod | null;
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
+}
+
+/** Totales de TODO lo que cumple los filtros (no solo la página): salen del mismo WHERE que las filas. */
+export interface BillingListSummary {
+  total_amount_crc: number;
+  pending_amount_crc: number;
 }
 
 export interface BillingPackageLine {
@@ -320,6 +333,7 @@ export interface BillingDetail {
   customer_name: string;
   customer_code: string;
   customer_email: string;
+  customer_first_name: string;
   total_weight_lb: number;
   total_weight_charged: number;
   applied_rate_usd: number;
@@ -333,6 +347,12 @@ export interface BillingDetail {
   is_paid: boolean;
   paid_at: string | null;
   created_at: string;
+  payment_method: PaymentMethod | null;
+  created_by_name: string | null;
+  paid_by_name: string | null;
+  // true = autoría atribuida por el backfill de la migración 033, no registrada.
+  created_by_backfilled: boolean;
+  paid_by_backfilled: boolean;
   packages: BillingPackageLine[];
   delivery_method: DeliveryMethod | null;
   delivery_fee_crc: number;
@@ -343,6 +363,8 @@ export interface BillingDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  /** Si el servidor tiene encendido el envío de correos; el botón "Enviar por correo" depende de esto. */
+  email_notifications_enabled: boolean;
 }
 
 export interface GenerateInvoiceInput {
@@ -390,8 +412,18 @@ export interface BillingMonthlyReport {
   unknown_cost_count: number;
 }
 
+// Mismos valores que el CHECK de billing.payment_method (migración 033).
+export enum PaymentMethod {
+  SINPE_MOVIL = 'SINPE_MOVIL',
+  TRANSFERENCIA = 'TRANSFERENCIA',
+  EFECTIVO = 'EFECTIVO',
+  TARJETA = 'TARJETA',
+  OTRO = 'OTRO',
+}
+
 export interface MarkPaidInput {
   billingUuid: string;
+  paymentMethod: PaymentMethod;
 }
 
 // --- Participación de Farid sobre la ganancia ---
@@ -460,17 +492,38 @@ export enum ConsolidationPaymentStatus {
   PAGADO = 'PAGADO',
 }
 
+// Paso del wizard de la orden (migración 030, columna consolidations.current_step).
+// Dato explícito, no derivado de status: una orden CERRADO puede estar en el
+// paso 2 (cobro) o, tras reabrir con factura sin pagar, seguir mostrándose ahí
+// aunque status vuelva a ABIERTO — el step manda sobre el status logístico para
+// decidir qué pantalla del detalle se muestra.
+//
+// NOTIFICACION (4) no corresponde a una transición de `status` propia: la
+// orden ya está en ENTREGADO desde que entra a este paso (marcar entregado
+// mueve status Y paquetes a ENTREGADO al ENTRAR al paso 4, no al salir). El
+// botón "Finalizar" al cierre del paso 4 solo avanza current_step a 5, sin
+// tocar status ni paquetes de nuevo.
+export enum ShipmentOrderStep {
+  CONFIRMACION = 1,
+  COBRO = 2,
+  DESPACHO = 3,
+  NOTIFICACION = 4,
+  FINALIZADA = 5,
+}
+
 export interface ConsolidationListItem {
   uuid: string;
   customer_id: string;
   customer_name: string;
   customer_code: string;
   status: ConsolidationStatus;
+  current_step: ShipmentOrderStep;
   total_weight_lb: number;
   package_count: number;
   created_at: string;
   updated_at: string;
   payment_status: ConsolidationPaymentStatus;
+  pre_billing_notified_at: string | null;
   // Monto de la factura si ya existe; si no, el estimado de la prefactura; si no hay ninguno, null.
   display_amount_crc: number | null;
   is_billing_amount: boolean;
@@ -503,12 +556,15 @@ export interface ConsolidationDetail {
   customer_type_billing_mode: string | null;
   customer_type_discount_percent: number | null;
   status: ConsolidationStatus;
+  current_step: ShipmentOrderStep;
   total_weight_lb: number;
   created_at: string;
   updated_at: string;
   packages: ConsolidationPackage[];
   pre_billing_uuid: string | null;
   pre_billing_amount: number | null;
+  // Peso cobrado congelado en el estimado (con el mínimo ya aplicado).
+  pre_billing_weight_charged: number | null;
   pre_billing_fee_crc: number | null;
   // Snapshot del costo real de entrega al generar el estimado (migración 014).
   // Null en pre-billings viejos o si el cost_crc estaba "por confirmar".
@@ -534,6 +590,29 @@ export interface ConsolidationDetail {
   billing_delivery_cost_crc: number | null;
   billing_profit_crc: number | null;
   billing_has_unknown_cost: boolean | null;
+  // Lo que se le cobró al cliente por entrega. Tras un ajuste de costo real
+  // (paso 4) este campo pasa a valer lo mismo que billing_actual_delivery_fee_crc
+  // — se sobreescribe, ver ConsolidationsRepository.setActualDeliveryFee.
+  billing_delivery_fee_crc: number | null;
+  // Snapshot del fee ORIGINAL, antes de cualquier ajuste — se fija una sola
+  // vez en el primer ajuste. Es contra este valor que se calcula la
+  // diferencia/vuelto, porque billing_delivery_fee_crc ya no lo tiene una vez
+  // ajustado. Null si nunca se ajustó.
+  billing_original_delivery_fee_crc: number | null;
+  // Ajuste del costo real de envío (migración 030, paso 4). Null mientras no
+  // se haya cargado — es opcional, igual que tracking_code. NO afecta
+  // billing_profit_crc ni la participación de Farid: decisión explícita, ver
+  // el comentario de la migración.
+  billing_actual_delivery_fee_crc: number | null;
+  billing_change_returned: boolean | null;
+  billing_change_returned_at: string | null;
+  billing_payment_notified_at: string | null;
+  billing_payment_method: PaymentMethod | null;
+  billing_paid_at: string | null;
+  billing_invoice_number: number | null;
+  billing_paid_by_name: string | null;
+  // true = el autor del pago lo atribuyó el backfill de la migración 033, no se registró.
+  billing_paid_by_backfilled: boolean | null;
   // Participación de Farid sobre la ganancia de esta orden (migración 023).
   // Null mientras no se haya generado el estimado — se crea recién ahí.
   profit_share_crc: number | null;
@@ -546,11 +625,25 @@ export interface ConsolidationDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  // Persona elegida para recibir (migración 035); null = el propio cliente.
+  recipient_id: string | null;
+  delivery_recipient_name: string | null;
+  delivery_recipient_phone: string | null;
+  delivery_recipient_id_card: string | null;
   // Guía del transportista y fecha del despacho (migración 027). Null mientras
   // la orden no se haya despachado, y también después si se despachó sin guía
   // —es opcional— o si el método es de retiro en oficina.
   tracking_code: string | null;
   dispatched_at: string | null;
+  // Marca de "ya se copió la solicitud de envío al proveedor" (migración 030,
+  // paso 3). Null hasta que el operador copia el mensaje al menos una vez.
+  shipment_requested_at: string | null;
+  // Marca de "ya se avisó al CLIENTE que su envío fue solicitado" (migración
+  // 030/031) — destinatario distinto de shipment_requested_at (proveedor).
+  customer_notified_shipment_at: string | null;
+  // Postventa (migración 034): seguimiento y reseña, ambos en la orden finalizada.
+  follow_up_sent_at: string | null;
+  review_requested_at: string | null;
   // Cantón usado para resolver la zona (dirección de la orden, o la default
   // del cliente si la orden aún no tiene dirección asignada).
   zone_canton: string | null;
@@ -596,6 +689,8 @@ export interface CreateConsolidationWithPackagesInput {
   // Elegido junto con la dirección al crear la orden. Opcional por compatibilidad
   // con órdenes viejas; generatePreBilling cae a pedirlo explícito si falta.
   deliveryMethod?: DeliveryMethod;
+  // Persona que recibe; sin valor recibe el propio cliente.
+  recipientId?: string | null;
 }
 
 export interface UpdateConsolidationStatusInput {

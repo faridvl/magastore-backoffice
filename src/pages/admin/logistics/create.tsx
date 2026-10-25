@@ -8,11 +8,11 @@ import { CreatePackageContainer } from '@/components/containers/logistics/create
 const CreatePackagePage: React.FC = () => {
     return (
         <>
-            <Head><title>Registrar Paquete | Magastore</title></Head>
+            <Head><title>Registrar paquete | Magastore</title></Head>
             <DashboardLayout
                 isMainPage={false}
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Nuevo Ingreso de Carga"
+                title="Registrar paquete"
             >
                 <CreatePackageContainer />
             </DashboardLayout>

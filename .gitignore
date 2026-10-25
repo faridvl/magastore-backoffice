@@ -85,6 +85,7 @@ web_modules/
 
 # Next.js build output
 .next
+.next-docker/
 out
 
 # Nuxt.js build / generate output
@@ -136,3 +137,6 @@ dist
 
 # Seeds de producción: contienen hashes de contraseñas reales
 scripts/prod/
+
+# Novedades: solo local (repo público)
+docs/novedades/

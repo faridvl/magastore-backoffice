@@ -24,10 +24,13 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
       c.first_name || ' ' || c.last_name AS customer_name,
       c.customer_code,
       c.email AS customer_email,
-      ca.exact_address AS delivery_exact_address,
+      -- En retiro no hay entrega: el estimado no imprime dirección ni quién recibe.
+      CASE WHEN dm.is_pickup THEN NULL ELSE ca.exact_address END AS delivery_exact_address,
       ca.district AS delivery_district,
       ca.canton AS delivery_canton,
       ca.province AS delivery_province,
+      CASE WHEN dm.is_pickup THEN NULL ELSE cr.full_name END AS delivery_recipient_name,
+      cr.phone AS delivery_recipient_phone,
       COALESCE(
         json_agg(
           json_build_object('tracking_number', p.tracking_number, 'weight_lb', p.weight_lb)
@@ -39,13 +42,15 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
     JOIN consolidations con ON con.id = pb.consolidation_id
     JOIN customers c ON c.id = con.customer_id
     LEFT JOIN customer_addresses ca ON ca.id = con.delivery_address_id
+    LEFT JOIN customer_recipients cr ON cr.id = con.recipient_id
+    LEFT JOIN delivery_methods dm ON dm.code = pb.delivery_method
     LEFT JOIN packages p ON p.consolidation_id = con.id
     WHERE pb.uuid = ${uuid}
     GROUP BY pb.uuid, pb.estimated_amount_crc, pb.delivery_method, pb.delivery_fee_crc,
              pb.applied_rate_usd, pb.applied_exchange, pb.applied_billing_mode,
              pb.applied_discount_percent, pb.total_weight_charged, pb.created_at,
              con.total_weight_lb, c.first_name, c.last_name, c.customer_code, c.email,
-             ca.exact_address, ca.district, ca.canton, ca.province
+             ca.exact_address, ca.district, ca.canton, ca.province, cr.full_name, cr.phone, dm.is_pickup
   `;
   if (!row) return null;
   return {
@@ -68,6 +73,8 @@ async function getPreBillingDetail(uuid: string): Promise<PreBillingPDFData | nu
     delivery_district: row.delivery_district ?? null,
     delivery_canton: row.delivery_canton ?? null,
     delivery_province: row.delivery_province ?? null,
+    delivery_recipient_name: row.delivery_recipient_name ?? null,
+    delivery_recipient_phone: row.delivery_recipient_phone ?? null,
   };
 }
 

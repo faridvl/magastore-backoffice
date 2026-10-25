@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { routesPrivate } from '@/shared/navigation/routes';
+import {
+  ESTIMATE_ROW_ANCHOR,
+  OPERATIONS_ORIGIN_PARAM,
+  OPERATIONS_ORIGIN_VALUE,
+} from '@/shared/constants/operations';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { useShipmentOrderDetailQuery } from '@/shared/api/querys/shipment-orders/use-shipment-order-detail-query';
@@ -15,15 +21,29 @@ import {
   copyWhatsAppMessage,
   buildPreBillingReadyMessage,
   buildShipmentRequestMessage,
+  buildShipmentRequestedCustomerMessage,
+  buildShipmentRequestedUnpaidCustomerMessage,
   buildShipmentDispatchedMessage,
+  buildAddressConfirmationMessage,
+  buildAddressRequestMessage,
+  buildPaymentConfirmedMessage,
 } from '@/shared/constants/whatsapp-templates';
 import { useWhatsAppTemplateBody } from '@/shared/api/querys/settings/use-whatsapp-templates-query';
 import { WHATSAPP_TEMPLATE_CODES } from '@/shared/constants/whatsapp-template-vars';
 import { useDeliveryMethodsQuery } from '@/shared/api/querys/logistics/use-delivery-methods-query';
 import { resolveDeliveryMethodLabel } from '@/shared/utils/delivery-method-label';
-import { ConsolidationStatus, DeliveryMethod, AvailablePackage } from '@/types/logistics/logistics.types';
+import { ConsolidationStatus, DeliveryMethod, AvailablePackage, PaymentMethod } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { CustomerAddress } from '@/types/customer/customer.types';
+
+const ESTIMATE_HIGHLIGHT_MS = 2500;
+const ESTIMATE_HIGHLIGHT_CLASSES = ['bg-amber-100', 'ring-8', 'ring-amber-100', 'rounded-xl'];
+
+/** Acciones que descartan trabajo y por eso piden confirmación antes de ejecutarse. */
+export enum DetailConfirmAction {
+  GO_BACK = 'GO_BACK',
+  UNASSIGN_PACKAGE = 'UNASSIGN_PACKAGE',
+}
 
 export const useShipmentOrderDetail = (uuid?: string) => {
   const router = useRouter();
@@ -34,13 +54,16 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [preBillingDeliveryMethod, setPreBillingDeliveryMethod] = useState<DeliveryMethod>('RETIRO');
   const [isGeneratingPreBilling, setIsGeneratingPreBilling] = useState(false);
   const [isConfirmingPreBilling, setIsConfirmingPreBilling] = useState(false);
-  const [quickActionTarget, setQuickActionTarget] = useState<'reopen' | 'dispatch' | null>(null);
+  // 'dispatch' se quitó del tipo: esa rama (modal de confirmación del paso
+  // 2→3) se eliminó, la transición ahora es directa (handleAdvanceToDispatchDirect).
+  const [quickActionTarget, setQuickActionTarget] = useState<'reopen' | null>(null);
 
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addressOptions, setAddressOptions] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [showManageAddressesModal, setShowManageAddressesModal] = useState(false);
 
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<DeliveryMethod | null>(null);
@@ -54,16 +77,42 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [isNotifyingPreBilling, setIsNotifyingPreBilling] = useState(false);
   const preBillingTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PREBILLING_READY);
   const shipmentRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUEST);
+  const shipmentRequestedCustomerTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUESTED_CUSTOMER);
+  const shipmentRequestedUnpaidTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_REQUESTED_CUSTOMER_UNPAID);
+  const addressConfirmationTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_CONFIRMATION);
+  const addressRequestTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.ADDRESS_REQUEST);
   const shipmentDispatchedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.SHIPMENT_DISPATCHED);
+  const paymentConfirmedTemplateBody = useWhatsAppTemplateBody(WHATSAPP_TEMPLATE_CODES.PAYMENT_CONFIRMED);
+  const [isNotifyingPaymentConfirmed, setIsNotifyingPaymentConfirmed] = useState(false);
 
-  // Guía que se tipea en el modal de despacho. Vacía es válido: se puede
-  // despachar sin ella y registrarla después.
-  const [dispatchTrackingCode, setDispatchTrackingCode] = useState('');
+  // dispatchTrackingCode se quitó: el input de guía en el modal del paso 2→3
+  // desapareció junto con ese modal — cargarla vive ahora únicamente en el
+  // timeline del paso 3 (handleOpenTrackingModal/trackingDraft, más abajo),
+  // que además bloquea su Siguiente hasta tenerla.
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [trackingDraft, setTrackingDraft] = useState('');
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [isCopyingRequest, setIsCopyingRequest] = useState(false);
+  const [isCopyingAddressConfirmation, setIsCopyingAddressConfirmation] = useState(false);
+  const [isCopyingAddressRequest, setIsCopyingAddressRequest] = useState(false);
+
+  /**
+   * Datos de quien recibe, para la solicitud al proveedor. Se prellenan con los
+   * del cliente y el operador los sobrescribe cuando el envío va a un tercero,
+   * que es un caso frecuente y hasta ahora obligaba a corregir el mensaje a mano
+   * después de pegarlo.
+   *
+   * Viven solo en el modal: no se guardan. Persistirlos exige columnas de
+   * receptor en customer_addresses y es una etapa aparte.
+   */
+  const [showShipmentRequestModal, setShowShipmentRequestModal] = useState(false);
+  const [receiverName, setReceiverName] = useState('');
+  const [receiverPhone, setReceiverPhone] = useState('');
+  const [receiverIdCard, setReceiverIdCard] = useState('');
   const [isNotifyingDispatch, setIsNotifyingDispatch] = useState(false);
+  // Aviso al cliente de que su envío fue solicitado (paso 3, sin guía todavía)
+  // — distinto de isNotifyingDispatch, que es el aviso del paso 4 con guía.
+  const [isNotifyingShipmentRequested, setIsNotifyingShipmentRequested] = useState(false);
   // Aviso al intentar editar dirección/método con el estimado ya generado: el
   // cambio exige reabrir la orden, no se aplica en silencio.
   const [lockedEditTarget, setLockedEditTarget] = useState<'address' | 'method' | null>(null);
@@ -71,14 +120,40 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [isDownloadingBillingPdf, setIsDownloadingBillingPdf] = useState(false);
 
+  // Modal del salto paso 2 (cobro) → paso 3 (despacho): pregunta si la orden
+  // ya está pagada, pero NO bloquea el avance — hay clientes (pocos) a los que
+  // se les despacha sin haber pagado, caso confirmado por el dueño. Si
+  // responde "sí", marca la factura pagada (markAsPaid) antes de despachar; si
+  // responde "no", despacha igual y la orden queda visible en el filtro "Sin
+  // pagar" del listado.
+  const [showPaymentCheckModal, setShowPaymentCheckModal] = useState(false);
+  const [paymentCheckMethod, setPaymentCheckMethod] = useState<PaymentMethod | null>(null);
+  const [isAdvancingToDispatch, setIsAdvancingToDispatch] = useState(false);
+
+  // Paso 4 (Cierre): ajuste del costo real de envío. Opcional
+  // — igual que la guía de rastreo, se puede completar después. actualFeeDraft
+  // arranca vacío (no con el fee facturado) para no sugerir un valor que el
+  // operador podría confirmar sin fijarse.
+  const [showActualFeeModal, setShowActualFeeModal] = useState(false);
+  const [actualFeeDraft, setActualFeeDraft] = useState('');
+  const [isSavingActualFee, setIsSavingActualFee] = useState(false);
+  const [isMarkingChangeReturned, setIsMarkingChangeReturned] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isAdvancingToClosing, setIsAdvancingToClosing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<DetailConfirmAction | null>(null);
+  const [showRecipientModal, setShowRecipientModal] = useState(false);
+  const [packageToUnassign, setPackageToUnassign] = useState<string | null>(null);
+
   const detailQuery = useShipmentOrderDetailQuery(uuid ?? '');
   const { data: detailResponse, isLoading: isLoadingDetail } = detailQuery.useQuery();
   const detail = detailResponse?.data ?? null;
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
+  const deliveryMethodEntity = deliveryMethodsData?.data.find((m) => m.code === detail?.delivery_method);
+  const isPickup = !!deliveryMethodEntity?.is_pickup;
 
   // Detalle de la factura para el modal — solo se consulta al abrirlo
   const billingDetailQuery = useBillingDetailQuery(detail?.billing_uuid ?? '');
-  const { data: billingDetailResponse, isLoading: isLoadingBillingDetail } = billingDetailQuery.useQuery({
+  const { data: billingDetailResponse, isLoading: isLoadingBillingDetail, isFetching: isFetchingBillingDetail } = billingDetailQuery.useQuery({
     enabled: showBillingModal && !!detail?.billing_uuid,
   });
   const billingDetail = billingDetailResponse?.data ?? null;
@@ -88,7 +163,30 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   const { assignPackagesToOrder, isPending: isAssigning } = useAssignPackagesToOrderMutation();
   const { markAsPaid, isPending: isMarkingPaid } = useMarkPaidMutation();
 
-  const handleBack = () => router.push('/admin/shipment-orders');
+  const isFromOperations = router.query[OPERATIONS_ORIGIN_PARAM] === OPERATIONS_ORIGIN_VALUE;
+  const backLabel = isFromOperations ? 'Operativo' : 'Órdenes de envío';
+  const handleBack = () =>
+    router.push(isFromOperations ? routesPrivate.admin.operations : routesPrivate.admin.shipmentOrders.index);
+
+  // Desde "Enviar estimado" del Operativo se llega con #estimado: la fila se resalta un momento y solo
+  // se hace el scroll justo si no se ve, para no sacar de vista el encabezado y los pasos.
+  const hasHighlightedEstimate = useRef(false);
+  useEffect(() => {
+    if (!detail || hasHighlightedEstimate.current) return;
+    if (window.location.hash !== `#${ESTIMATE_ROW_ANCHOR}`) return;
+    const row = document.getElementById(ESTIMATE_ROW_ANCHOR);
+    if (!row) return;
+    hasHighlightedEstimate.current = true;
+    row.scrollIntoView({ block: 'nearest' });
+    row.classList.add(...ESTIMATE_HIGHLIGHT_CLASSES);
+    const timeout = window.setTimeout(() => row.classList.remove(...ESTIMATE_HIGHLIGHT_CLASSES), ESTIMATE_HIGHLIGHT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [detail]);
+
+  const requestUnassignPackage = (packageUuid: string) => {
+    setPackageToUnassign(packageUuid);
+    setConfirmAction(DetailConfirmAction.UNASSIGN_PACKAGE);
+  };
 
   const handleUnassignPackage = async (packageUuid: string) => {
     try {
@@ -100,22 +198,55 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleConfirmQuickAction = async () => {
-    if (!quickActionTarget || !detail) return;
+  /**
+   * "Atrás" del paso 2 — vuelve al paso 1 sin pasar por el modal de
+   * confirmación que ya usa "Volver a abrir" del header. Pedido explícito del
+   * dueño: en la card del paso, Siguiente y Atrás conviven, y Atrás ejecuta
+   * la reapertura directo, sin mostrar el texto "Volver a abrir" ni pedir
+   * confirmación aparte — la propia etiqueta "Atrás" ya deja claro qué hace.
+   *
+   * Misma transición ABIERTO/CERRADO que ya hacía handleConfirmQuickAction
+   * con quickActionTarget==='reopen': el backend borra el estimado (y la
+   * factura sin pagar, si existía) al reabrir. El botón solo se muestra si
+   * !isPaid — ver wizard-steps-section.tsx.
+   */
+  const handleGoBackToConfirmation = async () => {
+    if (!detail) return;
     try {
-      if (quickActionTarget === 'reopen') {
-        await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
-        toast.success('Orden de envío reabierta');
-      } else {
-        await updateStatus({
-          consolidationUuid: detail.uuid,
-          status: ConsolidationStatus.DESPACHADO,
-          currentStatus: ConsolidationStatus.CERRADO,
-          trackingCode: dispatchTrackingCode.trim() || null,
-        });
-        toast.success('Orden de envío marcada como despachada');
-        setDispatchTrackingCode('');
-      }
+      await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
+      toast.success('La orden volvió a Confirmación. El estimado se descartó.');
+      await detailQuery.invalidate();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo volver al paso anterior.');
+    }
+  };
+
+  const requestGoBackToConfirmation = () => setConfirmAction(DetailConfirmAction.GO_BACK);
+
+  const handleConfirmAction = async () => {
+    const action = confirmAction;
+    setConfirmAction(null);
+    if (action === DetailConfirmAction.GO_BACK) await handleGoBackToConfirmation();
+    if (action === DetailConfirmAction.UNASSIGN_PACKAGE && packageToUnassign) {
+      await handleUnassignPackage(packageToUnassign);
+      setPackageToUnassign(null);
+    }
+  };
+
+  /**
+   * Solo reabre (quickActionTarget === 'reopen'): la otra rama que existía
+   * acá ('dispatch', con el modal de guía de rastreo del paso 2→3) se quitó
+   * — pedido explícito del dueño, esa transición ahora es directa y en
+   * silencio (ver handleAdvanceToDispatchDirect). Sigue teniendo un
+   * disparador real: el botón "Reabrir" del modal de "edición bloqueada"
+   * (cuando el operador intenta cambiar dirección/método con el estimado ya
+   * generado).
+   */
+  const handleConfirmQuickAction = async () => {
+    if (quickActionTarget !== 'reopen' || !detail) return;
+    try {
+      await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.ABIERTO, currentStatus: ConsolidationStatus.CERRADO });
+      toast.success('Orden de envío reabierta');
       setQuickActionTarget(null);
       await detailQuery.invalidate();
     } catch (err: any) {
@@ -123,33 +254,88 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
-  const handleAdvanceStatus = async () => {
+  /**
+   * Transición directa CERRADO→DESPACHADO (paso 2→3), sin modal de
+   * confirmación genérica: pedido explícito del dueño — "eso se hace del 3 al
+   * 4 internamente", el paso 2→3 avanza solo, en silencio. La guía de rastreo
+   * ya no se pide acá (vive como su propio punto en el timeline del paso 3,
+   * que además bloquea su Siguiente hasta tenerla), así que no hace falta
+   * ninguna pantalla intermedia para completar este salto.
+   */
+  const handleAdvanceToDispatchDirect = async () => {
     if (!detail) return;
-    const { uuid: consolidationUuid, status } = detail;
-    const nextMap: Record<ConsolidationStatus, ConsolidationStatus | null> = {
-      [ConsolidationStatus.ABIERTO]: null,
-      [ConsolidationStatus.CERRADO]: ConsolidationStatus.DESPACHADO,
-      [ConsolidationStatus.DESPACHADO]: ConsolidationStatus.ENTREGADO,
-      [ConsolidationStatus.ENTREGADO]: null,
-    };
-    const next = nextMap[status];
-    if (!next) return;
+    setIsAdvancingToDispatch(true);
     try {
-      await updateStatus({ consolidationUuid, status: next, currentStatus: status });
-      // Al despachar la orden de envío, despachar también todos sus paquetes
-      if (next === ConsolidationStatus.ENTREGADO) {
-        const packageUuids = detail.packages.map((p) => p.uuid);
-        if (packageUuids.length > 0) {
-          await ApiServiceClient(env.API.BASE_URL).post('/logistics?action=bulk-status', {
-            packageUuids,
-            status: 'ENTREGADO',
-          });
-        }
-      }
+      await updateStatus({ consolidationUuid: detail.uuid, status: ConsolidationStatus.DESPACHADO, currentStatus: ConsolidationStatus.CERRADO });
+      toast.success('La orden pasó a Despacho');
       await detailQuery.invalidate();
-      toast.success(`Estado actualizado a ${next}`);
     } catch (err: any) {
-      toast.error('No se pudo avanzar el estado de la orden de envío. Intenta de nuevo.');
+      toast.error(err?.message ?? 'No se pudo avanzar al paso de despacho.');
+    } finally {
+      setIsAdvancingToDispatch(false);
+    }
+  };
+
+  /**
+   * Abre el modal "¿está pagada?" al intentar avanzar del paso 2 (cobro) al
+   * paso 3 (despacho). Solo tiene sentido preguntarlo si ya existe una
+   * factura — sin factura no hay nada que marcar como pagado, así que en ese
+   * caso el avance se comporta igual que "no": despacha directo.
+   */
+  const handleAdvanceToDispatchClick = () => {
+    if (!detail) return;
+    if (detail.billing_uuid && !detail.billing_is_paid) {
+      setPaymentCheckMethod(null);
+      setShowPaymentCheckModal(true);
+      return;
+    }
+    handleAdvanceToDispatchDirect();
+  };
+
+  /**
+   * Confirmación del modal de pago. `wasPaid` viene de la respuesta del
+   * operador, no de un chequeo del sistema: es él quien sabe si el cliente
+   * pagó por fuera (SINPE, efectivo) antes de que el sistema lo registre.
+   */
+  const handleConfirmPaymentCheck = async (wasPaid: boolean) => {
+    if (!detail) return;
+    if (wasPaid && !paymentCheckMethod) {
+      toast.error('Elige el método de pago antes de confirmar.');
+      return;
+    }
+    setIsAdvancingToDispatch(true);
+    try {
+      const paidWith = wasPaid ? paymentCheckMethod : null;
+      if (paidWith && detail.billing_uuid) {
+        await markAsPaid({ billingUuid: detail.billing_uuid, paymentMethod: paidWith });
+      }
+      setShowPaymentCheckModal(false);
+      // El paso 3 ya lista en orden el aviso de pago y la solicitud al
+      // proveedor: abrir además un modal y un aviso a la vez competía por la atención.
+      await handleAdvanceToDispatchDirect();
+      if (paidWith) toast.success('Pago registrado');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo registrar el pago.');
+    } finally {
+      setIsAdvancingToDispatch(false);
+    }
+  };
+
+  /** Paso 3 → 4. La orden sigue Despachada: pasa a Entregada recién al finalizar. */
+  const handleAdvanceToClosing = async () => {
+    if (!uuid) return;
+    setIsAdvancingToClosing(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'advance-to-closing',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+      toast.success('La orden pasó a Cierre');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo pasar al cierre. Intenta de nuevo.');
+    } finally {
+      setIsAdvancingToClosing(false);
     }
   };
 
@@ -164,10 +350,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         deliveryMethod: detail?.delivery_method ?? preBillingDeliveryMethod,
       });
       await detailQuery.invalidate();
-      toast.success('Prefactura generada correctamente. La orden de envío pasó a estado Cerrado.');
+      toast.success('Estimado generado. La orden pasó a Cobro.');
       setShowPreBillingModal(false);
     } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo generar la prefactura. Intenta de nuevo.');
+      toast.error(err?.message ?? 'No se pudo generar el estimado. Intenta de nuevo.');
     } finally {
       setIsGeneratingPreBilling(false);
     }
@@ -192,19 +378,19 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         consolidationUuid: uuid,
       });
       await detailQuery.invalidate();
-      toast.success('Prefactura confirmada y factura generada');
+      toast.success('Estimado confirmado: se generó la factura');
     } catch (err: any) {
-      const msg = err?.message || 'No se pudo confirmar la prefactura.';
+      const msg = err?.message || 'No se pudo confirmar el estimado.';
       toast.error(msg);
     } finally {
       setIsConfirmingPreBilling(false);
     }
   };
 
-  const handleMarkAsPaid = async () => {
+  const handleMarkAsPaid = async (paymentMethod: PaymentMethod) => {
     if (!detail?.billing_uuid) return;
     try {
-      await markAsPaid({ billingUuid: detail.billing_uuid });
+      await markAsPaid({ billingUuid: detail.billing_uuid, paymentMethod });
       await Promise.all([detailQuery.invalidate(), billingDetailQuery.invalidate()]);
       setShowBillingModal(false);
       toast.success('Factura marcada como pagada');
@@ -254,6 +440,35 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  // Una dirección recién creada se agregó para usar en esta orden: se elige, y si
+  // la orden no tenía ninguna se asigna de una vez para no perderla al cerrar.
+  const handleManagedAddressesSaved = async (addresses: CustomerAddress[]) => {
+    const previousIds = new Set(addressOptions.map((a) => a.id));
+    const createdAddress = addresses
+      .filter((a) => !previousIds.has(a.id))
+      .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))[0];
+    setAddressOptions(addresses);
+    setSelectedAddressId((prev) => {
+      if (createdAddress) return createdAddress.id;
+      if (prev && addresses.some((a) => a.id === prev)) return prev;
+      return addresses.find((a) => a.is_default)?.id ?? addresses[0]?.id ?? '';
+    });
+
+    if (createdAddress && uuid && !detail?.delivery_address_id) {
+      try {
+        await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+          action: 'set-delivery-address',
+          consolidationUuid: uuid,
+          addressId: createdAddress.id,
+        });
+        toast.success('Dirección asignada a la orden');
+      } catch (err: any) {
+        toast.error(err?.message ?? 'La dirección se guardó, pero no se pudo asignar a la orden.');
+      }
+    }
+    await detailQuery.invalidateAll();
+  };
+
   const handleConfirmAddressChange = async () => {
     if (!uuid || !selectedAddressId) return;
     setIsSavingAddress(true);
@@ -270,6 +485,31 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       toast.error(err?.message ?? 'No se pudo actualizar la dirección de entrega.');
     } finally {
       setIsSavingAddress(false);
+    }
+  };
+
+  const handleOpenRecipientModal = () => {
+    if (detail?.billing_uuid) {
+      toast.error('No se puede cambiar quién recibe: la orden ya tiene factura.');
+      return;
+    }
+    setShowRecipientModal(true);
+  };
+
+  // Elegir en la lista guarda de una vez: es un solo toque, sin "Guardar" aparte.
+  const handleSetRecipient = async (recipientId: string | null) => {
+    if (!uuid) return;
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-recipient',
+        consolidationUuid: uuid,
+        recipientId,
+      });
+      await detailQuery.invalidate();
+      toast.success('Quién recibe actualizado');
+      setShowRecipientModal(false);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cambiar quién recibe.');
     }
   };
 
@@ -293,10 +533,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         deliveryMethod: selectedMethod,
       });
       await detailQuery.invalidate();
-      toast.success('Método de envío actualizado');
+      toast.success('Método de entrega actualizado');
       setShowMethodModal(false);
     } catch (err: any) {
-      toast.error(err?.message ?? 'No se pudo actualizar el método de envío.');
+      toast.error(err?.message ?? 'No se pudo actualizar el método de entrega.');
     } finally {
       setIsSavingMethod(false);
     }
@@ -326,10 +566,18 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
   const handleConfirmAssign = async () => {
     if (!uuid || selectedPackageUuids.length === 0) return;
+    // Si ya había estimado (paso 2), el backend lo recalcula en el lugar en
+    // vez de borrarlo — avisar de eso explícitamente, porque si el estimado ya
+    // se había compartido con el cliente hay que reenviarlo.
+    const hadEstimate = !!detail?.pre_billing_uuid;
     try {
       await assignPackagesToOrder({ consolidationUuid: uuid, packageUuids: selectedPackageUuids });
       await detailQuery.invalidate();
-      toast.success('Paquetes agregados a la orden de envío');
+      toast.success(
+        hadEstimate
+          ? 'Paquetes agregados. El estimado se recalculó — reenvíalo si ya lo compartiste con el cliente.'
+          : 'Paquetes agregados a la orden de envío',
+      );
       setShowAssignModal(false);
       setSelectedPackageUuids([]);
     } catch (err: any) {
@@ -344,6 +592,23 @@ export const useShipmentOrderDetail = (uuid?: string) => {
    * cliente: no hay teléfono de destino en la orden. Por el mismo motivo no
    * estampa notified_at, que registra avisos al cliente.
    */
+  /**
+   * Abre el modal de solicitud con los datos del cliente ya puestos. El envío a
+   * un tercero se resuelve editándolos antes de copiar.
+   */
+  const handleOpenShipmentRequestModal = () => {
+    if (!detail) return;
+    if (!detail.delivery_exact_address) {
+      toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de solicitar el envío.');
+      return;
+    }
+    // Quien recibe sale de la dirección; si no tiene, es el propio cliente.
+    setReceiverName(detail.delivery_recipient_name ?? detail.customer_name);
+    setReceiverPhone(detail.delivery_recipient_phone ?? detail.customer_phone ?? '');
+    setReceiverIdCard(detail.delivery_recipient_id_card ?? detail.customer_id_card ?? '');
+    setShowShipmentRequestModal(true);
+  };
+
   const handleCopyShipmentRequest = async () => {
     if (!detail) return;
     if (!detail.delivery_exact_address) {
@@ -355,8 +620,12 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       const message = buildShipmentRequestMessage({
         orderShortId: detail.uuid.slice(-8).toUpperCase(),
         customerName: detail.customer_name,
-        idCard: detail.customer_id_card,
-        phone: detail.customer_phone,
+        // Quien recibe puede ser un tercero: van los valores del modal, no los
+        // del cliente. customerName sigue siendo el dueño de los paquetes, que
+        // es como el proveedor identifica el bulto.
+        receiverName: receiverName,
+        idCard: receiverIdCard,
+        phone: receiverPhone,
         province: detail.delivery_province,
         canton: detail.delivery_canton,
         district: detail.delivery_district,
@@ -370,8 +639,142 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         templateBody: shipmentRequestTemplateBody,
       });
       await copyWhatsAppMessage(message);
+      // Marca "envío solicitado" al proveedor — mismo criterio que
+      // markPreBillingNotified: se estampa al copiar el mensaje, no al
+      // confirmar una respuesta del proveedor (no hay forma de saberla).
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'mark-shipment-requested',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+      setShowShipmentRequestModal(false);
     } finally {
       setIsCopyingRequest(false);
+    }
+  };
+
+  /**
+   * Aviso al CLIENTE de que su envío fue solicitado — distinto del aviso al
+   * proveedor de arriba. Abre WhatsApp (notifyWhatsApp, no copia) porque acá
+   * sí hay un teléfono de destino claro: el del cliente dueño de la orden.
+   */
+  const handleNotifyCustomerShipmentRequested = async () => {
+    if (!detail) return;
+    if (!detail.customer_phone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    setIsNotifyingShipmentRequested(true);
+    try {
+      const firstName = detail.customer_name.split(' ')[0] || detail.customer_name;
+      const orderShortId = detail.uuid.slice(-8).toUpperCase();
+      const message = detail.billing_is_paid
+        ? buildShipmentRequestedCustomerMessage({
+            firstName,
+            orderShortId,
+            templateBody: shipmentRequestedCustomerTemplateBody,
+          })
+        : buildShipmentRequestedUnpaidCustomerMessage({
+            firstName,
+            orderShortId,
+            amountCrc: detail.billing_total_amount_crc ?? detail.pre_billing_amount ?? null,
+            templateBody: shipmentRequestedUnpaidTemplateBody,
+          });
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'mark-customer-notified-shipment',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+      await notifyWhatsApp(detail.customer_phone, message);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo preparar el aviso al cliente.');
+    } finally {
+      setIsNotifyingShipmentRequested(false);
+    }
+  };
+
+  /**
+   * Copia el mensaje que le pide al cliente confirmar la dirección registrada,
+   * antes de generar el estimado.
+   *
+   * Copia en vez de abrir WhatsApp porque el operador ya viene de la
+   * conversación con el cliente: pegar ahí es más directo que reabrir el chat.
+   * Tampoco estampa notified_at — esa columna registra el aviso de paquetes
+   * disponibles, no cada mensaje suelto que se le manda al cliente.
+   */
+  const handleCopyAddressConfirmation = async () => {
+    if (!detail) return;
+    if (!detail.delivery_exact_address) {
+      toast.error('Esta orden no tiene dirección de entrega asignada. Asígnala antes de pedir la confirmación.');
+      return;
+    }
+    setIsCopyingAddressConfirmation(true);
+    try {
+      const message = buildAddressConfirmationMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        receiverName: detail.delivery_recipient_name ?? detail.customer_name,
+        idCard: detail.delivery_recipient_id_card ?? detail.customer_id_card,
+        phone: detail.delivery_recipient_phone ?? detail.customer_phone,
+        province: detail.delivery_province,
+        canton: detail.delivery_canton,
+        district: detail.delivery_district,
+        exactAddress: detail.delivery_exact_address,
+        templateBody: addressConfirmationTemplateBody,
+      });
+      await copyWhatsAppMessage(message);
+    } finally {
+      setIsCopyingAddressConfirmation(false);
+    }
+  };
+
+  /**
+   * Copia el mensaje que le pide al cliente los datos de entrega, para cuando
+   * la orden todavía no tiene dirección asignada.
+   */
+  const handleCopyAddressRequest = async () => {
+    if (!detail) return;
+    setIsCopyingAddressRequest(true);
+    try {
+      const message = buildAddressRequestMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        templateBody: addressRequestTemplateBody,
+      });
+      await copyWhatsAppMessage(message);
+    } finally {
+      setIsCopyingAddressRequest(false);
+    }
+  };
+
+  /**
+   * Aviso al cliente de que su pago quedó registrado. payment_notified_at se
+   * estampa antes de abrir WhatsApp: fuera de iPad se navega en la misma vista.
+   */
+  const handleNotifyPaymentConfirmed = async () => {
+    if (!detail?.billing_uuid) return;
+    if (!detail.customer_phone) {
+      toast.error('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    setIsNotifyingPaymentConfirmed(true);
+    try {
+      const message = buildPaymentConfirmedMessage({
+        firstName: detail.customer_name.split(' ')[0] || detail.customer_name,
+        orderShortId: detail.uuid.slice(-8).toUpperCase(),
+        amountCrc: detail.billing_total_amount_crc,
+        templateBody: paymentConfirmedTemplateBody,
+      });
+      await ApiServiceClient(env.API.BASE_URL).patch(
+        `/billing?uuid=${detail.billing_uuid}&action=mark-payment-notified`,
+        {},
+      );
+      await detailQuery.invalidate();
+      await notifyWhatsApp(detail.customer_phone, message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo preparar el aviso de pago.');
+    } finally {
+      setIsNotifyingPaymentConfirmed(false);
     }
   };
 
@@ -411,6 +814,10 @@ export const useShipmentOrderDetail = (uuid?: string) => {
   /** Registra o corrige la guía después del despacho. */
   const handleSaveTrackingCode = async () => {
     if (!uuid) return;
+    if (!trackingDraft.trim()) {
+      toast.error('Escribe el número de guía.');
+      return;
+    }
     setIsSavingTracking(true);
     try {
       await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
@@ -425,6 +832,83 @@ export const useShipmentOrderDetail = (uuid?: string) => {
       toast.error(err?.message ?? 'No se pudo guardar la guía de rastreo.');
     } finally {
       setIsSavingTracking(false);
+    }
+  };
+
+  const handleOpenActualFeeModal = () => {
+    if (!detail) return;
+    // Prefill con el valor ya guardado si se está corrigiendo un ajuste
+    // previo; vacío si es la primera vez, para no sugerir el fee facturado
+    // como si ya fuera el real.
+    setActualFeeDraft(detail.billing_actual_delivery_fee_crc != null ? String(detail.billing_actual_delivery_fee_crc) : '');
+    setShowActualFeeModal(true);
+  };
+
+  /**
+   * Guarda el costo real de envío informado por el transportista. Ajusta lo
+   * que se le cobró al cliente (delivery_fee_crc/total_amount_crc) — NO toca
+   * la ganancia registrada, ver ConsolidationsRepository.setActualDeliveryFee.
+   */
+  const handleSaveActualFee = async () => {
+    if (!uuid) return;
+    const parsed = Number(actualFeeDraft);
+    if (actualFeeDraft.trim() === '' || Number.isNaN(parsed) || parsed < 0) {
+      toast.error('Ingresa un monto válido.');
+      return;
+    }
+    setIsSavingActualFee(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'set-actual-delivery-fee',
+        consolidationUuid: uuid,
+        actualDeliveryFeeCrc: parsed,
+      });
+      await detailQuery.invalidate();
+      toast.success('Costo real de envío actualizado');
+      setShowActualFeeModal(false);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo guardar el costo real de envío.');
+    } finally {
+      setIsSavingActualFee(false);
+    }
+  };
+
+  /** Marca que el vuelto calculado ya se le entregó al cliente. */
+  const handleMarkChangeReturned = async () => {
+    if (!uuid) return;
+    setIsMarkingChangeReturned(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'mark-change-returned',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+      toast.success('Vuelto registrado como devuelto');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo registrar el vuelto.');
+    } finally {
+      setIsMarkingChangeReturned(false);
+    }
+  };
+
+  /**
+   * Cierra el wizard: paso 4 → 5 (Finalizada). El costo real de envío es
+   * opcional — no bloquea Finalizar, igual que la guía de rastreo.
+   */
+  const handleFinalizeOrder = async () => {
+    if (!uuid) return;
+    setIsFinalizing(true);
+    try {
+      await ApiServiceClient(env.API.BASE_URL).patch('/consolidations', {
+        action: 'finalize',
+        consolidationUuid: uuid,
+      });
+      await detailQuery.invalidate();
+      toast.success('Orden de envío finalizada');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'No se pudo finalizar la orden de envío.');
+    } finally {
+      setIsFinalizing(false);
     }
   };
 
@@ -449,7 +933,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         })),
         amountCrc: detail.pre_billing_amount ?? 0,
         deliveryFeeCrc,
-        totalWeightCharged: detail.total_weight_lb,
+        // El monto está congelado en el estimado: el desglose usa el peso cobrado de ese momento, no el actual.
+        totalWeightCharged: detail.pre_billing_weight_charged ?? detail.total_weight_lb,
         appliedRateUsd: detail.pre_billing_rate_usd ?? detail.current_price_per_lb,
         appliedExchange: detail.pre_billing_exchange ?? detail.current_exchange_rate,
         billingMode: detail.customer_type_billing_mode,
@@ -469,7 +954,9 @@ export const useShipmentOrderDetail = (uuid?: string) => {
         weightLb: Number(detail.total_weight_lb),
         deliveryMethodLabel: resolveDeliveryMethodLabel(detail.pre_billing_delivery_method, deliveryMethodsData?.data) || null,
         amountCrc: detail.pre_billing_amount,
-        shippingCrc: breakdown.flete,
+        // Con regla especial va el flete a lista y debajo el descuento; sumados dan siempre el flete cobrado,
+        // también con peso bajo el mínimo o en AL_COSTO.
+        shippingCrc: breakdown.isNormal ? breakdown.flete : breakdown.flete + breakdown.descuento,
         deliveryFeeCrc,
         discountCrc: breakdown.descuento,
         discountLabel: breakdown.ruleLabel,
@@ -502,20 +989,66 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     }
   };
 
+  // Requisito del paso 1 (Confirmación): el Siguiente ("Generar Estimado")
+  // queda deshabilitado hasta tener dirección y método, con el motivo visible
+  // en vez de dejar que el click falle contra el backend. generatePreBilling
+  // también valida esto server-side (es la fuente de verdad); esto es solo
+  // para no dejar que el operador dispare una llamada que sabemos que va a
+  // fallar.
+  const step1BlockedReason = !detail
+    ? null
+    : !detail.delivery_exact_address && !isPickup
+      ? 'Registra la dirección de entrega antes de generar el estimado.'
+      : !detail.delivery_method
+        ? 'Elige un método de entrega antes de generar el estimado.'
+        : null;
+
   return {
     detail,
     isLoadingDetail,
+    retryDetail: detailQuery.invalidate,
     handleBack,
+    backLabel,
 
-    handleAdvanceStatus, isUpdating,
+    isUpdating,
+    handleAdvanceToClosing, isAdvancingToClosing,
+    isPickup, deliveryMethodEntity,
+    showRecipientModal, setShowRecipientModal, handleOpenRecipientModal, handleSetRecipient,
+    confirmAction, setConfirmAction, handleConfirmAction,
+    requestGoBackToConfirmation, requestUnassignPackage,
     quickActionTarget, setQuickActionTarget,
     handleConfirmQuickAction,
-    dispatchTrackingCode, setDispatchTrackingCode,
+    handleGoBackToConfirmation,
+
+    // Stepper: paso 2→3 con el modal de pago no bloqueante
+    handleAdvanceToDispatchClick,
+    showPaymentCheckModal, setShowPaymentCheckModal,
+    paymentCheckMethod, setPaymentCheckMethod,
+    handleConfirmPaymentCheck,
+    handleNotifyPaymentConfirmed, isNotifyingPaymentConfirmed,
+    isAdvancingToDispatch,
+
+    // Stepper: paso 4 (Cierre) — costo real de envío + Finalizar
+    showActualFeeModal, setShowActualFeeModal,
+    actualFeeDraft, setActualFeeDraft,
+    handleOpenActualFeeModal,
+    handleSaveActualFee, isSavingActualFee,
+    handleMarkChangeReturned, isMarkingChangeReturned,
+    handleFinalizeOrder, isFinalizing,
+    step1BlockedReason,
 
     isEditLocked,
     lockedEditTarget, setLockedEditTarget,
 
     handleCopyShipmentRequest, isCopyingRequest,
+    handleNotifyCustomerShipmentRequested, isNotifyingShipmentRequested,
+    handleCopyAddressConfirmation, isCopyingAddressConfirmation,
+    handleCopyAddressRequest, isCopyingAddressRequest,
+    handleOpenShipmentRequestModal,
+    showShipmentRequestModal, setShowShipmentRequestModal,
+    receiverName, setReceiverName,
+    receiverPhone, setReceiverPhone,
+    receiverIdCard, setReceiverIdCard,
     handleNotifyDispatch, isNotifyingDispatch,
     showTrackingModal, setShowTrackingModal,
     trackingDraft, setTrackingDraft,
@@ -537,6 +1070,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
 
     showBillingModal, setShowBillingModal,
     billingDetail, isLoadingBillingDetail,
+    isFetchingBillingDetail,
+    retryBillingDetail: billingDetailQuery.invalidate,
     handleDownloadBillingPdf, isDownloadingBillingPdf,
 
     showAddressModal, setShowAddressModal,
@@ -545,6 +1080,8 @@ export const useShipmentOrderDetail = (uuid?: string) => {
     isLoadingAddresses,
     handleOpenAddressModal,
     handleConfirmAddressChange,
+    showManageAddressesModal, setShowManageAddressesModal,
+    handleManagedAddressesSaved,
 
     showMethodModal, setShowMethodModal,
     selectedMethod, setSelectedMethod,

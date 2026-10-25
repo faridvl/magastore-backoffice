@@ -13,6 +13,7 @@ import {
   validateWarehouseCode,
 } from '@/shared/utils/customer-masks';
 import { customerIdentitySchema, CustomerIdentityForm } from '@/shared/utils/customer-schema';
+import { CustomerBillingMode } from '@/types/customer/customer.types';
 
 interface AddressDraft {
   id: string;
@@ -67,7 +68,13 @@ export const useCreateCustomer = () => {
   });
 
   const idType = watch('id_type');
-  const [customerTypeId, setCustomerTypeId] = useState('');
+  const [pickedCustomerTypeId, setCustomerTypeId] = useState('');
+  // Mismo tipo que el servidor aplica cuando no llega ninguno (el primer tipo
+  // activo de cobro normal): así el alta muestra marcado lo que se va a guardar.
+  const defaultCustomerType = customerTypes
+    .filter((t) => t.billing_mode === CustomerBillingMode.NORMAL)
+    .sort((a, b) => a.id - b.id)[0];
+  const customerTypeId = pickedCustomerTypeId || (defaultCustomerType ? String(defaultCustomerType.id) : '');
 
   // Arranca vacío: la dirección no es obligatoria para dar de alta al cliente.
   // Se puede agregar después desde el modal de direcciones del detalle.
@@ -163,7 +170,7 @@ export const useCreateCustomer = () => {
         district: '',
         exact_address: '',
         // La primera que se agrega es la principal; el operador puede cambiarla.
-        address_label: prev.length === 0 ? 'Principal' : 'Casa',
+        address_label: 'Casa',
         is_default: prev.length === 0,
       },
     ]);
@@ -247,8 +254,8 @@ export const useCreateCustomer = () => {
       last_name: values.last_name,
       email: values.email,
       phone: values.phone,
-      // Vacío = el backend asigna el tipo NORMAL por defecto.
-      customer_type_id: customerTypeId ? Number(customerTypeId) : null,
+      // Sin tipos cargados queda vacío y el backend asigna el tipo NORMAL por defecto.
+      customer_type_id: pickedCustomerTypeId ? Number(pickedCustomerTypeId) : null,
       // Un casillero por courier marcado, cada uno con su código opcional.
       warehouse_codes: selectedRates.map((rate) => ({
         warehouse_route_id: rate.warehouse_route_id as number,

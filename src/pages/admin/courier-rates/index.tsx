@@ -8,10 +8,10 @@ import { CourierRatesContainer } from '@/components/containers/courier-rates/cou
 const CourierRatesPage: React.FC = () => {
     return (
         <>
-            <Head><title>Tarifas de Courier | Magastore</title></Head>
+            <Head><title>Couriers | Magastore</title></Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Tarifas de Courier"
+                title="Couriers"
             >
                 <CourierRatesContainer />
             </DashboardLayout>

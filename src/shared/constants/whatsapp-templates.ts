@@ -1,9 +1,21 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import { toast } from 'sonner';
 
 export type WhatsAppTemplateVars = Record<string, string>;
 
+const PLACEHOLDER = /\{\{(\w+)\}\}/g;
+
+/**
+ * Un renglón que solo tenía variables y quedó vacío (el descuento sin rebaja,
+ * el enlace de rastreo sin configurar) se quita en vez de dejar un hueco.
+ */
 export function interpolate(template: string, vars: WhatsAppTemplateVars): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? '');
+  return template
+    .split('\n')
+    .map((line) => ({ line, rendered: line.replace(PLACEHOLDER, (_, key: string) => vars[key] ?? '') }))
+    .filter(({ line, rendered }) => !(line.match(PLACEHOLDER) && rendered.trim() === ''))
+    .map(({ rendered }) => rendered)
+    .join('\n');
 }
 
 /**
@@ -122,7 +134,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export async function copyWhatsAppMessage(message: string): Promise<boolean> {
   const ok = await copyToClipboard(message);
   if (ok) {
-    toast.success('Mensaje copiado. Pegalo en WhatsApp Web.');
+    toast.success('Mensaje copiado. Pégalo en WhatsApp Web.');
   } else {
     toast.error('No se pudo copiar el mensaje.');
   }
@@ -147,7 +159,7 @@ export async function notifyWhatsApp(phone: string, message: string): Promise<vo
 
 export const WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE = `📦 Estimado(a), {{nombre}}.
 
-Le informamos que actualmente tiene los siguientes paquetes disponibles en nuestra bodega en Panamá:
+Le informamos que actualmente tiene los siguientes paquetes disponibles en nuestra bodega:
 
 {{lista_paquetes}}
 
@@ -173,7 +185,8 @@ Su envío #{{id_orden}} ya tiene el estimado listo (adjunto el PDF).
 *Detalle de sus paquetes:*
 {{desglose_paquetes}}
 
-Subtotal envío internacional: {{monto_envio}}
+Envío internacional: {{monto_envio}}
+{{descuento}}
 {{metodo_entrega}}: {{monto_entrega}}
 *Total a pagar: {{monto}}*
 
@@ -193,7 +206,6 @@ export type WhatsAppPackageLine = {
   amountCrc?: number | null;
 };
 
-const formatCrc = (amount: number) => `₡${Math.round(amount).toLocaleString('es-CR')}`;
 
 /**
  * Una línea por paquete, con la tienda como etiqueta y el tracking como
@@ -240,6 +252,7 @@ export function buildPackagesAvailableMessage(params: {
   return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PACKAGES_AVAILABLE, {
     nombre: params.firstName,
     lista_paquetes: formatPackageLines(params.packages),
+    cantidad_paquetes: String(params.packages.length),
     peso_total: pesoTotal,
   });
 }
@@ -286,8 +299,7 @@ export function buildPreBillingReadyMessage(params: {
     monto_entrega: params.deliveryFeeCrc != null
       ? (Number(params.deliveryFeeCrc) > 0 ? formatCrc(Number(params.deliveryFeeCrc)) : 'Sin cargo')
       : '—',
-    // Línea de ajuste completa (etiqueta + monto) o vacía si no hubo rebaja, para
-    // que la plantilla la incluya sin dejar un renglón suelto en clientes NORMAL.
+    // Vacío si no hubo rebaja: interpolate quita el renglón.
     descuento: params.discountLabel && params.discountCrc
       ? `${params.discountLabel}: -${formatCrc(Number(params.discountCrc))}`
       : '',
@@ -322,7 +334,14 @@ DIRECCION: {{direccion}}`;
  */
 export function buildShipmentRequestMessage(params: {
   orderShortId: string;
+  /** Dueño de los paquetes — es como el proveedor identifica el bulto. */
   customerName: string;
+  /**
+   * Quien recibe el envío. Suele ser el mismo cliente, pero no siempre: el
+   * operador puede escribir un tercero antes de copiar. Si llega vacío se cae
+   * al nombre del cliente, que es el comportamiento que había.
+   */
+  receiverName?: string | null;
   idCard: string | null;
   phone: string | null;
   province: string | null;
@@ -340,7 +359,7 @@ export function buildShipmentRequestMessage(params: {
     id_orden: params.orderShortId,
     lista_trackings: params.packages.map((p) => `- ${p.trackingNumber}`).join('\n'),
     nombre_cliente: params.customerName,
-    nombre_recibe: params.customerName.toUpperCase(),
+    nombre_recibe: (params.receiverName?.trim() || params.customerName).toUpperCase(),
     telefono_recibe: pending(params.phone),
     cedula: pending(params.idCard),
     provincia: pending(params.province),
@@ -393,6 +412,207 @@ export function buildShipmentDispatchedMessage(params: {
     id_orden: params.orderShortId,
     cantidad_paquetes: String(params.packageCount),
   });
+}
+
+export const WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION = `📍 Tenemos registrada esta dirección:
+
+Nombre: {{nombre_recibe}}
+Cédula: {{cedula}}
+Teléfono: {{telefono_recibe}}
+Provincia: {{provincia}}
+Cantón: {{canton}}
+Distrito: {{distrito}}
+Dirección: {{direccion}}
+
+¿Utilizamos esta dirección para tu envío? ✅
+
+Si necesitas cambiarla, indícanos la nueva dirección.`;
+
+/**
+ * Confirmación de la dirección registrada, para pedirle al cliente el visto
+ * bueno antes de generar el estimado.
+ *
+ * Igual que la solicitud al proveedor, los campos vacíos se marcan como
+ * "[pendiente]" en vez de dejar el renglón en blanco: acá el texto lo lee el
+ * cliente, y un campo vacío en sus propios datos se interpreta como que los
+ * perdimos.
+ */
+export function buildAddressConfirmationMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  receiverName: string;
+  idCard: string | null;
+  phone: string | null;
+  province: string | null;
+  canton: string | null;
+  district: string | null;
+  exactAddress: string | null;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  const pending = (value: string | null) => value?.trim() || '[pendiente]';
+
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_ADDRESS_CONFIRMATION, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    nombre_recibe: params.receiverName.toUpperCase(),
+    telefono_recibe: pending(params.phone),
+    cedula: pending(params.idCard),
+    provincia: pending(params.province),
+    canton: pending(params.canton),
+    distrito: pending(params.district),
+    direccion: pending(params.exactAddress),
+  });
+}
+
+export const WHATSAPP_TEMPLATE_ADDRESS_REQUEST = `📍 Para preparar tu envío, necesitamos los siguientes datos de entrega:
+
+Nombre completo:
+Cédula:
+Teléfono de quien recibe:
+Provincia:
+Cantón:
+Distrito:
+Dirección exacta:
+
+Por favor, verifica que los datos sean correctos antes de enviarlos. ✅`;
+
+/**
+ * Solicitud de los datos de entrega, para el cliente que todavía no tiene
+ * ninguna dirección registrada.
+ *
+ * No usa el helper "[pendiente]" de sus hermanas: acá no hay datos de destino
+ * que rellenar — son justamente los que se están pidiendo.
+ */
+export function buildAddressRequestMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  /** Texto configurado en BD. Si falta, se usa la constante como respaldo. */
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_ADDRESS_REQUEST, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+  });
+}
+
+/**
+ * Aviso al cliente de que su envío fue solicitado al transportista — distinto
+ * de buildShipmentDispatchedMessage, que se manda cuando ya hay guía. Este se
+ * manda antes: al copiar la solicitud al proveedor (paso 3 del wizard), sin
+ * garantía de tener guía todavía. Por eso no menciona número de rastreo.
+ */
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER = `Hola, {{nombre}}! 👋🏻
+
+Te contamos que tu envío ya fue solicitado al transportista. 🚚📦
+
+En cuanto tengamos el número de guía te lo compartimos para que puedas rastrearlo.
+
+*MAGASTORE 📦✈️*`;
+
+export const WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER_UNPAID = `Hola, {{nombre}}! 👋🏻
+
+Te contamos que tu envío ya fue solicitado al transportista. 🚚📦
+
+Recuerda que tienes pendiente el pago de *{{monto}}*. Cuando lo realices, envíanos el comprobante por este medio. 🧾
+
+En cuanto tengamos el número de guía te lo compartimos para que puedas rastrearlo.
+
+*MAGASTORE 📦✈️*`;
+
+export function buildShipmentRequestedCustomerMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+  });
+}
+
+export function buildShipmentRequestedUnpaidCustomerMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  amountCrc: number | null;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_SHIPMENT_REQUESTED_CUSTOMER_UNPAID, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
+  });
+}
+
+/** Aviso al cliente de que su pago quedó registrado (paso de cobro → despacho). */
+export const WHATSAPP_TEMPLATE_PAYMENT_CONFIRMED = `Hola, {{nombre}}! 👋🏻
+
+¡Recibimos tu pago de *{{monto}}*! 🙌🏻 Muchas gracias por tu confianza.
+
+Ya estamos preparando el envío de tu orden {{id_orden}}. 🚚📦 Te avisamos en cuanto vaya en camino.
+
+*MAGASTORE 📦✈️*`;
+
+export function buildPaymentConfirmedMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  amountCrc: number | null;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_PAYMENT_CONFIRMED, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+    monto: params.amountCrc != null ? formatCrc(Number(params.amountCrc)) : '—',
+  });
+}
+
+export const WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP = `Hola, {{nombre}}! 👋🏻
+
+Queríamos confirmar que tu pedido #{{id_orden}} haya llegado correctamente. 📦
+
+¿Todo llegó bien?
+
+Si tienes alguna duda o necesitas ayuda con tu pedido, estamos a tu disposición.
+
+*MAGASTORE 📦✈️*`;
+
+export const WHATSAPP_TEMPLATE_REVIEW_REQUEST = `💯 ¡Nos alegra saber que todo llegó bien, {{nombre}}!
+
+Tu experiencia es muy importante para nosotros. Si quedaste satisfecho con el servicio de MAGASTORE, ¿nos ayudarías dejando una reseña o compartiendo brevemente tu experiencia? ⭐
+
+Tu opinión nos ayuda a seguir mejorando y también permite que más personas conozcan nuestro servicio.
+
+¡Muchas gracias por confiar en nosotros!
+
+*MAGASTORE 📦✈️*`;
+
+export const WHATSAPP_TEMPLATE_CUSTOMER_WIN_BACK = `🛍️ Cuando vuelvas a comprar por internet, aquí estaremos para ayudarte. 😊
+
+Puedes contar con MAGASTORE para traer tus compras desde Estados Unidos de forma rápida, segura y confiable. 📦✈️
+
+Y si necesitas ayuda para realizar una compra, también contamos con Compras Asistidas. 🛒
+
+¡Será un gusto ayudarte nuevamente, {{nombre}}! 💙
+
+*MAGASTORE 📦✈️*`;
+
+export function buildPostDeliveryFollowUpMessage(params: {
+  firstName: string;
+  orderShortId: string;
+  templateBody?: string;
+}): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_POST_DELIVERY_FOLLOW_UP, {
+    nombre: params.firstName,
+    id_orden: params.orderShortId,
+  });
+}
+
+export function buildReviewRequestMessage(params: { firstName: string; templateBody?: string }): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_REVIEW_REQUEST, { nombre: params.firstName });
+}
+
+export function buildCustomerWinBackMessage(params: { firstName: string; templateBody?: string }): string {
+  return interpolate(params.templateBody || WHATSAPP_TEMPLATE_CUSTOMER_WIN_BACK, { nombre: params.firstName });
 }
 
 export const WHATSAPP_TEMPLATE_WAREHOUSE_WELCOME = `Estos serían los datos de tu nuevo casillero en {{ruta_label}} 📫:

@@ -59,7 +59,7 @@ const variantStyles: { [key in TypographyVariant]: VariantStyle } = {
     },
     [TypographyVariant.ACCENT]: {
         component: 'h3',
-        className: `${commonStylesClassName} font-sans font-bold text-lg md:text-xl uppercase tracking-wider`,
+        className: `${commonStylesClassName} font-sans font-bold text-lg md:text-xl`,
         colorClassName: brandAccent,
     },
     [TypographyVariant.BODY]: {
@@ -94,7 +94,7 @@ const variantStyles: { [key in TypographyVariant]: VariantStyle } = {
     },
     [TypographyVariant.OVERLINE]: {
         component: 'span',
-        className: `font-sans font-bold text-[11px] uppercase tracking-[0.2em]`,
+        className: `font-sans font-semibold text-xs`,
         colorClassName: neutralLight,
     },
     [TypographyVariant.QUOTE]: {

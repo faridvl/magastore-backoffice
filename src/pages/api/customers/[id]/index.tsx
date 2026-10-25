@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CustomerService } from '@/shared/api/services/customers.service';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
+import { isUuid } from '@/shared/utils/is-uuid';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const context = { req, res } as any;
@@ -15,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         if (req.method === 'GET') {
-            if (!id || typeof id !== 'string') {
-                return res.status(400).json({ message: 'ID de cliente no válido' });
+            if (!isUuid(id)) {
+                return res.status(400).json({ message: 'Cliente inválido.' });
             }
 
             const customer = await CustomerService.getCustomerProfile(id);
@@ -24,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (req.method === 'PUT') {
-            if (!id || typeof id !== 'string') {
-                return res.status(400).json({ message: 'ID de cliente no válido' });
+            if (!isUuid(id)) {
+                return res.status(400).json({ message: 'Cliente inválido.' });
             }
 
             const updated = await CustomerService.editCustomer(id, req.body);

@@ -1,16 +1,19 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
 import fs from 'fs';
 import { BillingDetail } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
+import { BUSINESS_WHATSAPP_DISPLAY } from '@/shared/constants/contact';
+import { PDF_COLOR } from './pdf-theme';
 
 const LOGO_BUFFER = fs.readFileSync(
-  path.join(process.cwd(), 'public', 'logo', 'magastore-logo-2026.png'),
+  path.join(process.cwd(), 'public', 'logo', 'magastore-logo-secundario-dark.png'),
 );
 
 const fmtCRC = (n: number | string) =>
-  `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
+  formatCrc(Number(n)).replace('₡', 'CRC ');
 
 const fmtUSD = (n: number | string) =>
   `$ ${Number(n).toFixed(2)}`;
@@ -19,16 +22,18 @@ const s = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     fontSize: 9,
-    color: '#1e293b',
-    backgroundColor: '#ffffff',
+    color: PDF_COLOR.ink,
+    backgroundColor: PDF_COLOR.white,
   },
 
   // ── Header oscuro ──────────────────────────────
   header: {
-    backgroundColor: '#0f1a2e',
+    backgroundColor: PDF_COLOR.headerBg,
+    borderBottomWidth: 2,
+    borderBottomColor: PDF_COLOR.gold,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingTop: 20,
     paddingBottom: 20,
     paddingLeft: 32,
@@ -39,10 +44,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   brandLogo: {
-    // El logo es apaisado (1126x718). Se respeta esa proporción: forzarlo a un
-    // cuadrado lo deformaba.
-    width: 130,
-    height: 83,
+    // Logo secundario horizontal (900x202): se respeta la proporción para no deformarlo.
+    width: 180,
+    height: 40,
   },
   headerMeta: {
     flexDirection: 'column',
@@ -54,19 +58,19 @@ const s = StyleSheet.create({
   },
   headerMetaLabel: {
     fontSize: 8,
-    color: '#93c5fd',
+    color: PDF_COLOR.gold,
     marginRight: 6,
     fontFamily: 'Helvetica-Bold',
   },
   headerMetaValue: {
     fontSize: 8,
-    color: '#ffffff',
+    color: PDF_COLOR.white,
     fontFamily: 'Helvetica-Bold',
   },
 
   // ── Fila de contacto ──────────────────────────
   contactRow: {
-    backgroundColor: '#1e293b',
+    backgroundColor: PDF_COLOR.ink,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 8,
@@ -76,11 +80,11 @@ const s = StyleSheet.create({
   },
   contactText: {
     fontSize: 8,
-    color: '#94a3b8',
+    color: PDF_COLOR.onDarkMuted,
   },
   contactHighlight: {
     fontSize: 8,
-    color: '#60a5fa',
+    color: PDF_COLOR.gold,
   },
 
   // ── Cuerpo ────────────────────────────────────
@@ -94,14 +98,14 @@ const s = StyleSheet.create({
   // Nota de orden de envío
   note: {
     fontSize: 8,
-    color: '#3b82f6',
+    color: PDF_COLOR.goldText,
     marginBottom: 16,
   },
 
   // ── Tabla de paquetes ─────────────────────────
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#0f1a2e',
+    backgroundColor: PDF_COLOR.headerBg,
     paddingTop: 7,
     paddingBottom: 7,
     paddingLeft: 8,
@@ -116,10 +120,10 @@ const s = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: PDF_COLOR.line,
   },
   tableRowAlt: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: PDF_COLOR.rowAlt,
   },
   colTracking: { flex: 3, fontSize: 8 },
   colPeso: { flex: 1, textAlign: 'right', fontSize: 8 },
@@ -128,15 +132,15 @@ const s = StyleSheet.create({
   thText: {
     fontFamily: 'Helvetica-Bold',
     fontSize: 7.5,
-    color: '#ffffff',
+    color: PDF_COLOR.gold,
   },
   tdText: {
-    color: '#1e293b',
+    color: PDF_COLOR.ink,
     fontSize: 8,
   },
   tdMono: {
     fontFamily: 'Courier',
-    color: '#475569',
+    color: PDF_COLOR.inkMuted,
     fontSize: 7.5,
   },
 
@@ -144,7 +148,7 @@ const s = StyleSheet.create({
   summary: {
     marginTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: PDF_COLOR.line,
     paddingTop: 12,
   },
   summaryRow: {
@@ -154,11 +158,11 @@ const s = StyleSheet.create({
     paddingBottom: 4,
   },
   summaryLabel: {
-    color: '#64748b',
+    color: PDF_COLOR.inkMuted,
     fontSize: 9,
   },
   summaryValue: {
-    color: '#1e293b',
+    color: PDF_COLOR.ink,
     fontFamily: 'Helvetica-Bold',
     fontSize: 9,
   },
@@ -166,7 +170,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0f1a2e',
+    backgroundColor: PDF_COLOR.headerBg,
     paddingTop: 10,
     paddingBottom: 10,
     paddingLeft: 12,
@@ -177,18 +181,18 @@ const s = StyleSheet.create({
   totalLabel: {
     fontFamily: 'Helvetica-Bold',
     fontSize: 11,
-    color: '#ffffff',
+    color: PDF_COLOR.white,
   },
   totalValue: {
     fontFamily: 'Helvetica-Bold',
     fontSize: 16,
-    color: '#f0c040',
+    color: PDF_COLOR.gold,
   },
 
   // ── Estado de pago ────────────────────────────
   paidBadge: {
-    backgroundColor: '#f0fdf4',
-    color: '#15803d',
+    backgroundColor: PDF_COLOR.paidBg,
+    color: PDF_COLOR.paidText,
     paddingTop: 3,
     paddingBottom: 3,
     paddingLeft: 8,
@@ -198,8 +202,8 @@ const s = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
   },
   pendingBadge: {
-    backgroundColor: '#fff7ed',
-    color: '#c2410c',
+    backgroundColor: PDF_COLOR.pendingBg,
+    color: PDF_COLOR.pendingText,
     paddingTop: 3,
     paddingBottom: 3,
     paddingLeft: 8,
@@ -217,9 +221,9 @@ const s = StyleSheet.create({
     right: 32,
     textAlign: 'center',
     fontSize: 7.5,
-    color: '#94a3b8',
+    color: PDF_COLOR.inkSubtle,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: PDF_COLOR.line,
     paddingTop: 8,
   },
 });
@@ -249,13 +253,13 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
     billingMode: detail.applied_billing_mode,
     discountPercent: detail.applied_discount_percent,
   });
-  // Dirección viva de la orden (incluye distrito/cantón/provincia); el snapshot
-  // queda como fallback para facturas cuya orden ya no tiene dirección asignada.
-  const deliveryAddress = detail.delivery_exact_address
-    ? [detail.delivery_exact_address, detail.delivery_district, detail.delivery_canton, detail.delivery_province]
-        .filter(Boolean)
-        .join(', ')
-    : detail.delivery_address_snapshot;
+  // La copia guardada al facturar manda: la dirección viva puede editarse
+  // después y la factura no debe cambiar. La viva queda para facturas sin copia.
+  const deliveryAddress =
+    detail.delivery_address_snapshot ||
+    [detail.delivery_exact_address, detail.delivery_district, detail.delivery_canton, detail.delivery_province]
+      .filter(Boolean)
+      .join(', ');
 
   return (
     <Document>
@@ -299,16 +303,16 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
             Correo electrónico: <Text style={s.contactHighlight}>magastore.cr@gmail.com</Text>
           </Text>
           <Text style={s.contactText}>
-            WhatsApp: <Text style={s.contactHighlight}>6204-8869</Text>
+            WhatsApp: <Text style={s.contactHighlight}>{BUSINESS_WHATSAPP_DISPLAY}</Text>
           </Text>
         </View>
 
         {/* ── Dirección de entrega ── */}
         {deliveryAddress && (
-          <View style={[s.contactRow, { backgroundColor: '#f1f5f9' }]}>
-            <Text style={[s.contactText, { color: '#475569' }]}>
+          <View style={[s.contactRow, { backgroundColor: PDF_COLOR.goldTint }]}>
+            <Text style={[s.contactText, { color: PDF_COLOR.goldText }]}>
               Dirección de entrega:{' '}
-              <Text style={[s.contactHighlight, { color: '#1e293b' }]}>
+              <Text style={[s.contactHighlight, { color: PDF_COLOR.ink }]}>
                 {deliveryAddress}
               </Text>
             </Text>
@@ -395,7 +399,7 @@ export const BillingInvoicePDF: React.FC<Props> = ({ detail, deliveryMethodLabel
           </View>
 
           {detail.is_paid && detail.paid_at && (
-            <Text style={{ fontSize: 8, color: '#15803d', marginTop: 8 }}>
+            <Text style={{ fontSize: 8, color: PDF_COLOR.paidText, marginTop: 8 }}>
               {`Pago registrado el ${new Date(detail.paid_at).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' })}`}
             </Text>
           )}

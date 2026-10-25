@@ -8,8 +8,8 @@ import { WhatsAppTemplateDetailContainer } from '@/components/containers/whatsap
 const WhatsAppTemplateDetailPage: React.FC = () => {
     return (
         <>
-            <Head><title>Editar Plantilla | Magastore</title></Head>
-            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Editar Plantilla">
+            <Head><title>Editar plantilla | Magastore</title></Head>
+            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Editar plantilla">
                 <WhatsAppTemplateDetailContainer />
             </DashboardLayout>
         </>

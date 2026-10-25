@@ -1,80 +1,82 @@
+import { formatCrc } from '@/shared/utils/format-crc';
 import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import path from 'path';
 import fs from 'fs';
 import { DeliveryMethod } from '@/types/logistics/logistics.types';
 import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
+import { BUSINESS_WHATSAPP_DISPLAY } from '@/shared/constants/contact';
+import { PDF_COLOR } from './pdf-theme';
 
 const LOGO_BUFFER = fs.readFileSync(
-  path.join(process.cwd(), 'public', 'logo', 'magastore-logo-2026.png'),
+  path.join(process.cwd(), 'public', 'logo', 'magastore-logo-secundario-dark.png'),
 );
 
 const fmtCRC = (n: number | string) =>
-  `CRC ${Math.round(Number(n)).toLocaleString('es-CR')}`;
+  formatCrc(Number(n)).replace('₡', 'CRC ');
 
 const fmtUSD = (n: number | string) => `$ ${Number(n).toFixed(2)}`;
 
 const s = StyleSheet.create({
-  page: { fontFamily: 'Helvetica', fontSize: 9, color: '#1e293b', backgroundColor: '#ffffff' },
+  page: { fontFamily: 'Helvetica', fontSize: 9, color: PDF_COLOR.ink, backgroundColor: PDF_COLOR.white },
   header: {
-    backgroundColor: '#0f1a2e', flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'flex-start', paddingTop: 20, paddingBottom: 20, paddingLeft: 32, paddingRight: 32,
+    backgroundColor: PDF_COLOR.headerBg, borderBottomWidth: 2, borderBottomColor: PDF_COLOR.gold,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, paddingBottom: 20, paddingLeft: 32, paddingRight: 32,
   },
   brandBlock: { flexDirection: 'row', alignItems: 'center' },
-  // El logo es apaisado (1126x718). Se respeta esa proporción: forzarlo a un
-  // cuadrado lo deformaba.
-  brandLogo: { width: 130, height: 83 },
+  // Logo secundario horizontal (900x202): se respeta la proporción para no deformarlo.
+  brandLogo: { width: 180, height: 40 },
   headerMeta: { flexDirection: 'column', alignItems: 'flex-end' },
   headerMetaRow: { flexDirection: 'row', marginBottom: 4 },
-  headerMetaLabel: { fontSize: 8, color: '#93c5fd', marginRight: 6, fontFamily: 'Helvetica-Bold' },
-  headerMetaValue: { fontSize: 8, color: '#ffffff', fontFamily: 'Helvetica-Bold' },
+  headerMetaLabel: { fontSize: 8, color: PDF_COLOR.gold, marginRight: 6, fontFamily: 'Helvetica-Bold' },
+  headerMetaValue: { fontSize: 8, color: PDF_COLOR.white, fontFamily: 'Helvetica-Bold' },
   estimadoBadge: {
-    backgroundColor: '#f59e0b', color: '#1e293b', paddingTop: 3, paddingBottom: 3,
+    backgroundColor: PDF_COLOR.gold, color: PDF_COLOR.ink, paddingTop: 3, paddingBottom: 3,
     paddingLeft: 8, paddingRight: 8, borderRadius: 4, fontSize: 8, fontFamily: 'Helvetica-Bold',
   },
   contactRow: {
-    backgroundColor: '#1e293b', flexDirection: 'row', justifyContent: 'space-between',
+    backgroundColor: PDF_COLOR.ink, flexDirection: 'row', justifyContent: 'space-between',
     paddingTop: 8, paddingBottom: 8, paddingLeft: 32, paddingRight: 32,
   },
-  contactText: { fontSize: 8, color: '#94a3b8' },
-  contactHighlight: { fontSize: 8, color: '#60a5fa' },
+  contactText: { fontSize: 8, color: PDF_COLOR.onDarkMuted },
+  contactHighlight: { fontSize: 8, color: PDF_COLOR.gold },
   alertRow: {
-    backgroundColor: '#fffbeb', flexDirection: 'row', alignItems: 'center',
+    backgroundColor: PDF_COLOR.goldTint, flexDirection: 'row', alignItems: 'center',
     paddingTop: 8, paddingBottom: 8, paddingLeft: 32, paddingRight: 32,
   },
-  alertText: { fontSize: 8, color: '#92400e', fontFamily: 'Helvetica-Bold' },
+  alertText: { fontSize: 8, color: PDF_COLOR.goldText, fontFamily: 'Helvetica-Bold' },
   body: { paddingTop: 24, paddingBottom: 24, paddingLeft: 32, paddingRight: 32 },
-  note: { fontSize: 8, color: '#3b82f6', marginBottom: 16 },
+  note: { fontSize: 8, color: PDF_COLOR.goldText, marginBottom: 16 },
   tableHeader: {
-    flexDirection: 'row', backgroundColor: '#0f1a2e', paddingTop: 7, paddingBottom: 7,
+    flexDirection: 'row', backgroundColor: PDF_COLOR.headerBg, paddingTop: 7, paddingBottom: 7,
     paddingLeft: 8, paddingRight: 8, borderRadius: 3,
   },
   tableRow: {
     flexDirection: 'row', paddingTop: 7, paddingBottom: 7, paddingLeft: 8, paddingRight: 8,
-    borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
+    borderBottomWidth: 1, borderBottomColor: PDF_COLOR.line,
   },
-  tableRowAlt: { backgroundColor: '#f8fafc' },
+  tableRowAlt: { backgroundColor: PDF_COLOR.rowAlt },
   colTracking: { flex: 3, fontSize: 8 },
   colPeso: { flex: 1, textAlign: 'right', fontSize: 8 },
   colPrecio: { flex: 1.5, textAlign: 'right', fontSize: 8 },
   colTotal: { flex: 1.5, textAlign: 'right', fontSize: 8 },
-  thText: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: '#ffffff' },
-  tdText: { color: '#1e293b', fontSize: 8 },
-  tdMono: { fontFamily: 'Courier', color: '#475569', fontSize: 7.5 },
-  summary: { marginTop: 16, borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 12 },
+  thText: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: PDF_COLOR.gold },
+  tdText: { color: PDF_COLOR.ink, fontSize: 8 },
+  tdMono: { fontFamily: 'Courier', color: PDF_COLOR.inkMuted, fontSize: 7.5 },
+  summary: { marginTop: 16, borderTopWidth: 1, borderTopColor: PDF_COLOR.line, paddingTop: 12 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 4 },
-  summaryLabel: { color: '#64748b', fontSize: 9 },
-  summaryValue: { color: '#1e293b', fontFamily: 'Helvetica-Bold', fontSize: 9 },
+  summaryLabel: { color: PDF_COLOR.inkMuted, fontSize: 9 },
+  summaryValue: { color: PDF_COLOR.ink, fontFamily: 'Helvetica-Bold', fontSize: 9 },
   totalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#0f1a2e', paddingTop: 10, paddingBottom: 10, paddingLeft: 12,
+    backgroundColor: PDF_COLOR.headerBg, paddingTop: 10, paddingBottom: 10, paddingLeft: 12,
     paddingRight: 12, borderRadius: 4, marginTop: 10,
   },
-  totalLabel: { fontFamily: 'Helvetica-Bold', fontSize: 11, color: '#ffffff' },
-  totalValue: { fontFamily: 'Helvetica-Bold', fontSize: 16, color: '#f0c040' },
+  totalLabel: { fontFamily: 'Helvetica-Bold', fontSize: 11, color: PDF_COLOR.white },
+  totalValue: { fontFamily: 'Helvetica-Bold', fontSize: 16, color: PDF_COLOR.gold },
   footer: {
     position: 'absolute', bottom: 20, left: 32, right: 32, textAlign: 'center',
-    fontSize: 7.5, color: '#94a3b8', borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8,
+    fontSize: 7.5, color: PDF_COLOR.inkSubtle, borderTopWidth: 1, borderTopColor: PDF_COLOR.line, paddingTop: 8,
   },
 });
 
@@ -104,6 +106,8 @@ export interface PreBillingPDFData {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  delivery_recipient_name: string | null;
+  delivery_recipient_phone: string | null;
 }
 
 interface Props {
@@ -169,7 +173,7 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
             Correo: <Text style={s.contactHighlight}>magastore.cr@gmail.com</Text>
           </Text>
           <Text style={s.contactText}>
-            WhatsApp: <Text style={s.contactHighlight}>6204-8869</Text>
+            WhatsApp: <Text style={s.contactHighlight}>{BUSINESS_WHATSAPP_DISPLAY}</Text>
           </Text>
         </View>
 
@@ -180,13 +184,16 @@ export const PreBillingInvoicePDF: React.FC<Props> = ({ data, deliveryMethodLabe
         </View>
 
         {data.delivery_exact_address && (
-          <View style={[s.contactRow, { backgroundColor: '#f1f5f9' }]}>
-            <Text style={[s.contactText, { color: '#475569' }]}>
+          <View style={[s.contactRow, { backgroundColor: PDF_COLOR.goldTint }]}>
+            <Text style={[s.contactText, { color: PDF_COLOR.goldText }]}>
               Dirección de entrega:{' '}
-              <Text style={[s.contactHighlight, { color: '#1e293b' }]}>
+              <Text style={[s.contactHighlight, { color: PDF_COLOR.ink }]}>
                 {[data.delivery_exact_address, data.delivery_district, data.delivery_canton, data.delivery_province]
                   .filter(Boolean)
                   .join(', ')}
+                {data.delivery_recipient_name
+                  ? ` · Recibe: ${[data.delivery_recipient_name, data.delivery_recipient_phone].filter(Boolean).join(', ')}`
+                  : ''}
               </Text>
             </Text>
           </View>

@@ -1,6 +1,16 @@
 import sql from '@/lib/db';
-import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerAddressUpdateInput, CustomerImportRow, CustomerImportResult, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
+import { Customer, CustomerInput, CustomerAddress, CustomerUpdateInput, CustomerAddressUpdateInput, CustomerWarehouseCodeInput } from '@/types/customer/customer.types';
 import { WarehouseRoutesRepository } from './warehouse-routes.repo';
+
+/**
+ * "Por invitar": inactivo y sin invitación desde su último paquete. Si volvió a
+ * comprar después de la última invitación y quedó inactivo otra vez, se le invita
+ * de nuevo. Requiere el alias `lp.last_package_at` en la consulta.
+ */
+const WIN_BACK_PENDING_SQL = sql.unsafe(`(
+  c.is_active = false
+  AND (c.win_back_sent_at IS NULL OR c.win_back_sent_at < lp.last_package_at)
+)`);
 
 /**
  * Resuelve los casilleros de un cliente nuevo: uno por cada ruta elegida, cada
@@ -191,9 +201,16 @@ export const getPaginatedCustomers = async (
              c.customer_code, c.is_active, c.created_at, c.customer_type_id,
              ct.name AS customer_type_name,
              ct.billing_mode AS customer_type_billing_mode,
-             ct.discount_percent AS customer_type_discount_percent
+             ct.discount_percent AS customer_type_discount_percent,
+             c.win_back_sent_at,
+             ${WIN_BACK_PENDING_SQL} AS win_back_pending
       FROM customers c
       LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+      LEFT JOIN (
+        SELECT customer_id, MAX(created_at) AS last_package_at
+        FROM packages
+        GROUP BY customer_id
+      ) lp ON lp.customer_id = c.id
       ORDER BY c.created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `,
@@ -228,9 +245,13 @@ export const getCustomerById = async (id: string): Promise<Customer | null> => {
       ) as warehouse_codes_list,
       ct.name AS customer_type_name,
       ct.billing_mode AS customer_type_billing_mode,
-      ct.discount_percent AS customer_type_discount_percent
+      ct.discount_percent AS customer_type_discount_percent,
+      ${WIN_BACK_PENDING_SQL} AS win_back_pending
     FROM customers c
     LEFT JOIN customer_types ct ON ct.id = c.customer_type_id
+    LEFT JOIN LATERAL (
+      SELECT MAX(p.created_at) AS last_package_at FROM packages p WHERE p.customer_id = c.id
+    ) lp ON true
     WHERE c.id = ${id} LIMIT 1
   `;
 
@@ -331,6 +352,17 @@ export const deleteCustomerAddress = async (
 
   const target = existing.find((a) => a.id === addressId);
   if (!target) throw new Error('La dirección no existe o no pertenece a este cliente.');
+
+  // Las órdenes con estimado generado no pueden cambiar de dirección: si se
+  // borrara, quedarían sin dirección y sin forma de reasignarla.
+  const [inUse] = await sql`
+    SELECT 1 FROM consolidations
+    WHERE delivery_address_id = ${addressId} AND status <> 'ABIERTO'
+    LIMIT 1
+  `;
+  if (inUse) {
+    throw new Error('La dirección está en uso por órdenes de envío con estimado generado y no se puede eliminar.');
+  }
 
   try {
     await sql`BEGIN`;
@@ -526,132 +558,22 @@ export const deactivateInactiveCustomers = async (days: number): Promise<Deactiv
   return rows as unknown as DeactivatedCustomerRow[];
 };
 
+/** Estampa la invitación a volver. Solo para inactivos: es a quienes va dirigida. */
+export const markWinBackSent = async (customerId: string): Promise<void> => {
+  const [row] = await sql`
+    UPDATE customers SET win_back_sent_at = NOW()
+    WHERE id = ${customerId} AND is_active = false
+    RETURNING id
+  `;
+  if (row) return;
+  const [exists] = await sql`SELECT id FROM customers WHERE id = ${customerId} LIMIT 1`;
+  if (!exists) throw new Error('Cliente no encontrado.');
+  throw new Error('Acción inválida: la invitación a volver solo aplica a clientes inactivos.');
+};
+
 export const checkCustomerCodeExists = async (code: string): Promise<boolean> => {
   const result = await sql`SELECT id FROM customers WHERE customer_code = ${code} LIMIT 1`;
   return result.length > 0;
-};
-
-export const importCustomers = async (rows: CustomerImportRow[]): Promise<CustomerImportResult> => {
-  // Agrupar filas por id_card
-  const grouped = new Map<string, { meta: Omit<CustomerImportRow, 'province' | 'canton' | 'district' | 'exact_address' | 'address_label' | 'is_default'>; addresses: { province: string; canton: string; district: string; exact_address: string; address_label: string; is_default: boolean }[] }>();
-
-  for (const row of rows) {
-    if (grouped.has(row.id_card)) {
-      const existing = grouped.get(row.id_card)!;
-      existing.addresses.push({
-        province: row.province,
-        canton: row.canton,
-        district: row.district,
-        exact_address: row.exact_address,
-        address_label: row.address_label ?? 'Casa',
-        is_default: row.is_default ?? false,
-      });
-    } else {
-      grouped.set(row.id_card, {
-        meta: {
-          id_card: row.id_card,
-          id_type: row.id_type,
-          first_name: row.first_name,
-          last_name: row.last_name,
-          email: row.email,
-          phone: row.phone,
-          customer_code: row.customer_code,
-          warehouse_codes: row.warehouse_codes,
-        },
-        addresses: [{
-          province: row.province,
-          canton: row.canton,
-          district: row.district,
-          exact_address: row.exact_address,
-          address_label: row.address_label ?? 'Casa',
-          is_default: row.is_default ?? false,
-        }],
-      });
-    }
-  }
-
-  let inserted = 0;
-  const errors: { id_card: string; reason: string }[] = [];
-
-  for (const [id_card, { meta, addresses }] of Array.from(grouped.entries())) {
-    try {
-      // Asegurar exactamente una dirección default
-      const hasDefault = addresses.some((a: { is_default: boolean }) => a.is_default);
-      if (!hasDefault) addresses[0].is_default = true;
-
-      const addressesJson = JSON.stringify(addresses);
-
-      if (meta.customer_code) {
-        const codeExists = await checkCustomerCodeExists(meta.customer_code);
-        if (codeExists) {
-          errors.push({ id_card, reason: `El código ${meta.customer_code} ya está en uso.` });
-          continue;
-        }
-      }
-
-      await sql`BEGIN`;
-      try {
-        // Código explícito de importación (cliente real ya asignado en otro
-        // sistema) vs. generado atómico para altas nuevas sin código propio.
-        // Las rutas vienen resueltas desde el servicio a partir de la columna
-        // `couriers` de la plantilla; sin ella se usa el predeterminado.
-        const { primaryCode: finalCode, assignments } = await resolveCustomerCodes(meta.warehouse_codes);
-
-        const [newCustomer] = await sql`
-          WITH new_cust AS (
-            INSERT INTO customers (id_card, id_type, first_name, last_name, email, phone, customer_code)
-            VALUES (
-              ${meta.id_card},
-              ${meta.id_type},
-              ${meta.first_name},
-              ${meta.last_name},
-              ${meta.email},
-              ${meta.phone},
-              ${finalCode}
-            )
-            RETURNING *
-          ),
-          ins_addr AS (
-            INSERT INTO customer_addresses (customer_id, province, canton, district, exact_address, address_label, is_default)
-            SELECT
-              new_cust.id,
-              (addr->>'province'),
-              (addr->>'canton'),
-              (addr->>'district'),
-              (addr->>'exact_address'),
-              COALESCE(addr->>'address_label', 'Casa'),
-              COALESCE((addr->>'is_default')::boolean, false)
-            FROM new_cust, jsonb_array_elements(${addressesJson}::jsonb) AS addr
-            RETURNING 1
-          )
-          SELECT new_cust.id FROM new_cust
-        `;
-
-        if (newCustomer) {
-          for (const a of assignments) {
-            await WarehouseRoutesRepository.assignCodeToCustomer(newCustomer.id, a.warehouseRouteId, a.code);
-          }
-        }
-
-        await sql`COMMIT`;
-        inserted++;
-      } catch (err) {
-        await sql`ROLLBACK`;
-        throw err;
-      }
-    } catch (err: any) {
-      const msg: string = err.message ?? 'Error desconocido';
-      if (msg.includes('customers_id_card_key') || msg.includes('duplicate key') && msg.includes('id_card')) {
-        errors.push({ id_card, reason: 'La cédula ya existe en el sistema.' });
-      } else if (msg.includes('customers_email_key') || msg.includes('duplicate key') && msg.includes('email')) {
-        errors.push({ id_card, reason: 'El correo ya está registrado en otro cliente.' });
-      } else {
-        errors.push({ id_card, reason: msg });
-      }
-    }
-  }
-
-  return { inserted, errors };
 };
 
 /**
@@ -672,6 +594,8 @@ const mapRowToCustomer = (raw: any): Customer => ({
   customer_type_name: raw.customer_type_name ?? null,
   customer_type_billing_mode: raw.customer_type_billing_mode ?? null,
   customer_type_discount_percent: raw.customer_type_discount_percent != null ? Number(raw.customer_type_discount_percent) : null,
+  win_back_sent_at: raw.win_back_sent_at ?? null,
+  win_back_pending: !!raw.win_back_pending,
   addresses: (raw.addresses_list || []).map((addr: any) => ({
     id: addr.id,
     customer_id: addr.customer_id,

@@ -26,7 +26,7 @@ export const CustomerTypeBadge: React.FC<{
 
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${MODE_STYLES[mode ?? 'NORMAL'] ?? MODE_STYLES.NORMAL} ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold px-2.5 py-1 rounded-full ${MODE_STYLES[mode ?? 'NORMAL'] ?? MODE_STYLES.NORMAL} ${className}`}
       title={mode === CustomerBillingMode.AL_COSTO ? 'Solo paga el costo real del courier' : undefined}
     >
       {name}
