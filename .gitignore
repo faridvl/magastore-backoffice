@@ -137,3 +137,6 @@ dist
 
 # Seeds de producción: contienen hashes de contraseñas reales
 scripts/prod/
+
+# Novedades: solo local (repo público)
+docs/novedades/
