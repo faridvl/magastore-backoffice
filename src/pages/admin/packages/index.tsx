@@ -8,8 +8,8 @@ import { PackagesContainer } from '@/components/containers/packages/packages-con
 const AdminPackagesPage: React.FC = () => {
     return (
         <>
-            <Head><title>Buscador de Paquetes | Magastore</title></Head>
-            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Buscador Logístico">
+            <Head><title>Rastrear paquete | Magastore</title></Head>
+            <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Rastrear paquete">
                 <PackagesContainer />
             </DashboardLayout>
         </>

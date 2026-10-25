@@ -9,11 +9,11 @@ const PackageDetailPage: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Detalle de Paquete | Sistema Médico</title>
+                <title>Paquete | Magastore</title>
             </Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Detalle del Paquete"
+                title="Paquete"
             >
                 <PackageDetailContainer />
             </DashboardLayout>

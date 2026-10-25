@@ -8,10 +8,10 @@ import { DeliveryMethodsContainer } from '@/components/containers/delivery-metho
 const DeliveryMethodsPage: React.FC = () => {
     return (
         <>
-            <Head><title>Métodos de Entrega | Magastore</title></Head>
+            <Head><title>Métodos de entrega | Magastore</title></Head>
             <DashboardLayout
                 contentStyle={BoxedLayoutStyle.FULL}
-                title="Métodos de Entrega"
+                title="Métodos de entrega"
             >
                 <DeliveryMethodsContainer />
             </DashboardLayout>

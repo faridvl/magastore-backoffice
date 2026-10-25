@@ -9,9 +9,9 @@ const BillingReportsPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Reportes de Facturación | Magastore</title>
+        <title>Reportes | Magastore</title>
       </Head>
-      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Reportes de Facturación">
+      <DashboardLayout contentStyle={BoxedLayoutStyle.FULL} title="Reportes">
         <BillingReportsContainer />
       </DashboardLayout>
     </>

@@ -10,7 +10,7 @@ export const getServerSideProps = authorizeServerSidePage(undefined, { adminOnly
 const DashboardPage: React.FC = () => {
   return (
     <>
-      <Head><title>Panel de Control | Magastore</title></Head>
+      <Head><title>Inicio | Magastore</title></Head>
       <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Inicio">
         <DashboardContainer />
       </DashboardLayout>

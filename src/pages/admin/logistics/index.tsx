@@ -9,9 +9,9 @@ const LogisticsPage: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Control Logístico | Magastore System</title>
+                <title>Paquetes | Magastore</title>
             </Head>
-            <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Gestión de Paquetes">
+            <DashboardLayout isMainPage contentStyle={BoxedLayoutStyle.FULL} title="Paquetes">
                 <LogisticsContainer />
             </DashboardLayout>
         </>

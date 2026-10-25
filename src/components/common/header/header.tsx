@@ -52,7 +52,7 @@ export function Header({
           {title && (
             <Typography
               variant={TypographyVariant.SUBTITLE}
-              className="text-slate-900 dark:text-white min-w-0 flex-1 truncate text-sm md:text-lg font-black"
+              className="text-slate-900 dark:text-white min-w-0 flex-1 line-clamp-2 break-words leading-tight text-sm md:text-lg font-black"
             >
               {title}
             </Typography>
@@ -68,7 +68,7 @@ export function Header({
             className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 p-2 sm:px-4 bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-600 dark:text-slate-400 hover:text-amber-600 rounded-xl transition-all border border-transparent hover:border-amber-100"
           >
             <Search size={18} />
-            <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">Rastrear Paquete</span>
+            <span className="hidden md:inline text-sm font-semibold">Rastrear paquete</span>
           </button>
 
           {primaryAction && (
@@ -89,7 +89,7 @@ export function Header({
                 <Typography variant={TypographyVariant.BODY_SEMIBOLD} className="text-[13px]">
                   {isLoading ? '...' : userName}
                 </Typography>
-                <Typography variant={TypographyVariant.CAPTION} className="text-primary uppercase font-black text-[9px]">
+                <Typography variant={TypographyVariant.CAPTION} className="text-primary font-semibold text-xs">
                   {userRole}
                 </Typography>
               </div>
