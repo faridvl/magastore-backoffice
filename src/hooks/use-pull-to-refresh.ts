@@ -17,6 +17,18 @@ type PullToRefreshHook = {
 };
 
 /**
+ * Un panel o modal encima de la página tiene su propio scroll: si el gesto se
+ * arma ahí, el preventDefault le impide al panel volver hacia arriba.
+ */
+function isInsideInnerScroll(target: Element, container: HTMLElement): boolean {
+    if (target.closest('[role="dialog"], [aria-modal="true"]')) return true;
+    for (let node: Element | null = target; node && node !== container; node = node.parentElement) {
+        if (node.scrollTop > 0) return true;
+    }
+    return false;
+}
+
+/**
  * Pull-to-refresh táctil para el contenedor scrolleable del dashboard.
  * Solo arma el gesto cuando el scroll está en el tope, de modo que
  * no interfiere con el desplazamiento normal de la lista.
@@ -59,6 +71,7 @@ export function usePullToRefresh({
         function handleTouchStart(event: TouchEvent) {
             if (!element || isRefreshingRef.current) return;
             if (element.scrollTop > 0) return;
+            if (!(event.target instanceof Element) || isInsideInnerScroll(event.target, element)) return;
 
             startYRef.current = event.touches[0].clientY;
             isPullingRef.current = true;

@@ -169,7 +169,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
       {isPanelOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 lg:items-center lg:p-6"
+          className="fixed inset-0 z-50 flex items-end justify-center overscroll-contain bg-slate-900/60 lg:items-center lg:p-6"
           onClick={() => setIsPanelOpen(false)}
         >
           <div
@@ -191,7 +191,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <h2 className="text-base font-bold text-slate-900">Filtros</h2>
             </div>
 
-            <div className="flex flex-col divide-y divide-slate-100 overflow-y-auto px-5">
+            <div className="flex flex-col divide-y divide-slate-100 overflow-y-auto overscroll-contain px-5">
               {fields.map((field) => {
                 const selected = selectedValues(field);
                 const multiple = isMultiple(field);
