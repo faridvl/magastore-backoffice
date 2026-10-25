@@ -284,3 +284,27 @@ comparaba en UTC y una factura emitida el último día del mes después de las 1
 "Cobrado" es lo cobrado de las facturas emitidas en el mes (pregunta abierta al dueño). No se puede
 recalcular el estimado ni agregar paquetes a una orden con factura, y no se liquida a Farid un mes
 que aún no termina (regla provisional, también en el API).
+
+## Un solo correo: comprobante de factura pagada, enviado con un botón (2026-10-24)
+
+Decisión final del dueño: el único correo al cliente es el comprobante de una factura pagada, y lo
+manda el operador con "Enviar por correo" en el modal de la factura. Se descartaron el correo
+automático al confirmar el estimado (la factura aún no está pagada y confundía), el de entrega al
+finalizar la orden y la migración 038 (`invoice_email_number`, "reemplaza a la factura…"). El
+botón ya tiene los métodos de pago y la fecha de pago a mano, y no hay que garantizar "una sola vez"
+con SQL: lo decide una persona.
+
+Sigue apagado hasta verificar el dominio: solo `EMAIL_NOTIFICATIONS_ENABLED=true` (valor exacto)
+llama a Resend, y el botón explica el motivo cuando no puede enviar (sin correo, apagado). Orden
+para activarlo en `.claude/docs/email-setup.md`.
+
+- El endpoint (`POST /api/billing/send-email`) exige `getActor`, valida el uuid y responde 409 si la
+  factura no está pagada, el cliente no tiene correo o el envío está apagado.
+- Robustez: cliente de Resend creado al enviar (sin `RESEND_API_KEY` no revienta al importar), tope
+  de 5 s, `idempotencyKey` `factura/<uuid>` (dos clics seguidos = un correo; reenviar el mismo día no
+  entrega otro) y log con nombre y código del error, sin correo ni nombre. Resend devuelve `error` en
+  vez de lanzar, así que `email.ts` lo convierte en excepción.
+- Se quitó `/api/email/test` (cualquier sesión podía mandar correos con el dominio del negocio).
+  `finalize` exige `getActor` como el resto de mutaciones.
+- Logo por defecto `magastore-logo-2026.png`: `magastore-logo-principal-transparente.png` da 404 en
+  producción.

@@ -1,6 +1,7 @@
 import { formatCrc } from '@/shared/utils/format-crc';
 import React, { useState } from 'react';
-import { CheckCircle2, Clock, XCircle, Package, FileDown } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, Package, FileDown, Mail } from 'lucide-react';
+import { toast } from 'sonner';
 import { Modal } from '@/components/common/modal/modal';
 import { PaymentMethodPicker } from '@/components/common/payment-method-picker/payment-method-picker';
 import { BillingDetail, ConsolidationPaymentStatus, PaymentMethod } from '@/types/logistics/logistics.types';
@@ -11,6 +12,7 @@ import { buildBillingBreakdown } from '@/shared/utils/billing-breakdown';
 import { PAYMENT_STATUS_LABEL } from '@/shared/constants/status-labels';
 import { formatWeight } from '@/shared/utils/format';
 import { formatBusinessDate } from '@/shared/utils/timezone';
+import { useSendInvoiceEmailMutation } from '@/shared/api/mutations/billing/use-send-invoice-email-mutation';
 
 const formatCRC = formatCrc;
 // "$6,00/lb × ₡482": coma decimal como el resto de la app.
@@ -48,6 +50,26 @@ export const BillingDetailModal: React.FC<Props> = ({
 }) => {
   const { data: deliveryMethodsData } = useDeliveryMethodsQuery();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const { sendInvoiceEmail, isPending: isSendingEmail } = useSendInvoiceEmailMutation();
+
+  // El comprobante solo existe para una factura pagada; si no se puede enviar, se dice por qué.
+  const emailBlockedReason = !billingDetail
+    ? null
+    : !billingDetail.customer_email?.trim()
+      ? 'El cliente no tiene correo registrado'
+      : !billingDetail.email_notifications_enabled
+        ? 'El envío de correos aún no está activado'
+        : null;
+
+  const handleSendEmail = async () => {
+    if (!billingDetail || isSendingEmail) return;
+    try {
+      const result = await sendInvoiceEmail(billingDetail.uuid);
+      toast.success(`Factura enviada a ${result.data.sent_to}`);
+    } catch (error) {
+      toast.error(error instanceof Error && error.message ? error.message : 'No se pudo enviar la factura. Intenta de nuevo.');
+    }
+  };
   const deliveryMethodLabel = resolveDeliveryMethodLabel(billingDetail?.delivery_method, deliveryMethodsData?.data);
 
   // Mismo desglose que el PDF de la factura: sale del monto real y no de la
@@ -88,6 +110,19 @@ export const BillingDetailModal: React.FC<Props> = ({
             {isMarkingPaid ? 'Procesando...' : 'Marcar como pagada'}
           </button>
         </>
+      )}
+      {billingDetail.is_paid && (
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleSendEmail}
+            disabled={isSendingEmail || emailBlockedReason !== null}
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Mail size={15} />
+            {isSendingEmail ? 'Enviando...' : 'Enviar por correo'}
+          </button>
+          {emailBlockedReason && <p className="text-center text-xs text-slate-500">{emailBlockedReason}</p>}
+        </div>
       )}
       <div className="grid grid-cols-2 gap-3">
         {onViewOrder && billingDetail.consolidation_uuid && (

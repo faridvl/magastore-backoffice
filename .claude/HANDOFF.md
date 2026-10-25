@@ -15,6 +15,7 @@
 - Logo oficial: `D:\Documentos\Docs_Clientes\Magastore\` (versiones transparentes en `public/logo/`).
 
 ## En qué estamos
+- **Chequeo de migraciones en cada PR a `main`** (`.github/workflows/migraciones-pr.yml`, check `migraciones`): lista las migraciones nuevas en el resumen y en un comentario del PR, y falla si se edita una migración de main o la numeración no es seguida. Falta verlo correr en el PR #7 y, si se quiere que bloquee, marcarlo como requerido en la protección de `main` (hoy `main` no tiene protección).
 - **Corrección de UX para iPad** (`.claude/docs/auditoria-ux-ipad.md`, todo el informe con Pulir). En develop: patrones comunes y cortes (`xl`=1200, `2xl`=1400), "el cliente nunca ve Panamá", ficha y listado de clientes, reglas del Operativo, casillero con "Copiar mensaje", filtros de Clientes como Órdenes (sin Importar), Órdenes (listado, detalle pasos 1-5, errores de lógica) y Paquetes (listado, detalle, registrar, rastrear). Evidencia: `%TEMP%/mg-capturas/evidencia/` y `%TEMP%/mg-capturas/ux-*/`.
 - Facturación y Reportes rehechos (filtros como Órdenes y Clientes, totales que cuadran con cada filtro, Reportes por día de Costa Rica, Farid con estado visible).
 - **Regla provisional (Reportes):** "Marcar pagado" de la participación de Farid queda deshabilitado para el mes en curso ("Se liquida al cerrar el mes"). Elegida por ser la más conservadora; confirmar con el dueño.
@@ -38,7 +39,7 @@
 
 ## Pase a producción (pendiente, lo hace el usuario)
 - **Ya visible en producción:** el rastreo público dice "Recibido en Panamá" / "Bodega Panamá" y devuelve notas internas del operador, y la plantilla de paquetes disponibles dice "bodega en Panamá". Lo corrige el próximo pase (código + migración 037).
-- **Correos:** hoy probablemente no llegan a los clientes: con el remitente por defecto `onboarding@resend.dev` Resend solo entrega al dueño de la cuenta. Confirmar en Vercel (`EMAIL_FROM`) o en el panel de Resend. El remitente será `notifications@magastorecr.com` cuando se verifique `magastorecr.com` (pasos en `.claude/docs/email-setup.md`). Pregunta abierta: ¿quieres los dos correos (factura y entrega), solo uno o ninguno?
+- **Correos:** hoy probablemente no llegan a los clientes: con el remitente por defecto `onboarding@resend.dev` Resend solo entrega al dueño de la cuenta. Confirmar en Vercel (`EMAIL_FROM`) o en el panel de Resend. El remitente será `notifications@magastorecr.com` cuando se verifique `magastorecr.com` (pasos en `.claude/docs/email-setup.md`). Un solo correo: comprobante de factura pagada, que el operador envía con un botón desde la factura (decisión del dueño, 2026-10-24). Apagado (`EMAIL_NOTIFICATIONS_ENABLED`) hasta verificar el dominio; pasos en `.claude/docs/email-setup.md`. Dev tiene `consolidations.invoice_email_number` sin uso, de una migración descartada.
 - **Antes del pase, en producción (solo lectura):** `SELECT code FROM whatsapp_templates WHERE body ~* 'panam|pty'`, `SELECT name, origin FROM courier_rates` y `SELECT origin, address_line, city, state FROM warehouse_routes`: nada que diga Panamá o PTY. Mitigación inmediata sin deploy: editar hoy en Ajustes de producción la plantilla "Paquetes disponibles" para quitar "en Panamá" (la 037 es idempotente y después no hace nada).
 - **Antes del pase, en producción (solo lectura), por las reglas del Operativo:**
   1. `SELECT status, count(*) FROM packages WHERE consolidation_id IS NULL GROUP BY status`. Lo normal es solo `PANAMA` (y `ENTREGADO`). `EN_TRAMITE` sin orden ya no se puede crear; los que existan, y los estados viejos (`MIAMI`, `TRANSITO`, `BODEGA_CR`, `DESPACHADO`…), se corrigen uno a uno en Logística > detalle del paquete > Cambiar estado: el selector muestra el estado actual aunque sea viejo y permite pasarlo a "En Bodega Panamá" (o decidir con el usuario si de verdad salió). Mientras existan, un paquete sin orden fuera de `PANAMA` no sale en Paquetes, el Operativo ni el aviso.
@@ -52,7 +53,11 @@
 - **Migración 037** (plantilla sin Panamá): aplicada en dev (2026-10-24; la plantilla de dev ya no decía Panamá, no cambió nada); falta producción.
 - **Pregunta abierta (Panamá):** el repo es público y el README, CLAUDE.md, el glosario, los seeds y el historial dicen que los paquetes pasan por Panamá. ¿Lo hacemos privado? (Lo decides tú; borrar el texto no basta por el historial.)
 - **Pregunta abierta (seguridad):** varias APIs solo comprueban que exista un token y no lo validan (`/api/logistics`, `customers/[id]/packages`, `dashboard/operations`): con cualquier `Authorization: Bearer x` devuelven paquetes con datos del cliente y el estado "PANAMA". Propuesta: una fase propia que valide el JWT en todos los handlers.
-- **Pregunta abierta:** qué base usa Vercel en producción (`MAGASTORE_DB_POSTGRES_URL` del entorno Production de Vercel).
+- **Verificado por el dueño (2026-10-24):**
+  - Base de producción: host `ep-blue-sky-aivra1o1-pooler.c-4.us-east-1.aws.neon.tech`, base `neondb`; distinta de la de desarrollo (`ep-falling-morning-aiwemn6e`).
+  - Environment `db-production` creado en GitHub: solo la rama `main`, con el secreto `DATABASE_URL` y las variables `EXPECTED_DATABASE_HOST` y `EXPECTED_DATABASE_NAME` (verificado por API).
+  - Consultas de solo lectura en producción, todo bien: sigue en la 027 (`current_step` no existe); los paquetes sin orden son solo `PANAMA` (5); no hay facturas pagadas sin `paid_at`; no hay facturas duplicadas por orden.
+  - **Lo único que falta para el pase:** el merge del PR faridvl/magastore-backoffice#7 fuera del horario del operador y, después, Run workflow con `aplicar` y `confirmar`.
 - **Antes del primer merge a `main`**, en GitHub → Settings → Environments → New environment `db-production` (no usar "Production": es de Vercel):
   1. Deployment branches → Selected branches → `main`.
   2. Environment secret `DATABASE_URL` = la URL de Vercel de arriba.

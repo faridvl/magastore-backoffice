@@ -96,7 +96,7 @@ Local: `.env.local`.
   `generatePreBilling`, `confirmPreBilling`, `consolidatePackages`, `markBillingAsPaid`,
   `courier-rates` (`toggleActive`, `setDefault`) y en `customers.repo.ts` el alta, las direcciones y la importación de clientes; también `logPackagesNotified`.
 - **`src/pages/api/test-db.ts`**: sin autenticación, devuelve el resultado de `SELECT NOW()` y el
-  mensaje de error crudo; `api/email/test.ts` solo pide que exista una cookie.
+  mensaje de error crudo.
 - **Cron `deactivate-inactive-customers`**: escritura masiva (clientes sin paquetes por 40 días);
   protegido con `CRON_SECRET`, se niega a correr sin él; `?days=` cambia el umbral.
 - **`packages.status`**: lo ve el cliente en el rastreo; cambiar valores exige migración y textos.

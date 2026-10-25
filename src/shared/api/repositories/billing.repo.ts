@@ -106,7 +106,7 @@ export const BillingRepository = {
     };
   },
 
-  getBillingDetail: async (uuid: string): Promise<BillingDetail | null> => {
+  getBillingDetail: async (uuid: string): Promise<Omit<BillingDetail, 'email_notifications_enabled'> | null> => {
     const rows = await sql`
       SELECT
         b.uuid,
@@ -116,6 +116,7 @@ export const BillingRepository = {
         COALESCE(c.first_name || ' ' || c.last_name, '') AS customer_name,
         c.customer_code,
         c.email AS customer_email,
+        c.first_name AS customer_first_name,
         con.total_weight_lb,
         b.total_weight_charged,
         b.applied_rate_usd,
@@ -155,7 +156,7 @@ export const BillingRepository = {
       WHERE b.uuid = ${uuid}
     `;
 
-    return (rows[0] as BillingDetail) || null;
+    return (rows[0] as Omit<BillingDetail, 'email_notifications_enabled'>) || null;
   },
 
   getBillingReports: async (

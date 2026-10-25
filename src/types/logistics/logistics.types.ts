@@ -333,6 +333,7 @@ export interface BillingDetail {
   customer_name: string;
   customer_code: string;
   customer_email: string;
+  customer_first_name: string;
   total_weight_lb: number;
   total_weight_charged: number;
   applied_rate_usd: number;
@@ -362,6 +363,8 @@ export interface BillingDetail {
   delivery_district: string | null;
   delivery_canton: string | null;
   delivery_province: string | null;
+  /** Si el servidor tiene encendido el envío de correos; el botón "Enviar por correo" depende de esto. */
+  email_notifications_enabled: boolean;
 }
 
 export interface GenerateInvoiceInput {

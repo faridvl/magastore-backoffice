@@ -30,6 +30,7 @@ MAGASTORE_DB_POSTGRES_URL=postgresql://...
 JWT_SECRET=your-secret-key
 RESEND_API_KEY=re_...
 EMAIL_FROM=notificaciones@tudominio.com
+EMAIL_NOTIFICATIONS_ENABLED=true                # opcional; sin el valor exacto true no se envían correos
 EMAIL_LOGO_URL=https://tudominio.com/logo.png   # opcional
 NEXT_PUBLIC_SITE_URL=https://magastorecr.com    # opcional
 NEXT_PUBLIC_WHATSAPP_NUMBER=506XXXXXXXX         # opcional
@@ -37,8 +38,9 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=506XXXXXXXX         # opcional
 
 - `MAGASTORE_DB_POSTGRES_URL` — string de conexión a Neon PostgreSQL
 - `JWT_SECRET` — secreto para firmar tokens JWT (expiran en 7 días). Es obligatoria: sin ella fallan el login, `/api/auth/me` y los endpoints que usan `getActor` (facturación y logística)
-- `RESEND_API_KEY` — para notificaciones de entrega y facturas por email
+- `RESEND_API_KEY` — para el comprobante de factura por email
 - `EMAIL_FROM` — dirección remitente que debe estar verificada en Resend
+- `EMAIL_NOTIFICATIONS_ENABLED` — interruptor de los correos al cliente: solo `true` envía. Para activarlos: verificar `magastorecr.com` en Resend → `EMAIL_FROM="Magastore <notifications@magastorecr.com>"` → `EMAIL_NOTIFICATIONS_ENABLED=true` en Vercel Production → redeploy (detalle en `.claude/docs/email-setup.md`)
 - `EMAIL_LOGO_URL` — URL pública del logo para los emails (opcional)
 - `NEXT_PUBLIC_SITE_URL` — dominio público usado en las meta tags OG/canonical del landing (opcional, default `https://magastorecr.com`)
 - `NEXT_PUBLIC_WHATSAPP_NUMBER` — número de contacto del negocio en formato `506XXXXXXXX`, sin `+` ni espacios. Alimenta los CTA del landing; si está ausente, los botones apuntan a `/tracking` (opcional)
@@ -55,7 +57,7 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=506XXXXXXXX         # opcional
 4. **Pre-factura** — antes de emitir la factura final se genera una pre-factura con estimación de costos (precio/lb desde `system_settings`, tipo de cambio, método de entrega) para la orden de envío. El operador la confirma con el cliente.
 5. **Factura final** — al confirmar la pre-factura se genera la factura definitiva con snapshot de tarifas vigentes. El monto queda fijo en el momento de facturar.
 6. **Cobro** — el operador marca la factura como pagada. El cliente puede descargar el PDF desde la página de tracking.
-7. **Notificaciones** — se envía email al cliente cuando su paquete es entregado y cuando se genera su factura, usando Resend con templates HTML.
+7. **Notificaciones** — el operador puede enviarle al cliente por email el comprobante de una factura pagada, usando Resend con templates HTML.
 
 ### Módulos del backoffice (`/admin`)
 
@@ -110,7 +112,7 @@ totalCRC       = (chargedWeight × price_per_lb × exchange_rate) + localFee
 
 ### Notificaciones
 
-Implementadas con Resend usando templates HTML (`src/lib/email-templates.ts`). Se disparan al marcar un paquete como `ENTREGADO` y al confirmar una pre-factura. Si `RESEND_API_KEY` no está configurada, las llamadas fallan silenciosamente — el flujo principal no se interrumpe.
+Un solo correo, con Resend y una plantilla HTML (`src/lib/email-templates.ts`): el comprobante de una factura pagada, que el operador envía con el botón "Enviar por correo" del modal de la factura (`POST /api/billing/send-email`). Sale solo con `EMAIL_NOTIFICATIONS_ENABLED=true`; apagado, o sin `RESEND_API_KEY`, el botón queda deshabilitado y no se llama a Resend.
 
 ### Tarifas Courier
 

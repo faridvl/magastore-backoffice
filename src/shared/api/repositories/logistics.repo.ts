@@ -942,39 +942,6 @@ export const LogisticsRepository = {
   },
 
   /**
-   * 7. GET PACKAGE CUSTOMER INFO: Datos del cliente para notificación al entregar.
-   */
-  getPackageCustomerInfo: async (
-    packageUuid: string,
-  ): Promise<{ email: string; first_name: string; tracking_number: string } | null> => {
-    const rows = await sql`
-      SELECT c.email, c.first_name, p.tracking_number
-      FROM packages p
-      JOIN customers c ON p.customer_id = c.id
-      WHERE p.uuid = ${packageUuid}
-      LIMIT 1
-    `;
-    return (rows[0] as { email: string; first_name: string; tracking_number: string }) ?? null;
-  },
-
-  /**
-   * 8. GET CONSOLIDATION CUSTOMER INFO: Datos del cliente para notificación al facturar.
-   */
-  getConsolidationCustomerInfo: async (
-    consolidationUuid: string,
-  ): Promise<{ email: string; first_name: string } | null> => {
-    const rows = await sql`
-      SELECT DISTINCT c.email, c.first_name
-      FROM consolidations con
-      JOIN packages p ON p.consolidation_id = con.id
-      JOIN customers c ON p.customer_id = c.id
-      WHERE con.uuid = ${consolidationUuid}
-      LIMIT 1
-    `;
-    return (rows[0] as { email: string; first_name: string }) ?? null;
-  },
-
-  /**
    * 9. VALIDATE PACKAGES BELONG TO CONSOLIDATION CUSTOMER: Verifica que todos los paquetes
    * a asignar pertenezcan al mismo cliente que la orden de envío.
    * Retorna el conteo de paquetes que NO coinciden.

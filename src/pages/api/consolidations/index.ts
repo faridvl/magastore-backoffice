@@ -5,6 +5,7 @@ import { EmptyOrderError } from '@/shared/api/empty-order-error';
 import { CookiesManager } from '@/shared/utils/cookies-manager';
 import { ConsolidationStatus } from '@/types/logistics/logistics.types';
 import { isUuid } from '@/shared/utils/is-uuid';
+import { getActor } from '@/shared/api/get-actor';
 
 const INVALID_CUSTOMER_MESSAGE = 'El identificador del cliente es inválido.';
 const INVALID_UUID_MESSAGE = 'El identificador de la orden de envío es inválido.';
@@ -192,6 +193,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (action === 'finalize') {
         if (!consolidationUuid) {
           return res.status(400).json({ message: 'consolidationUuid es requerido.' });
+        }
+        // Finalizar le escribe al cliente: exige una sesión verificada, no solo que exista la cookie.
+        if (!(await getActor({ req, res }))) {
+          return res.status(401).json({ message: 'No autorizado: Sesión inválida' });
         }
         await ConsolidationsService.finalizeOrder(consolidationUuid);
         return res.status(200).json({ data: { finalized: true } });

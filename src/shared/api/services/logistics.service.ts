@@ -18,7 +18,6 @@ import {
 } from '@/types/logistics/public-tracking.types';
 import { PaginatedResponse } from '@/types/paginate.types';
 import type { Actor } from '@/shared/api/get-actor';
-import { sendDeliveryNotification, sendInvoiceNotification } from '@/lib/email';
 import { CourierRatesRepository } from '../repositories/courier-rates.repo';
 import { WarehouseRoutesRepository } from '../repositories/warehouse-routes.repo';
 
@@ -366,21 +365,7 @@ export const LogisticsService = {
 
   confirmPreBilling: async (consolidationUuid: string, actor: Actor): Promise<{ billing_uuid: string }> => {
     try {
-      const result = await LogisticsRepository.confirmPreBilling(consolidationUuid, actor);
-      const customerInfo = await LogisticsRepository.getConsolidationCustomerInfo(consolidationUuid);
-      if (customerInfo) {
-        const [billing] = await Promise.resolve([result]);
-        if (billing?.billing_uuid) {
-          const { sendInvoiceNotification } = await import('@/lib/email');
-          sendInvoiceNotification({
-            to: customerInfo.email,
-            firstName: customerInfo.first_name,
-            totalAmountCRC: 0,
-            billingUuid: billing.billing_uuid,
-          }).catch((err) => console.error('[Email] Error enviando notificación de factura:', err));
-        }
-      }
-      return result;
+      return await LogisticsRepository.confirmPreBilling(consolidationUuid, actor);
     } catch (error: any) {
       if (error instanceof EmptyOrderError) throw error;
       console.error('[LogisticsService.confirmPreBilling]:', error);
@@ -430,19 +415,6 @@ export const LogisticsService = {
         evidenceUrl,
         location,
       );
-
-      if (status === PackageStatus.ENTREGADO) {
-        const customerInfo = await LogisticsRepository.getPackageCustomerInfo(uuid);
-        if (customerInfo) {
-          sendDeliveryNotification({
-            to: customerInfo.email,
-            firstName: customerInfo.first_name,
-            trackingNumber: customerInfo.tracking_number,
-          }).catch((err) =>
-            console.error('[Email] Error enviando notificación de entrega:', err),
-          );
-        }
-      }
 
       return updatedPackage;
     } catch (error: any) {
